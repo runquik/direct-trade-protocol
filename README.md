@@ -26,23 +26,28 @@ Food is the first target. The protocol is industry-agnostic.
 
 ## How It Works
 
+DTP is a **two-sided protocol**. Both buyers and sellers post proactively. The matching engine watches both sides and surfaces smart matches to both parties.
+
 ```
-Buyer posts TradeIntent
-       ↓
-Sellers post Offers
-       ↓
-Matching (off-chain scoring, on-chain commitment)
-       ↓
-Contract formed → Escrow locked
-       ↓
-Delivery + Attestation
-       ↓
-Settlement → Escrow released
+Buyer posts TradeIntent          Seller posts SupplyListing
+        ↓         ↘            ↙         ↓
+        ↓      Matching Engine           ↓
+        ↓      (continuous, both sides)  ↓
+        ↓         ↙            ↘         ↓
+   Seller receives match     Buyer receives match
+        ↓                              ↓
+        └──────── Contract formed ─────┘
+                       ↓
+                 Escrow locked
+                       ↓
+             Delivery + Attestation
+                       ↓
+             Settlement → Escrow released
 ```
 
 1. **TradeIntent** — A buyer broadcasts what they want: product, quantity, quality specs, required certifications, delivery window, price ceiling.
-2. **Offer** — Sellers respond with what they can provide, including their actual certifications, pricing, and delivery terms.
-3. **Matching** — Off-chain matching logic scores and ranks offers against the intent. The accepted match is committed on-chain.
+2. **SupplyListing** — A seller broadcasts what they have available: product, quantity, quality, certifications, pricing, and delivery terms — without waiting for a buyer to post first.
+3. **Matching** — The matching engine continuously evaluates both sides. When a TradeIntent aligns with a SupplyListing, both parties are notified. Either party can initiate contract formation from a match.
 4. **Contract + Escrow** — A smart contract locks buyer funds and encodes the agreed delivery conditions.
 5. **Fulfillment** — Seller delivers. Both parties attest to delivery on-chain.
 6. **Settlement** — Escrow releases to the seller. Reputation scores update. Audit trail is permanent.
@@ -84,6 +89,4 @@ Reference chain: [NEAR Protocol](https://near.org) (fast finality, agent-native 
 
 ## Built By
 
-[Ned](https://github.com/ned-for-good) and [George Milton](https://github.com/georgemilton).
-
-Rooted in George's 13 years building in the food industry (Yellowbird Foods). Designed to make the food supply chain work for producers, retailers, and communities — not extractive intermediaries.
+[Ned](https://github.com/ned-for-good) and [@runquik](https://github.com/runquik).

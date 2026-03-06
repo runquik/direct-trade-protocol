@@ -121,13 +121,32 @@ DRAFT → POSTED → MATCHED → CONTRACTED → FULFILLED → SETTLED
 
 ### 3.2 GoodsSpec
 
-Describes the goods being requested or offered. Used in both TradeIntent and Offer.
+Describes the goods being requested or offered. Used in TradeIntent, SupplyListing, and Offer.
 
 ```json
 {
   "category": "string",
   "product_name": "string",
   "description": "string",
+  "product_type": "commodity | branded | value_added",
+  "commodity_details": {
+    "country_of_origin": "string",
+    "farming_practices": ["string"],
+    "grade": "string",
+    "harvest_date": "ISO8601 | null"
+  },
+  "branded_details": {
+    "brand_name": "string",
+    "sku": "string",
+    "gtin": "string",
+    "upc": "string | null",
+    "manufacturer": "string"
+  },
+  "value_added_details": {
+    "process_type": "string",
+    "base_ingredients": ["string"],
+    "processing_facility": "string | null"
+  },
   "quantity": {
     "amount": "decimal",
     "unit": "string"
@@ -142,9 +161,16 @@ Describes the goods being requested or offered. Used in both TradeIntent and Off
 }
 ```
 
+**Product types:**
+- `commodity` — undifferentiated bulk goods defined by grade, origin, and certifications (e.g., bulk whole black peppercorns, raw cacao). `commodity_details` required.
+- `branded` — goods sold under a specific brand with individual unit identifiers (e.g., Yellowbird Habanero Sauce). `branded_details` required, including GTIN/SKU per unit.
+- `value_added` — goods transformed from a raw commodity through processing (e.g., IQF organic blueberries, cold-pressed olive oil). `value_added_details` required.
+
+Only the `*_details` block matching `product_type` is required. Others may be omitted.
+
 **Quantity units:** `lb`, `kg`, `oz`, `ton`, `case`, `pallet`, `unit`
 
-**Required certifications** are cert type strings (see 2.2). An offer that does not carry all required certifications is ineligible for matching.
+**Required certifications** are cert type strings (see 2.2). A listing or offer that does not carry all required certifications is ineligible for matching.
 
 ### 3.3 DeliverySpec
 
@@ -185,9 +211,47 @@ Describes the goods being requested or offered. Used in both TradeIntent and Off
 
 ---
 
-### 3.5 Offer
+### 3.5 SupplyListing
 
-An **Offer** is a seller's response to a posted TradeIntent.
+A **SupplyListing** is a seller's proactive broadcast of available inventory. It is the supply-side equivalent of a TradeIntent — sellers do not need to wait for a buyer to post first.
+
+```json
+{
+  "listing_id": "string",
+  "version": "string",
+  "seller": "PartyRef",
+  "goods": "GoodsSpec",
+  "delivery": "DeliverySpec",
+  "payment": {
+    "currency": "USDC",
+    "price_per_unit": "decimal",
+    "minimum_order_quantity": {
+      "amount": "decimal",
+      "unit": "string"
+    }
+  },
+  "certifications": ["CertificationRef"],
+  "available_from": "ISO8601",
+  "expires_at": "ISO8601",
+  "status": "ListingStatus",
+  "created_at": "ISO8601"
+}
+```
+
+**ListingStatus state machine:**
+```
+DRAFT → ACTIVE → MATCHED → CONTRACTED
+               ↘ EXPIRED
+               ↘ WITHDRAWN
+```
+
+When a SupplyListing matches a TradeIntent, both the seller (via the listing) and the buyer (via the intent) are notified. Either party may initiate contract formation from the match.
+
+---
+
+### 3.6 Offer
+
+An **Offer** is a seller's direct response to a posted TradeIntent, or a buyer's direct response to a posted SupplyListing. Offers are targeted (referencing a specific intent or listing), whereas TradeIntents and SupplyListings are broadcast.
 
 ```json
 {
@@ -330,33 +394,48 @@ Deductions (quantity shortfalls, quality disputes resolved in buyer's favor) red
 
 ## 4. Matching
 
-Matching is the process of pairing a TradeIntent with the best eligible Offer. In DTP, matching is **off-chain** — a solver (human or agent) scores and ranks offers, and the accepted match is committed on-chain.
+DTP matching is **bidirectional and continuous**. The matching engine watches both TradeIntents (buyer demand) and SupplyListings (seller supply) and surfaces smart matches to both parties when alignment is detected.
 
-This design keeps gas costs low and allows matching logic to evolve without contract upgrades.
+Matching is **off-chain** — a solver scores and ranks candidates, and the accepted match is committed on-chain. This keeps gas costs low and allows matching logic to evolve without contract upgrades.
 
-### 4.1 Eligibility Rules
+### 4.1 Match Types
 
-An offer is eligible for matching against an intent if and only if:
-1. The offer quantity ≥ intent required quantity
-2. The offer carries all certifications listed in `intent.goods.required_certifications`
-3. The offer price ≤ intent payment ceiling
-4. The offer delivery window overlaps with the intent delivery window
-5. The offer has not expired and has status `SUBMITTED`
+| Trigger | Candidates evaluated | Notified |
+|---|---|---|
+| New TradeIntent posted | All active SupplyListings | Buyer (top matches) + matching Sellers |
+| New SupplyListing posted | All active TradeIntents | Seller (top matches) + matching Buyers |
+| Direct Offer submitted | The specific intent or listing | The receiving party |
 
-### 4.2 Scoring
+### 4.2 Eligibility Rules
 
-Eligible offers are scored on four dimensions (equal weight in v0):
+A SupplyListing or Offer is eligible to match a TradeIntent if and only if:
+1. Quantity available ≥ intent required quantity (or minimum order quantity ≤ intent quantity)
+2. All certifications in `intent.goods.required_certifications` are present in the listing/offer
+3. Listing price per unit ≤ intent payment ceiling
+4. Delivery windows overlap
+5. The listing/offer has not expired and is in an active status
+
+Symmetrically, a TradeIntent is eligible to match a SupplyListing if and only if:
+1. Intent quantity ≥ listing minimum order quantity
+2. Intent does not require certifications the listing cannot provide
+3. Intent payment ceiling ≥ listing price
+4. Delivery windows overlap
+5. The intent has not expired and has status `POSTED`
+
+### 4.3 Scoring
+
+Eligible candidates are scored on four dimensions (equal weight in v0):
 
 | Dimension | Higher is better |
 |---|---|
-| Price (vs ceiling) | Lower price → higher score |
-| Delivery timing | Earlier delivery → higher score |
-| Seller reputation | Higher reputation.score → higher score |
+| Price alignment | Closer to ceiling (buyer) / asking price (seller) → higher score |
+| Delivery timing | Delivery window fit → higher score |
+| Party reputation | Higher `reputation.score` of counterparty → higher score |
 | Certification depth | More certs than required → higher score |
 
-The top 3 eligible offers are shortlisted and presented to the buyer for final acceptance.
+The top 3 candidates are surfaced to each party as recommended matches.
 
-### 4.3 Solver Role
+### 4.4 Solver Role
 
 In v0, the solver is a human operator or a simple scoring script. The protocol does not mandate solver implementation — any conforming matching algorithm may be used. Future versions will define a decentralized solver network.
 
