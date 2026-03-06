@@ -607,17 +607,64 @@ The seller's agent derives its floor price from `cogs_per_unit` and `minimum_mar
 
 ### 9.2 Buyer Agent Context
 
+The buyer's agent operates like an internal procurement officer: it knows the company's economics, inventory position, supplier history, and spending authority — and negotiates on behalf of the company without exposing any of that to the seller.
+
 ```json
 {
   "party_id": "string",
-  "budget_ceiling_per_unit": "decimal",
-  "quantity_guidelines": {
+  "input_cost_targets": [
+    {
+      "product_category": "string",
+      "target_cost_per_unit": "decimal",
+      "max_cost_per_unit": "decimal",
+      "notes": "string | null"
+    }
+  ],
+  "budget": {
+    "category_budgets": [
+      {
+        "category": "string",
+        "period": "string",
+        "total": "decimal",
+        "remaining": "decimal",
+        "currency": "USDC"
+      }
+    ],
+    "per_order_authority": "decimal"
+  },
+  "inventory": {
+    "items": [
+      {
+        "product_category": "string",
+        "on_hand": {"amount": "decimal", "unit": "string"},
+        "reorder_point": {"amount": "decimal", "unit": "string"},
+        "storage_constraints": ["ambient_only | refrigerated | frozen | limited_space"]
+      }
+    ]
+  },
+  "supplier_preferences": {
+    "preferred_party_ids": ["string"],
+    "excluded_party_ids": ["string"],
+    "sourcing_priorities": ["local | minority_owned | cooperative | certified_organic | fair_trade"]
+  },
+  "negotiation_guidelines": {
+    "auto_accept_at_or_below_target_cost": true,
+    "auto_counter_above_target_up_to_max": true,
+    "escalate_to_human_above_spend": "decimal",
     "auto_accept_tier_upgrade_if_savings_pct_gte": "decimal"
   }
 }
 ```
 
-The buyer's agent can autonomously accept a quantity tier upgrade if the per-unit savings meet or exceed the configured threshold — without requiring human input for every pricing decision.
+**`input_cost_targets`** — the buyer's internal cost economics. Not an arbitrary ceiling but a derived target based on their own product margins or operational budget. The agent negotiates toward `target_cost_per_unit` and treats `max_cost_per_unit` as a hard ceiling. Sellers never see these values.
+
+**`budget`** — category-level spending authority for the period and per-order autonomous spending limit. The agent escalates to a human for any order exceeding `per_order_authority`.
+
+**`inventory`** — current stock and reorder state. The agent factors this into urgency and quantity decisions. Storage constraints limit which offers are physically viable (e.g., a buyer with no cold storage cannot accept a refrigerated listing).
+
+**`supplier_preferences`** — preferred and excluded suppliers inform matching ranking. Sourcing priorities (local, cooperative, etc.) can be weighted in the scoring algorithm without being exposed as mandatory filters.
+
+**`negotiation_guidelines`** — defines the boundary of autonomous action. Within these bounds the agent acts without human input. Outside them it escalates.
 
 ### 9.3 TEE Integration
 
