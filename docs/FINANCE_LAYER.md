@@ -13,7 +13,7 @@ DTP finance is currently scoped to **wholesale buyers and wholesale sellers**.
 ## v1 model
 
 - Escrow remains the base settlement primitive.
-- Buyers can select constrained net terms (0/30/45/60/90).
+- Buyers are not required to select a term; balances can be repaid at any time.
 - Financing mode is either:
   - `escrow_only` (no external financer), or
   - `lp_pool` (single protocol LP lane in v1).
@@ -29,7 +29,7 @@ For financed wholesale trades (`lp_pool`):
 - Full payoff (principal + accrued interest + finance fees) is due by day 60.
 - PACA-covered produce obligations are due by day 30.
 
-This gives sellers immediate cashflow while keeping lender returns simple and legible.
+This gives sellers immediate cashflow while keeping lender returns simple and legible. In all cases, maturity is deterministic: day 60 standard maximum, day 30 for PACA-covered produce.
 
 ## Why this shape
 

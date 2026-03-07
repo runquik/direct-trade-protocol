@@ -262,7 +262,7 @@ pub enum FinancingMode {
 #[serde(crate = "near_sdk::serde")]
 pub struct FinanceTerms {
     pub payment_timing: PaymentTiming,
-    /// 0 means immediate at settlement event. Typical wholesale values: 30/45/60.
+    /// 0 means immediate at settlement event. In v1 this is capped at 60 days.
     pub net_days: u16,
     pub financing_mode: FinancingMode,
     /// Optional in v1; defaults to protocol pool when FinancingMode::LpPool.

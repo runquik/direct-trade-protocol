@@ -60,7 +60,7 @@ Buyer posts TradeIntent          Seller posts SupplyListing
 
 DTP v1 includes a simple finance layer for wholesale payment terms without turning the protocol into a lender marketplace on day one.
 
-Buyers can choose standard term options (for example net 0, 30, 45, or 60). In escrow-only mode, settlement follows normal escrow release. In LP mode, a single protocol liquidity pool can advance seller payment while buyer repayment follows the selected term schedule.
+Buyers are not required to pick a term schedule. In escrow-only mode, settlement follows normal escrow release. In LP mode, a single protocol liquidity pool can advance seller payment while buyer balances accrue daily financing and can be repaid at any time up to policy maturity limits.
 
 The first iteration intentionally keeps underwriting and lender routing simple:
 

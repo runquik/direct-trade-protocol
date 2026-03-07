@@ -108,11 +108,7 @@ impl DTPContract {
 
     fn validate_finance_terms(&self, finance: &Option<FinanceTerms>) {
         if let Some(f) = finance {
-            assert!(f.net_days <= 90, "net_days must be <= 90 in v1");
-            assert!(
-                f.net_days == 0 || f.net_days == 30 || f.net_days == 45 || f.net_days == 60 || f.net_days == 90,
-                "net_days must be one of: 0, 30, 45, 60, 90"
-            );
+            assert!(f.net_days <= 60, "net_days must be <= 60 in v1");
             assert!(f.finance_fee_bps <= 5000, "finance_fee_bps must be <= 5000");
 
             if matches!(f.financing_mode, FinancingMode::EscrowOnly) {

@@ -383,11 +383,12 @@ Used in both SupplyListings (seller side) and TradeIntents (buyer side). Replace
 ```
 
 **v1 constraints:**
-- `net_days` allowed values: `0`, `30`, `45`, `60`, `90`
+- `net_days` must be `<= 60` for standard financed wholesale trades
+- PACA-covered produce obligations cap effective due date at `30` calendar days
 - `financing_mode=escrow_only` must not set `liquidity_pool_id` or `financer_id`
 - `financing_mode=lp_pool` defaults to protocol LP if no pool is specified
 
-This is intentionally minimal in v1: one default LP lane, constrained term presets, and on-chain recording of financing terms per trade. Open lender/funder selection is deferred to v2.
+This is intentionally minimal in v1: one default LP lane and on-chain recording of financing terms per trade, with prepay-anytime and deterministic max due dates. Open lender/funder selection is deferred to v2.
 
 ### 3.6.2 v1 LP Finance Policy
 
