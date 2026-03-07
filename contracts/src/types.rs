@@ -274,6 +274,46 @@ pub struct FinanceTerms {
 }
 
 // ---------------------------------------------------------------------------
+// Freight (v1)
+// ---------------------------------------------------------------------------
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub enum FreightPayer {
+    Buyer,
+    Seller,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub enum FreightQuoteSource {
+    Project44,
+    ManualEstimate,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub struct FreightTerms {
+    /// Default policy in v1 is Buyer.
+    pub payer: FreightPayer,
+    /// Estimated freight amount in microdollars.
+    pub estimated_freight: Amount,
+    /// Allowance/credit applied against freight in microdollars.
+    pub freight_allowance: Amount,
+    pub quote_source: FreightQuoteSource,
+    /// Quote provider reference (id/hash) when available.
+    pub quote_ref: Option<String>,
+    /// Quote timestamp and expiry for staleness checks.
+    pub quoted_at: u64,
+    pub quote_expires_at: u64,
+    /// If true, freight was booked/locked at contract formation.
+    pub booked_at_contract: bool,
+}
+
+// ---------------------------------------------------------------------------
 // Delivery
 // ---------------------------------------------------------------------------
 
@@ -339,6 +379,7 @@ pub struct TradeIntent {
     pub delivery: DeliverySpec,
     pub pricing: BuyerPricing,
     pub finance: Option<FinanceTerms>,
+    pub freight: Option<FreightTerms>,
     pub expires_at: u64,
     pub status: IntentStatus,
     pub created_at: u64,
@@ -373,6 +414,7 @@ pub struct SupplyListing {
     pub delivery: DeliverySpec,
     pub pricing: SellerPricing,
     pub finance: Option<FinanceTerms>,
+    pub freight: Option<FreightTerms>,
     pub certifications: Vec<CertificationRef>,
     pub available_from: u64,
     pub expires_at: u64,
@@ -410,6 +452,7 @@ pub struct Offer {
     pub goods: GoodsSpec,
     pub delivery: DeliverySpec,
     pub finance: Option<FinanceTerms>,
+    pub freight: Option<FreightTerms>,
     /// Price per unit in microdollars
     pub price_per_unit: Amount,
     pub total_price: Amount,
@@ -459,6 +502,7 @@ pub struct TradeContract {
     pub goods: GoodsSpec,
     pub delivery: DeliverySpec,
     pub finance: Option<FinanceTerms>,
+    pub freight: Option<FreightTerms>,
     pub price_per_unit: Amount,
     pub total_value: Amount,
     /// TODO: replace with NEAR USDC NEP-141 escrow reference when integrating

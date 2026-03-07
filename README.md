@@ -62,6 +62,8 @@ DTP v1 includes a simple finance layer for wholesale payment terms without turni
 
 Buyers are not required to pick a term schedule. In escrow-only mode, settlement follows normal escrow release. In LP mode, a single protocol liquidity pool can advance seller payment while buyer balances accrue daily financing and can be repaid at any time up to policy maturity limits.
 
+Freight is treated as part of landed cost in v1. DTP uses Project44 as the default live quote source at offer/contract time, defaults freight payer to buyer, and supports booking freight at contract formation so delivered pricing and ship date are locked upfront.
+
 The first iteration intentionally keeps underwriting and lender routing simple:
 
 - one protocol LP pool (default)

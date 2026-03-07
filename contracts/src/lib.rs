@@ -118,6 +118,13 @@ impl DTPContract {
         }
     }
 
+    fn validate_freight_terms(&self, freight: &Option<FreightTerms>) {
+        if let Some(f) = freight {
+            assert!(f.quote_expires_at >= f.quoted_at, "freight quote expiry must be >= quoted_at");
+            assert!(f.estimated_freight >= f.freight_allowance, "freight_allowance cannot exceed estimated_freight");
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Party registration
     // -----------------------------------------------------------------------
@@ -164,11 +171,13 @@ impl DTPContract {
         delivery: DeliverySpec,
         pricing: BuyerPricing,
         finance: Option<FinanceTerms>,
+        freight: Option<FreightTerms>,
         expires_at: u64,
     ) -> String {
         let buyer = env::predecessor_account_id();
         self.require_party(&buyer);
         self.validate_finance_terms(&finance);
+        self.validate_freight_terms(&freight);
 
         let intent_id = self.next_id();
         let now = self.now_ms();
@@ -181,6 +190,7 @@ impl DTPContract {
             delivery,
             pricing,
             finance,
+            freight,
             expires_at,
             status: IntentStatus::Posted,
             created_at: now,
@@ -237,6 +247,7 @@ impl DTPContract {
         delivery: DeliverySpec,
         pricing: SellerPricing,
         finance: Option<FinanceTerms>,
+        freight: Option<FreightTerms>,
         certifications: Vec<CertificationRef>,
         available_from: u64,
         expires_at: u64,
@@ -244,6 +255,7 @@ impl DTPContract {
         let seller = env::predecessor_account_id();
         self.require_party(&seller);
         self.validate_finance_terms(&finance);
+        self.validate_freight_terms(&freight);
 
         let listing_id = self.next_id();
         let now = self.now_ms();
@@ -257,6 +269,7 @@ impl DTPContract {
             delivery,
             pricing,
             finance,
+            freight,
             certifications,
             available_from,
             expires_at,
@@ -313,6 +326,7 @@ impl DTPContract {
         goods: GoodsSpec,
         delivery: DeliverySpec,
         finance: Option<FinanceTerms>,
+        freight: Option<FreightTerms>,
         price_per_unit: Amount,
         total_price: Amount,
         certifications: Vec<CertificationRef>,
@@ -321,6 +335,7 @@ impl DTPContract {
         let offerer = env::predecessor_account_id();
         self.require_party(&offerer);
         self.validate_finance_terms(&finance);
+        self.validate_freight_terms(&freight);
 
         // Validate target exists and is in a matchable state
         match &target_type {
@@ -346,6 +361,7 @@ impl DTPContract {
             goods,
             delivery,
             finance,
+            freight,
             price_per_unit,
             total_price,
             certifications,
@@ -433,6 +449,29 @@ impl DTPContract {
             }
         };
 
+        // Landed-cost guardrail for buyer-targeted intents:
+        // if buyer pays freight, (goods total + net freight) must fit buyer ceiling.
+        if let Some(intent_ref) = &intent_id {
+            let intent = self.intents.get(intent_ref).cloned().expect("Intent not found");
+            let mut landed_total = offer.total_price;
+            if let Some(freight) = &offer.freight {
+                if matches!(freight.payer, FreightPayer::Buyer) {
+                    landed_total = landed_total.saturating_add(
+                        freight.estimated_freight.saturating_sub(freight.freight_allowance)
+                    );
+                }
+            }
+
+            let ceiling_total = (intent.pricing.ceiling_price_per_unit)
+                .saturating_mul(intent.goods.quantity.milliamount as u128)
+                / 1000u128;
+
+            assert!(
+                landed_total <= ceiling_total,
+                "landed cost exceeds buyer ceiling"
+            );
+        }
+
         offer.status = OfferStatus::Accepted;
         self.offers.insert(offer_id.clone(), offer.clone());
 
@@ -457,6 +496,7 @@ impl DTPContract {
             goods: offer.goods.clone(),
             delivery: offer.delivery.clone(),
             finance: offer.finance.clone(),
+            freight: offer.freight.clone(),
             price_per_unit: offer.price_per_unit,
             total_value: offer.total_price,
             escrow_ref,

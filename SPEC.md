@@ -190,6 +190,7 @@ A **TradeIntent** is a public declaration by a buyer of what they want to purcha
   "goods": "GoodsSpec",
   "delivery": "DeliverySpec",
   "payment": "PaymentSpec",
+  "freight": "FreightTerms | null",
   "expires_at": "ISO8601",
   "status": "IntentStatus",
   "created_at": "ISO8601",
@@ -277,6 +278,29 @@ Only the `*_details` block matching `product_type` is required. Others may be om
   "notes": "string | null"
 }
 ```
+
+### 3.3.1 FreightTerms (v1)
+
+```json
+{
+  "payer": "buyer | seller",
+  "estimated_freight": "decimal",
+  "freight_allowance": "decimal",
+  "quote_source": "project44 | manual_estimate",
+  "quote_ref": "string | null",
+  "quoted_at": "ISO8601",
+  "quote_expires_at": "ISO8601",
+  "booked_at_contract": true
+}
+```
+
+v1 defaults:
+- `payer=buyer`
+- quote source defaults to `project44` for live freight pricing when available
+- freight can be booked at contract formation to lock delivered pricing and ship date
+
+Guardrail:
+- buyer ceiling checks are applied to landed cost (goods + buyer-paid net freight), not FOB goods price alone.
 
 ### 3.4 PackStructure
 
@@ -423,6 +447,7 @@ A **SupplyListing** is a seller's proactive broadcast of available inventory. It
       "unit": "string"
     }
   },
+  "freight": "FreightTerms | null",
   "certifications": ["CertificationRef"],
   "available_from": "ISO8601",
   "expires_at": "ISO8601",
@@ -459,6 +484,7 @@ An **Offer** is a seller's direct response to a posted TradeIntent, or a buyer's
     "price_per_unit": "decimal",
     "total_price": "decimal"
   },
+  "freight": "FreightTerms | null",
   "certifications": ["CertificationRef"],
   "expires_at": "ISO8601",
   "status": "OfferStatus",
@@ -481,6 +507,8 @@ An offer must be for the same or greater quantity and must carry all certificati
 
 A **Contract** is formed when a buyer accepts an offer. It is the binding record of the agreed trade terms and triggers escrow.
 
+In v1, freight may be booked at contract formation (`booked_at_contract=true`) so delivered pricing and ship date are locked upfront.
+
 ```json
 {
   "contract_id": "string",
@@ -497,6 +525,7 @@ A **Contract** is formed when a buyer accepts an offer. It is the binding record
     "total_value": "decimal",
     "escrow_ref": "string"
   },
+  "freight": "FreightTerms | null",
   "dispute_window_hours": "integer",
   "arbitrator": "PartyRef | null",
   "status": "ContractStatus",
