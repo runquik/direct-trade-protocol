@@ -110,4 +110,4 @@ Reference chain: [NEAR Protocol](https://near.org) (fast finality, agent-native 
 
 ## Built By
 
-[Ned](https://github.com/ned-for-good) and [@runquik](https://github.com/runquik).
+[Ned For Good](https://github.com/ned-for-good) and [George Milton](https://github.com/runquik).
