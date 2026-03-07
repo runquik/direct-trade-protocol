@@ -19,6 +19,18 @@ DTP finance is currently scoped to **wholesale buyers and wholesale sellers**.
   - `lp_pool` (single protocol LP lane in v1).
 - Financing terms are recorded on-chain in intent/listing/offer/contract records.
 
+## v1 LP finance policy defaults
+
+For financed wholesale trades (`lp_pool`):
+
+- LP yield target is fixed at 30% effective APR.
+- Interest compounds daily.
+- Buyer can prepay at any time with no prepayment penalty.
+- Full payoff (principal + accrued interest + finance fees) is due by day 60.
+- PACA-covered produce obligations are due by day 30.
+
+This gives sellers immediate cashflow while keeping lender returns simple and legible.
+
 ## Why this shape
 
 This keeps buyer UX simple, keeps seller economics predictable, and lets DTP collect repayment-quality data before opening lender routing and lender marketplaces.

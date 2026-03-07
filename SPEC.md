@@ -389,6 +389,18 @@ Used in both SupplyListings (seller side) and TradeIntents (buyer side). Replace
 
 This is intentionally minimal in v1: one default LP lane, constrained term presets, and on-chain recording of financing terms per trade. Open lender/funder selection is deferred to v2.
 
+### 3.6.2 v1 LP Finance Policy
+
+For financed wholesale trades using `financing_mode=lp_pool`, the protocol applies the following defaults:
+
+- Interest accrues at a fixed **30% effective APR**.
+- Accrual compounds **daily**.
+- Buyer may prepay at any time without penalty.
+- Balance is due in full (principal + accrued interest + protocol finance fees) no later than the **60th calendar day** from financing start.
+- For produce suppliers covered by **PACA** protections, full payoff is due no later than the **30th calendar day**.
+
+These rules are protocol policy defaults for v1 and are intended to be deterministic in contract execution.
+
 ---
 
 ### 3.5 SupplyListing
