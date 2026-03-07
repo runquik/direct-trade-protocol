@@ -10,6 +10,8 @@
 
 The Direct Trade Protocol (DTP) defines a standard set of message schemas, state machines, and settlement rules for coordinating the trade of physical goods between two parties without a broker or intermediary.
 
+**Scope (v0/v1):** wholesale buyer ↔ wholesale seller trade flows only.
+
 A DTP implementation consists of:
 - **Messages** — structured data objects passed between parties
 - **State machines** — valid states and transitions for intents, offers, contracts, and fulfillments
@@ -360,11 +362,32 @@ Used in both SupplyListings (seller side) and TradeIntents (buyer side). Replace
 {
   "pricing": "PricingStructure",
   "escrow_required": true,
-  "payment_on": "delivery_attestation | inspection_period_end"
+  "payment_on": "delivery_attestation | inspection_period_end",
+  "finance": "FinanceTerms | null"
 }
 ```
 
-`escrow_required` is always `true` in v0.
+`escrow_required` is always `true` in v0/v1.
+
+### 3.6.1 FinanceTerms (v1)
+
+```json
+{
+  "payment_timing": "delivery_attestation | inspection_period_end",
+  "net_days": 0,
+  "financing_mode": "escrow_only | lp_pool",
+  "liquidity_pool_id": "string | null",
+  "financer_id": "PartyRef | null",
+  "finance_fee_bps": 0
+}
+```
+
+**v1 constraints:**
+- `net_days` allowed values: `0`, `30`, `45`, `60`, `90`
+- `financing_mode=escrow_only` must not set `liquidity_pool_id` or `financer_id`
+- `financing_mode=lp_pool` defaults to protocol LP if no pool is specified
+
+This is intentionally minimal in v1: one default LP lane, constrained term presets, and on-chain recording of financing terms per trade. Open lender/funder selection is deferred to v2.
 
 ---
 

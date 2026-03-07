@@ -12,6 +12,8 @@ Think of it like HTTP for commerce: HTTP defines how computers exchange informat
 
 DTP is **not** an app, a marketplace, or a company. It is infrastructure.
 
+Current v0 scope is specifically **wholesale buyers and wholesale sellers** (B2B physical goods).
+
 ---
 
 ## Why It Exists
@@ -51,6 +53,23 @@ Buyer posts TradeIntent          Seller posts SupplyListing
 4. **Contract + Escrow** — A smart contract locks buyer funds and encodes the agreed delivery conditions.
 5. **Fulfillment** — Seller delivers. Both parties attest to delivery on-chain.
 6. **Settlement** — Escrow releases to the seller. Reputation scores update. Audit trail is permanent.
+
+---
+
+## Finance Layer (v1)
+
+DTP v1 includes a simple finance layer for wholesale payment terms without turning the protocol into a lender marketplace on day one.
+
+Buyers can choose standard term options (for example net 0, 30, 45, or 60). In escrow-only mode, settlement follows normal escrow release. In LP mode, a single protocol liquidity pool can advance seller payment while buyer repayment follows the selected term schedule.
+
+The first iteration intentionally keeps underwriting and lender routing simple:
+
+- one protocol LP pool (default)
+- constrained term options
+- on-chain recording of financing terms per trade
+- future-compatible fields for buyer-selected funding partner and pool choice
+
+This gives immediate utility for working-capital pressure while preserving a clean path toward deeper DeFi integration in later versions.
 
 ---
 

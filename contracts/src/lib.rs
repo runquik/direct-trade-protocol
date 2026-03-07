@@ -106,6 +106,22 @@ impl DTPContract {
         assert_eq!(env::predecessor_account_id(), self.owner, "Owner only");
     }
 
+    fn validate_finance_terms(&self, finance: &Option<FinanceTerms>) {
+        if let Some(f) = finance {
+            assert!(f.net_days <= 90, "net_days must be <= 90 in v1");
+            assert!(
+                f.net_days == 0 || f.net_days == 30 || f.net_days == 45 || f.net_days == 60 || f.net_days == 90,
+                "net_days must be one of: 0, 30, 45, 60, 90"
+            );
+            assert!(f.finance_fee_bps <= 5000, "finance_fee_bps must be <= 5000");
+
+            if matches!(f.financing_mode, FinancingMode::EscrowOnly) {
+                assert!(f.liquidity_pool_id.is_none(), "EscrowOnly cannot set liquidity_pool_id");
+                assert!(f.financer_id.is_none(), "EscrowOnly cannot set financer_id");
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Party registration
     // -----------------------------------------------------------------------
@@ -151,10 +167,12 @@ impl DTPContract {
         goods: GoodsSpec,
         delivery: DeliverySpec,
         pricing: BuyerPricing,
+        finance: Option<FinanceTerms>,
         expires_at: u64,
     ) -> String {
         let buyer = env::predecessor_account_id();
         self.require_party(&buyer);
+        self.validate_finance_terms(&finance);
 
         let intent_id = self.next_id();
         let now = self.now_ms();
@@ -166,6 +184,7 @@ impl DTPContract {
             goods,
             delivery,
             pricing,
+            finance,
             expires_at,
             status: IntentStatus::Posted,
             created_at: now,
@@ -221,12 +240,14 @@ impl DTPContract {
         pack_structure: PackStructure,
         delivery: DeliverySpec,
         pricing: SellerPricing,
+        finance: Option<FinanceTerms>,
         certifications: Vec<CertificationRef>,
         available_from: u64,
         expires_at: u64,
     ) -> String {
         let seller = env::predecessor_account_id();
         self.require_party(&seller);
+        self.validate_finance_terms(&finance);
 
         let listing_id = self.next_id();
         let now = self.now_ms();
@@ -239,6 +260,7 @@ impl DTPContract {
             pack_structure,
             delivery,
             pricing,
+            finance,
             certifications,
             available_from,
             expires_at,
@@ -294,6 +316,7 @@ impl DTPContract {
         target_type: OfferTargetType,
         goods: GoodsSpec,
         delivery: DeliverySpec,
+        finance: Option<FinanceTerms>,
         price_per_unit: Amount,
         total_price: Amount,
         certifications: Vec<CertificationRef>,
@@ -301,6 +324,7 @@ impl DTPContract {
     ) -> String {
         let offerer = env::predecessor_account_id();
         self.require_party(&offerer);
+        self.validate_finance_terms(&finance);
 
         // Validate target exists and is in a matchable state
         match &target_type {
@@ -325,6 +349,7 @@ impl DTPContract {
             offerer: offerer.clone(),
             goods,
             delivery,
+            finance,
             price_per_unit,
             total_price,
             certifications,
@@ -435,6 +460,7 @@ impl DTPContract {
             seller: seller.clone(),
             goods: offer.goods.clone(),
             delivery: offer.delivery.clone(),
+            finance: offer.finance.clone(),
             price_per_unit: offer.price_per_unit,
             total_value: offer.total_price,
             escrow_ref,

@@ -236,6 +236,44 @@ pub struct BuyerPricing {
 }
 
 // ---------------------------------------------------------------------------
+// Finance (v1)
+// ---------------------------------------------------------------------------
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub enum PaymentTiming {
+    DeliveryAttestation,
+    InspectionPeriodEnd,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub enum FinancingMode {
+    /// Buyer pays from escrow at settlement (no external financer)
+    EscrowOnly,
+    /// Invoice financed by a single DTP LP pool in v1
+    LpPool,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub struct FinanceTerms {
+    pub payment_timing: PaymentTiming,
+    /// 0 means immediate at settlement event. Typical wholesale values: 30/45/60.
+    pub net_days: u16,
+    pub financing_mode: FinancingMode,
+    /// Optional in v1; defaults to protocol pool when FinancingMode::LpPool.
+    pub liquidity_pool_id: Option<String>,
+    /// Optional funding partner account (future-proof for v2 lender selection).
+    pub financer_id: Option<AccountId>,
+    /// Protocol finance fee in basis points.
+    pub finance_fee_bps: u16,
+}
+
+// ---------------------------------------------------------------------------
 // Delivery
 // ---------------------------------------------------------------------------
 
@@ -300,6 +338,7 @@ pub struct TradeIntent {
     pub goods: GoodsSpec,
     pub delivery: DeliverySpec,
     pub pricing: BuyerPricing,
+    pub finance: Option<FinanceTerms>,
     pub expires_at: u64,
     pub status: IntentStatus,
     pub created_at: u64,
@@ -333,6 +372,7 @@ pub struct SupplyListing {
     pub pack_structure: PackStructure,
     pub delivery: DeliverySpec,
     pub pricing: SellerPricing,
+    pub finance: Option<FinanceTerms>,
     pub certifications: Vec<CertificationRef>,
     pub available_from: u64,
     pub expires_at: u64,
@@ -369,6 +409,7 @@ pub struct Offer {
     pub offerer: AccountId,
     pub goods: GoodsSpec,
     pub delivery: DeliverySpec,
+    pub finance: Option<FinanceTerms>,
     /// Price per unit in microdollars
     pub price_per_unit: Amount,
     pub total_price: Amount,
@@ -417,6 +458,7 @@ pub struct TradeContract {
     pub seller: AccountId,
     pub goods: GoodsSpec,
     pub delivery: DeliverySpec,
+    pub finance: Option<FinanceTerms>,
     pub price_per_unit: Amount,
     pub total_value: Amount,
     /// TODO: replace with NEAR USDC NEP-141 escrow reference when integrating
