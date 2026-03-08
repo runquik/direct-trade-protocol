@@ -1354,6 +1354,103 @@ impl DTPContract {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Bidirectional match discovery
+    // -----------------------------------------------------------------------
+
+    /// Given a buyer's intent, scan all active listings and return eligible
+    /// matches sorted by score descending.  Pagination is applied after
+    /// sorting so the caller always gets the best matches at offset 0.
+    ///
+    /// Only listings with status Active are considered.
+    pub fn find_matches_for_intent(
+        &self,
+        intent_id: String,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<RankedMatch> {
+        let intent = self.intents.get(&intent_id).cloned().expect("Intent not found");
+        let now = self.now_ms();
+
+        let mut matches: Vec<RankedMatch> = self
+            .listings
+            .iter()
+            .filter(|(_, l)| l.status == ListingStatus::Active)
+            .filter_map(|(listing_id, listing)| {
+                let seller_rep = self.parties.get(&listing.seller).map(|p| p.reputation.score);
+                let listing_catalog_id = listing.lot_id.as_ref()
+                    .and_then(|lid| self.lots.get(lid))
+                    .map(|lot| lot.catalog_id.clone());
+                let result = matching::check_listing_vs_intent(
+                    &intent, listing, now, seller_rep, listing_catalog_id,
+                );
+                if result.eligible {
+                    Some(RankedMatch {
+                        intent_id: intent_id.clone(),
+                        listing_id: listing_id.clone(),
+                        score: result.score,
+                        reasons: vec![],
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        matches.sort_by(|a, b| b.score.cmp(&a.score));
+        matches
+            .into_iter()
+            .skip(offset as usize)
+            .take(limit as usize)
+            .collect()
+    }
+
+    /// Given a seller's listing, scan all posted intents and return eligible
+    /// matches sorted by score descending.
+    ///
+    /// Only intents with status Posted are considered.
+    pub fn find_matches_for_listing(
+        &self,
+        listing_id: String,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<RankedMatch> {
+        let listing = self.listings.get(&listing_id).cloned().expect("Listing not found");
+        let now = self.now_ms();
+        let seller_rep = self.parties.get(&listing.seller).map(|p| p.reputation.score);
+        let listing_catalog_id = listing.lot_id.as_ref()
+            .and_then(|lid| self.lots.get(lid))
+            .map(|lot| lot.catalog_id.clone());
+
+        let mut matches: Vec<RankedMatch> = self
+            .intents
+            .iter()
+            .filter(|(_, i)| i.status == IntentStatus::Posted)
+            .filter_map(|(intent_id, intent)| {
+                let result = matching::check_listing_vs_intent(
+                    intent, &listing, now, seller_rep, listing_catalog_id.clone(),
+                );
+                if result.eligible {
+                    Some(RankedMatch {
+                        intent_id: intent_id.clone(),
+                        listing_id: listing_id.clone(),
+                        score: result.score,
+                        reasons: vec![],
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        matches.sort_by(|a, b| b.score.cmp(&a.score));
+        matches
+            .into_iter()
+            .skip(offset as usize)
+            .take(limit as usize)
+            .collect()
+    }
+
     /// Return tier comparison data for a buyer considering a listing.
     pub fn get_tier_comparisons(&self, intent_id: String, listing_id: String) -> Vec<TierComparisonResult> {
         let intent = self.intents.get(&intent_id).cloned().expect("Intent not found");
@@ -1648,6 +1745,21 @@ pub struct MatchResult {
     pub reasons: Vec<String>,
 }
 
+/// A single entry in a bidirectional match-discovery result set.
+/// Returned by find_matches_for_intent and find_matches_for_listing,
+/// sorted by score descending (best match first).
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
+#[serde(crate = "near_sdk::serde")]
+#[borsh(crate = "near_sdk::borsh")]
+pub struct RankedMatch {
+    pub intent_id: String,
+    pub listing_id: String,
+    /// Composite match score 0–10000 (higher is better).
+    pub score: u32,
+    /// Reserved for future use (ineligible results with failure reasons).
+    pub reasons: Vec<String>,
+}
+
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
 #[serde(crate = "near_sdk::serde")]
 #[borsh(crate = "near_sdk::borsh")]
@@ -1865,5 +1977,133 @@ mod tests {
         let catalog_id = c.create_catalog_entry(sample_catalog_entry());
         let lot_id = c.create_lot(sample_lot(catalog_id));
         c.allocate_lot(&lot_id, 600_000); // more than 500 lb total
+    }
+
+    fn sample_goods_spec(qty_milliamount: u64, ceiling_or_ask: u128) -> (GoodsSpec, DeliverySpec, BuyerPricing, SellerPricing) {
+        let goods = GoodsSpec {
+            category: "food.produce.berries".to_string(),
+            product_name: "IQF Blueberries".to_string(),
+            description: "Frozen blueberries".to_string(),
+            product_type: ProductType::Commodity,
+            commodity_details: None,
+            branded_details: None,
+            value_added_details: None,
+            quantity: Quantity::new(qty_milliamount, "lb"),
+            grade: "USDA Fancy".to_string(),
+            quality_specs: vec![],
+            required_certifications: vec![],
+            packaging: "case".to_string(),
+            shelf_life_days: None,
+        };
+        // delivery window: 2000..4000 ms (test epoch)
+        let delivery = DeliverySpec {
+            destination_city: "Portland".to_string(),
+            destination_state: "OR".to_string(),
+            destination_zip: "97201".to_string(),
+            destination_country: "US".to_string(),
+            window_earliest: 2000,
+            window_latest: 4000,
+            method: DeliveryMethod::Delivered,
+            temperature: None,
+            notes: None,
+        };
+        let buyer_pricing = BuyerPricing { ceiling_price_per_unit: ceiling_or_ask };
+        let seller_pricing = SellerPricing {
+            model: PricingModel::Flat,
+            asking_price_per_unit: ceiling_or_ask,
+            tiers: vec![],
+        };
+        (goods, delivery, buyer_pricing, seller_pricing)
+    }
+
+    fn insert_intent(c: &mut DTPContract, buyer: AccountId, qty: u64, ceiling: u128, expires_at: u64) -> String {
+        let (goods, delivery, pricing, _) = sample_goods_spec(qty, ceiling);
+        let id = format!("int-test-{}", c.intents.len());
+        let intent = TradeIntent {
+            intent_id: id.clone(),
+            version: "0.1".to_string(),
+            buyer,
+            catalog_id: None,
+            goods,
+            delivery,
+            pricing,
+            finance: None,
+            freight: None,
+            expires_at,
+            status: IntentStatus::Posted,
+            created_at: 0,
+            updated_at: 0,
+        };
+        c.intents.insert(id.clone(), intent);
+        id
+    }
+
+    fn insert_listing(c: &mut DTPContract, seller: AccountId, qty: u64, ask: u128, expires_at: u64) -> String {
+        let (goods, delivery, _, pricing) = sample_goods_spec(qty, ask);
+        let id = format!("lst-test-{}", c.listings.len());
+        let listing = SupplyListing {
+            listing_id: id.clone(),
+            version: "0.1".to_string(),
+            seller,
+            lot_id: None,
+            goods,
+            pack_structure: PackStructure {
+                unit_size: Quantity::new(1000, "lb"),
+                units_per_case: 1,
+                cases_per_pallet: 40,
+                pallets_per_truckload: None,
+                moq: Quantity::new(1000, "lb"),
+                moq_label: "1 lb".to_string(),
+            },
+            delivery,
+            pricing,
+            finance: None,
+            freight: None,
+            certifications: vec![],
+            available_from: 0,
+            expires_at,
+            status: ListingStatus::Active,
+            created_at: 0,
+        };
+        c.listings.insert(id.clone(), listing);
+        id
+    }
+
+    #[test]
+    fn find_matches_for_intent_returns_eligible_listings() {
+        let mut c = setup_with_party();
+        let seller: AccountId = "seller.testnet".parse().unwrap();
+
+        // Intent: 100 lb, ceiling $2.00/lb (2_000_000 microdollars), expires far future
+        let intent_id = insert_intent(&mut c, owner(), 100_000, 2_000_000, u64::MAX);
+
+        // Matching listing: 200 lb (≥100), ask $1.80 (≤$2.00 ceiling), overlapping window
+        let _good_id = insert_listing(&mut c, seller.clone(), 200_000, 1_800_000, u64::MAX);
+        // Non-matching listing: ask $2.50 (exceeds ceiling)
+        let _bad_id = insert_listing(&mut c, seller, 200_000, 2_500_000, u64::MAX);
+
+        let results = c.find_matches_for_intent(intent_id, 0, 10);
+        assert_eq!(results.len(), 1, "Only one listing should be eligible");
+        assert_eq!(results[0].listing_id, _good_id);
+        assert!(results[0].score > 0);
+    }
+
+    #[test]
+    fn find_matches_for_listing_returns_eligible_intents() {
+        let mut c = setup_with_party();
+        let buyer: AccountId = "buyer.testnet".parse().unwrap();
+
+        // Listing: 500 lb at $1.50/lb
+        let listing_id = insert_listing(&mut c, owner(), 500_000, 1_500_000, u64::MAX);
+
+        // Eligible intent: wants 100 lb, ceiling $2.00 (≥ ask $1.50), overlapping window
+        let _good_id = insert_intent(&mut c, buyer.clone(), 100_000, 2_000_000, u64::MAX);
+        // Ineligible intent: ceiling $1.00 < ask $1.50
+        let _bad_id = insert_intent(&mut c, buyer, 100_000, 1_000_000, u64::MAX);
+
+        let results = c.find_matches_for_listing(listing_id, 0, 10);
+        assert_eq!(results.len(), 1, "Only one intent should be eligible");
+        assert_eq!(results[0].intent_id, _good_id);
+        assert!(results[0].score > 0);
     }
 }
