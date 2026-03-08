@@ -46,6 +46,7 @@ pub struct DTPContract {
     pub settlements: IterableMap<String, Settlement>,
     pub standing_agreements: IterableMap<String, StandingAgreement>,
     pub relationships: LookupMap<String, RelationshipRecord>,
+    pub finance_pools: LookupMap<String, FinancePool>,
 
     /// Append-only audit trail
     pub audit_log: Vector<AuditEvent>,
@@ -80,6 +81,7 @@ impl DTPContract {
             settlements: IterableMap::new(b"s"),
             standing_agreements: IterableMap::new(b"a"),
             relationships: LookupMap::new(b"r"),
+            finance_pools: LookupMap::new(b"n"),
             audit_log: Vector::new(b"e"),
             audit_index: LookupMap::new(b"x"),
             id_counter: 0,
@@ -301,8 +303,11 @@ impl DTPContract {
     // -----------------------------------------------------------------------
 
     /// Post a new SupplyListing. Caller must be a registered party.
+    /// If `lot_id` is provided the listing is backed by that specific GoodsLot;
+    /// the lot must be owned by the caller and have available quantity.
     pub fn post_listing(
         &mut self,
+        lot_id: Option<String>,
         goods: GoodsSpec,
         pack_structure: PackStructure,
         delivery: DeliverySpec,
@@ -318,6 +323,16 @@ impl DTPContract {
         self.validate_finance_terms(&finance);
         self.validate_freight_terms(&freight);
 
+        // Validate lot ownership if a lot is being linked
+        if let Some(ref lid) = lot_id {
+            let lot = self.lots.get(lid).cloned().expect("Lot not found");
+            self.require_party_or_agent(&lot.owner);
+            assert!(
+                matches!(lot.status, LotStatus::Available | LotStatus::PartiallyAllocated),
+                "Lot is not available for listing"
+            );
+        }
+
         let listing_id = self.next_id_for("lst-");
         let now = self.now_ms();
 
@@ -325,7 +340,7 @@ impl DTPContract {
             listing_id: listing_id.clone(),
             version: self.protocol_version.clone(),
             seller: seller.clone(),
-            lot_id: None,
+            lot_id,
             goods,
             pack_structure,
             delivery,
@@ -599,6 +614,22 @@ impl DTPContract {
             timestamp: now,
             payload_hash: hash_payload(&contract.escrow_ref),
         });
+
+        // If LP pool financing is requested, emit an event so the pool contract
+        // can listen and call confirm_financing when capital is ready.
+        if let Some(ref finance) = contract.finance {
+            if matches!(finance.financing_mode, FinancingMode::LpPool) {
+                self.emit(AuditEvent {
+                    event_id: make_event_id(&contract_id, &EventType::FinancingRequested, now),
+                    event_type: EventType::FinancingRequested,
+                    entity_type: EntityType::Contract,
+                    entity_id: contract_id.clone(),
+                    actor: caller.to_string(),
+                    timestamp: now,
+                    payload_hash: hash_payload(&finance.liquidity_pool_id),
+                });
+            }
+        }
 
         contract_id
     }
@@ -1225,6 +1256,81 @@ impl DTPContract {
     }
 
     // -----------------------------------------------------------------------
+    // Finance pool registry
+    // -----------------------------------------------------------------------
+
+    /// Register a new DeFi liquidity pool. Owner only.
+    /// The pool_account is the NEAR contract authorized to call confirm_financing.
+    pub fn register_finance_pool(
+        &mut self,
+        pool_id: String,
+        pool_account: AccountId,
+        max_rate_bps: u16,
+        available_microdollars: u128,
+    ) {
+        let caller = env::predecessor_account_id();
+        assert_eq!(caller, self.owner, "Owner only");
+        assert!(!self.finance_pools.contains_key(&pool_id), "Pool already registered");
+        assert!(max_rate_bps <= 5000, "max_rate_bps must be <= 5000 (50%)");
+
+        let now = self.now_ms();
+        let pool = FinancePool {
+            pool_id: pool_id.clone(),
+            pool_account: pool_account.clone(),
+            max_rate_bps,
+            available_microdollars,
+            deployed_microdollars: 0,
+            active: true,
+            created_at: now,
+            updated_at: now,
+        };
+
+        self.finance_pools.insert(pool_id.clone(), pool.clone());
+
+        self.emit(AuditEvent {
+            event_id: make_event_id(&pool_id, &EventType::FinancePoolRegistered, now),
+            event_type: EventType::FinancePoolRegistered,
+            entity_type: EntityType::FinancePool,
+            entity_id: pool_id,
+            actor: caller.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&pool),
+        });
+    }
+
+    /// Called by the registered pool_account to confirm it has funded a contract.
+    /// The pool emits this after transferring capital; DTP records the confirmation
+    /// and the contract can proceed knowing financing is in place.
+    pub fn confirm_financing(&mut self, contract_id: String, pool_id: String) {
+        let caller = env::predecessor_account_id();
+        let pool = self.finance_pools.get(&pool_id).cloned().expect("Finance pool not found");
+        assert_eq!(caller, pool.pool_account, "Only pool_account can confirm financing");
+        assert!(pool.active, "Finance pool is not active");
+
+        let contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+        assert!(
+            matches!(contract.finance.as_ref().map(|f| &f.financing_mode),
+                Some(FinancingMode::LpPool)),
+            "Contract does not use LP pool financing"
+        );
+
+        let now = self.now_ms();
+        self.emit(AuditEvent {
+            event_id: make_event_id(&contract_id, &EventType::FinancingConfirmed, now),
+            event_type: EventType::FinancingConfirmed,
+            entity_type: EntityType::Contract,
+            entity_id: contract_id.clone(),
+            actor: caller.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&pool_id),
+        });
+    }
+
+    pub fn get_finance_pool(&self, pool_id: String) -> Option<FinancePool> {
+        self.finance_pools.get(&pool_id).cloned()
+    }
+
+    // -----------------------------------------------------------------------
     // Matching helpers (read-only)
     // -----------------------------------------------------------------------
 
@@ -1234,7 +1340,13 @@ impl DTPContract {
         let listing = self.listings.get(&listing_id).cloned().expect("Listing not found");
         let seller_rep = self.parties.get(&listing.seller)
             .map(|p| p.reputation.score);
-        let result = matching::check_listing_vs_intent(&intent, &listing, self.now_ms(), seller_rep);
+        // Resolve the catalog_id of the lot backing this listing, if any
+        let listing_catalog_id = listing.lot_id.as_ref()
+            .and_then(|lid| self.lots.get(lid))
+            .map(|lot| lot.catalog_id.clone());
+        let result = matching::check_listing_vs_intent(
+            &intent, &listing, self.now_ms(), seller_rep, listing_catalog_id,
+        );
         MatchResult {
             eligible: result.eligible,
             score: result.score,
@@ -1302,6 +1414,141 @@ impl DTPContract {
 
     pub fn get_standing_agreement(&self, agreement_id: String) -> Option<StandingAgreement> {
         self.standing_agreements.get(&agreement_id).cloned()
+    }
+
+    // -----------------------------------------------------------------------
+    // Account summary (portable account snapshot)
+    // -----------------------------------------------------------------------
+
+    /// Returns the full on-chain snapshot of an account.
+    /// Any DTP-compatible platform can call this to read an account's
+    /// complete state without a custom connector.
+    /// Returns None if the account is not a registered party.
+    pub fn get_account_summary(&self, account: AccountId) -> Option<AccountSummary> {
+        let party = self.parties.get(&account).cloned()?;
+
+        let catalog_count = self.catalogs.iter()
+            .filter(|(_, e)| e.owner == account)
+            .count() as u64;
+
+        let lots_owned = self.lots.iter()
+            .filter(|(_, l)| l.owner == account)
+            .count() as u64;
+
+        let active_listings = self.listings.iter()
+            .filter(|(_, l)| l.seller == account && l.status == ListingStatus::Active)
+            .count() as u64;
+
+        let active_intents = self.intents.iter()
+            .filter(|(_, i)| i.buyer == account && i.status == IntentStatus::Posted)
+            .count() as u64;
+
+        let open_contracts = self.contracts.iter()
+            .filter(|(_, c)| {
+                (c.buyer == account || c.seller == account)
+                    && !matches!(c.status, ContractStatus::Settled
+                        | ContractStatus::ResolvedBuyer
+                        | ContractStatus::ResolvedSeller
+                        | ContractStatus::Cancelled)
+            })
+            .count() as u64;
+
+        // Total volume: sum all settlements where account was buyer or seller
+        let total_volume_microdollars = self.settlements.iter()
+            .filter_map(|(_, s)| {
+                self.contracts.get(&s.contract_id)
+                    .filter(|c| c.buyer == account || c.seller == account)
+                    .map(|_| s.net_amount)
+            })
+            .fold(0u128, |acc, v| acc.saturating_add(v));
+
+        Some(AccountSummary {
+            party: party.clone(),
+            catalog_count,
+            lots_owned,
+            active_listings,
+            active_intents,
+            open_contracts,
+            total_trades: party.reputation.trades_completed,
+            total_volume_microdollars,
+            protocol_version: self.protocol_version.clone(),
+            queried_at: self.now_ms(),
+        })
+    }
+
+    /// Paginated list of catalog entries owned by an account.
+    pub fn get_account_catalogs(
+        &self,
+        account: AccountId,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<GoodsCatalogEntry> {
+        self.catalogs.iter()
+            .filter(|(_, e)| e.owner == account)
+            .skip(offset as usize)
+            .take(limit as usize)
+            .map(|(_, e)| e.clone())
+            .collect()
+    }
+
+    /// Paginated list of lots currently owned by an account.
+    pub fn get_account_lots(
+        &self,
+        account: AccountId,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<GoodsLot> {
+        self.lots.iter()
+            .filter(|(_, l)| l.owner == account)
+            .skip(offset as usize)
+            .take(limit as usize)
+            .map(|(_, l)| l.clone())
+            .collect()
+    }
+
+    /// Paginated list of active supply listings for an account.
+    pub fn get_account_listings(
+        &self,
+        account: AccountId,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<SupplyListing> {
+        self.listings.iter()
+            .filter(|(_, l)| l.seller == account)
+            .skip(offset as usize)
+            .take(limit as usize)
+            .map(|(_, l)| l.clone())
+            .collect()
+    }
+
+    /// Paginated list of posted trade intents for an account.
+    pub fn get_account_intents(
+        &self,
+        account: AccountId,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<TradeIntent> {
+        self.intents.iter()
+            .filter(|(_, i)| i.buyer == account)
+            .skip(offset as usize)
+            .take(limit as usize)
+            .map(|(_, i)| i.clone())
+            .collect()
+    }
+
+    /// Paginated list of contracts (as buyer or seller) for an account.
+    pub fn get_account_contracts(
+        &self,
+        account: AccountId,
+        offset: u64,
+        limit: u64,
+    ) -> Vec<TradeContract> {
+        self.contracts.iter()
+            .filter(|(_, c)| c.buyer == account || c.seller == account)
+            .skip(offset as usize)
+            .take(limit as usize)
+            .map(|(_, c)| c.clone())
+            .collect()
     }
 
     /// Get paginated audit trail entries for a specific entity.
@@ -1409,6 +1656,29 @@ pub struct TierComparisonResult {
     pub price_per_unit: u128,
     pub total_price: u128,
     pub pct_savings_vs_asking: i32,
+}
+
+/// Portable account snapshot returned by get_account_summary.
+/// This is the DTP "plug-in" read surface — any DTP-compatible platform
+/// can call this to get the full picture of an account's on-chain state.
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
+#[serde(crate = "near_sdk::serde")]
+#[borsh(crate = "near_sdk::borsh")]
+pub struct AccountSummary {
+    pub party: Party,
+    /// Counts of active/owned entities (use paginated queries for full lists)
+    pub catalog_count: u64,
+    pub lots_owned: u64,
+    pub active_listings: u64,
+    pub active_intents: u64,
+    /// Contracts where this account is buyer or seller, not yet settled
+    pub open_contracts: u64,
+    /// Total completed trades (from reputation record)
+    pub total_trades: u32,
+    /// Total settled volume in microdollars (1 USDC = 1_000_000)
+    pub total_volume_microdollars: u128,
+    pub protocol_version: String,
+    pub queried_at: u64,
 }
 
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]

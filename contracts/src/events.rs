@@ -32,6 +32,7 @@ pub enum EntityType {
     Relationship,
     Catalog,
     Lot,
+    FinancePool,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
@@ -101,6 +102,14 @@ pub enum EventType {
     LotCreated,
     LotDisposed,
     LotOwnershipTransferred,
+
+    // Finance pools
+    FinancePoolRegistered,
+    /// Emitted when a contract with FinancingMode::LpPool is accepted.
+    /// The registered pool contract listens for this and calls confirm_financing.
+    FinancingRequested,
+    /// Emitted when a pool account confirms it has funded a trade.
+    FinancingConfirmed,
 }
 
 /// Compute SHA-256 hash of a JSON-serializable payload.

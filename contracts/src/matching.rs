@@ -14,11 +14,17 @@ pub struct MatchEligibility {
 ///
 /// `seller_reputation_score`: the seller's `ReputationRecord.score` (0–10000).
 /// Pass `None` for new sellers with no on-chain history (defaults to 10000).
+///
+/// `listing_catalog_id`: the catalog entry ID of the lot backing this listing,
+/// if the listing is lot-backed. Pass `None` for spec-only listings.
+/// When the intent specifies a `catalog_id`, lot-backed listings that don't
+/// match that catalog are ineligible.
 pub fn check_listing_vs_intent(
     intent: &TradeIntent,
     listing: &SupplyListing,
     now_ms: u64,
     seller_reputation_score: Option<u32>,
+    listing_catalog_id: Option<String>,
 ) -> MatchEligibility {
     let mut reasons: Vec<String> = vec![];
 
@@ -60,7 +66,21 @@ pub fn check_listing_vs_intent(
         reasons.push("Delivery windows do not overlap".to_string());
     }
 
-    // 5. Not expired
+    // 5. Catalog match: if the intent specifies a catalog_id, a lot-backed listing
+    //    must reference the same catalog. Spec-only listings (no lot) remain eligible —
+    //    the buyer is expressing a preference, not a hard filter on non-lot listings.
+    if let Some(ref intent_catalog) = intent.catalog_id {
+        if let Some(ref lot_catalog) = listing_catalog_id {
+            if intent_catalog != lot_catalog {
+                reasons.push(format!(
+                    "Catalog mismatch: intent requires {}, listing lot is {}",
+                    intent_catalog, lot_catalog
+                ));
+            }
+        }
+    }
+
+    // 6. Not expired
     if listing.expires_at <= now_ms {
         reasons.push("Listing has expired".to_string());
     }
@@ -71,8 +91,10 @@ pub fn check_listing_vs_intent(
     let eligible = reasons.is_empty();
 
     // Score (only meaningful if eligible)
+    let catalog_matched = intent.catalog_id.is_some()
+        && listing_catalog_id.as_ref() == intent.catalog_id.as_ref();
     let score = if eligible {
-        compute_match_score(intent, listing, seller_reputation_score.unwrap_or(10000))
+        compute_match_score(intent, listing, seller_reputation_score.unwrap_or(10000), catalog_matched)
     } else {
         0
     };
@@ -85,8 +107,8 @@ pub fn check_listing_vs_intent(
 ///   1. Price alignment (lower listing price vs ceiling = better)
 ///   2. Delivery timing (more overlap = better)
 ///   3. Seller reputation (ReputationRecord.score, 0–10000)
-///   4. Certification depth (more certs than required = better)
-fn compute_match_score(intent: &TradeIntent, listing: &SupplyListing, seller_reputation_score: u32) -> u32 {
+///   4. Certification depth + catalog match bonus
+fn compute_match_score(intent: &TradeIntent, listing: &SupplyListing, seller_reputation_score: u32, catalog_matched: bool) -> u32 {
     // 1. Price score: how far below the ceiling is the listing price?
     let price_score = {
         let ceiling = intent.pricing.ceiling_price_per_unit;
@@ -121,12 +143,17 @@ fn compute_match_score(intent: &TradeIntent, listing: &SupplyListing, seller_rep
     //    New sellers default to 10000 (no history = no penalty).
     let reputation_score = (seller_reputation_score.min(10000) * 2500 / 10000).min(2500);
 
-    // 4. Certification depth score: extra certs beyond required
+    // 4. Certification depth + catalog match bonus.
+    //    Catalog match (buyer intent references the exact same product master as
+    //    the lot being offered) is the strongest possible goods compatibility signal.
+    //    It contributes up to 1500 pts; cert depth fills the remaining 1000.
     let cert_depth_score = {
+        let catalog_bonus = if catalog_matched { 1500u32 } else { 0 };
         let required = intent.goods.required_certifications.len() as u32;
         let provided = listing.certifications.len() as u32;
         let extra = provided.saturating_sub(required);
-        (extra.min(5) * 500).min(2500)
+        let cert_bonus = (extra.min(5) * 200).min(1000);
+        (catalog_bonus + cert_bonus).min(2500)
     };
 
     price_score + timing_score + reputation_score + cert_depth_score

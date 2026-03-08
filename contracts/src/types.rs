@@ -582,6 +582,33 @@ pub struct GoodsLot {
 }
 
 // ---------------------------------------------------------------------------
+// Finance pools
+// ---------------------------------------------------------------------------
+
+/// A registered DeFi liquidity pool that can finance DTP trades.
+///
+/// The pool account is an external NEAR contract that listens for
+/// `FinancingRequested` events and calls `confirm_financing` when funded.
+/// Capital deployed earns yield from finance_fee_bps charged to the buyer.
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub struct FinancePool {
+    pub pool_id: String,
+    /// The NEAR account of the pool contract (authorized to confirm financing)
+    pub pool_account: AccountId,
+    /// Maximum rate this pool charges, in basis points (e.g. 150 = 1.5%)
+    pub max_rate_bps: u16,
+    /// Capital available to deploy, in microdollars
+    pub available_microdollars: u128,
+    /// Capital currently deployed (outstanding), in microdollars
+    pub deployed_microdollars: u128,
+    pub active: bool,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+
+// ---------------------------------------------------------------------------
 // Pricing
 // ---------------------------------------------------------------------------
 
