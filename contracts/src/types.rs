@@ -63,6 +63,65 @@ pub struct KybRef {
     pub status: KybStatus,
 }
 
+// ---------------------------------------------------------------------------
+// FSMA Rule 204 — Critical Tracking Events (CTEs)
+// ---------------------------------------------------------------------------
+
+/// The five Critical Tracking Events defined by FSMA Rule 204.
+/// Every food business handling items on the Food Traceability List (FTL)
+/// must maintain Key Data Elements (KDEs) at each CTE boundary.
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub enum Fsma204EventType {
+    /// Farm/grower records the harvest of a FTL commodity.
+    Growing,
+    /// First packer assigns the Traceability Lot Code and records pack details.
+    Creating,
+    /// A receiver records arrival of a lot and its originating TLC source.
+    Receiving,
+    /// A transformer creates a new TLC from one or more input TLCs.
+    Transforming,
+    /// A shipper records departure of a lot and its destination.
+    Shipping,
+}
+
+/// A recorded FSMA 204 Critical Tracking Event — the atomic unit of
+/// food supply chain traceability. Immutable once written.
+///
+/// The `lot_id` field references the DTP Traceability Lot Code (TLC).
+/// For Transforming events, `output_lot_id` holds the new TLC produced.
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
+#[serde(crate = "near_sdk::serde")]
+pub struct Fsma204Cte {
+    pub cte_id: String,
+    pub cte_type: Fsma204EventType,
+    /// The primary lot this CTE applies to (the TLC being tracked)
+    pub lot_id: String,
+    /// For Transforming: the new output lot created
+    pub output_lot_id: Option<String>,
+    /// The DTP account performing this CTE (packer, receiver, shipper, etc.)
+    pub actor: AccountId,
+    /// Actor's GS1 GLN (location where the event occurred)
+    pub actor_gln: Option<String>,
+    /// Source GLN — the previous custodian's location (Receiving and Shipping CTEs)
+    pub source_gln: Option<String>,
+    /// Destination GLN — where the lot is headed (Shipping CTE)
+    pub dest_gln: Option<String>,
+    /// Quantity involved in this CTE (milliamount in the lot's trade unit)
+    pub quantity_milliamount: u64,
+    pub unit: String,
+    /// Commodity and variety (required for Growing/Creating CTEs)
+    pub commodity: Option<String>,
+    pub variety: Option<String>,
+    /// Actual date of the physical event (may differ from block timestamp)
+    pub event_date_ms: u64,
+    /// Block timestamp when this CTE was recorded on-chain
+    pub recorded_at: u64,
+    pub notes: Option<String>,
+}
+
 /// The role the proposer is taking in a StandingAgreement.
 /// Any registered account can propose as either buyer or seller —
 /// business type does not constrain trade role.
@@ -154,6 +213,24 @@ pub struct Party {
     /// Owner-only management via authorize_agent / revoke_agent.
     pub authorized_agents: Vec<AccountId>,
     pub created_at: u64,
+
+    // ── Portable business identity ──────────────────────────────────────────
+    /// GS1 Global Location Number (13-digit) — the universal location identifier
+    /// required by major food retailers and embedded in FSMA 204 CTE records.
+    /// Format: XXXXXXXXXXXXXXXXX (13 digits). None = not yet assigned.
+    pub gs1_gln: Option<String>,
+    /// Dun & Bradstreet D-U-N-S Number (9-digit) — universal business identifier
+    /// used by banks, insurers, and enterprise procurement systems for credit
+    /// and vendor qualification. Format: XXXXXXXXX. None = not yet assigned.
+    pub duns_number: Option<String>,
+    /// True when a Preventive Controls Qualified Individual (PCQI) attestation
+    /// is on file with DTP. Required under 21 CFR Part 117 for food
+    /// manufacturers and processors who must have a FSMA food safety plan.
+    pub fsma_pcqi_on_file: bool,
+    /// Allergens present in or processed at this facility (cross-contact risk).
+    /// Distinct from product-level allergens on GoodsCatalogEntry.
+    /// Buyers use this to assess shared-equipment allergen risk before sourcing.
+    pub facility_allergens: Vec<Allergen>,
 }
 
 // ---------------------------------------------------------------------------

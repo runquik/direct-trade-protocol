@@ -33,6 +33,10 @@ pub enum EntityType {
     Catalog,
     Lot,
     FinancePool,
+    /// A registered DTP party (business identity on-chain)
+    Party,
+    /// An FSMA Rule 204 Critical Tracking Event
+    Fsma204Cte,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
@@ -110,6 +114,21 @@ pub enum EventType {
     FinancingRequested,
     /// Emitted when a pool account confirms it has funded a trade.
     FinancingConfirmed,
+
+    // Party identity
+    /// Emitted when a party updates their portable business identity fields
+    /// (GS1 GLN, D-U-N-S, FSMA PCQI flag, facility allergens).
+    PartyIdentityUpdated,
+
+    // FSMA 204 traceability
+    /// Emitted when any FSMA 204 CTE is recorded on-chain.
+    Fsma204CteRecorded,
+
+    // Lot extensions
+    /// Emitted when a COA document hash is anchored to a lot.
+    LotCOAAnchored,
+    /// Emitted when a Transforming CTE creates a new output lot from input lots.
+    LotTransformed,
 }
 
 /// Compute SHA-256 hash of a JSON-serializable payload.

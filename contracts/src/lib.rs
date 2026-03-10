@@ -48,6 +48,14 @@ pub struct DTPContract {
     pub relationships: LookupMap<String, RelationshipRecord>,
     pub finance_pools: LookupMap<String, FinancePool>,
 
+    // -----------------------------------------------------------------------
+    // FSMA Rule 204 traceability
+    // -----------------------------------------------------------------------
+    /// All FSMA 204 Critical Tracking Events, keyed by cte_id.
+    pub fsma_ctes: IterableMap<String, Fsma204Cte>,
+    /// Index: lot_id → Vec<cte_id> for efficient lot CTE lookups.
+    pub lot_cte_index: LookupMap<String, Vec<String>>,
+
     /// Append-only audit trail
     pub audit_log: Vector<AuditEvent>,
     /// Maps entity_id → list of audit_log indices for O(1) entity filtering
@@ -82,6 +90,8 @@ impl DTPContract {
             standing_agreements: IterableMap::new(b"a"),
             relationships: LookupMap::new(b"r"),
             finance_pools: LookupMap::new(b"n"),
+            fsma_ctes: IterableMap::new(b"t"),
+            lot_cte_index: LookupMap::new(b"k"),
             audit_log: Vector::new(b"e"),
             audit_index: LookupMap::new(b"x"),
             id_counter: 0,
@@ -173,6 +183,10 @@ impl DTPContract {
             reputation: ReputationRecord::default(),
             authorized_agents: vec![],
             created_at: self.now_ms(),
+            gs1_gln: None,
+            duns_number: None,
+            fsma_pcqi_on_file: false,
+            facility_allergens: vec![],
         };
         self.parties.insert(account.clone(), party.clone());
         near_sdk::log!("Party registered: {}", account);
@@ -193,6 +207,50 @@ impl DTPContract {
         let mut party = self.parties.get(&account).cloned().expect("Party not registered");
         party.kyb = Some(kyb);
         self.parties.insert(account.clone(), party);
+    }
+
+    /// Update portable business identity fields on the caller's party record.
+    /// Any subset of fields may be updated in a single call; pass None to leave a field unchanged.
+    /// GS1 GLN and D-U-N-S are validated for correct digit length but not externally verified.
+    pub fn update_party_identity(
+        &mut self,
+        gs1_gln: Option<String>,
+        duns_number: Option<String>,
+        fsma_pcqi_on_file: Option<bool>,
+        facility_allergens: Option<Vec<Allergen>>,
+    ) {
+        let account = env::predecessor_account_id();
+        let mut party = self.parties.get(&account).cloned().expect("Party not registered");
+
+        if let Some(gln) = gs1_gln {
+            let digits: String = gln.chars().filter(|c| c.is_ascii_digit()).collect();
+            assert_eq!(digits.len(), 13, "GS1 GLN must be exactly 13 digits");
+            party.gs1_gln = Some(digits);
+        }
+        if let Some(duns) = duns_number {
+            let digits: String = duns.chars().filter(|c| c.is_ascii_digit()).collect();
+            assert_eq!(digits.len(), 9, "D-U-N-S number must be exactly 9 digits");
+            party.duns_number = Some(digits);
+        }
+        if let Some(pcqi) = fsma_pcqi_on_file {
+            party.fsma_pcqi_on_file = pcqi;
+        }
+        if let Some(allergens) = facility_allergens {
+            party.facility_allergens = allergens;
+        }
+
+        self.parties.insert(account.clone(), party.clone());
+
+        let now = self.now_ms();
+        self.emit(AuditEvent {
+            event_id: make_event_id(&account.to_string(), &EventType::PartyIdentityUpdated, now),
+            event_type: EventType::PartyIdentityUpdated,
+            entity_type: EntityType::Party,
+            entity_id: account.to_string(),
+            actor: account.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&party),
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -1256,6 +1314,336 @@ impl DTPContract {
     }
 
     // -----------------------------------------------------------------------
+    // FSMA Rule 204 — Critical Tracking Events
+    // -----------------------------------------------------------------------
+
+    /// Internal: write a CTE record, index it under all affected lot IDs, and emit an event.
+    fn write_cte(&mut self, cte: Fsma204Cte) {
+        let now = self.now_ms();
+        let cte_id = cte.cte_id.clone();
+        let lot_id = cte.lot_id.clone();
+        let output_lot_id = cte.output_lot_id.clone();
+
+        self.fsma_ctes.insert(cte_id.clone(), cte.clone());
+
+        // Index under primary lot
+        let mut idx = self.lot_cte_index.get(&lot_id).cloned().unwrap_or_default();
+        if !idx.contains(&cte_id) { idx.push(cte_id.clone()); }
+        self.lot_cte_index.insert(lot_id.clone(), idx);
+
+        // Index under output lot (Transforming CTE)
+        if let Some(ref out_id) = output_lot_id {
+            let mut out_idx = self.lot_cte_index.get(out_id).cloned().unwrap_or_default();
+            if !out_idx.contains(&cte_id) { out_idx.push(cte_id.clone()); }
+            self.lot_cte_index.insert(out_id.clone(), out_idx);
+        }
+
+        self.emit(AuditEvent {
+            event_id: make_event_id(&cte_id, &EventType::Fsma204CteRecorded, now),
+            event_type: EventType::Fsma204CteRecorded,
+            entity_type: EntityType::Fsma204Cte,
+            entity_id: cte_id.clone(),
+            actor: cte.actor.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&cte),
+        });
+    }
+
+    /// Record a Receiving CTE: the caller received the lot from `source_gln`.
+    /// The lot must already exist on-chain. The caller must be the current owner.
+    pub fn record_cte_receiving(
+        &mut self,
+        lot_id: String,
+        source_gln: Option<String>,
+        quantity_milliamount: u64,
+        unit: String,
+        event_date_ms: u64,
+        notes: Option<String>,
+    ) {
+        let actor = env::predecessor_account_id();
+        let lot = self.lots.get(&lot_id).cloned().expect("Lot not found");
+        self.require_party_or_agent(&lot.owner);
+
+        let cte_id = self.next_id_for("cte-");
+        let now = self.now_ms();
+
+        let party = self.parties.get(&actor).cloned().expect("Party not registered");
+
+        let cte = Fsma204Cte {
+            cte_id,
+            cte_type: Fsma204EventType::Receiving,
+            lot_id,
+            output_lot_id: None,
+            actor: actor.clone(),
+            actor_gln: party.gs1_gln.clone(),
+            source_gln,
+            dest_gln: None,
+            quantity_milliamount,
+            unit,
+            commodity: None,
+            variety: None,
+            event_date_ms,
+            recorded_at: now,
+            notes,
+        };
+
+        self.write_cte(cte);
+    }
+
+    /// Record a Shipping CTE: the caller shipped the lot to `dest_gln`.
+    /// The lot must already exist on-chain. The caller must be the current owner.
+    pub fn record_cte_shipping(
+        &mut self,
+        lot_id: String,
+        dest_gln: Option<String>,
+        quantity_milliamount: u64,
+        unit: String,
+        event_date_ms: u64,
+        notes: Option<String>,
+    ) {
+        let actor = env::predecessor_account_id();
+        let lot = self.lots.get(&lot_id).cloned().expect("Lot not found");
+        self.require_party_or_agent(&lot.owner);
+
+        let cte_id = self.next_id_for("cte-");
+        let now = self.now_ms();
+
+        let party = self.parties.get(&actor).cloned().expect("Party not registered");
+
+        let cte = Fsma204Cte {
+            cte_id,
+            cte_type: Fsma204EventType::Shipping,
+            lot_id,
+            output_lot_id: None,
+            actor: actor.clone(),
+            actor_gln: party.gs1_gln.clone(),
+            source_gln: None,
+            dest_gln,
+            quantity_milliamount,
+            unit,
+            commodity: None,
+            variety: None,
+            event_date_ms,
+            recorded_at: now,
+            notes,
+        };
+
+        self.write_cte(cte);
+    }
+
+    /// Transform one or more input lots into a new output lot, recording a Transforming CTE.
+    ///
+    /// Each `InputLotRef` specifies how much milliamount is consumed from an existing lot.
+    /// A new lot is created under `output_catalog_id` with `output_milliamount` total quantity.
+    /// The input lots must be owned by the caller; their available_milliamount is debited.
+    /// Returns the new output lot_id.
+    pub fn transform_lot(
+        &mut self,
+        input_lots: Vec<InputLotRef>,
+        output_catalog_id: String,
+        output_milliamount: u64,
+        output_unit: String,
+        output_lot_number: Option<String>,
+        commodity: Option<String>,
+        variety: Option<String>,
+        event_date_ms: u64,
+        notes: Option<String>,
+    ) -> String {
+        let actor = env::predecessor_account_id();
+        self.require_party(&actor);
+        assert!(!input_lots.is_empty(), "At least one input lot is required");
+        assert!(output_milliamount > 0, "Output quantity must be > 0");
+        assert!(
+            self.catalogs.contains_key(&output_catalog_id),
+            "Output catalog entry not found"
+        );
+
+        let now = self.now_ms();
+
+        // Debit input lots — each must be owned by or agented by the caller
+        for input in &input_lots {
+            let mut lot = self.lots.get(&input.lot_id).cloned()
+                .unwrap_or_else(|| panic!("Input lot not found: {}", input.lot_id));
+            self.require_party_or_agent(&lot.owner);
+            assert!(
+                lot.available_milliamount >= input.milliamount,
+                "Insufficient quantity in input lot: {}",
+                input.lot_id
+            );
+            lot.available_milliamount -= input.milliamount;
+            lot.status = if lot.available_milliamount == 0 {
+                LotStatus::FullyAllocated
+            } else {
+                LotStatus::PartiallyAllocated
+            };
+            lot.updated_at = now;
+            self.lots.insert(input.lot_id.clone(), lot);
+        }
+
+        // Create output lot
+        let output_lot_id = self.next_id_for("lot-");
+        let output_lot = GoodsLot {
+            lot_id: output_lot_id.clone(),
+            owner: actor.clone(),
+            available_milliamount: output_milliamount,
+            provenance: vec![],
+            status: LotStatus::Available,
+            created_at: now,
+            updated_at: now,
+            catalog_id: output_catalog_id.clone(),
+            origin_account: actor.clone(),
+            total_milliamount: output_milliamount,
+            unit: output_unit.clone(),
+            lot_number: output_lot_number,
+            pack_date: Some(now),
+            harvest_date: None,
+            best_by: None,
+            lot_certifications: vec![],
+            input_lots: input_lots.clone(),
+        };
+
+        self.lots.insert(output_lot_id.clone(), output_lot.clone());
+
+        self.emit(AuditEvent {
+            event_id: make_event_id(&output_lot_id, &EventType::LotCreated, now),
+            event_type: EventType::LotCreated,
+            entity_type: EntityType::Lot,
+            entity_id: output_lot_id.clone(),
+            actor: actor.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&output_lot),
+        });
+
+        self.emit(AuditEvent {
+            event_id: make_event_id(&output_lot_id, &EventType::LotTransformed, now),
+            event_type: EventType::LotTransformed,
+            entity_type: EntityType::Lot,
+            entity_id: output_lot_id.clone(),
+            actor: actor.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&output_lot),
+        });
+
+        // Record the Transforming CTE (covers all input lots via the index)
+        let party = self.parties.get(&actor).cloned().expect("Party not registered");
+        let cte_id = self.next_id_for("cte-");
+
+        // Use the first input lot_id as the primary lot for the CTE
+        let primary_lot_id = input_lots[0].lot_id.clone();
+
+        let cte = Fsma204Cte {
+            cte_id,
+            cte_type: Fsma204EventType::Transforming,
+            lot_id: primary_lot_id,
+            output_lot_id: Some(output_lot_id.clone()),
+            actor: actor.clone(),
+            actor_gln: party.gs1_gln.clone(),
+            source_gln: None,
+            dest_gln: None,
+            quantity_milliamount: output_milliamount,
+            unit: output_unit,
+            commodity,
+            variety,
+            event_date_ms,
+            recorded_at: now,
+            notes,
+        };
+
+        // Index all input lots under this CTE for full one-up/one-down traceability
+        let cte_id_ref = cte.cte_id.clone();
+        self.fsma_ctes.insert(cte_id_ref.clone(), cte.clone());
+        for input in &input_lots {
+            let mut idx = self.lot_cte_index.get(&input.lot_id).cloned().unwrap_or_default();
+            if !idx.contains(&cte_id_ref) { idx.push(cte_id_ref.clone()); }
+            self.lot_cte_index.insert(input.lot_id.clone(), idx);
+        }
+        // Index output lot
+        let mut out_idx = self.lot_cte_index.get(&output_lot_id).cloned().unwrap_or_default();
+        if !out_idx.contains(&cte_id_ref) { out_idx.push(cte_id_ref.clone()); }
+        self.lot_cte_index.insert(output_lot_id.clone(), out_idx);
+
+        let now2 = self.now_ms();
+        self.emit(AuditEvent {
+            event_id: make_event_id(&cte_id_ref, &EventType::Fsma204CteRecorded, now2),
+            event_type: EventType::Fsma204CteRecorded,
+            entity_type: EntityType::Fsma204Cte,
+            entity_id: cte_id_ref,
+            actor: actor.to_string(),
+            timestamp: now2,
+            payload_hash: hash_payload(&cte),
+        });
+
+        output_lot_id
+    }
+
+    /// Anchor a Certificate of Analysis (COA) to a lot.
+    ///
+    /// The COA document is stored off-chain (S3, IPFS, etc.). Only its SHA-256 hex
+    /// hash or IPFS CIDv1 is stored on-chain for tamper-evidence. The caller must
+    /// be the lot owner or an authorized agent.
+    ///
+    /// - `cert_type`: human-readable label (e.g. "COA", "Lab Test", "USDA Organic")
+    /// - `issuer`: name of the certifying body or lab
+    /// - `doc_hash`: SHA-256 hex (64 chars) or IPFS CIDv1 of the document
+    /// - `expires_at`: optional expiry timestamp in Unix ms
+    pub fn anchor_coa(
+        &mut self,
+        lot_id: String,
+        cert_type: String,
+        issuer: String,
+        doc_hash: String,
+        expires_at: Option<u64>,
+    ) {
+        let actor = env::predecessor_account_id();
+        let mut lot = self.lots.get(&lot_id).cloned().expect("Lot not found");
+        self.require_party_or_agent(&lot.owner);
+
+        // Basic hash format validation
+        assert!(
+            doc_hash.len() == 64 || doc_hash.starts_with("baf"),
+            "doc_hash must be a 64-char SHA-256 hex string or an IPFS CIDv1 (starts with 'baf')"
+        );
+        assert!(!cert_type.trim().is_empty(), "cert_type must not be empty");
+        assert!(!issuer.trim().is_empty(), "issuer must not be empty");
+
+        let now = self.now_ms();
+
+        lot.lot_certifications.push(LotCertRef {
+            cert_type: cert_type.clone(),
+            issuer: issuer.clone(),
+            issued_at: now,
+            expires_at,
+            doc_hash: Some(doc_hash.clone()),
+            status: CertStatus::Active,
+        });
+        lot.updated_at = now;
+        self.lots.insert(lot_id.clone(), lot.clone());
+
+        self.emit(AuditEvent {
+            event_id: make_event_id(&lot_id, &EventType::LotCOAAnchored, now),
+            event_type: EventType::LotCOAAnchored,
+            entity_type: EntityType::Lot,
+            entity_id: lot_id.clone(),
+            actor: actor.to_string(),
+            timestamp: now,
+            payload_hash: hash_payload(&doc_hash),
+        });
+    }
+
+    /// Return all FSMA 204 CTEs recorded for a given lot (as actor, source, or output).
+    pub fn get_lot_ctes(&self, lot_id: String) -> Vec<Fsma204Cte> {
+        let cte_ids = self.lot_cte_index.get(&lot_id).cloned().unwrap_or_default();
+        cte_ids.iter()
+            .filter_map(|id| self.fsma_ctes.get(id).cloned())
+            .collect()
+    }
+
+    /// Return a single FSMA 204 CTE by its ID.
+    pub fn get_cte(&self, cte_id: String) -> Option<Fsma204Cte> {
+        self.fsma_ctes.get(&cte_id).cloned()
+    }
+
+    // -----------------------------------------------------------------------
     // Finance pool registry
     // -----------------------------------------------------------------------
 
@@ -1931,6 +2319,10 @@ mod tests {
             reputation: ReputationRecord::default(),
             authorized_agents: vec![],
             created_at: 0,
+            gs1_gln: None,
+            duns_number: None,
+            fsma_pcqi_on_file: false,
+            facility_allergens: vec![],
         });
         c
     }
