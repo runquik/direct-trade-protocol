@@ -18,6 +18,7 @@ import { registerContractTools } from "./tools/contract.js";
 import { registerFulfillmentTools } from "./tools/fulfillment.js";
 import { registerSettlementTools } from "./tools/settlement.js";
 import { registerFreightTools } from "./tools/freight.js";
+import { registerKybTools } from "./tools/kyb.js";
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -40,6 +41,9 @@ function createServer(): McpServer {
 
   // Freight
   registerFreightTools(server);
+
+  // KYB
+  registerKybTools(server);
 
   return server;
 }
