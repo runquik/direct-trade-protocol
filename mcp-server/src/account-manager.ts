@@ -54,8 +54,8 @@ export function loadAccounts(): AccountsData {
 
 export function saveAccounts(): void {
   ensureDir();
-  const data = loadAccounts();
-  writeFileSync(ACCOUNTS_FILE, JSON.stringify(data, null, 2), "utf-8");
+  if (!accountsData) return;
+  writeFileSync(ACCOUNTS_FILE, JSON.stringify(accountsData, null, 2), "utf-8");
 }
 
 /**
