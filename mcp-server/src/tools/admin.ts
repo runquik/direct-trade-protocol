@@ -29,9 +29,10 @@ export function registerAdminTools(server: McpServer) {
     async (params) => {
       try {
         initAccounts(params.master_account, params.contract_id, params.master_private_key);
-        await addKey(params.master_account, params.master_private_key);
+        // Load ALL identity keys into the NEAR keystore (not just master)
+        await loadKeysIntoKeyStore();
         return {
-          content: [{ type: "text", text: `DTP initialized.\n  Master: ${params.master_account}\n  Contract: ${params.contract_id}\n  Current identity: ${params.master_account}` }],
+          content: [{ type: "text", text: `DTP initialized.\n  Master: ${params.master_account}\n  Contract: ${params.contract_id}\n  Current identity: ${params.master_account}\n  Identities loaded: ${listIdentities().length}` }],
         };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
@@ -56,7 +57,7 @@ export function registerAdminTools(server: McpServer) {
         const keys = await createSubAccount({
           parentAccountId: data.masterAccount,
           newAccountId,
-          initialBalanceNear: "5",
+          initialBalanceNear: "1",
         });
 
         addIdentity(newAccountId, params.label, params.business_type, keys.privateKey);
@@ -64,7 +65,7 @@ export function registerAdminTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: `Account created: ${newAccountId}\n  Label: ${params.label}\n  Type: ${params.business_type}\n  Funded: 5 NEAR\n  Public key: ${keys.publicKey}\n\nUse dtp_switch_identity to switch to this account.`,
+            text: `Account created: ${newAccountId}\n  Label: ${params.label}\n  Type: ${params.business_type}\n  Funded: 1 NEAR\n  Public key: ${keys.publicKey}\n\nUse dtp_switch_identity to switch to this account.`,
           }],
         };
       } catch (e: any) {
@@ -83,6 +84,7 @@ export function registerAdminTools(server: McpServer) {
     async (params) => {
       try {
         switchIdentity(params.account_id);
+        await loadKeysIntoKeyStore(); // Ensure key is loaded
         const identities = listIdentities();
         const current = identities.find((i) => i.isCurrent);
         return {

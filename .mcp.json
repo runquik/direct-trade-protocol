@@ -6,7 +6,7 @@
       "cwd": "C:\\dev\\DTP\\mcp-server",
       "env": {
         "NEAR_NETWORK_ID": "testnet",
-        "NEAR_NODE_URL": "https://rpc.testnet.near.org"
+        "NEAR_NODE_URL": "https://test.rpc.fastnear.com"
       }
     }
   }

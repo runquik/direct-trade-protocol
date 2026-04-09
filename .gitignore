@@ -3,3 +3,6 @@ mcp-server/node_modules
 mcp-server/dist
 mcp-server/.near-credentials
 mcp-server/.env
+remote-mcp-server/node_modules
+remote-mcp-server/dist
+remote-mcp-server/.env

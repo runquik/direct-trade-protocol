@@ -1,0 +1,29 @@
+{
+  "name": "dtp-remote-mcp-server",
+  "version": "0.2.0",
+  "description": "Remote MCP plugin for DTP — org-based B2B trade via Claude Cowork",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "drizzle-orm": "^0.44.2",
+    "express": "^5.1.0",
+    "near-api-js": "^5.0.1",
+    "pg": "^8.16.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.2",
+    "@types/pg": "^8.11.14",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

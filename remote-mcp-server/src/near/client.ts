@@ -1,7 +1,6 @@
 /**
- * NEAR RPC client abstraction.
- * Wraps near-api-js to provide simple call() and view() methods
- * for interacting with the DTP contract on testnet.
+ * NEAR RPC client — adapted for multi-org key management.
+ * Keys are loaded from the database per-org into a shared in-memory keystore.
  */
 
 import { connect, keyStores, KeyPair, Near, Account } from "near-api-js";
@@ -34,9 +33,6 @@ export async function getNearConnection(): Promise<Near> {
   return nearConnection;
 }
 
-/**
- * Add a key pair to the in-memory key store for a given account.
- */
 export async function addKey(accountId: string, privateKey: string): Promise<void> {
   const ks = getKeyStore();
   const networkId = process.env.NEAR_NETWORK_ID || "testnet";
@@ -44,19 +40,22 @@ export async function addKey(accountId: string, privateKey: string): Promise<voi
   await ks.setKey(networkId, accountId, kp);
 }
 
-/**
- * Get an Account object for a given account ID.
- * The account's key must already be in the key store.
- */
-export async function getAccount(accountId: string): Promise<Account> {
+export async function hasKey(accountId: string): Promise<boolean> {
+  const ks = getKeyStore();
+  const networkId = process.env.NEAR_NETWORK_ID || "testnet";
+  try {
+    const key = await ks.getKey(networkId, accountId);
+    return !!key;
+  } catch {
+    return false;
+  }
+}
+
+async function getAccount(accountId: string): Promise<Account> {
   const near = await getNearConnection();
   return near.account(accountId);
 }
 
-/**
- * Call a state-changing method on the DTP contract.
- * Requires the signer's key to be in the key store.
- */
 export async function callMethod(params: {
   contractId: string;
   methodName: string;
@@ -74,7 +73,6 @@ export async function callMethod(params: {
     attachedDeposit: BigInt(params.deposit ?? ZERO_DEPOSIT),
   });
 
-  // Extract the return value from the transaction result
   const status = result.status;
   if (typeof status === "object" && "SuccessValue" in status) {
     const encoded = status.SuccessValue;
@@ -83,14 +81,12 @@ export async function callMethod(params: {
       try {
         return JSON.parse(decoded);
       } catch {
-        // Some methods return plain strings (e.g. IDs)
         return decoded.replace(/^"|"$/g, "");
       }
     }
     return null;
   }
 
-  // Check for failure
   if (typeof status === "object" && "Failure" in status) {
     throw new Error(`Transaction failed: ${JSON.stringify(status.Failure)}`);
   }
@@ -98,10 +94,6 @@ export async function callMethod(params: {
   return null;
 }
 
-/**
- * Call a read-only view method on the DTP contract.
- * No signing or gas required.
- */
 export async function viewMethod(params: {
   contractId: string;
   methodName: string;
@@ -109,19 +101,13 @@ export async function viewMethod(params: {
 }): Promise<any> {
   const near = await getNearConnection();
   const account = await near.account("dontcare");
-
-  const result = await account.viewFunction({
+  return account.viewFunction({
     contractId: params.contractId,
     methodName: params.methodName,
     args: params.args,
   });
-
-  return result;
 }
 
-/**
- * Create a sub-account and fund it from the parent account.
- */
 export async function createSubAccount(params: {
   parentAccountId: string;
   newAccountId: string;
@@ -133,10 +119,9 @@ export async function createSubAccount(params: {
   await parentAccount.createAccount(
     params.newAccountId,
     newKeyPair.getPublicKey(),
-    BigInt(params.initialBalanceNear) * BigInt("1000000000000000000000000") // NEAR to yoctoNEAR
+    BigInt(params.initialBalanceNear) * BigInt("1000000000000000000000000")
   );
 
-  // Add the new key to our key store
   await addKey(params.newAccountId, newKeyPair.toString());
 
   return {
