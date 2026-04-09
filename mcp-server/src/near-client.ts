@@ -23,7 +23,7 @@ export async function getNearConnection(): Promise<Near> {
   if (nearConnection) return nearConnection;
 
   const networkId = process.env.NEAR_NETWORK_ID || "testnet";
-  const nodeUrl = process.env.NEAR_NODE_URL || "https://rpc.testnet.near.org";
+  const nodeUrl = process.env.NEAR_NODE_URL || "https://test.rpc.fastnear.com";
 
   nearConnection = await connect({
     networkId,

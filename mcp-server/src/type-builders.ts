@@ -13,8 +13,9 @@
 
 // ── Forward conversions (human → contract) ──────────────────────────────
 
-export function dollarsToMicrodollars(dollars: number): string {
-  return Math.round(dollars * 1_000_000).toString();
+export function dollarsToMicrodollars(dollars: number): number {
+  // NEAR contract uses u128 which serde deserializes from JSON numbers (not strings)
+  return Math.round(dollars * 1_000_000);
 }
 
 export function amountToMilliamount(amount: number): number {

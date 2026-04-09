@@ -35,8 +35,7 @@ function ensureDir(): void {
 }
 
 export function loadAccounts(): AccountsData {
-  if (accountsData) return accountsData;
-
+  // Always read from disk to pick up external changes
   if (existsSync(ACCOUNTS_FILE)) {
     const raw = readFileSync(ACCOUNTS_FILE, "utf-8");
     accountsData = JSON.parse(raw) as AccountsData;
