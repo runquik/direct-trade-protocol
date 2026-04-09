@@ -1,1 +1,5 @@
 contracts/target
+mcp-server/node_modules
+mcp-server/dist
+mcp-server/.near-credentials
+mcp-server/.env

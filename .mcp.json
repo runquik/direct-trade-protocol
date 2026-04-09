@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "dtp": {
+      "command": "npx",
+      "args": ["tsx", "C:\\dev\\DTP\\mcp-server\\src\\index.ts"],
+      "cwd": "C:\\dev\\DTP\\mcp-server",
+      "env": {
+        "NEAR_NETWORK_ID": "testnet",
+        "NEAR_NODE_URL": "https://rpc.testnet.near.org"
+      }
+    }
+  }
+}
