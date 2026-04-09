@@ -1,44 +1,58 @@
 /**
- * Streamable HTTP transport for Claude.ai / Cowork remote MCP.
- * Express server with session management and OAuth middleware.
+ * Streamable HTTP transport with OAuth for Claude.ai / Cowork.
  */
 
 import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
+import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 import { randomUUID } from "crypto";
 import { runMigrations } from "../db/client.js";
+import { DtpOAuthProvider } from "../auth/oauth.js";
 
 type ServerFactory = () => McpServer;
 
 export async function startHttpServer(createServer: ServerFactory, port: number): Promise<void> {
-  // Run DB migrations on startup
   await runMigrations();
 
   const app = express();
   app.use(express.json());
 
-  // Health check
+  const publicUrl = process.env.PUBLIC_URL || `http://localhost:${port}`;
+  const issuerUrl = new URL(publicUrl);
+  const provider = new DtpOAuthProvider();
+
+  // OAuth endpoints (/.well-known/*, /authorize, /token, /register)
+  app.use(mcpAuthRouter({
+    provider,
+    issuerUrl,
+    scopesSupported: ["mcp:tools"],
+    serviceDocumentationUrl: new URL("https://github.com/runquik/direct-trade-protocol"),
+  }));
+
+  // Health check (unauthenticated)
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", service: "dtp-mcp", version: "0.2.0" });
   });
 
-  // Session store for Streamable HTTP transports
-  const sessions = new Map<string, { transport: StreamableHTTPServerTransport; server: McpServer }>();
+  // Bearer auth middleware for MCP endpoint
+  const authMiddleware = requireBearerAuth({ verifier: provider });
 
-  // MCP endpoint — handles all MCP JSON-RPC traffic
-  app.all("/mcp", async (req, res) => {
-    // Check for existing session
+  // Session store
+  const sessions = new Map<string, { transport: StreamableHTTPServerTransport; server: McpServer; lastAccess: number }>();
+
+  // MCP endpoint — protected by OAuth
+  app.all("/mcp", authMiddleware, async (req, res) => {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
 
     if (sessionId && sessions.has(sessionId)) {
-      // Reuse existing session
       const session = sessions.get(sessionId)!;
+      session.lastAccess = Date.now();
       await session.transport.handleRequest(req, res);
       return;
     }
 
-    // Handle DELETE for session cleanup
     if (req.method === "DELETE") {
       if (sessionId && sessions.has(sessionId)) {
         const session = sessions.get(sessionId)!;
@@ -50,42 +64,42 @@ export async function startHttpServer(createServer: ServerFactory, port: number)
       return;
     }
 
-    // Create new session
+    // New session
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
     });
 
     const server = createServer();
 
-    // Clean up on close
     transport.onclose = () => {
       const sid = (transport as any).sessionId;
       if (sid) sessions.delete(sid);
     };
 
     await server.connect(transport);
-
-    // Store session after connection (sessionId is set during handleRequest)
     await transport.handleRequest(req, res);
 
     const newSessionId = (transport as any).sessionId;
     if (newSessionId) {
-      sessions.set(newSessionId, { transport, server });
+      sessions.set(newSessionId, { transport, server, lastAccess: Date.now() });
     }
   });
 
-  // Session cleanup interval (every 30 minutes)
+  // Session cleanup every 30 minutes — expire after 2 hours idle
   setInterval(() => {
-    // For now, just log session count. TTL eviction can be added later.
-    if (sessions.size > 0) {
-      console.log(`Active MCP sessions: ${sessions.size}`);
+    const cutoff = Date.now() - 2 * 60 * 60 * 1000;
+    for (const [id, session] of sessions) {
+      if (session.lastAccess < cutoff) {
+        sessions.delete(id);
+      }
     }
   }, 30 * 60 * 1000);
 
   app.listen(port, () => {
     console.log(`DTP MCP Server running on port ${port}`);
-    console.log(`  Health: http://localhost:${port}/health`);
-    console.log(`  MCP:    http://localhost:${port}/mcp`);
-    console.log(`  Mode:   streamable-http`);
+    console.log(`  Health:    ${publicUrl}/health`);
+    console.log(`  MCP:       ${publicUrl}/mcp`);
+    console.log(`  OAuth:     ${publicUrl}/.well-known/oauth-authorization-server`);
+    console.log(`  Mode:      streamable-http + OAuth 2.1`);
   });
 }
