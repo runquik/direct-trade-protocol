@@ -4,7 +4,8 @@
 #
 # Prerequisites:
 #   - Rust with wasm32-unknown-unknown target
-#   - near-cli-rs installed (cargo install near-cli-rs)
+#   - near-cli (npm install -g near-cli@4)
+#   - wasm-opt (npm install -g binaryen)
 #   - A funded NEAR testnet master account
 #
 # Usage:
@@ -19,34 +20,38 @@ MASTER_ACCOUNT="${1:?Usage: deploy-testnet.sh <master-account>}"
 CONTRACT_ACCOUNT="dtp.${MASTER_ACCOUNT}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-WASM_PATH="${PROJECT_DIR}/contracts/target/wasm32-unknown-unknown/release/dtp_contract.wasm"
+WASM_RAW="${PROJECT_DIR}/contracts/target/wasm32-unknown-unknown/release/dtp_contract.wasm"
+WASM_OPT="${PROJECT_DIR}/contracts/target/wasm32-unknown-unknown/release/dtp_contract_optimized.wasm"
 
 export PATH="$HOME/.cargo/bin:$PATH"
+export NEAR_ENV=testnet
 
 echo "=== Building DTP contract ==="
 cd "${PROJECT_DIR}/contracts"
 cargo build --target wasm32-unknown-unknown --release
-echo "  WASM: ${WASM_PATH}"
-echo "  Size: $(wc -c < "${WASM_PATH}") bytes"
+echo "  Raw WASM: $(wc -c < "${WASM_RAW}") bytes"
+
+echo ""
+echo "=== Applying wasm-opt signext-lowering ==="
+echo "  (Required: NEAR VM does not support sign-extension opcodes from modern Rust)"
+wasm-opt --signext-lowering -o "${WASM_OPT}" "${WASM_RAW}"
+echo "  Optimized WASM: $(wc -c < "${WASM_OPT}") bytes"
 
 echo ""
 echo "=== Deploying to ${CONTRACT_ACCOUNT} ==="
 echo ""
-echo "To complete deployment, run these near-cli commands manually:"
+echo "Run these commands to deploy:"
 echo ""
 echo "  # 1. Create contract sub-account (if it doesn't exist yet):"
-echo "  near account create-account fund-myself ${CONTRACT_ACCOUNT} '10 NEAR' \\"
-echo "    autogenerate-new-keypair save-to-keychain sign-as ${MASTER_ACCOUNT} \\"
-echo "    network-config testnet sign-with-keychain send"
+echo "  near create-account ${CONTRACT_ACCOUNT} --masterAccount ${MASTER_ACCOUNT} --initialBalance 10"
 echo ""
-echo "  # 2. Deploy the contract:"
-echo "  near contract deploy ${CONTRACT_ACCOUNT} \\"
-echo "    use-file ${WASM_PATH} \\"
-echo "    with-init-call new json-args '{\"owner\":\"${MASTER_ACCOUNT}\"}' \\"
-echo "    prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' \\"
-echo "    network-config testnet sign-with-keychain send"
+echo "  # 2. Fund the contract account (needs ~3 NEAR for storage):"
+echo "  near send ${MASTER_ACCOUNT} ${CONTRACT_ACCOUNT} 4"
 echo ""
-echo "  # 3. Save contract ID to mcp-server .env:"
-echo "  echo 'DTP_CONTRACT_ID=${CONTRACT_ACCOUNT}' >> ${PROJECT_DIR}/mcp-server/.env"
+echo "  # 3. Deploy and initialize the contract:"
+echo "  near deploy ${CONTRACT_ACCOUNT} ${WASM_OPT} --initFunction new --initArgs '{\"owner\":\"${MASTER_ACCOUNT}\"}' --initGas 300000000000000 --force"
+echo ""
+echo "  # 4. Verify deployment:"
+echo "  near view ${CONTRACT_ACCOUNT} get_party '{\"account\":\"${MASTER_ACCOUNT}\"}'"
 echo ""
 echo "=== Done ==="

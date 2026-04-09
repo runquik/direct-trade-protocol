@@ -18,7 +18,7 @@ sha2 = "0.10"
 hex = "0.4"
 
 [dev-dependencies]
-near-sdk = { version = "5.5", features = ["unit-testing"] }
+near-sdk = { version = "=5.5.0", features = ["unit-testing"] }
 
 [profile.release]
 codegen-units = 1
