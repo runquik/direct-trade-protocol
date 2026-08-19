@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "market": {
+      "type": "http",
+      "url": "https://qhlgjbzsbrmtvtovrtsd.supabase.co/functions/v1/dtp-mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.dtp_api_key}"
+      },
+      "timeout": 30000
+    }
+  }
+}

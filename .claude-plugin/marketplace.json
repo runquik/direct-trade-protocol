@@ -1,0 +1,25 @@
+{
+  "name": "dtp",
+  "owner": {
+    "name": "George Milton",
+    "url": "https://github.com/runquik"
+  },
+  "description": "Direct Trade Protocol — an agent-native wholesale marketplace you use entirely from Claude Code",
+  "plugins": [
+    {
+      "name": "dtp",
+      "displayName": "DTP Marketplace",
+      "source": "./plugins/dtp",
+      "description": "Buy and sell wholesale goods directly from Claude Code: post listings, post buy intents, shop pricing, and build account-level trust",
+      "version": "0.1.0",
+      "author": {
+        "name": "George Milton",
+        "url": "https://github.com/runquik"
+      },
+      "repository": "https://github.com/runquik/direct-trade-protocol",
+      "license": "MIT",
+      "keywords": ["marketplace", "trade", "wholesale", "b2b", "buying", "selling"],
+      "category": "business"
+    }
+  ]
+}

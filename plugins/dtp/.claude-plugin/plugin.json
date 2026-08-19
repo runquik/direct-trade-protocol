@@ -1,0 +1,24 @@
+{
+  "name": "dtp",
+  "displayName": "DTP Marketplace",
+  "version": "0.1.0",
+  "description": "Direct Trade Protocol marketplace: find goods for sale, shop pricing, list goods, post buy intents, and build account-level trust — all from Claude Code",
+  "author": {
+    "name": "George Milton",
+    "url": "https://github.com/runquik"
+  },
+  "repository": "https://github.com/runquik/direct-trade-protocol",
+  "license": "MIT",
+  "keywords": ["marketplace", "trade", "wholesale", "b2b"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "dtp_api_key": {
+      "type": "string",
+      "title": "DTP API Key",
+      "description": "Your DTP account key (dtp_...). Leave as-is to browse anonymously; get one with /dtp:start.",
+      "sensitive": true,
+      "default": "anonymous"
+    }
+  }
+}

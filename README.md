@@ -2,6 +2,18 @@
 
 **A platform-agnostic protocol for direct, agent-native trade of physical goods — with on-chain settlement, regulatory compliance, and portable business identity.**
 
+> **🛒 Live MVP — use DTP from Claude Code today:**
+>
+> ```
+> /plugin marketplace add runquik/direct-trade-protocol
+> /plugin install dtp@dtp
+> ```
+>
+> The MVP marketplace covers listing goods for sale, posting buy intents, price shopping,
+> matching, and account-level trust. See [`marketplace/`](marketplace/README.md) for the
+> architecture and [`plugins/dtp/`](plugins/dtp/README.md) for usage. The full protocol
+> below (escrow, settlement, traceability) is the roadmap the MVP grows into.
+
 ---
 
 ## What DTP Is
