@@ -19,7 +19,7 @@ plugins/dtp  ──  skills (/dtp:start /dtp:shop /dtp:sell /dtp:buy /dtp:trust)
    │             + remote MCP server declaration (.mcp.json)
    ▼  HTTPS (streamable HTTP MCP, JSON-RPC)
 Supabase Edge Function `dtp-mcp`         ← server/dtp-mcp/index.ts
-   │  https://qhlgjbzsbrmtvtovrtsd.supabase.co/functions/v1/dtp-mcp
+   │  https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-mcp
    ▼
 Postgres schema `dtp`                    ← migrations/001_mvp_schema.sql
    accounts · listings · intents · endorsements
@@ -51,12 +51,13 @@ dtp_my_activity`
 
 ## Redeploying the server
 
-The edge function is deployed on the Supabase project `qhlgjbzsbrmtvtovrtsd`
-(function name `dtp-mcp`, JWT verification off — the function does its own API-key auth).
-After editing `server/dtp-mcp/index.ts`, redeploy with the Supabase CLI:
+The edge function is deployed on the dedicated Supabase project `vsuqtdofphppybkhnijg`
+(project name `dtp-marketplace`, function name `dtp-mcp`, JWT verification off — the
+function does its own API-key auth). After editing `server/dtp-mcp/index.ts`, redeploy
+with the Supabase CLI:
 
 ```bash
-supabase functions deploy dtp-mcp --project-ref qhlgjbzsbrmtvtovrtsd --no-verify-jwt
+supabase functions deploy dtp-mcp --project-ref vsuqtdofphppybkhnijg --no-verify-jwt
 ```
 
 (or via the Supabase MCP `deploy_edge_function` tool).
