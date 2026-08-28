@@ -1,0 +1,668 @@
+<title>Direct Trade Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root{
+    --bg:#F4F5F0;
+    --bg-raise:#FBFBF8;
+    --ink:#16211B;
+    --muted:#5A685F;
+    --line:#D9DFD6;
+    --hab:#D8480F;
+    --hab-soft:#FBE9DF;
+    --leaf:#25764F;
+    --leaf-soft:#E2F0E7;
+    --amber:#9A6A08;
+    --amber-soft:#F5ECD6;
+    --t-bg:#131417;
+    --t-chrome:#1C1E23;
+    --t-line:#272A31;
+    --t-text:#D9DEE3;
+    --t-dim:#8B939D;
+    --t-green:#68CE94;
+    --t-orange:#FF7A45;
+    --t-blue:#7FB2E8;
+    --shadow:0 24px 60px -24px rgba(22,33,27,.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F1512;
+      --bg-raise:#161D19;
+      --ink:#E8EDE5;
+      --muted:#93A198;
+      --line:#26302A;
+      --hab:#FF6A38;
+      --hab-soft:#33201A;
+      --leaf:#4CC08A;
+      --leaf-soft:#17281F;
+      --amber:#DFAE4C;
+      --amber-soft:#2B2416;
+      --shadow:0 24px 60px -24px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1512;
+    --bg-raise:#161D19;
+    --ink:#E8EDE5;
+    --muted:#93A198;
+    --line:#26302A;
+    --hab:#FF6A38;
+    --hab-soft:#33201A;
+    --leaf:#4CC08A;
+    --leaf-soft:#17281F;
+    --amber:#DFAE4C;
+    --amber-soft:#2B2416;
+    --shadow:0 24px 60px -24px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--hab);color:#fff}
+  a{color:var(--hab);text-decoration:none}
+  a:hover{text-decoration:underline}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--hab);outline-offset:3px;border-radius:2px}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace}
+
+  /* ── progress + stage rail ─────────────────────────── */
+  .rail{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .rail-in{
+    max-width:1120px;margin:0 auto;padding:10px 24px;
+    display:flex;align-items:center;gap:18px;
+  }
+  .rail-brand{
+    font-family:"Fraunces",serif;font-weight:700;font-size:15px;
+    letter-spacing:.01em;white-space:nowrap;color:var(--ink);
+  }
+  .rail-brand b{color:var(--hab)}
+  .stages{
+    display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;
+    font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  }
+  .stages::-webkit-scrollbar{display:none}
+  .stages a{
+    color:var(--muted);padding:3px 9px;border-radius:99px;white-space:nowrap;
+    transition:color .2s,background .2s;
+  }
+  .stages a:hover{text-decoration:none;color:var(--ink)}
+  .stages a.on{background:var(--hab);color:#fff}
+  .progress{
+    position:absolute;left:0;bottom:-1px;height:2px;width:100%;
+    background:var(--hab);transform-origin:0 50%;transform:scaleX(0);
+  }
+  @supports (animation-timeline: scroll()){
+    .progress{animation:fill linear both;animation-timeline:scroll(root)}
+    @keyframes fill{to{transform:scaleX(1)}}
+  }
+
+  /* ── hero ──────────────────────────────────────────── */
+  .hero{padding:150px 0 84px;position:relative;overflow:hidden}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.18em;
+    color:var(--hab);text-transform:uppercase;margin-bottom:22px;
+  }
+  h1{
+    font-family:"Fraunces",serif;
+    font-variation-settings:"opsz" 120,"SOFT" 40,"WONK" 1;
+    font-weight:560;
+    font-size:clamp(42px,7.2vw,84px);
+    line-height:1.02;letter-spacing:-.015em;
+    text-wrap:balance;max-width:15ch;
+  }
+  h1 em{font-style:italic;color:var(--hab)}
+  .hero p.lede{
+    max-width:56ch;margin-top:28px;font-size:19px;color:var(--muted);
+  }
+  .hero .install{
+    margin-top:36px;display:inline-flex;align-items:center;gap:12px;
+    background:var(--t-bg);color:var(--t-text);
+    font-family:"JetBrains Mono",monospace;font-size:13.5px;
+    padding:13px 20px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  .install .ch{color:var(--t-green)}
+  .statebelt{
+    margin-top:64px;padding-top:26px;border-top:1px solid var(--line);
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;
+    color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;
+  }
+  .statebelt span b{color:var(--leaf);font-weight:600}
+
+  /* ── stats ─────────────────────────────────────────── */
+  .stats{padding:64px 0}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .stat{background:var(--bg-raise);padding:30px 28px}
+  .stat .n{
+    font-family:"Fraunces",serif;font-variation-settings:"opsz" 100;
+    font-weight:600;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .n small{font-size:.55em;color:var(--muted);font-family:"Archivo",sans-serif;font-weight:500}
+  .stat p{color:var(--muted);font-size:14.5px;margin-top:8px;max-width:30ch}
+
+  /* ── section headers ───────────────────────────────── */
+  .sec{padding:84px 0 40px}
+  h2{
+    font-family:"Fraunces",serif;font-variation-settings:"opsz" 110,"SOFT" 30,"WONK" 1;
+    font-weight:560;font-size:clamp(30px,4.4vw,50px);line-height:1.06;
+    letter-spacing:-.01em;text-wrap:balance;max-width:22ch;
+  }
+  .sec p.sub{max-width:60ch;margin-top:16px;color:var(--muted);font-size:17px}
+  .legend{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:4px 11px;border-radius:99px;border:1px solid var(--line);
+    color:var(--muted);background:var(--bg-raise);white-space:nowrap;
+  }
+  .badge i{width:7px;height:7px;border-radius:99px;display:inline-block}
+  .badge.live i{background:var(--leaf)}
+  .badge.test i{background:var(--amber)}
+  .badge.spec i{background:var(--muted)}
+
+  /* ── walkthrough ───────────────────────────────────── */
+  .walk{padding:24px 0 40px}
+  .stage{
+    display:grid;grid-template-columns:290px 1fr;gap:44px;
+    padding:44px 0;border-top:1px solid var(--line);
+  }
+  .stage:first-child{border-top:none}
+  .anno{position:relative}
+  .anno-in{position:sticky;top:96px}
+  .anno .num{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+    color:var(--hab);margin-bottom:10px;
+  }
+  .anno h3{
+    font-family:"Fraunces",serif;font-variation-settings:"opsz" 60,"SOFT" 20;
+    font-weight:600;font-size:26px;line-height:1.1;letter-spacing:-.01em;
+  }
+  .anno .obj{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);
+    margin-top:12px;
+  }
+  .anno .flow{
+    font-family:"JetBrains Mono",monospace;font-size:12px;margin-top:6px;
+    color:var(--muted);
+  }
+  .anno .flow b{color:var(--leaf);font-weight:600}
+  .anno p{font-size:14.5px;color:var(--muted);margin-top:14px;max-width:32ch}
+  .anno .badge{margin-top:16px}
+
+  /* terminal */
+  .term{
+    background:var(--t-bg);border:1px solid var(--t-line);border-radius:14px;
+    box-shadow:var(--shadow);overflow:hidden;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:13.5px;line-height:1.65;color:var(--t-text);
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    background:var(--t-chrome);border-bottom:1px solid var(--t-line);
+    padding:10px 16px;font-size:12px;color:var(--t-dim);
+  }
+  .dots{display:flex;gap:6px;margin-right:6px}
+  .dots i{width:11px;height:11px;border-radius:99px;display:block}
+  .dots i:nth-child(1){background:#F4645C}
+  .dots i:nth-child(2){background:#F0B542}
+  .dots i:nth-child(3){background:#57C255}
+  .term-body{padding:20px 22px 24px;overflow-x:auto}
+  .msg{margin-top:16px}
+  .msg:first-child{margin-top:0}
+  .u{color:var(--t-text);font-weight:500}
+  .u::before{content:"> ";color:var(--t-dim)}
+  .c{color:var(--t-dim)}
+  .c b{color:var(--t-text);font-weight:500}
+  .tool{color:var(--t-orange);white-space:pre-wrap;word-break:break-word}
+  .tool::before{content:"⏺ ";color:var(--t-orange)}
+  .tool .arg{color:var(--t-dim)}
+  .res{
+    color:var(--t-dim);white-space:pre-wrap;word-break:break-word;
+    padding-left:18px;position:relative;
+  }
+  .res::before{content:"⎿";position:absolute;left:2px;color:var(--t-line)}
+  .res b{color:var(--t-green);font-weight:600}
+  .res .hi{color:var(--t-text)}
+  .res .warn{color:var(--t-orange)}
+  .card{
+    border:1px solid var(--t-line);border-radius:8px;background:var(--t-chrome);
+    padding:12px 14px;margin:10px 0 4px 18px;font-size:12.5px;
+  }
+  .card .row{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-top:1px dashed var(--t-line);flex-wrap:wrap}
+  .card .row:first-child{border-top:none}
+  .card .who{color:var(--t-text);font-weight:500}
+  .card .meta{color:var(--t-dim)}
+  .card .score{color:var(--t-green);font-variant-numeric:tabular-nums}
+  .tier{font-size:10.5px;padding:1px 7px;border-radius:99px;border:1px solid var(--t-line)}
+  .tier.t1{color:var(--t-green);border-color:color-mix(in srgb,var(--t-green) 40%,transparent)}
+  .tier.t2{color:var(--t-blue);border-color:color-mix(in srgb,var(--t-blue) 40%,transparent)}
+  .tier.t3{color:var(--t-orange);border-color:color-mix(in srgb,var(--t-orange) 40%,transparent)}
+
+  /* scroll-driven reveals */
+  @supports (animation-timeline: view()){
+    @media (prefers-reduced-motion: no-preference){
+      .msg{animation:rise .8s both;animation-timeline:view();animation-range:entry 5% entry 45%}
+      .stage .anno-in{animation:fadein .8s both;animation-timeline:view();animation-range:entry 0% entry 30%}
+      .stat,.stack-card{animation:rise .8s both;animation-timeline:view();animation-range:entry 0% entry 40%}
+      @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+      @keyframes fadein{from{opacity:0}to{opacity:1}}
+    }
+  }
+
+  /* ── split (under your tools) ──────────────────────── */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:40px}
+  .side{background:var(--bg-raise);padding:34px 32px}
+  .side h4{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;margin-bottom:16px;
+  }
+  .side.private h4{color:var(--muted)}
+  .side.public h4{color:var(--hab)}
+  .side ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .side li{padding-left:20px;position:relative;font-size:15.5px;color:var(--muted)}
+  .side li::before{content:"•";position:absolute;left:2px;color:var(--hab)}
+  .side.private li::before{color:var(--muted)}
+  .side p.note{margin-top:18px;font-size:13.5px;color:var(--muted);font-style:italic}
+  .bridge{
+    text-align:center;margin:26px auto 0;max-width:56ch;font-size:17px;
+  }
+  .bridge b{color:var(--hab)}
+
+  /* ── stack ─────────────────────────────────────────── */
+  .stack{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
+  .stack-card{
+    background:var(--bg-raise);border:1px solid var(--line);border-radius:14px;
+    padding:24px 22px;display:flex;flex-direction:column;gap:10px;
+  }
+  .stack-card h4{font-size:16.5px;font-weight:600;letter-spacing:-.005em}
+  .stack-card .mono{font-size:12px;color:var(--muted)}
+  .stack-card p{font-size:14px;color:var(--muted);flex:1}
+  .stack-card .badge{align-self:flex-start;font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.06em}
+
+  /* ── principles + footer ───────────────────────────── */
+  .principles{
+    margin-top:84px;padding:64px 0;border-top:1px solid var(--line);
+    text-align:center;
+  }
+  .principles h2{margin:0 auto}
+  .creed{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.04em;
+  }
+  .creed span{border:1px solid var(--line);border-radius:99px;padding:7px 16px;color:var(--muted);background:var(--bg-raise)}
+  footer{
+    border-top:1px solid var(--line);padding:44px 0 64px;margin-top:20px;
+    display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;
+  }
+  footer .fbrand{font-family:"Fraunces",serif;font-weight:700;font-size:17px}
+  footer .fbrand b{color:var(--hab)}
+  footer .flinks{font-family:"JetBrains Mono",monospace;font-size:13px;display:flex;gap:22px;flex-wrap:wrap}
+  footer .flinks a{color:var(--muted)}
+  footer .flinks a:hover{color:var(--hab)}
+
+  /* ── responsive ────────────────────────────────────── */
+  @media (max-width:900px){
+    .stats-grid{grid-template-columns:1fr}
+    .stage{grid-template-columns:1fr;gap:22px;padding:36px 0}
+    .anno-in{position:static}
+    .anno p{max-width:60ch}
+    .split{grid-template-columns:1fr}
+    .stack{grid-template-columns:1fr 1fr}
+    .hero{padding-top:120px}
+  }
+  @media (max-width:560px){
+    .stack{grid-template-columns:1fr}
+    .rail-brand{display:none}
+    body{font-size:16px}
+    .term{font-size:12.5px;border-radius:10px}
+    .term-body{padding:14px 14px 18px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+  }
+</style>
+
+<nav class="rail" aria-label="Trade lifecycle">
+  <div class="rail-in">
+    <div class="rail-brand">Direct Trade <b>Protocol</b></div>
+    <div class="stages" id="stages">
+      <a href="#s1">INTENT</a><a href="#s2">MATCH</a><a href="#s3">OFFER</a><a href="#s4">CONTRACT</a><a href="#s5">ESCROW</a><a href="#s6">FULFILLMENT</a><a href="#s7">SETTLEMENT</a>
+    </div>
+  </div>
+  <div class="progress"></div>
+</nav>
+
+<header class="hero wrap">
+  <div class="eyebrow">Open protocol • Spec v0.2 • Agent-native trade</div>
+  <h1>Wholesale trade is a <em>conversation</em> now.</h1>
+  <p class="lede">
+    Direct Trade Protocol is open infrastructure for B2B trade of physical goods:
+    the schemas, state machines, and settlement rules that let two businesses
+    negotiate, contract, escrow, and settle with no broker in the middle.
+    Not an app. Not a company. A protocol their AI agents already speak.
+  </p>
+  <div class="install"><span class="ch">❯</span> /plugin install dtp@dtp</div>
+  <div class="statebelt" aria-hidden="true">
+    <span>DRAFT → <b>POSTED</b></span>
+    <span>POSTED → <b>MATCHED</b></span>
+    <span>SUBMITTED → <b>ACCEPTED</b></span>
+    <span>ACTIVE → <b>DELIVERED</b></span>
+    <span>DELIVERED → <b>SETTLED</b></span>
+  </div>
+</header>
+
+<section class="stats wrap">
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="n">$375<small>B to</small> $750<small>B / yr</small></div>
+      <p>lost to coordination and middleman costs in the US food supply chain: faxes, phone calls, paper checks, brokered spreads.</p>
+    </div>
+    <div class="stat">
+      <div class="n">67.6<small>% implied APR</small></div>
+      <p>the real cost of legacy 2/10 net 30 distributor terms. The protocol's finance layer targets financed terms near 30%.</p>
+    </div>
+    <div class="stat">
+      <div class="n">5 <small>tracking events</small></div>
+      <p>FSMA Rule 204 requires electronic traceability in 2026. DTP records every Critical Tracking Event as a first-class protocol object.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="walkthrough">
+  <h2>One trade, start to settled.</h2>
+  <p class="sub">
+    A hot sauce maker in Austin needs peppers. Their buyer runs Claude Code with the
+    DTP plugin installed. Here is the whole trade, exactly as it reads in the terminal.
+    Every stage is labeled with where it runs today: no vaporware.
+  </p>
+  <div class="legend">
+    <span class="badge live"><i></i>LIVE · marketplace MVP</span>
+    <span class="badge test"><i></i>ON TESTNET · NEAR contract</span>
+    <span class="badge spec"><i></i>IN THE SPEC · v0.2</span>
+  </div>
+</section>
+
+<div class="walk wrap">
+
+  <!-- 1 INTENT -->
+  <section class="stage" id="s1">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 01</div>
+      <h3>Intent</h3>
+      <div class="obj">TradeIntent</div>
+      <div class="flow">DRAFT → <b>POSTED</b></div>
+      <p>Demand becomes a first-class object other agents can discover. Nobody owns the order book, so nobody charges rent on it.</p>
+      <span class="badge live"><i></i>LIVE</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: posting a trade intent">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg u">I need 4,000 lb of organic habaneros delivered to Austin by Sept 18. Ceiling is $2.10 a pound.</div>
+        <div class="msg c">Searching live supply first. If the market is thin, I'll post a standing intent so sellers find you.</div>
+        <div class="msg tool">dtp_search_listings<span class="arg">(product: "habanero", certs: ["USDA Organic"], region: "TX")</span></div>
+        <div class="msg res">2 listings · closest fit is 6,000 lb at <span class="warn">$2.24/lb, over your ceiling</span></div>
+        <div class="msg c">Nothing inside $2.10 today. Posting the intent.</div>
+        <div class="msg tool">dtp_post_intent<span class="arg">(product: "habanero, organic", qty: 4000, unit: "lb", ceiling_usd: 2.10, needed_by: "2026-09-18", deliver_to: "Austin, TX", certs: ["USDA Organic"])</span></div>
+        <div class="msg res">TradeIntent <span class="hi">ti_8f2c</span> · status <b>POSTED</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 MATCH -->
+  <section class="stage" id="s2">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 02</div>
+      <h3>Match</h3>
+      <div class="obj">Matching engine</div>
+      <div class="flow">POSTED → <b>MATCHED</b></div>
+      <p>Both sides are scored on product, price, quantity, certifications, and location. Trust tiers come from profile completeness, longevity, activity, and peer endorsements.</p>
+      <span class="badge live"><i></i>LIVE</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: ranked matches">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg c"><b>Two hours later.</b> Three sellers matched your intent.</div>
+        <div class="msg tool">dtp_find_matches_for_intent<span class="arg">(intent_id: "ti_8f2c")</span></div>
+        <div class="msg res">3 matches, ranked:</div>
+        <div class="msg card">
+          <div class="row"><span class="who">Rio Fuego Farms · Mission, TX</span><span class="tier t1">trust 87 · trusted</span></div>
+          <div class="row"><span class="meta">$1.86/lb · 4,200 lb · USDA Organic ✓ · 240 mi</span><span class="score">score 0.94</span></div>
+          <div class="row"><span class="who">Hidalgo Growers Co-op · Pharr, TX</span><span class="tier t2">trust 64 · established</span></div>
+          <div class="row"><span class="meta">$1.92/lb · 6,000 lb · USDA Organic ✓</span><span class="score">score 0.88</span></div>
+          <div class="row"><span class="who">SunPepper LLC · Laredo, TX</span><span class="tier t3">trust 22 · unproven</span></div>
+          <div class="row"><span class="meta">$1.71/lb · reason: trust tier below your preference</span><span class="score">score 0.79</span></div>
+        </div>
+        <div class="msg c">Cheapest is an unproven account. Best risk-adjusted match is <b>Rio Fuego</b>: 11% under your ceiling with certs complete.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 OFFER -->
+  <section class="stage" id="s3">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 03</div>
+      <h3>Offer</h3>
+      <div class="obj">Offer</div>
+      <div class="flow">SUBMITTED → <b>ACCEPTED</b></div>
+      <p>The seller's agent negotiated inside its own private floors: COGS, margin, capacity. Yours checks the terms against your budget and ceiling. Neither side sees the other's numbers.</p>
+      <span class="badge test"><i></i>ON TESTNET</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: incoming offer accepted">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg res">incoming Offer <span class="hi">of_31ba</span> from riofuego.near · 4,000 lb @ <span class="hi">$1.86/lb</span> · COA attached · valid 72h · status <b>SUBMITTED</b></div>
+        <div class="msg c">Rio Fuego's selling agent responded with a binding offer. Every term is inside the bounds you gave me. Accept?</div>
+        <div class="msg u">Accept it.</div>
+        <div class="msg tool">dtp_accept_offer<span class="arg">(offer_id: "of_31ba")</span></div>
+        <div class="msg res">Offer of_31ba <b>ACCEPTED</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 CONTRACT -->
+  <section class="stage" id="s4">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 04</div>
+      <h3>Contract</h3>
+      <div class="obj">Contract</div>
+      <div class="flow">formed → <b>ACTIVE</b></div>
+      <p>The binding record of the trade. Freight can be booked at contract formation so delivered pricing is locked upfront, and the landed-cost guardrail is enforced by the protocol, not by trust.</p>
+      <span class="badge test"><i></i>ON TESTNET</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: contract formed">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg tool">dtp_form_contract<span class="arg">(offer_id: "of_31ba", freight: "booked_at_contract")</span></div>
+        <div class="msg res">Contract <span class="hi">ct_5d09</span> · status <b>ACTIVE</b>
+  goods      4,000 lb organic habanero
+  payment    7,440.00 USDC
+  freight    $640 reefer LTL · ships 2026-09-14
+  landed     <span class="hi">$2.02/lb</span> · ceiling $2.10 <b>✓</b>
+  disputes   48h window · arbitrator on contract</div>
+        <div class="msg c">Landed cost clears your guardrail with 8 cents to spare. Locking funds next.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ESCROW -->
+  <section class="stage" id="s5">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 05</div>
+      <h3>Escrow</h3>
+      <div class="obj">Settlement layer</div>
+      <div class="flow">funds → <b>LOCKED</b></div>
+      <p>Buyer funds sit in protocol escrow, not with a middleman. Neither party can withdraw unilaterally. Release happens on attestation or arbitration, per the rules both sides already agreed to.</p>
+      <span class="badge spec"><i></i>IN THE SPEC</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: escrow locked">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg tool">dtp_lock_escrow<span class="arg">(contract_id: "ct_5d09", amount: "8080.00 USDC")</span></div>
+        <div class="msg res">escrow_ref <span class="hi">near:9tkQ…c2</span> · 8,080.00 USDC <b>LOCKED</b> (goods + freight)</div>
+        <div class="msg c">Rio Fuego's agent can verify the lock on-chain before a single pepper is picked. No net-60 gamble, no factoring desk taking 3 points.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 FULFILLMENT -->
+  <section class="stage" id="s6">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 06</div>
+      <h3>Fulfillment</h3>
+      <div class="obj">Fulfillment · CTE</div>
+      <div class="flow">IN_FULFILLMENT → <b>DELIVERED</b></div>
+      <p>FSMA 204's Critical Tracking Events are protocol objects, indexed by lot for one-up, one-down recall lookups. Compliance is a side effect of trading, not a separate SaaS subscription.</p>
+      <span class="badge spec"><i></i>IN THE SPEC</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: shipping and receiving attestations">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg res">CTE recorded · <span class="hi">Shipping</span> · lot RF-26-0912-HAB · 2026-09-14 · carrier Lone Star Reefer · seller attestation <b>✓</b></div>
+        <div class="msg u">Truck just left. Product looks great.</div>
+        <div class="msg tool">dtp_attest_receipt<span class="arg">(contract_id: "ct_5d09", lot: "RF-26-0912-HAB")</span></div>
+        <div class="msg res">CTE recorded · <span class="hi">Receiving</span> · dual attestation <b>COMPLETE</b> · Contract → <b>DELIVERED</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 SETTLEMENT -->
+  <section class="stage" id="s7">
+    <div class="anno"><div class="anno-in">
+      <div class="num">STAGE 07</div>
+      <h3>Settlement</h3>
+      <div class="obj">Settlement · Reputation</div>
+      <div class="flow">DELIVERED → <b>SETTLED</b></div>
+      <p>Payment releases on dual attestation. Reputation accrues to the party itself, portable across any interface built on the protocol. Trust scores already run live in the MVP.</p>
+      <span class="badge spec"><i></i>IN THE SPEC</span>
+    </div></div>
+    <div class="term" role="img" aria-label="Claude Code terminal: settlement and reputation update">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span>claude · dtp</div>
+      <div class="term-body">
+        <div class="msg res">settlement executed · 7,440.00 USDC → riofuego.near · freight paid · Contract ct_5d09 <b>SETTLED</b></div>
+        <div class="msg res">reputation updated · Rio Fuego trust 87 → <span class="hi">88</span> · your completed trades: <span class="hi">13</span></div>
+        <div class="msg c"><b>Done.</b> Nine days from need to settled. Broker fees: zero. Traceability: already filed. Both sides walk away with reputation they own.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<section class="sec wrap">
+  <h2>Built to sit under your tools.</h2>
+  <p class="sub">
+    DTP deliberately stops at the property line. Everything private stays in the
+    tools a team already uses. Everything between counterparties runs on the protocol.
+  </p>
+  <div class="split">
+    <div class="side private">
+      <h4>Your toolkit's side · private</h4>
+      <ul>
+        <li>Cost targets, budgets, and margin floors</li>
+        <li>Inventory and reorder points</li>
+        <li>Supplier preferences and history</li>
+        <li>Escalate-to-human thresholds</li>
+      </ul>
+      <p class="note">Held off-chain in the agent's autonomy context. Never visible to a counterparty.</p>
+    </div>
+    <div class="side public">
+      <h4>The protocol's side · shared</h4>
+      <ul>
+        <li>Portable identity: KYB, GS1 GLN, D-U-N-S, certifications</li>
+        <li>Intents, listings, offers, contracts</li>
+        <li>Escrow and USDC settlement rules</li>
+        <li>FSMA 204 traceability and earned reputation</li>
+      </ul>
+      <p class="note">Open objects any conforming agent can read, post, and verify.</p>
+    </div>
+  </div>
+  <p class="bridge">
+    Agents on both sides speak DTP <b>the way apps speak HTTP</b>.
+    Any AI toolkit for CPG teams can be the interface. The protocol is the road.
+  </p>
+</section>
+
+<section class="sec wrap">
+  <h2>What exists today.</h2>
+  <p class="sub">Working scaffolding, honestly labeled. The spec is the product; everything else proves it runs.</p>
+  <div class="stack">
+    <div class="stack-card">
+      <h4>Protocol spec</h4>
+      <div class="mono">SPEC.md · v0.2</div>
+      <p>Full JSON schemas, state machines, matching rules, finance and freight terms, FSMA 204 CTEs. PACA and FDA citations throughout.</p>
+      <span class="badge live"><i></i>PUBLISHED</span>
+    </div>
+    <div class="stack-card">
+      <h4>Settlement contract</h4>
+      <div class="mono">Rust · NEAR</div>
+      <p>Full v1 lifecycle implemented and tested on testnet. Escrow release rules specified; not yet on mainnet.</p>
+      <span class="badge test"><i></i>ON TESTNET</span>
+    </div>
+    <div class="stack-card">
+      <h4>MCP servers</h4>
+      <div class="mono">local + remote OAuth</div>
+      <p>29 trade tools any agent can call: parties, listings, intents, offers, matching, fulfillment. Works from claude.ai as a custom integration.</p>
+      <span class="badge live"><i></i>LIVE</span>
+    </div>
+    <div class="stack-card">
+      <h4>Claude Code plugin</h4>
+      <div class="mono">/plugin install dtp@dtp</div>
+      <p>The marketplace MVP: shop, sell, buy, and build trust from the terminal. Shared backend, live trust scores, real listings.</p>
+      <span class="badge live"><i></i>LIVE</span>
+    </div>
+  </div>
+</section>
+
+<section class="principles wrap">
+  <h2>The rules the protocol keeps.</h2>
+  <div class="creed">
+    <span>no rent extraction</span>
+    <span>no speculative token</span>
+    <span>portable identity</span>
+    <span>reputation you own</span>
+    <span>open spec, open code</span>
+    <span>humans set the bounds</span>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="fbrand">Direct Trade <b>Protocol</b></div>
+  <div class="flinks">
+    <a href="https://github.com/runquik/direct-trade-protocol">github.com/runquik/direct-trade-protocol</a>
+    <a href="#walkthrough">the walkthrough</a>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var links = document.querySelectorAll('#stages a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if(!('IntersectionObserver' in window)) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id];
+          if(a){ a.classList.add('on'); a.scrollIntoView({block:'nearest',inline:'nearest'}); }
+        }
+      });
+    }, {rootMargin:'-35% 0px -55% 0px'});
+    document.querySelectorAll('.stage').forEach(function(s){ obs.observe(s); });
+  })();
+</script>
