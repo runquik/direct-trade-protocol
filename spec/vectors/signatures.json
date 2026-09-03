@@ -1,0 +1,180 @@
+{
+  "description": "signature = Ed25519(secret, UTF-8 bytes of signing_input); signing_input = canonical JSON of the envelope minus `signature`. Encodings: ed25519:<base58>.",
+  "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+  "raw": {
+    "message_utf8": "dtp",
+    "signature": "ed25519:5yE7RCa8Wg2mk4Dn9tEug6cTvzrepbc8kRMc5Q3UpCYDKyY2ZF2i5dCJeQ7sL6unWvhCfSEv1hissqHt4qF8srtT",
+    "signature_hex": "f88e21a612e361964f422deadb3f643c6bf49245dc70d25828d1c34b36b6407c93c5ce3ebc2ce0c617abc8aa3daa7fc9b16fd4e68e0d1ab31bc464bf6e11440c"
+  },
+  "records": [
+    {
+      "name": "core.company genesis",
+      "envelope": {
+        "record_id": "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21",
+        "root_id": "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21",
+        "type": "core.company",
+        "namespace": "core",
+        "schema_version": "0.2",
+        "subject_company_id": "acme-sauce.dtp",
+        "counterparty_ids": [],
+        "issuer": {
+          "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+          "company_id": "acme-sauce.dtp",
+          "module_id": null
+        },
+        "visibility": "public",
+        "created_at": "2026-09-08T14:03:22.117Z",
+        "supersedes": null,
+        "body": {
+          "display_name": "Acme Sauce Co.",
+          "legal_name": "Acme Sauce Company LLC",
+          "business_type": "brand",
+          "jurisdiction": "US",
+          "locations": [
+            {
+              "location_id": "plant",
+              "label": "Plant and shipping dock",
+              "address": {
+                "line1": "12 Pepper Rd",
+                "line2": null,
+                "city": "Austin",
+                "region": "TX",
+                "postal_code": "78701",
+                "country": "US"
+              },
+              "gln": "0614141000012",
+              "roles": [
+                "ship_from",
+                "plant"
+              ]
+            }
+          ],
+          "identifiers": {
+            "duns": "123456789",
+            "tax_id": null,
+            "near_account": null
+          },
+          "keys": [
+            {
+              "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+              "role": "root",
+              "label": "owner",
+              "status": "active",
+              "added_at": "2026-09-08T14:03:22.117Z",
+              "revoked_at": null,
+              "near_account": null
+            }
+          ],
+          "kyb": null,
+          "certifications": [],
+          "fsma_pcqi_on_file": false,
+          "facility_allergens": [],
+          "data_vault_uri": null
+        },
+        "signature": "ed25519:1Gk8Wda5B2x1yXHF7iufpWG894LEThhr1Y2JR6X4C4fDhBtB5ssq3AGqR9QuW9j3a5KBrSAoZN9qCohbtT4FdCN"
+      },
+      "signing_input": "{\"body\":{\"business_type\":\"brand\",\"certifications\":[],\"data_vault_uri\":null,\"display_name\":\"Acme Sauce Co.\",\"facility_allergens\":[],\"fsma_pcqi_on_file\":false,\"identifiers\":{\"duns\":\"123456789\",\"near_account\":null,\"tax_id\":null},\"jurisdiction\":\"US\",\"keys\":[{\"added_at\":\"2026-09-08T14:03:22.117Z\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"label\":\"owner\",\"near_account\":null,\"revoked_at\":null,\"role\":\"root\",\"status\":\"active\"}],\"kyb\":null,\"legal_name\":\"Acme Sauce Company LLC\",\"locations\":[{\"address\":{\"city\":\"Austin\",\"country\":\"US\",\"line1\":\"12 Pepper Rd\",\"line2\":null,\"postal_code\":\"78701\",\"region\":\"TX\"},\"gln\":\"0614141000012\",\"label\":\"Plant and shipping dock\",\"location_id\":\"plant\",\"roles\":[\"ship_from\",\"plant\"]}]},\"counterparty_ids\":[],\"created_at\":\"2026-09-08T14:03:22.117Z\",\"issuer\":{\"company_id\":\"acme-sauce.dtp\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"module_id\":null},\"namespace\":\"core\",\"record_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"root_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"schema_version\":\"0.2\",\"subject_company_id\":\"acme-sauce.dtp\",\"supersedes\":null,\"type\":\"core.company\",\"visibility\":\"public\"}",
+      "payload_hash": "0b9bcd2e3d4a7f2686262e94ec18c2bdf634d748f7053c1ae0b16b77fd795401",
+      "signature": "ed25519:1Gk8Wda5B2x1yXHF7iufpWG894LEThhr1Y2JR6X4C4fDhBtB5ssq3AGqR9QuW9j3a5KBrSAoZN9qCohbtT4FdCN"
+    },
+    {
+      "name": "trade.contract",
+      "envelope": {
+        "record_id": "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22",
+        "root_id": "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22",
+        "type": "trade.contract",
+        "namespace": "trade",
+        "schema_version": "0.2",
+        "subject_company_id": "bluestem-dist.dtp",
+        "counterparty_ids": [
+          "acme-sauce.dtp"
+        ],
+        "issuer": {
+          "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+          "company_id": "acme-sauce.dtp",
+          "module_id": null
+        },
+        "visibility": "counterparties",
+        "created_at": "2026-09-08T14:03:22.117Z",
+        "supersedes": null,
+        "body": {
+          "buyer_company_id": "bluestem-dist.dtp",
+          "seller_company_id": "acme-sauce.dtp",
+          "intent_id": null,
+          "listing_id": null,
+          "offer_id": null,
+          "standing_agreement_id": null,
+          "lot_id": null,
+          "buyer_po_number": "PO-1001",
+          "goods": {
+            "category": "condiments.hot_sauce",
+            "product_name": "Habanero Hot Sauce 5oz",
+            "description": null,
+            "product_type": "branded",
+            "commodity_details": null,
+            "branded_details": {
+              "brand_name": "Acme",
+              "sku": "ACME-HAB-5",
+              "gtin": "00614141000012",
+              "upc": null,
+              "manufacturer": "Acme Sauce Co."
+            },
+            "value_added_details": null,
+            "quantity": {
+              "amount": "120",
+              "unit": "case"
+            },
+            "quality": null,
+            "required_certifications": [],
+            "packaging": "12x5oz glass",
+            "shelf_life_days": 365
+          },
+          "delivery": {
+            "destination": {
+              "line1": "400 Dock St",
+              "line2": null,
+              "city": "Dallas",
+              "region": "TX",
+              "postal_code": "75201",
+              "country": "US"
+            },
+            "destination_gln": null,
+            "window": {
+              "earliest": "2026-09-15T00:00:00.000Z",
+              "latest": "2026-09-19T00:00:00.000Z"
+            },
+            "method": "delivered",
+            "temperature_requirements": "ambient",
+            "notes": null
+          },
+          "finance": {
+            "payment_timing": "delivery_attestation",
+            "net_days": 30,
+            "paca_covered": false,
+            "financing_mode": "open_account",
+            "liquidity_pool_id": null,
+            "financer_company_id": null,
+            "finance_fee_bps": 0
+          },
+          "freight": null,
+          "price_per_unit": {
+            "amount": "42.00",
+            "currency": "USD"
+          },
+          "total_value": {
+            "amount": "5040.00",
+            "currency": "USD"
+          },
+          "escrow_ref": null,
+          "dispute_window_hours": 48,
+          "arbitrator_company_id": null,
+          "status": "active"
+        },
+        "signature": "ed25519:55ArcKQKzfShnLiHbvWG59g2TsSrGVFc4tn844wgghEZtXf1319XPM6JxNY95ph8Kgow23eo34Df5Ewvahps9orz"
+      },
+      "signing_input": "{\"body\":{\"arbitrator_company_id\":null,\"buyer_company_id\":\"bluestem-dist.dtp\",\"buyer_po_number\":\"PO-1001\",\"delivery\":{\"destination\":{\"city\":\"Dallas\",\"country\":\"US\",\"line1\":\"400 Dock St\",\"line2\":null,\"postal_code\":\"75201\",\"region\":\"TX\"},\"destination_gln\":null,\"method\":\"delivered\",\"notes\":null,\"temperature_requirements\":\"ambient\",\"window\":{\"earliest\":\"2026-09-15T00:00:00.000Z\",\"latest\":\"2026-09-19T00:00:00.000Z\"}},\"dispute_window_hours\":48,\"escrow_ref\":null,\"finance\":{\"finance_fee_bps\":0,\"financer_company_id\":null,\"financing_mode\":\"open_account\",\"liquidity_pool_id\":null,\"net_days\":30,\"paca_covered\":false,\"payment_timing\":\"delivery_attestation\"},\"freight\":null,\"goods\":{\"branded_details\":{\"brand_name\":\"Acme\",\"gtin\":\"00614141000012\",\"manufacturer\":\"Acme Sauce Co.\",\"sku\":\"ACME-HAB-5\",\"upc\":null},\"category\":\"condiments.hot_sauce\",\"commodity_details\":null,\"description\":null,\"packaging\":\"12x5oz glass\",\"product_name\":\"Habanero Hot Sauce 5oz\",\"product_type\":\"branded\",\"quality\":null,\"quantity\":{\"amount\":\"120\",\"unit\":\"case\"},\"required_certifications\":[],\"shelf_life_days\":365,\"value_added_details\":null},\"intent_id\":null,\"listing_id\":null,\"lot_id\":null,\"offer_id\":null,\"price_per_unit\":{\"amount\":\"42.00\",\"currency\":\"USD\"},\"seller_company_id\":\"acme-sauce.dtp\",\"standing_agreement_id\":null,\"status\":\"active\",\"total_value\":{\"amount\":\"5040.00\",\"currency\":\"USD\"}},\"counterparty_ids\":[\"acme-sauce.dtp\"],\"created_at\":\"2026-09-08T14:03:22.117Z\",\"issuer\":{\"company_id\":\"acme-sauce.dtp\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"module_id\":null},\"namespace\":\"trade\",\"record_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22\",\"root_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22\",\"schema_version\":\"0.2\",\"subject_company_id\":\"bluestem-dist.dtp\",\"supersedes\":null,\"type\":\"trade.contract\",\"visibility\":\"counterparties\"}",
+      "payload_hash": "a6fdc4b3fe7c70c793706e8a7cf84b8e6bad241244cc5569025b2c8bf3fee580",
+      "signature": "ed25519:55ArcKQKzfShnLiHbvWG59g2TsSrGVFc4tn844wgghEZtXf1319XPM6JxNY95ph8Kgow23eo34Df5Ewvahps9orz"
+    }
+  ]
+}

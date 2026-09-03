@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/fulfillment.schema.json",
+  "title": "trade.fulfillment",
+  "description": "Delivery record for a contract. Subject is the seller (who attests shipment/delivery); the buyer attests receipt by superseding this record with buyer_attestation filled in. Structured evidence (BOL, temperature logs, inspection) may be attached under x_evidence in v0.2; a first-class evidence type is a v0.3 candidate.",
+  "x-dtp-subject": "seller_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "seller": "seller_company_id", "buyer": "buyer_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["seller_attested"], "by": ["seller"] },
+    "transitions": [
+      { "from": "seller_attested", "to": "buyer_attested", "by": ["buyer"], "within": "contract.dispute_window_hours" },
+      { "from": "seller_attested", "to": "disputed", "by": ["buyer"], "within": "contract.dispute_window_hours" },
+      { "from": "seller_attested", "to": "complete", "by": ["seller"], "after": "contract.dispute_window_hours", "note": "presumed acceptance" },
+      { "from": "buyer_attested", "to": "complete", "by": ["buyer", "seller"] },
+      { "from": "disputed", "to": "complete", "by": ["buyer", "seller"], "note": "after arbitration recorded on the contract" }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["contract_id", "seller_company_id", "buyer_company_id", "delivered_at", "quantity_delivered", "seller_attestation", "buyer_attestation", "status"],
+  "properties": {
+    "contract_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "delivered_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "quantity_delivered": { "$ref": "../common/quantity.schema.json" },
+    "seller_attestation": { "$ref": "../common/attestation.schema.json" },
+    "buyer_attestation": { "oneOf": [{ "$ref": "../common/attestation.schema.json" }, { "type": "null" }] },
+    "deductions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason", "amount"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 },
+          "amount": { "$ref": "../common/money.schema.json" }
+        }
+      }
+    },
+    "status": { "type": "string", "enum": ["seller_attested", "buyer_attested", "complete", "disputed"] }
+  }
+}

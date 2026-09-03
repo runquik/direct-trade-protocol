@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/offer.schema.json",
+  "title": "trade.offer",
+  "description": "A targeted response to a posted intent or listing. Subject is the offerer; the target's owner is the counterparty.",
+  "x-dtp-subject": "offerer_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "offerer": "offerer_company_id", "target_owner": "target_owner_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["submitted"], "by": ["offerer"] },
+    "transitions": [
+      { "from": "submitted", "to": "shortlisted", "by": ["target_owner"] },
+      { "from": "submitted", "to": "accepted", "by": ["target_owner"] },
+      { "from": "submitted", "to": "rejected", "by": ["target_owner"] },
+      { "from": "submitted", "to": "retracted", "by": ["offerer"] },
+      { "from": "submitted", "to": "expired", "by": ["offerer", "target_owner"], "after": "expires_at" },
+      { "from": "shortlisted", "to": "accepted", "by": ["target_owner"] },
+      { "from": "shortlisted", "to": "rejected", "by": ["target_owner"] },
+      { "from": "shortlisted", "to": "retracted", "by": ["offerer"] },
+      { "from": "shortlisted", "to": "expired", "by": ["offerer", "target_owner"], "after": "expires_at" }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["offerer_company_id", "target_type", "target_id", "target_owner_company_id", "goods", "delivery", "price_per_unit", "total_price", "expires_at", "status"],
+  "properties": {
+    "offerer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "target_type": { "type": "string", "enum": ["intent", "listing"] },
+    "target_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId", "description": "root_id of the intent or listing" },
+    "target_owner_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "goods": { "$ref": "goods_spec.schema.json" },
+    "delivery": { "$ref": "delivery_spec.schema.json" },
+    "finance": { "oneOf": [{ "$ref": "finance_terms.schema.json" }, { "type": "null" }] },
+    "freight": { "oneOf": [{ "$ref": "freight_terms.schema.json" }, { "type": "null" }] },
+    "price_per_unit": { "$ref": "../common/money.schema.json" },
+    "total_price": { "$ref": "../common/money.schema.json" },
+    "certifications": { "type": "array", "items": { "$ref": "../common/certification_ref.schema.json" } },
+    "expires_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "status": { "type": "string", "enum": ["submitted", "shortlisted", "accepted", "rejected", "expired", "retracted"] }
+  }
+}

@@ -14,6 +14,13 @@
 > architecture and [`plugins/dtp/`](plugins/dtp/README.md) for usage. The full protocol
 > below (escrow, settlement, traceability) is the roadmap the MVP grows into.
 
+> **🗂️ Protocol v0.2 (Sept 2026): DTP is now a *company record protocol*.** The core is a company's
+> portable, signed, append-only record store that any small module can read and write with the
+> company's permission; trade is the first namespace, finance the second. See [`SPEC.md`](SPEC.md),
+> the builder quickstart [`docs/PROTOCOL_STORE.md`](docs/PROTOCOL_STORE.md), the schemas in
+> [`spec/`](spec/), and the reference store + SDK in [`supabase/`](supabase/functions/dtp-store) and
+> [`sdk/`](sdk/). The prior-art research that drove the re-rooting is in [`research/`](research/).
+
 ---
 
 ## What DTP Is
@@ -30,11 +37,11 @@ DTP is **not** an app, a marketplace, or a company. It is infrastructure.
 
 ## Why It Exists
 
-The U.S. food supply chain alone spends an estimated 20–30% of total value (~$375–750B annually) on middlemen and manual coordination — faxes, spreadsheets, phone calls, paper checks, 30–90 day payment terms. That coordination tax doesn't add value. It just extracts it.
+Trade in physical goods still runs on faxes, emails, spreadsheets, paper checks, and 30–90 day payment terms — and on the fact that nobody's records are portable. Every system a business uses is a silo, so counterparties coordinate by re-keying, phoning, and waiting. The honest accounting (see [`research/SYNTHESIS.md`](research/SYNTHESIS.md)) is that most of a distributor's margin pays for real services — credit, cold chain, aggregation, recourse — and only a few points are pure coordination friction. What the status quo genuinely does *not* provide is: fast seller liquidity against a delivered order, trust between businesses that have never traded, machine-readable trade state that survives a change of software, and a cheap way to attach regulatory traceability to trades that already happened.
 
-DTP replaces coordination-by-intermediary with coordination-by-protocol: open rules, smart contract escrow, automatic settlement, on-chain reputation, and regulatory-grade traceability built in from the start.
+DTP targets exactly those gaps: signed, portable records; delivery attestation that a financer can price against in one step; and FSMA 204 traceability that falls out of settled trades instead of being separate homework.
 
-**The regulatory tailwind is real.** FDA's FSMA Rule 204 (Food Traceability Final Rule) takes effect in 2026 and requires businesses handling FDA Food Traceability List commodities to electronically record Critical Tracking Events (CTEs) at every step of the supply chain. The industry is scrambling to comply. DTP has this compliance infrastructure built into the core protocol.
+**The regulatory context.** FDA's FSMA Rule 204 (Food Traceability Final Rule) is final law, but enforcement is statutorily barred until July 20, 2028. The near-term forcing function is retailer supplier-traceability programs (Walmart's has run with chargebacks since August 2025). DTP builds to the rule's data model and sells against the mandates that exist today.
 
 ---
 
@@ -155,29 +162,35 @@ Full W3C VC 2.0 credential issuance and verification. KYB providers, certifying 
 ```
 direct-trade-protocol/
   README.md                       ← this file
-  SPEC.md                         ← full protocol specification
-  contracts/                      ← NEAR smart contracts (Rust)
-    src/
-      lib.rs                      ← contract entry point + all methods
-      types.rs                    ← all data types and structs
-      events.rs                   ← audit event types
-      matching.rs                 ← matching engine logic
+  SPEC.md                         ← protocol specification v0.2 (company record model)
+  spec/                           ← NORMATIVE: JSON Schemas, type registry, fixed test vectors, generated types
+  sdk/                            ← @dtp/sdk: canonicalization, keys, signing, store client, seed/keygen/sign CLIs,
+                                     conformance tests, and a no-Docker dev store (embedded Postgres)
+  supabase/                       ← reference store: migrations/ (schema `protocol`) + functions/dtp-store (edge function)
   docs/
+    PROTOCOL_STORE.md             ← builder quickstart for the store (read this first)
+    SPRINT_01_PROTOCOL_INTEROP.md ← the interop sprint brief; SPRINT_01_GAP_LOG.md collects findings
     PORTABLE_IDENTITY.md          ← portable business identity + data vault vision
-    FINANCE_LAYER.md              ← finance layer design
-    FREIGHT_LAYER.md              ← freight integration design
-    V1_ACCEPTANCE_CHECKLIST.md    ← pre-deploy acceptance criteria
-    V1_ACCEPTANCE_REPORT.md       ← acceptance audit results
-    PARITY_AUDIT_2026-03-07.md    ← policy enforcement audit
+    FINANCE_LAYER.md, FREIGHT_LAYER.md
+    archive/SPEC_v0.1.md          ← the superseded marketplace-pipeline spec
+  research/                       ← prior art, 1930–2026: 8 dossiers + SYNTHESIS.md + TIMELINE.md
+  contracts/                      ← v0.1 NEAR smart contract (Rust): v0.1 objects, not v0.2-conformant; future on-chain profile
+  marketplace/                    ← the live MVP (Supabase edge function + plugin backend); pre-v0.2 data model
+  plugins/dtp/                    ← the Claude Code plugin for the MVP
+  mcp-server/, remote-mcp-server/ ← v0.1 clients, frozen
 ```
 
 ---
 
 ## Status
 
-**Active development.** Contract is feature-complete for v1 scope. 9/9 tests passing. Not yet deployed to NEAR mainnet.
+**v0.2 reference store built (Sept 2026):** signed records, per-module grants, visibility, state machines, and an event feed, with a 32-test conformance suite green on embedded Postgres. Next: deploy to the shared Supabase project and run Sprint 01 with an outside builder.
 
-Reference chain: [NEAR Protocol](https://near.org) — fast finality, agent-native accounts, USDC support, hierarchical account model.
+**MVP marketplace:** live as a Claude Code plugin (listings, intents, matching, trust) on a pre-v0.2 data model.
+
+**On-chain (v0.1 contract):** feature-complete for the v0.1 marketplace scope; not deployed to mainnet; escrow/release are placeholders. Becomes the on-chain store profile of v0.2 in a later phase.
+
+Reference chain: [NEAR Protocol](https://near.org) — key and signature encodings in v0.2 are NEAR-compatible by design.
 
 ---
 

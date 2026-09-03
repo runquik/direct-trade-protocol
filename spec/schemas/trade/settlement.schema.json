@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/settlement.schema.json",
+  "title": "trade.settlement",
+  "description": "Final accounting for a contract. Subject is the buyer (payer); the seller is the counterparty. Terminal: corrections are a new settlement whose `corrects` names this one.",
+  "x-dtp-subject": "buyer_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "buyer": "buyer_company_id", "seller": "seller_company_id" },
+  "x-dtp-transitions": {
+    "status_field": null,
+    "initial": { "status": [], "by": ["buyer"] },
+    "transitions": []
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["contract_id", "fulfillment_id", "buyer_company_id", "seller_company_id", "gross_amount", "deductions", "net_amount", "settled_at"],
+  "properties": {
+    "contract_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "fulfillment_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "gross_amount": { "$ref": "../common/money.schema.json" },
+    "deductions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason", "amount"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 },
+          "amount": { "$ref": "../common/money.schema.json" }
+        }
+      }
+    },
+    "net_amount": { "$ref": "../common/money.schema.json" },
+    "escrow_release_tx": { "type": ["string", "null"] },
+    "settlement_event_ids": { "type": "array", "items": { "$ref": "../common/ids.schema.json#/$defs/RecordId" }, "description": "finance.settlement_event root_ids that moved the money." },
+    "corrects": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+    "settled_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" }
+  }
+}

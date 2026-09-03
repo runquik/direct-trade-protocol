@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/finance/advance_offer.schema.json",
+  "title": "finance.advance_offer",
+  "description": "A financer's offer to advance cash against an invoice. Subject is the seller; the financer is the counterparty and the issuer (via its module). pricing_basis lists the protocol records the decision was made from — proof that no out-of-band intake was needed.",
+  "x-dtp-subject": "seller_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "seller": "seller_company_id", "financer": "financer_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["offered"], "by": ["financer"] },
+    "transitions": [
+      { "from": "offered", "to": "accepted", "by": ["seller"] },
+      { "from": "offered", "to": "declined", "by": ["seller"] },
+      { "from": "offered", "to": "withdrawn", "by": ["financer"] },
+      { "from": "offered", "to": "expired", "by": ["seller", "financer"], "after": "expires_at" }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["invoice_id", "seller_company_id", "financer_company_id", "advance_amount", "advance_bps", "fee", "repayment", "recourse", "pricing_basis", "expires_at", "status"],
+  "properties": {
+    "invoice_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "financer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "advance_amount": { "$ref": "../common/money.schema.json" },
+    "advance_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps", "description": "advance_amount as bps of invoice total" },
+    "fee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fee_bps", "apr_bps"],
+      "properties": {
+        "fee_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps" },
+        "apr_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps" },
+        "fixed_fee": { "oneOf": [{ "$ref": "../common/money.schema.json" }, { "type": "null" }] }
+      }
+    },
+    "repayment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "due_at"],
+      "properties": {
+        "source": { "type": "string", "enum": ["buyer_payment", "seller"] },
+        "due_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" }
+      }
+    },
+    "recourse": { "type": "string", "enum": ["full", "limited", "none"] },
+    "pricing_basis": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "type"],
+        "properties": {
+          "record_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+          "type": { "$ref": "../common/ids.schema.json#/$defs/RecordType" },
+          "note": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "expires_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "status": { "type": "string", "enum": ["offered", "accepted", "declined", "expired", "withdrawn"] }
+  }
+}

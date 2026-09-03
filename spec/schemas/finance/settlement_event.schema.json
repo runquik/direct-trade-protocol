@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/finance/settlement_event.schema.json",
+  "title": "finance.settlement_event",
+  "description": "An immutable money movement. Subject is the payer; the payee is the counterparty. No status: corrections are a compensating event whose `reverses` names this one.",
+  "x-dtp-subject": "from_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "payer": "from_company_id", "payee": "to_company_id" },
+  "x-dtp-transitions": {
+    "status_field": null,
+    "initial": { "status": [], "by": ["payer"] },
+    "transitions": []
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["kind", "from_company_id", "to_company_id", "amount", "occurred_at", "rail", "references", "reverses"],
+  "properties": {
+    "kind": { "type": "string", "enum": ["buyer_payment", "advance_funding", "advance_repayment", "fee", "refund", "escrow_release", "adjustment"] },
+    "from_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "to_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "amount": { "$ref": "../common/money.schema.json" },
+    "occurred_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "rail": { "type": "string", "enum": ["mock", "ach", "wire", "card", "check", "usdc_near"] },
+    "rail_ref": { "type": ["string", "null"] },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "invoice_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+        "advance_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+        "contract_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+        "trade_settlement_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] }
+      }
+    },
+    "reverses": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+    "memo": { "type": ["string", "null"] }
+  }
+}

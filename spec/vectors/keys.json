@@ -1,0 +1,7 @@
+{
+  "description": "Fixed Ed25519 test key. NEAR-compatible encodings. Never use for anything real.",
+  "seed_hex": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
+  "public_key_hex": "755c4cb9256ca7cdc4acfdc6cfeeda849017e5b9f9514e99191bd67e0b0d4276",
+  "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+  "secret_key": "ed25519:4XR92Zct9ZodXzisJ4kov3upmTvMotYVrg65MHP8aoCbzpJkqdxqPc6dogrNDUXwZmQuzR5vatkAh8EUE9z4T5X"
+}

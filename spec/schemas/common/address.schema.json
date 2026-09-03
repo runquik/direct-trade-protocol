@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/address.schema.json",
+  "title": "Address",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["city", "region", "country"],
+  "properties": {
+    "line1": { "type": ["string", "null"] },
+    "line2": { "type": ["string", "null"] },
+    "city": { "type": "string", "minLength": 1 },
+    "region": { "type": "string", "minLength": 1, "description": "State/province code or name." },
+    "postal_code": { "type": ["string", "null"] },
+    "country": { "$ref": "ids.schema.json#/$defs/CountryCode" }
+  }
+}

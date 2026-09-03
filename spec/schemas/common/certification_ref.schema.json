@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/certification_ref.schema.json",
+  "title": "CertificationRef",
+  "description": "A certification claim. Never self-asserted: carries the issuer and a verification URL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cert_id", "cert_type", "issuer", "issued_at", "status"],
+  "properties": {
+    "cert_id": { "type": "string", "minLength": 1 },
+    "cert_type": { "type": "string", "minLength": 1, "description": "e.g. USDA_ORGANIC, GAP, SQF, BRC, HACCP, NON_GMO, FAIR_TRADE, FSMA_COMPLIANT" },
+    "issuer": { "type": "string", "minLength": 1 },
+    "issuer_url": { "type": ["string", "null"] },
+    "issued_at": { "$ref": "ids.schema.json#/$defs/DateTime" },
+    "expires_at": { "oneOf": [{ "$ref": "ids.schema.json#/$defs/DateTime" }, { "type": "null" }] },
+    "verification_url": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["active", "expired", "revoked"] }
+  }
+}

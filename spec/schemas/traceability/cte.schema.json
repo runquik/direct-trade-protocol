@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/traceability/cte.schema.json",
+  "title": "traceability.cte",
+  "description": "An FSMA 204 Critical Tracking Event keyed by a Traceability Lot Code. Subject is the actor. Loose in v0.2 (additional properties allowed) — this namespace is exercised in a later sprint; an EPCIS 2.0 export mapping is planned.",
+  "x-dtp-subject": "actor_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "actor": "actor_company_id" },
+  "x-dtp-transitions": { "status_field": null, "initial": { "status": [], "by": ["actor"] }, "transitions": [] },
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["cte_type", "lot_id", "actor_company_id", "quantity", "event_date"],
+  "properties": {
+    "cte_type": { "type": "string", "enum": ["growing", "creating", "receiving", "transforming", "shipping"] },
+    "lot_id": { "type": "string", "minLength": 1, "description": "Traceability Lot Code (opaque in v0.2)." },
+    "output_lot_id": { "type": ["string", "null"] },
+    "input_lot_ids": { "type": "array", "items": { "type": "string" } },
+    "actor_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "actor_gln": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GLN" }, { "type": "null" }] },
+    "source_gln": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GLN" }, { "type": "null" }] },
+    "dest_gln": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GLN" }, { "type": "null" }] },
+    "quantity": { "$ref": "../common/quantity.schema.json" },
+    "commodity": { "type": ["string", "null"] },
+    "variety": { "type": ["string", "null"] },
+    "event_date": { "$ref": "../common/ids.schema.json#/$defs/DateTime", "description": "When the physical event happened (the envelope created_at is when it was recorded)." },
+    "contract_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

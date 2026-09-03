@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/finance_terms.schema.json",
+  "title": "FinanceTerms",
+  "description": "Payment timing and financing mode agreed for a trade. Policy defaults (LP APR, maturity caps, PACA 30-day cliff) are documented in SPEC.md §7 and are not schema-enforced.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["payment_timing", "net_days", "paca_covered", "financing_mode"],
+  "properties": {
+    "payment_timing": { "type": "string", "enum": ["delivery_attestation", "inspection_period_end"] },
+    "net_days": { "type": "integer", "minimum": 0, "maximum": 365 },
+    "paca_covered": { "type": "boolean" },
+    "financing_mode": { "type": "string", "enum": ["escrow_only", "lp_pool", "open_account"] },
+    "liquidity_pool_id": { "type": ["string", "null"] },
+    "financer_company_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/CompanyId" }, { "type": "null" }] },
+    "finance_fee_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps" }
+  }
+}

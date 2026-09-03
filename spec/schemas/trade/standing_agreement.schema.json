@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/standing_agreement.schema.json",
+  "title": "trade.standing_agreement",
+  "description": "A framework governing a series of trades. Subject is the proposer; the other party is the counterparty. Countersignature = the counterparty supersedes the record, appending to signatures[] and setting status active.",
+  "x-dtp-subject": "proposer_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "proposer": "proposer_company_id", "buyer": "buyer_company_id", "seller": "seller_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["proposed"], "by": ["proposer"] },
+    "transitions": [
+      { "from": "proposed", "to": "countered", "by": ["buyer", "seller"] },
+      { "from": "proposed", "to": "active", "by": ["buyer", "seller"], "note": "counterparty countersigns" },
+      { "from": "proposed", "to": "terminated", "by": ["buyer", "seller"] },
+      { "from": "countered", "to": "active", "by": ["buyer", "seller"] },
+      { "from": "countered", "to": "countered", "by": ["buyer", "seller"] },
+      { "from": "countered", "to": "terminated", "by": ["buyer", "seller"] },
+      { "from": "active", "to": "completed", "by": ["buyer", "seller"], "after": "terms.period_end" },
+      { "from": "active", "to": "terminated", "by": ["buyer", "seller"] }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["proposer_company_id", "proposer_role", "buyer_company_id", "seller_company_id", "goods", "terms", "signatures", "status"],
+  "properties": {
+    "proposer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "proposer_role": { "type": "string", "enum": ["buyer", "seller"] },
+    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "goods": { "$ref": "goods_spec.schema.json" },
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period_start", "period_end", "pricing", "renewal"],
+      "properties": {
+        "period_start": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+        "period_end": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+        "volume_commitment": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "min_quantity_per_period": { "$ref": "../common/quantity.schema.json" },
+            "period": { "type": "string", "enum": ["monthly", "quarterly", "annual"] },
+            "committed_total": { "$ref": "../common/quantity.schema.json" }
+          }
+        },
+        "pricing": { "$ref": "seller_pricing.schema.json" },
+        "delivery_cadence": { "type": ["string", "null"] },
+        "renewal": { "type": "string", "enum": ["auto", "manual", "none"] }
+      }
+    },
+    "signatures": { "type": "array", "items": { "$ref": "../common/attestation.schema.json" } },
+    "status": { "type": "string", "enum": ["proposed", "countered", "active", "completed", "terminated"] }
+  }
+}

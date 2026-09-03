@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/listing.schema.json",
+  "title": "trade.listing",
+  "description": "A seller's proactive broadcast of available supply. Subject is the seller. MOQ lives in pack_structure.",
+  "x-dtp-subject": "seller_company_id",
+  "x-dtp-default-visibility": "public",
+  "x-dtp-roles": { "seller": "seller_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["draft", "active"], "by": ["seller"] },
+    "transitions": [
+      { "from": "draft", "to": "active", "by": ["seller"] },
+      { "from": "draft", "to": "withdrawn", "by": ["seller"] },
+      { "from": "active", "to": "matched", "by": ["seller"] },
+      { "from": "active", "to": "withdrawn", "by": ["seller"] },
+      { "from": "active", "to": "expired", "by": ["seller"], "after": "expires_at" },
+      { "from": "matched", "to": "contracted", "by": ["seller"] },
+      { "from": "matched", "to": "withdrawn", "by": ["seller"] }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["seller_company_id", "goods", "pack_structure", "delivery", "pricing", "available_from", "expires_at", "status"],
+  "properties": {
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "lot_id": { "type": ["string", "null"] },
+    "goods": { "$ref": "goods_spec.schema.json" },
+    "pack_structure": { "$ref": "pack_structure.schema.json" },
+    "delivery": { "$ref": "delivery_spec.schema.json" },
+    "pricing": { "$ref": "seller_pricing.schema.json" },
+    "finance": { "oneOf": [{ "$ref": "finance_terms.schema.json" }, { "type": "null" }] },
+    "freight": { "oneOf": [{ "$ref": "freight_terms.schema.json" }, { "type": "null" }] },
+    "certifications": { "type": "array", "items": { "$ref": "../common/certification_ref.schema.json" } },
+    "available_from": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "expires_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "status": { "type": "string", "enum": ["draft", "active", "matched", "contracted", "expired", "withdrawn"] }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/goods_spec.schema.json",
+  "title": "GoodsSpec",
+  "description": "Describes goods requested or offered. Only the *_details block matching product_type is required.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["category", "product_name", "product_type", "quantity"],
+  "properties": {
+    "category": { "type": "string", "minLength": 1, "description": "Dotted taxonomy, e.g. condiments.hot_sauce" },
+    "product_name": { "type": "string", "minLength": 1 },
+    "description": { "type": ["string", "null"] },
+    "product_type": { "type": "string", "enum": ["commodity", "branded", "value_added"] },
+    "commodity_details": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "country_of_origin": { "$ref": "../common/ids.schema.json#/$defs/CountryCode" },
+        "farming_practices": { "type": "array", "items": { "type": "string" } },
+        "grade": { "type": ["string", "null"] },
+        "harvest_date": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/Date" }, { "type": "null" }] }
+      }
+    },
+    "branded_details": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["brand_name", "sku"],
+      "properties": {
+        "brand_name": { "type": "string", "minLength": 1 },
+        "sku": { "type": "string", "minLength": 1 },
+        "gtin": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GTIN" }, { "type": "null" }] },
+        "upc": { "type": ["string", "null"] },
+        "manufacturer": { "type": ["string", "null"] }
+      }
+    },
+    "value_added_details": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["process_type"],
+      "properties": {
+        "process_type": { "type": "string", "minLength": 1 },
+        "base_ingredients": { "type": "array", "items": { "type": "string" } },
+        "processing_facility": { "type": ["string", "null"] }
+      }
+    },
+    "quantity": { "$ref": "../common/quantity.schema.json" },
+    "quality": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "grade": { "type": ["string", "null"] },
+        "specifications": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "required_certifications": { "type": "array", "items": { "type": "string" } },
+    "packaging": { "type": ["string", "null"] },
+    "shelf_life_days": { "type": ["integer", "null"], "minimum": 0 }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "description": "canonical = RFC 8785 JCS with integer-only numbers; sha256 over UTF-8 bytes of canonical",
+  "cases": [
+    {
+      "name": "key order and nesting",
+      "input": {
+        "z": 1,
+        "a": {
+          "y": "2",
+          "x": [
+            3,
+            {
+              "b": true,
+              "a": null
+            }
+          ]
+        }
+      },
+      "canonical": "{\"a\":{\"x\":[3,{\"a\":null,\"b\":true}],\"y\":\"2\"},\"z\":1}",
+      "sha256": "d949967f34ceecdc225b4c1b7346634dc9ad6365172cbd13abb9c4d2d02a251d"
+    },
+    {
+      "name": "unicode and escapes",
+      "input": {
+        "s": "héllo \"quoted\" \\ back\nnewline \u0001",
+        "e": ""
+      },
+      "canonical": "{\"e\":\"\",\"s\":\"héllo \\\"quoted\\\" \\\\ back\\nnewline \\u0001\"}",
+      "sha256": "bde1afe0902b65e0700e75e49ef8325a8c6432bee5e95da2acf99df4fd6a5510"
+    },
+    {
+      "name": "integers and arrays",
+      "input": {
+        "n": [
+          0,
+          -1,
+          9007199254740991
+        ],
+        "m": {}
+      },
+      "canonical": "{\"m\":{},\"n\":[0,-1,9007199254740991]}",
+      "sha256": "7aca40e835f3ea39958b41d9efae6adcd0c27dc046bda687bf1dc0caa1777180"
+    },
+    {
+      "name": "undefined is dropped, null kept",
+      "input": {
+        "a": null,
+        "c": [
+          null
+        ]
+      },
+      "canonical": "{\"a\":null,\"c\":[null]}",
+      "sha256": "43799946e7eb70c4e0bcb94f3c1d61bdb5280c3d320dad5c6d61e9fc93458ff3"
+    }
+  ]
+}

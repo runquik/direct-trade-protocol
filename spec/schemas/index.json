@@ -1,0 +1,42 @@
+{
+  "$comment": "DTP v0.2 type registry. The store, the SDK build, and the docs all derive from this file. writable_by: which principal kinds may issue the record (company = a company key; module = a module key under a core.grant). subject: which body field names the subject company (self = the record is about the subject itself).",
+  "protocol_version": "0.2",
+  "id_base": "https://dtp.dev/schemas/0.2/",
+  "envelope": "core/envelope.schema.json",
+  "event": "core/event.schema.json",
+  "common": [
+    "common/ids.schema.json",
+    "common/money.schema.json",
+    "common/quantity.schema.json",
+    "common/address.schema.json",
+    "common/key.schema.json",
+    "common/attestation.schema.json",
+    "common/certification_ref.schema.json",
+    "common/kyb_ref.schema.json",
+    "trade/goods_spec.schema.json",
+    "trade/delivery_spec.schema.json",
+    "trade/freight_terms.schema.json",
+    "trade/pack_structure.schema.json",
+    "trade/seller_pricing.schema.json",
+    "trade/buyer_pricing.schema.json",
+    "trade/finance_terms.schema.json"
+  ],
+  "types": {
+    "core.company":            { "file": "core/company.schema.json",            "schema_versions": ["0.2"], "writable_by": ["company"],           "subject": "self",                  "default_visibility": "public",         "strict": true },
+    "core.module":             { "file": "core/module.schema.json",             "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "publisher_company_id",  "default_visibility": "public",         "strict": true },
+    "core.grant":              { "file": "core/grant.schema.json",              "schema_versions": ["0.2"], "writable_by": ["company"],           "subject": "self",                  "default_visibility": "private",        "strict": true },
+    "trade.intent":            { "file": "trade/intent.schema.json",            "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "buyer_company_id",      "default_visibility": "public",         "strict": true },
+    "trade.listing":           { "file": "trade/listing.schema.json",           "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "seller_company_id",     "default_visibility": "public",         "strict": true },
+    "trade.offer":             { "file": "trade/offer.schema.json",             "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "offerer_company_id",    "default_visibility": "counterparties", "strict": true },
+    "trade.contract":          { "file": "trade/contract.schema.json",          "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "buyer_company_id",      "default_visibility": "counterparties", "strict": true },
+    "trade.fulfillment":       { "file": "trade/fulfillment.schema.json",       "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "seller_company_id",     "default_visibility": "counterparties", "strict": true },
+    "trade.settlement":        { "file": "trade/settlement.schema.json",        "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "buyer_company_id",      "default_visibility": "counterparties", "strict": true },
+    "trade.standing_agreement":{ "file": "trade/standing_agreement.schema.json","schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "proposer_company_id",   "default_visibility": "counterparties", "strict": true },
+    "finance.invoice":         { "file": "finance/invoice.schema.json",         "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "seller_company_id",     "default_visibility": "counterparties", "strict": true },
+    "finance.advance_offer":   { "file": "finance/advance_offer.schema.json",   "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "seller_company_id",     "default_visibility": "counterparties", "strict": true },
+    "finance.advance":         { "file": "finance/advance.schema.json",         "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "seller_company_id",     "default_visibility": "counterparties", "strict": true },
+    "finance.settlement_event":{ "file": "finance/settlement_event.schema.json","schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "from_company_id",       "default_visibility": "counterparties", "strict": true },
+    "traceability.cte":        { "file": "traceability/cte.schema.json",        "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "actor_company_id",      "default_visibility": "counterparties", "strict": false },
+    "traceability.coa_anchor": { "file": "traceability/coa_anchor.schema.json", "schema_versions": ["0.2"], "writable_by": ["company", "module"], "subject": "company_id",            "default_visibility": "counterparties", "strict": false }
+  }
+}

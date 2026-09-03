@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/key.schema.json",
+  "title": "Key",
+  "description": "A signing key attached to a company or module. Rotation = add a new key, revoke the old one. A revoked key's signatures on records created before revoked_at remain valid.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["key_id", "role", "status", "added_at"],
+  "properties": {
+    "key_id": { "$ref": "ids.schema.json#/$defs/KeyId" },
+    "role": { "type": "string", "enum": ["root", "delegate"], "description": "Only root keys may change keys[] or write core.grant." },
+    "label": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["active", "revoked"] },
+    "added_at": { "$ref": "ids.schema.json#/$defs/DateTime" },
+    "revoked_at": { "oneOf": [{ "$ref": "ids.schema.json#/$defs/DateTime" }, { "type": "null" }] },
+    "near_account": { "type": ["string", "null"], "description": "NEAR account (or sub-account) this key belongs to, if any." }
+  }
+}

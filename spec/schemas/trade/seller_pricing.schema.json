@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/seller_pricing.schema.json",
+  "title": "SellerPricing",
+  "description": "Published asking price and volume tiers. Floor price is never published; it lives in the seller agent's private context.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["model", "asking_price_per_unit"],
+  "properties": {
+    "model": { "type": "string", "enum": ["flat", "tiered", "negotiable"] },
+    "asking_price_per_unit": { "$ref": "../common/money.schema.json" },
+    "tiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["min_quantity", "price_per_unit"],
+        "properties": {
+          "min_quantity": { "$ref": "../common/quantity.schema.json" },
+          "max_quantity": { "oneOf": [{ "$ref": "../common/quantity.schema.json" }, { "type": "null" }] },
+          "price_per_unit": { "$ref": "../common/money.schema.json" },
+          "label": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

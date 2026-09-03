@@ -1,962 +1,382 @@
-# DTP Specification v0.1
+# DTP Specification v0.2 — Company Record Protocol
 
 **Direct Trade Protocol — Protocol Specification**
 
-> Status: Draft | Version: 0.2 | Date: 2026-03-10
+> Status: Draft for Sprint 01 | Version: 0.2 | Date: 2026-09-03
+> Supersedes v0.1 (archived at [`docs/archive/SPEC_v0.1.md`](docs/archive/SPEC_v0.1.md)).
+
+The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described in RFC 2119.
+
+**How to read this document.** The prose explains; the JSON Schemas in [`spec/schemas/`](spec/schemas) decide. Every record type links to its schema and every conformance claim is checkable against the fixed vectors in [`spec/vectors/`](spec/vectors). Where prose and schema disagree, the schema is normative and the prose is a bug.
+
+**Changes from v0.1.** v0.1 specified a marketplace pipeline (intent → listing → match → contract → escrow → settlement) with a `Party` profile attached. v0.2 re-roots the protocol: the primary object is a **company's record store** — a portable, signed, append-only set of records that any module can read and write with the company's permission. The v0.1 trade objects survive as the `trade` namespace; matching and escrow mechanics are demoted to informative notes; a `finance` namespace is added; identity is generalized from "a NEAR account" to "a company with keys, of which a NEAR account is one". Field-level differences are in Appendix B.
 
 ---
 
 ## 1. Overview
 
-The Direct Trade Protocol (DTP) defines a standard set of message schemas, state machines, and settlement rules for coordinating the trade of physical goods between two parties without a broker or intermediary.
+DTP defines how a business's commercial records — who it is, what it trades, what it is owed, what it has attested — are written, signed, shared, and read by independent software, without any single application owning them.
 
-**Scope (v0/v1):** wholesale buyer ↔ wholesale seller trade flows only.
+Three kinds of actor:
 
-A DTP implementation consists of:
-- **Messages** — structured data objects passed between parties
-- **State machines** — valid states and transitions for intents, offers, contracts, and fulfillments
-- **Settlement rules** — conditions under which escrowed funds are released or returned
-- **Identity/credential references** — how party credentials are attached and verified
-
-Any platform, agent, or application that conforms to this specification can interoperate with any other conforming implementation.
-
----
-
-## 2. Core Concepts
-
-### 2.1 Identity Model
-
-Every DTP participant is identified by a **NEAR account** — a human-readable string like `acme-foods.near` or `green-valley-farm.near`. The NEAR account is the canonical identity layer: it owns cryptographic keys, signs transactions, holds USDC for escrow, and has persistent on-chain state.
-
-A **DTP Account** is a NEAR account that has registered a Party profile on the DTP contract. They are one-to-one: one account ID, one Party profile, one on-chain identity.
-
-**Key properties:**
-
-- **Role-neutral** — An account is not stamped as "buyer" or "seller" at registration. `business_type` is descriptive metadata (what kind of business you are), not a trade-role constraint. Role is declared per-trade, per-intent, and per-agreement. Any account can buy or sell.
-
-- **Cryptographic authentication** — The NEAR account keypair IS the login. When a transaction is signed from `acme-foods.near`, NEAR's runtime verifies the signature cryptographically. Wallets (NEAR Wallet, MyNearWallet, etc.) are the UX layer on top. There is no email/password at the protocol level.
-
-- **Agent sub-accounts** — NEAR supports hierarchical accounts natively. `agent.acme-foods.near` is cryptographically subordinate to `acme-foods.near`. This is the recommended pattern for agent delegation: the business owns the parent account; agents operate from sub-accounts the business controls.
-
-- **Portable by construction** — Data lives in the NEAR contract, not in any platform's database. Reputation, certifications, and trade history are readable by any DTP-compatible implementation. No platform can lock a party's identity inside their silo.
-
-- **Real-world anchoring** — The bridge between cryptographic identity and legal identity is the `KybRef` attestation (see 2.3). Optional at registration; not required for trading in v1.
-
-### 2.2 Party
-
-A **Party** is a NEAR account that has registered a profile on the DTP contract. Parties may be human-operated businesses, sole proprietors, cooperatives, or autonomous AI agents.
-
-```json
-{
-  "party_id": "string",
-  "business_name": "string",
-  "business_type": "producer | distributor | retailer | cooperative | agent",
-  "jurisdiction": "string",
-  "kyb": "KybRef | null",
-  "certifications": ["CertificationRef"],
-  "reputation": "ReputationRecord",
-  "authorized_agents": ["AccountId"],
-  "created_at": "ISO8601",
-
-  "gs1_gln": "string | null",
-  "duns_number": "string | null",
-  "fsma_pcqi_on_file": "boolean",
-  "facility_allergens": ["Allergen"],
-  "data_vault_uri": "string | null"
-}
-```
-
-**Fields:**
-- `party_id` — NEAR account ID (the canonical identity)
-- `business_type` — descriptive classification of the business; does not restrict trade role
-- `kyb` — optional legal entity identity attestation (see 2.3)
-- `certifications` — array of `CertificationRef` objects (see 2.4)
-- `reputation` — on-chain reputation record derived from completed trades (see 2.5)
-- `authorized_agents` — NEAR accounts authorized to act on behalf of this party
-- `gs1_gln` — GS1 Global Location Number (13 digits). Required by major food retailers; embedded in FSMA 204 CTE records. Format validated on write; not externally verified by the contract.
-- `duns_number` — Dun & Bradstreet D-U-N-S Number (9 digits). Used by banks, insurers, and enterprise procurement for credit and vendor qualification.
-- `fsma_pcqi_on_file` — `true` when a Preventive Controls Qualified Individual (PCQI) attestation is on file. Required under 21 CFR Part 117 for food manufacturers and processors.
-- `facility_allergens` — allergens present in or processed at the party's facility. Distinct from product-level allergens on `GoodsCatalogEntry`. Buyers use this for cross-contact risk assessment. Values: `Milk | Eggs | Fish | Shellfish | TreeNuts | Peanuts | Wheat | Soybeans | Sesame` (FALCPA + FASTER Act 2023).
-- `data_vault_uri` — URI of the party's DTP data vault: a secure, encrypted off-chain storage service accessible via NEAR signature challenge. When set, third-party apps with permission grants can access structured business data (CRM, ERP, financial records). `null` = vault not yet configured. See [docs/PORTABLE_IDENTITY.md](docs/PORTABLE_IDENTITY.md).
-
-### 2.3 KybRef
-
-A `KybRef` (Know Your Business reference) optionally anchors a NEAR account to a real-world legal entity. Each Party holds at most one `KybRef`. It can be added or replaced at any time by the account holder.
-
-In v1, parties self-report their KYB data and reference an external provider's attestation. Future versions will allow KYB providers to write attestations directly to the party record.
-
-```json
-{
-  "legal_name": "string",
-  "tax_id": "string | null",
-  "jurisdiction": "string",
-  "provider": "string",
-  "attestation_ref": "string | null",
-  "issued_at": "ISO8601",
-  "expires_at": "ISO8601 | null",
-  "status": "Pending | Verified | Expired | Revoked"
-}
-```
-
-**Fields:**
-- `legal_name` — legal entity name as registered (may differ from `business_name`)
-- `tax_id` — EIN for US entities, VAT number for EU entities, etc.
-- `jurisdiction` — ISO 3166-1 alpha-2 country code of registration
-- `provider` — KYB attestation provider (e.g. `"stripe_identity"`, `"persona"`, `"manual"`)
-- `attestation_ref` — provider's attestation reference ID or verification URL
-
-### 2.4 CertificationRef  <!-- previously 2.2 -->
-
-A certification claim is never self-asserted. Every certification must carry a reference to the issuing authority and be independently verifiable.
-
-```json
-{
-  "cert_id": "string",
-  "type": "string",
-  "issuer": "string",
-  "issuer_url": "string",
-  "issued_at": "ISO8601",
-  "expires_at": "ISO8601",
-  "verification_url": "string",
-  "status": "active | expired | revoked"
-}
-```
-
-**Common certification types (food domain):**
-- `USDA_ORGANIC` — USDA organic certification
-- `FSMA_COMPLIANT` — FDA Food Safety Modernization Act compliance
-- `GAP` — Good Agricultural Practices
-- `FAIR_TRADE` — Fair Trade certified
-- `HACCP` — Hazard Analysis Critical Control Points
-- `NON_GMO` — Non-GMO Project verified
-
-### 2.5 ReputationRecord  <!-- previously 2.3 -->
-
-Reputation is built on-chain from completed trades. It cannot be manually set or imported.
-
-```json
-{
-  "party_id": "string",
-  "trades_completed": "integer",
-  "trades_disputed": "integer",
-  "trades_settled_on_time": "integer",
-  "average_delivery_accuracy": "float",
-  "score": "float",
-  "last_updated": "ISO8601"
-}
-```
-
-`score` is computed as: `(trades_completed - trades_disputed) / trades_completed * delivery_accuracy_factor`. Formula is on-chain and immutable per version.
-
----
-
-### 2.6 RelationshipRecord  <!-- previously 2.4 -->
-
-A **RelationshipRecord** captures the bilateral trade history between two specific parties. Unlike Reputation (which reflects a party's general track record across all counterparties), a RelationshipRecord reflects the specific history between Party A and Party B.
-
-RelationshipRecords are computed automatically from completed trades. They cannot be manually created or edited. Either party can view their shared RelationshipRecord. Third parties can see aggregate relationship strength (tier, trade count, relationship age) but not individual trade values or terms.
-
-```json
-{
-  "relationship_id": "string",
-  "party_a": "string",
-  "party_b": "string",
-  "first_trade_at": "ISO8601",
-  "last_trade_at": "ISO8601",
-  "trades_completed": "integer",
-  "total_volume_usd": "decimal",
-  "dispute_rate": "float",
-  "on_time_delivery_rate": "float",
-  "tier": "RelationshipTier",
-  "standing_agreements": ["StandingAgreementRef"],
-  "updated_at": "ISO8601"
-}
-```
-
-**RelationshipTier** is derived automatically from trade history:
-
-| Tier | Criteria |
-|---|---|
-| `NEW` | First trade, or fewer than 3 completed trades |
-| `ESTABLISHED` | 3+ completed trades or 6+ months of history |
-| `PREFERRED` | 10+ trades, or $50k+ lifetime volume, or active StandingAgreement |
-| `STRATEGIC` | Multi-year history, $250k+ lifetime volume, or multi-year StandingAgreement |
-
-Tier thresholds are protocol-defined and version-controlled. Tier is visible to both parties and to the matching engine.
-
-**How RelationshipTier affects the protocol:**
-- Matching engine weights counterparty relationship tier in scoring — an established supplier ranks higher than an unknown one for the same goods at the same price.
-- Agents can be configured to auto-accept offers from `PREFERRED` or `STRATEGIC` counterparties within wider price bounds than they would for new counterparties.
-- Sellers may attach relationship-conditional pricing tiers (see PricingStructure) — pricing that is only unlocked for parties at a certain tier.
-
----
-
-### 2.7 StandingAgreement  <!-- previously 2.5 -->
-
-A **StandingAgreement** is a long-term or recurring trading relationship formally acknowledged on-chain by both parties. It is not a single trade — it is a framework that governs a series of trades over a defined period.
-
-```json
-{
-  "agreement_id": "string",
-  "version": "string",
-  "buyer": "PartyRef",
-  "seller": "PartyRef",
-  "goods": "GoodsSpec",
-  "terms": {
-    "period_start": "ISO8601",
-    "period_end": "ISO8601",
-    "volume_commitment": {
-      "min_quantity_per_period": {"amount": "decimal", "unit": "string"},
-      "period": "monthly | quarterly | annual",
-      "committed_total": {"amount": "decimal", "unit": "string"}
-    },
-    "pricing": "PricingStructure",
-    "delivery_cadence": "string | null",
-    "renewal": "auto | manual | none"
-  },
-  "status": "AgreementStatus",
-  "buyer_signed_at": "ISO8601 | null",
-  "seller_signed_at": "ISO8601 | null",
-  "created_at": "ISO8601"
-}
-```
-
-**AgreementStatus:**
-```
-PROPOSED → COUNTERED → ACTIVE → COMPLETED
-                     ↘ TERMINATED
-```
-
-Both parties must sign (on-chain attestation) for the agreement to become `ACTIVE`. Once active, individual trades that fulfil the agreement reference it via `standing_agreement_id` and inherit its pricing and terms automatically.
-
-**ProposerRole:** The proposer declares their role in the agreement at proposal time — `Buyer` or `Seller`. Any registered account may propose in either role regardless of `business_type`. Role is per-agreement, not stamped on the account.
-
-**Effect on agent autonomy:** An agent operating under an active StandingAgreement can place orders that conform to the agreement terms autonomously — no per-trade human approval required. The agreement itself was the human approval decision.
-
----
-
-## 3. Message Types
-
-### 3.1 TradeIntent
-
-A **TradeIntent** is a public declaration by a buyer of what they want to purchase. It is the entry point to a DTP trade.
-
-```json
-{
-  "intent_id": "string",
-  "version": "string",
-  "buyer": "PartyRef",
-  "goods": "GoodsSpec",
-  "delivery": "DeliverySpec",
-  "payment": "PaymentSpec",
-  "freight": "FreightTerms | null",
-  "expires_at": "ISO8601",
-  "status": "IntentStatus",
-  "created_at": "ISO8601",
-  "updated_at": "ISO8601"
-}
-```
-
-**IntentStatus state machine:**
-```
-DRAFT → POSTED → MATCHED → CONTRACTED → FULFILLED → SETTLED
-                         ↘ EXPIRED
-                         ↘ CANCELLED
-```
-
-### 3.2 GoodsSpec
-
-Describes the goods being requested or offered. Used in TradeIntent, SupplyListing, and Offer.
-
-```json
-{
-  "category": "string",
-  "product_name": "string",
-  "description": "string",
-  "product_type": "commodity | branded | value_added",
-  "commodity_details": {
-    "country_of_origin": "string",
-    "farming_practices": ["string"],
-    "grade": "string",
-    "harvest_date": "ISO8601 | null"
-  },
-  "branded_details": {
-    "brand_name": "string",
-    "sku": "string",
-    "gtin": "string",
-    "upc": "string | null",
-    "manufacturer": "string"
-  },
-  "value_added_details": {
-    "process_type": "string",
-    "base_ingredients": ["string"],
-    "processing_facility": "string | null"
-  },
-  "quantity": {
-    "amount": "decimal",
-    "unit": "string"
-  },
-  "quality": {
-    "grade": "string",
-    "specifications": ["string"]
-  },
-  "required_certifications": ["string"],
-  "packaging": "string",
-  "shelf_life_days": "integer | null"
-}
-```
-
-**Product types:**
-- `commodity` — undifferentiated bulk goods defined by grade, origin, and certifications (e.g., bulk whole black peppercorns, raw cacao). `commodity_details` required.
-- `branded` — goods sold under a specific brand with individual unit identifiers (e.g., Yellowbird Habanero Sauce). `branded_details` required, including GTIN/SKU per unit.
-- `value_added` — goods transformed from a raw commodity through processing (e.g., IQF organic blueberries, cold-pressed olive oil). `value_added_details` required.
-
-Only the `*_details` block matching `product_type` is required. Others may be omitted.
-
-**Quantity units:** `lb`, `kg`, `oz`, `ton`, `case`, `pallet`, `unit`
-
-**Required certifications** are cert type strings (see 2.2). A listing or offer that does not carry all required certifications is ineligible for matching.
-
-### 3.3 DeliverySpec
-
-```json
-{
-  "destination": {
-    "address": "string",
-    "city": "string",
-    "state": "string",
-    "zip": "string",
-    "country": "string"
-  },
-  "window": {
-    "earliest": "ISO8601",
-    "latest": "ISO8601"
-  },
-  "method": "delivered | FOB_origin | third_party_logistics",
-  "temperature_requirements": "ambient | refrigerated | frozen | null",
-  "notes": "string | null"
-}
-```
-
-### 3.3.1 FreightTerms (v1)
-
-```json
-{
-  "payer": "buyer | seller",
-  "estimated_freight": "decimal",
-  "freight_allowance": "decimal",
-  "quote_source": "project44 | manual_estimate",
-  "quote_ref": "string | null",
-  "quoted_at": "ISO8601",
-  "quote_expires_at": "ISO8601",
-  "booked_at_contract": true
-}
-```
-
-v1 defaults:
-- `payer=buyer`
-- quote source defaults to `project44` for live freight pricing when available
-- freight can be booked at contract formation to lock delivered pricing and ship date
-
-Guardrail:
-- buyer ceiling checks are applied to landed cost (goods + buyer-paid net freight), not FOB goods price alone.
-
-### 3.4 PackStructure
-
-Describes the physical packaging hierarchy of goods. Used in SupplyListings to define how goods are packaged and shipped. The protocol uses pack structure to derive suggested pricing tier breakpoints automatically.
-
-```json
-{
-  "unit_size": {
-    "amount": "decimal",
-    "unit": "string"
-  },
-  "units_per_case": "integer",
-  "cases_per_pallet": "integer",
-  "pallets_per_truckload": "integer | null",
-  "moq": {
-    "amount": "decimal",
-    "unit": "string",
-    "label": "string"
-  }
-}
-```
-
-**Example:** A seller listing 25 lb bags of organic black pepper, 4 bags/case, 40 cases/pallet:
-```json
-{
-  "unit_size": {"amount": 25, "unit": "lb"},
-  "units_per_case": 4,
-  "cases_per_pallet": 40,
-  "moq": {"amount": 100, "unit": "lb", "label": "1 case"}
-}
-```
-
-The protocol derives natural tier breakpoints: 1 case (100 lb), 10 cases (1,000 lb), 1 pallet (4,000 lb), etc., and presents these as suggested tiers. The seller confirms or adjusts.
-
----
-
-### 3.5 PricingStructure
-
-Used in both SupplyListings (seller side) and TradeIntents (buyer side). Replaces simple `price_per_unit`.
-
-**Seller PricingStructure:**
-```json
-{
-  "model": "tiered | flat | negotiable",
-  "currency": "USDC",
-  "asking_price_per_unit": "decimal",
-  "tiers": [
-    {
-      "min_quantity": {"amount": "decimal", "unit": "string"},
-      "max_quantity": {"amount": "decimal", "unit": "string"} ,
-      "price_per_unit": "decimal",
-      "label": "string | null"
-    }
-  ]
-}
-```
-
-`asking_price_per_unit` is the published starting price — the price at the lowest tier. Higher-volume tiers offer lower unit prices.
-
-**Floor price is not published.** It is private to the seller and held in the seller's agent context (see Section 10). Buyers never see the seller's floor or cost basis.
-
-**Buyer PricingStructure:**
-```json
-{
-  "currency": "USDC",
-  "ceiling_price_per_unit": "decimal",
-  "desired_quantity": {
-    "amount": "decimal",
-    "unit": "string"
-  }
-}
-```
-
-`ceiling_price_per_unit` is the maximum the buyer will pay. The matching engine surfaces matches at or below this ceiling.
-
-**Quantity flexibility is a protocol recommendation, not a buyer-set parameter.** When a buyer posts a TradeIntent at 400 lbs, the matching engine surfaces the exact-quantity price AND adjacent tier comparisons — e.g., "at 500 lbs (half pallet) you save 9% per unit." The buyer (or buyer's agent) decides whether to adjust quantity. No hard flex range is required upfront.
-
----
-
-### 3.6 PaymentSpec
-
-```json
-{
-  "pricing": "PricingStructure",
-  "escrow_required": true,
-  "payment_on": "delivery_attestation | inspection_period_end",
-  "finance": "FinanceTerms | null"
-}
-```
-
-`escrow_required` is always `true` in v0/v1.
-
-### 3.6.1 FinanceTerms (v1)
-
-```json
-{
-  "payment_timing": "delivery_attestation | inspection_period_end",
-  "net_days": 0,
-  "paca_covered": false,
-  "financing_mode": "escrow_only | lp_pool",
-  "liquidity_pool_id": "string | null",
-  "financer_id": "PartyRef | null",
-  "finance_fee_bps": 0
-}
-```
-
-**v1 constraints:**
-- `net_days` must be `<= 60` for standard financed wholesale trades
-- PACA-covered produce obligations cap effective due date at `30` calendar days
-- `financing_mode=escrow_only` must not set `liquidity_pool_id` or `financer_id`
-- `financing_mode=lp_pool` defaults to protocol LP if no pool is specified
-
-This is intentionally minimal in v1: one default LP lane and on-chain recording of financing terms per trade, with prepay-anytime and deterministic max due dates. Open lender/funder selection is deferred to v2.
-
-### 3.6.2 v1 LP Finance Policy
-
-For financed wholesale trades using `financing_mode=lp_pool`, the protocol applies the following defaults:
-
-- Interest accrues at a fixed **30% effective APR**.
-- Accrual compounds **daily**.
-- Buyer may prepay at any time without penalty.
-- Balance is due in full (principal + accrued interest + protocol finance fees) no later than the **60th calendar day** from financing start.
-- For produce suppliers covered by **PACA** protections, full payoff is due no later than the **30th calendar day**.
-
-These rules are protocol policy defaults for v1 and are intended to be deterministic in contract execution.
-
----
-
-### 3.5 SupplyListing
-
-A **SupplyListing** is a seller's proactive broadcast of available inventory. It is the supply-side equivalent of a TradeIntent — sellers do not need to wait for a buyer to post first.
-
-```json
-{
-  "listing_id": "string",
-  "version": "string",
-  "seller": "PartyRef",
-  "goods": "GoodsSpec",
-  "delivery": "DeliverySpec",
-  "payment": {
-    "currency": "USDC",
-    "price_per_unit": "decimal",
-    "minimum_order_quantity": {
-      "amount": "decimal",
-      "unit": "string"
-    }
-  },
-  "freight": "FreightTerms | null",
-  "certifications": ["CertificationRef"],
-  "available_from": "ISO8601",
-  "expires_at": "ISO8601",
-  "status": "ListingStatus",
-  "created_at": "ISO8601"
-}
-```
-
-**ListingStatus state machine:**
-```
-DRAFT → ACTIVE → MATCHED → CONTRACTED
-               ↘ EXPIRED
-               ↘ WITHDRAWN
-```
-
-When a SupplyListing matches a TradeIntent, both the seller (via the listing) and the buyer (via the intent) are notified. Either party may initiate contract formation from the match.
-
----
-
-### 3.6 Offer
-
-An **Offer** is a seller's direct response to a posted TradeIntent, or a buyer's direct response to a posted SupplyListing. Offers are targeted (referencing a specific intent or listing), whereas TradeIntents and SupplyListings are broadcast.
-
-```json
-{
-  "offer_id": "string",
-  "version": "string",
-  "intent_id": "string",
-  "seller": "PartyRef",
-  "goods": "GoodsSpec",
-  "delivery": "DeliverySpec",
-  "payment": {
-    "currency": "USDC",
-    "price_per_unit": "decimal",
-    "total_price": "decimal"
-  },
-  "freight": "FreightTerms | null",
-  "certifications": ["CertificationRef"],
-  "expires_at": "ISO8601",
-  "status": "OfferStatus",
-  "created_at": "ISO8601"
-}
-```
-
-**OfferStatus state machine:**
-```
-SUBMITTED → SHORTLISTED → ACCEPTED
-          ↘ REJECTED
-          ↘ EXPIRED
-```
-
-An offer must be for the same or greater quantity and must carry all certifications required by the TradeIntent to be eligible for matching.
-
----
-
-### 3.6 Contract
-
-A **Contract** is formed when a buyer accepts an offer. It is the binding record of the agreed trade terms and triggers escrow.
-
-In v1, freight may be booked at contract formation (`booked_at_contract=true`) so delivered pricing and ship date are locked upfront.
-
-```json
-{
-  "contract_id": "string",
-  "version": "string",
-  "intent_id": "string",
-  "offer_id": "string",
-  "buyer": "PartyRef",
-  "seller": "PartyRef",
-  "goods": "GoodsSpec",
-  "delivery": "DeliverySpec",
-  "payment": {
-    "currency": "USDC",
-    "price_per_unit": "decimal",
-    "total_value": "decimal",
-    "escrow_ref": "string"
-  },
-  "freight": "FreightTerms | null",
-  "dispute_window_hours": "integer",
-  "arbitrator": "PartyRef | null",
-  "status": "ContractStatus",
-  "created_at": "ISO8601",
-  "updated_at": "ISO8601"
-}
-```
-
-**ContractStatus state machine:**
-```
-ACTIVE → IN_FULFILLMENT → DELIVERED → SETTLED
-                        ↘ DISPUTED → RESOLVED_BUYER
-                                   → RESOLVED_SELLER
-       ↘ CANCELLED
-```
-
-`escrow_ref` is the on-chain transaction ID where buyer funds are locked.
-
-`dispute_window_hours` — the period after delivery attestation during which a buyer may raise a dispute before automatic settlement. Default: 48 hours.
-
----
-
-### 3.7 Fulfillment
-
-A **Fulfillment** record is created when a seller initiates delivery confirmation.
-
-```json
-{
-  "fulfillment_id": "string",
-  "contract_id": "string",
-  "delivered_at": "ISO8601",
-  "quantity_delivered": {
-    "amount": "decimal",
-    "unit": "string"
-  },
-  "seller_attestation": "Attestation",
-  "buyer_attestation": "Attestation | null",
-  "status": "FulfillmentStatus"
-}
-```
-
-**Attestation:**
-```json
-{
-  "party_id": "string",
-  "signed_at": "ISO8601",
-  "signature": "string",
-  "notes": "string | null"
-}
-```
-
-**FulfillmentStatus:**
-```
-SELLER_ATTESTED → BUYER_ATTESTED → COMPLETE
-               ↘ DISPUTED
-```
-
-Settlement does not trigger until `COMPLETE` or dispute resolution.
-
----
-
-### 3.8 Settlement
-
-```json
-{
-  "settlement_id": "string",
-  "contract_id": "string",
-  "fulfillment_id": "string",
-  "gross_amount": "decimal",
-  "deductions": [
-    {
-      "reason": "string",
-      "amount": "decimal"
-    }
-  ],
-  "net_amount": "decimal",
-  "currency": "USDC",
-  "escrow_release_tx": "string",
-  "settled_at": "ISO8601"
-}
-```
-
-`escrow_release_tx` is the on-chain transaction ID for payment release to seller.
-
-Deductions (quantity shortfalls, quality disputes resolved in buyer's favor) reduce `net_amount` from `gross_amount`.
-
----
-
-## 4. Matching
-
-DTP matching is **bidirectional and continuous**. The matching engine watches both TradeIntents (buyer demand) and SupplyListings (seller supply) and surfaces smart matches to both parties when alignment is detected.
-
-Matching is **off-chain** — a solver scores and ranks candidates, and the accepted match is committed on-chain. This keeps gas costs low and allows matching logic to evolve without contract upgrades.
-
-### 4.1 Match Types
-
-| Trigger | Candidates evaluated | Notified |
+| Actor | What it is | Identified by |
 |---|---|---|
-| New TradeIntent posted | All active SupplyListings | Buyer (top matches) + matching Sellers |
-| New SupplyListing posted | All active TradeIntents | Seller (top matches) + matching Buyers |
-| Direct Offer submitted | The specific intent or listing | The receiving party |
+| **Company** | A business (or cooperative, farm, financer, service provider). The subject of records. | A handle (`acme-sauce.dtp`) and one or more Ed25519 keys |
+| **Module** | Software that does a small set of things well and reads/writes a company's records under a grant | A slug (`receivables-financing`), its own keys, and a publisher company |
+| **Store** | A service that holds records, validates and authorizes writes, enforces visibility, and emits events | A URL |
 
-### 4.2 Eligibility Rules
+Four namespaces in v0.2:
 
-A SupplyListing or Offer is eligible to match a TradeIntent if and only if:
-1. Quantity available ≥ intent required quantity (or minimum order quantity ≤ intent quantity)
-2. All certifications in `intent.goods.required_certifications` are present in the listing/offer
-3. Listing price per unit ≤ intent payment ceiling
-4. Delivery windows overlap
-5. The listing/offer has not expired and is in an active status
-
-Symmetrically, a TradeIntent is eligible to match a SupplyListing if and only if:
-1. Intent quantity ≥ listing minimum order quantity
-2. Intent does not require certifications the listing cannot provide
-3. Intent payment ceiling ≥ listing price
-4. Delivery windows overlap
-5. The intent has not expired and has status `POSTED`
-
-### 4.3 Scoring
-
-Eligible candidates are scored on four dimensions (equal weight in v0):
-
-| Dimension | Higher is better |
+| Namespace | Contents |
 |---|---|
-| Price alignment | Closer to ceiling (buyer) / asking price (seller) → higher score |
-| Delivery timing | Delivery window fit → higher score |
-| Party reputation | Higher `reputation.score` of counterparty → higher score |
-| Certification depth | More certs than required → higher score |
+| `core` | company spine, module identity, grants, events |
+| `trade` | intent, listing, offer, contract, fulfillment, settlement, standing agreement |
+| `finance` | invoice, advance offer, advance, settlement event |
+| `traceability` | FSMA 204 critical tracking events, document anchors |
 
-The top 3 candidates are surfaced to each party as recommended matches.
+**What the protocol guarantees.** A record accepted by a conforming store was (1) well-formed against the envelope and its type's schema, (2) signed by a key that belonged to the issuing principal at write time, (3) written by a party to the record — the subject, a counterparty, or a module holding a live grant from one of them, (4) a legal state transition for the issuer's role, and (5) appended, never mutated: changes are new records that supersede old ones, and the chain is the audit trail.
 
-### 4.4 Tier Comparison Surfacing
+**What the protocol does not do.** A store performs no business logic: no matching, no pricing, no underwriting, no referential checks inside bodies, no money movement. Those are what modules do. The on-chain settlement profile (escrow in USDC on NEAR) is a separate profile of this specification, not part of the v0.2 core.
 
-When the matching engine surfaces a match to a buyer, it also computes and surfaces adjacent tier comparisons — even if the buyer did not request them. This allows buyers and buyer agents to evaluate quantity flexibility without having to recalculate manually.
-
-**Example output for a buyer who posted 400 lbs at a $4.50/lb ceiling:**
-```
-Match: Organic basil — Green Valley Farm
-  Your quantity (400 lb):     $4.20/lb  =  $1,680 total
-  Next tier   (500 lb, ½ pallet): $3.80/lb  =  $1,900 total  [-10% per unit, +13% total]
-  Pallet tier (1,000 lb):     $3.50/lb  =  $3,500 total  [-17% per unit, +108% total]
-```
-
-The buyer or buyer's agent decides whether to adjust quantity. No quantity commitment is made until contract formation.
-
-### 4.5 Solver Role
-
-In v0, the solver is a human operator or a simple scoring script. The protocol does not mandate solver implementation — any conforming matching algorithm may be used. Future versions will define a decentralized solver network.
+**Conformance in one paragraph.** A *Producer* emits envelopes that validate and verify. A *Verifier* can check any envelope against the schemas and the signature. A *Store* implements §5. A *Module* speaks to a store through §5's API and writes only conformant records. The normative artifacts are the schemas and vectors; §9 says what each target must pass.
 
 ---
 
-## 5. Settlement Rules
+## 2. Core namespace (`core.*`)
 
-1. Settlement is triggered when a Fulfillment reaches `COMPLETE` status (both party attestations received).
-2. If the buyer does not attest within `dispute_window_hours` of seller attestation, settlement is triggered automatically (presumed acceptance).
-3. If the buyer raises a dispute during the dispute window, the contract enters `DISPUTED` state. The arbitrator (defined in the contract, or a default DTP arbitrator in v0) resolves the dispute.
-4. Escrow is held until settlement or dispute resolution. It cannot be unilaterally withdrawn by either party.
-5. All deductions must be agreed by both parties or ordered by the arbitrator.
+### 2.1 Identifier grammars
 
----
+Defined in [`common/ids.schema.json`](spec/schemas/common/ids.schema.json):
 
-## 6. FSMA Rule 204 Traceability
-
-DTP implements FDA's Food Traceability Final Rule (FSMA Rule 204, effective 2026). Every business handling items on the FDA Food Traceability List (FTL) is required to electronically maintain Key Data Elements (KDEs) at each Critical Tracking Event (CTE) boundary. DTP records these CTEs as first-class on-chain objects.
-
-### 6.1 Critical Tracking Events (CTEs)
-
-| CTE | Who records it | When |
+| Name | Grammar | Example |
 |---|---|---|
-| **Growing** | Farm / grower | At harvest of an FTL commodity |
-| **Creating** | First packer | When assigning a Traceability Lot Code (TLC) |
-| **Receiving** | Receiver | On arrival of a lot from another party |
-| **Transforming** | Processor | When creating a new TLC from one or more input TLCs |
-| **Shipping** | Shipper | On departure of a lot to another location |
+| `CompanyId` | NEAR account-id grammar, 2–64 chars: `^(([a-z0-9]+[-_])*[a-z0-9]+\.)*([a-z0-9]+[-_])*[a-z0-9]+$` | `acme-sauce.dtp`, `acme-sauce.near` |
+| `ModuleId` | `^[a-z0-9][a-z0-9-]{1,62}$` | `receivables-financing` |
+| `RecordId` | lowercase UUID (v4 or v7) | `018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21` |
+| `KeyId` | `ed25519:` + base58(32-byte public key) | `ed25519:8u8LCMQ…` |
+| `Signature` | `ed25519:` + base58(64 bytes) | |
+| `RecordType` | `^[a-z]+\.[a-z_]+$` | `trade.contract` |
+| `DateTime` | RFC 3339 UTC, `Z`, optional fractional seconds; writers SHOULD include milliseconds | `2026-09-08T14:03:22.117Z` |
+| `Money` | `{amount: "^-?\d+(\.\d{1,6})?$", currency: USD\|USDC}` — a **string**, six decimals max (microdollar precision) | `{"amount":"5040.00","currency":"USD"}` |
+| `Quantity` | `{amount: "^\d+(\.\d{1,3})?$", unit: lb\|kg\|oz\|ton\|case\|pallet\|unit}` — a **string**, three decimals max | `{"amount":"120","unit":"case"}` |
 
-### 6.2 Fsma204Cte Schema
+Company handles use NEAR's grammar so that a later on-chain identity mapping is byte-compatible; the handle is *not* itself a NEAR account unless `identifiers.near_account` says so.
+
+### 2.2 `core.company` — the spine
+
+Schema: [`core/company.schema.json`](spec/schemas/core/company.schema.json). Subject: the company itself. Default visibility: `public`.
+
+The spine is deliberately small: names, business type, jurisdiction, **locations** (each with an optional GS1 GLN — GLNs belong to locations, not to the company), external **identifiers** (DUNS, tax id, linked NEAR account), **keys**, and optional attested credentials (`kyb`, `certifications`, FSMA fields). Everything else about a company accretes as records in other namespaces, written by whichever module first needs them.
+
+Rules:
+
+- The **genesis** record MUST be signed by a `root` key listed in its own `body.keys` (self-certifying bootstrap). A store verifies the signature with that embedded public key and issues bearer tokens for the active keys (§5.3).
+- Only a `root` key may write a superseding `core.company` record that changes `keys[]`. Adding a key = supersede with the new key appended; rotating = add then revoke; a key removed from the list is treated as revoked.
+- A revoked key's signatures on records created before `revoked_at` remain valid.
+- `reputation` and `authorized_agents` from v0.1 are gone: reputation is a derived view (§6.9); agents are `delegate` keys (a NEAR sub-account key MAY be listed with `near_account` set).
+
+### 2.3 `Key`
+
+Schema: [`common/key.schema.json`](spec/schemas/common/key.schema.json). `key_id` is the public key. `role` is `root` (may change keys and write grants) or `delegate` (may write everything else the principal may write). `status` is `active` or `revoked`.
+
+### 2.4 `core.module`
+
+Schema: [`core/module.schema.json`](spec/schemas/core/module.schema.json). Subject: the **publisher company**. Default visibility: `public`.
+
+A module is a software identity with its own `keys[]`. Its genesis MAY be self-certified (signed by a module root key listed in `body.keys`, with `issuer.module_id = body.module_id`) or publisher-signed (signed by a publisher root key, `issuer.module_id = null`). `requested_scopes` is advisory — what a consent screen would show; authority comes only from grants. `module_id` is unique per store.
+
+### 2.5 `core.grant`
+
+Schema: [`core/grant.schema.json`](spec/schemas/core/grant.schema.json). Subject: the **granting company**. Default visibility: `private`.
+
+A grant names a module and a list of scopes, each `{namespace | type, access: read | write}`. `write` implies `read`. `namespace: "*"` covers everything.
+
+Rules:
+
+- A grant MUST be signed by a company `root` key with `issuer.module_id = null`. **Modules never write grants.**
+- Revocation is a superseding record with `status: revoked`; narrowing is a superseding record with fewer scopes. Only the **head** of a grant chain counts.
+- A grant authorizes module `M` to write a record of type `T` for company `C` iff the head grant (subject `C`, module `M`) is `active`, unexpired, and has a scope covering `T` at `write`; and to read per the visibility rules in §3.7.
+- A module can always read the `core.grant` records that name it.
+
+### 2.6 `core.event`
+
+Schema: [`core/event.schema.json`](spec/schemas/core/event.schema.json). See §4.
+
+---
+
+## 3. Record envelope
+
+Schema: [`core/envelope.schema.json`](spec/schemas/core/envelope.schema.json). Every record in every namespace is this envelope around a typed body.
 
 ```json
 {
-  "cte_id": "string",
-  "cte_type": "Growing | Creating | Receiving | Transforming | Shipping",
-  "lot_id": "string",
-  "output_lot_id": "string | null",
-  "actor": "AccountId",
-  "actor_gln": "string | null",
-  "source_gln": "string | null",
-  "dest_gln": "string | null",
-  "quantity_milliamount": "integer",
-  "unit": "string",
-  "commodity": "string | null",
-  "variety": "string | null",
-  "event_date_ms": "integer",
-  "recorded_at": "integer",
-  "notes": "string | null"
+  "record_id": "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22",
+  "root_id":   "018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e22",
+  "type": "trade.contract",
+  "namespace": "trade",
+  "schema_version": "0.2",
+  "subject_company_id": "bluestem-dist.dtp",
+  "counterparty_ids": ["acme-sauce.dtp"],
+  "issuer": { "key_id": "ed25519:…", "company_id": "acme-sauce.dtp", "module_id": null },
+  "visibility": "counterparties",
+  "created_at": "2026-09-08T14:03:22.117Z",
+  "supersedes": null,
+  "body": { },
+  "signature": "ed25519:…"
 }
 ```
 
-**Fields:**
-- `cte_id` — unique identifier assigned by the contract
-- `cte_type` — which of the five FSMA 204 CTEs this record represents
-- `lot_id` — the DTP Traceability Lot Code (TLC) this CTE applies to
-- `output_lot_id` — for Transforming CTEs only: the new TLC produced from input TLCs
-- `actor` — the DTP account performing this CTE (packer, receiver, shipper, etc.)
-- `actor_gln` — auto-populated from the actor's `Party.gs1_gln` if set
-- `source_gln` — previous custodian's location (Receiving and Shipping CTEs)
-- `dest_gln` — destination location (Shipping CTE)
-- `event_date_ms` — actual date of the physical event (may differ from block timestamp)
-- `recorded_at` — block timestamp when this CTE was written on-chain
+### 3.1 Fields
 
-### 6.3 Lot Traceability
+| Field | Rule |
+|---|---|
+| `record_id` | Writer-assigned UUID. Globally unique; a store rejects a second write with the same id and a different payload (`duplicate_record_id`) and answers an identical replay with the stored record. Inside the signature. |
+| `root_id` | `record_id` of the first record in this supersession chain; equals `record_id` for a genesis record. **The entity id.** Every cross-reference in any body (`contract_id`, `offer_id`, `invoice_id`, …) is a `root_id`, never a version's `record_id`. |
+| `type` | Must exist in the registry ([`index.json`](spec/schemas/index.json)) for `schema_version`. |
+| `namespace` | MUST equal the prefix of `type`. Redundant on purpose: grants and indexes key on it without parsing. |
+| `schema_version` | `MAJOR.MINOR`; `"0.2"` for every type in this release. Selects the body schema. |
+| `subject_company_id` | Whose cabinet the record lives in. Each type's schema names the body field this must match (`x-dtp-subject`). |
+| `counterparty_ids` | Other parties. MUST NOT include the subject. MUST be non-empty when visibility is `counterparties`. Stores index it so the record appears in each party's cabinet. |
+| `issuer.key_id` | The signing public key. |
+| `issuer.company_id` | The principal. MUST be `subject_company_id` or a member of `counterparty_ids` (`issuer_not_party`). |
+| `issuer.module_id` | `null` when a company key signs directly. When set, the key MUST be an active key of that module and a live grant from `issuer.company_id` to the module covering `(type, write)` MUST exist (`grant_missing`). |
+| `visibility` | `public` · `counterparties` · `granted` · `private`. Required; schemas state a recommended default. |
+| `created_at` | Writer clock. The store records its own `received_at` on the event. |
+| `supersedes` | `record_id` of the current head this record replaces, or `null` for genesis (then `root_id` MUST equal `record_id`). |
+| `body` | Validated by the type's schema. **Integers only** — no JSON number may have a fractional part; decimals are strings. `x_`-prefixed keys are permitted on strict types (the record is "extended"). |
+| `signature` | Ed25519 over the signing input (§3.2). |
 
-Each CTE is indexed by lot ID at write time, enabling instant one-up / one-down recall queries:
+### 3.2 Canonicalization and signing
 
-- `get_lot_ctes(lot_id)` — returns all CTEs in which this lot appeared (as primary, source, or output)
-- `transform_lot(...)` — creates a Transforming CTE linking all input TLCs to the new output TLC, enabling full multi-ingredient traceability
+**Signing input** = the UTF-8 bytes of the canonical JSON of the envelope minus `signature`, where a missing `supersedes` is `null` and a missing `counterparty_ids` is `[]`.
 
-### 6.4 COA Anchoring
+**Canonical JSON** = [RFC 8785 (JCS)](https://www.rfc-editor.org/rfc/rfc8785) with one restriction: **no non-integer numbers**. With that restriction JCS reduces to: sort object keys recursively by UTF-16 code units; no whitespace; strings escaped exactly as ECMAScript `JSON.stringify`; integers as plain digits; `null`/`true`/`false` literal; undefined-valued keys omitted. Any implementation with a sorted-keys serializer therefore produces byte-identical output — the reason for the number restriction.
 
-Certificates of Analysis and other lot-level documents are stored off-chain (S3, IPFS). Their SHA-256 hex hash or IPFS CIDv1 is anchored on-chain via `anchor_coa(lot_id, cert_type, issuer, doc_hash, expires_at)`. This provides tamper-evident proof of document existence at a specific point in time without the cost of storing the document on-chain.
+**Signature** = Ed25519 over the raw signing-input bytes, no pre-hash. Deterministic. Encoded `ed25519:` + base58(64 bytes), which is NEAR's signature encoding, so a `near-api-js` key pair signs valid DTP records.
 
----
+**Payload hash** = SHA-256 of the signing input, lowercase hex. Stores return it on every record; it mirrors the v0.1 `AuditEvent.payload_hash` but over canonical bytes.
 
-## 7. Audit Trail
+Fixed vectors: [`spec/vectors/keys.json`](spec/vectors/keys.json), [`canonicalization.json`](spec/vectors/canonicalization.json), [`signatures.json`](spec/vectors/signatures.json). A conforming implementation MUST reproduce them.
 
-Every state transition in DTP emits an on-chain event. The event log is append-only and cannot be modified or deleted.
+### 3.3 Verification algorithm (normative)
 
-**Event schema:**
-```json
-{
-  "event_id": "string",
-  "event_type": "string",
-  "entity_type": "Intent | Listing | Offer | Contract | Fulfillment | Settlement | StandingAgreement | Relationship | Catalog | Lot | FinancePool | Party | Fsma204Cte",
-  "entity_id": "string",
-  "actor": "string",
-  "timestamp": "integer",
-  "payload_hash": "string"
-}
-```
+A store MUST perform these checks, in this order, and answer with the named error on the first failure:
 
-`payload_hash` is a SHA-256 hash of the canonical JSON payload, enabling independent verification.
+1. Parse; reject non-objects and bodies over the store's size limit (`bad_request`, `payload_too_large`).
+2. Validate against the envelope schema; reject any non-integer JSON number anywhere (`envelope_invalid`, `float_not_allowed`).
+3. `namespace` equals the prefix of `type`; subject not among counterparties; genesis has `root_id == record_id` (`envelope_invalid`).
+4. `(type, schema_version)` is in the registry (`unknown_type`).
+5. `body` validates against the type schema (`schema_invalid`, with issue paths).
+6. Recompute the signing input; verify `signature` with `issuer.key_id` (`signature_invalid`).
+7. The caller's credential belongs to `issuer.key_id`, and the key belongs to the principal the envelope names — a company key with `module_id == null` and `company_id` equal to the key's owner, or a module key with `module_id` equal to the key's owner (`issuer_mismatch`); the key is active (`key_inactive`); `core.*` types require a root key and reject module keys (`forbidden`).
+8. `issuer.company_id` is the subject or a counterparty (`issuer_not_party`).
+9. For a module key: a live write grant from `issuer.company_id` covers `type` (`grant_missing`).
+10. `record_id` is new, or is an exact replay (`duplicate_record_id`).
+11. If `supersedes` is set: the target exists, is the head, and has the same `type`, `subject_company_id`, and `root_id` (`supersedes_conflict`, with the current head's id in `details`).
+12. The state transition is permitted for the issuer's roles (§3.5; `transition_forbidden`).
+13. Append the record, mark the superseded record no longer head, and append exactly one event — atomically.
 
-**Event types include:**
-- Trade lifecycle: `IntentPosted`, `IntentCancelled`, `ListingActivated`, `ListingWithdrawn`, `OfferSubmitted`, `OfferAccepted`, `ContractCreated`, `ContractEscrowLocked`, `ContractSettled`, `ContractDisputed`, etc.
-- Lot lifecycle: `LotCreated`, `LotDisposed`, `LotOwnershipTransferred`, `LotTransformed`, `LotCOAAnchored`
-- FSMA traceability: `Fsma204CteRecorded`
-- Party identity: `PartyIdentityUpdated`
-- Finance: `FinancePoolRegistered`, `FinancingRequested`, `FinancingConfirmed`
+### 3.4 Supersession
 
----
+Records are never edited or deleted. To change one, write a new record with `supersedes` = the current head's `record_id`, the same `type`, `subject_company_id`, and `root_id`. The old record stays readable (with `include_superseded`) and carries `superseded_by`. Concurrent writers: the second one to land gets `supersedes_conflict` and must re-read and retry — optimistic concurrency, no locks.
 
-## 8. Versioning
+A **counterparty** MAY supersede a record it did not create, when the type's state machine allows it for its role. That is how a buyer attests receipt on the seller's `trade.fulfillment`, how a target owner accepts a `trade.offer`, and how a seller accepts a `finance.advance_offer`. The issuer of the superseding record is recorded on that record; the chain therefore shows who did what.
 
-DTP is versioned. Every message carries a `version` field. Breaking changes increment the major version. Implementations must reject messages with incompatible versions.
+### 3.5 State machines and accountability
 
-Current version: `0.2`
+Every record-type schema carries three extension keywords, ignored by validators and read by stores and tooling:
 
----
+- `x-dtp-subject` — the body field that must equal `subject_company_id` (or `self`).
+- `x-dtp-roles` — a map from role name to the body field holding that role's company id, e.g. `{"buyer": "buyer_company_id", "seller": "seller_company_id"}`. Two roles are implicit: `subject` and `counterparty`.
+- `x-dtp-transitions` — `status_field`, the allowed `initial` statuses and creator roles, and a list of `{from, to, by[], within?, after?}` transitions.
 
-## 10. Reference Implementation
+A store MUST enforce: genesis records start in an `initial` status and are created by an `initial.by` role; a superseding record that changes `status` matches a listed transition whose `by` includes one of the issuer's roles; a same-status revision is permitted for the subject or any counterparty. Types with `status_field: null` have no state machine; any party MAY supersede. `within`/`after` clocks are informative in v0.2 (stores SHOULD expose them; they are not enforced).
 
-The canonical reference implementation consists of:
+The rendered matrix of every transition is [`spec/generated/accountability.md`](spec/generated/accountability.md) (Appendix A). It answers the question ONDC never did: for each state of each record, who owes the next move.
 
-- **`contracts/`** — NEAR smart contracts (Rust) implementing the settlement layer
-- **`sdk/`** — TypeScript SDK providing typed clients for all DTP message types and state transitions
+### 3.6 Extensions and the "no dialects" rule
 
-Implementors are not required to use the reference contracts or SDK. Any conforming implementation is valid.
+- Strict types (`additionalProperties: false`) accept keys prefixed `x_` anywhere the schema allows `patternProperties: {"^x_": {}}`. A record with `x_` keys is conformant and flagged *extended*. Implementations MUST NOT require `x_` keys of their counterparties.
+- New fields, types, or namespaces are added by pull request to [`spec/schemas/`](spec/schemas) and the registry, never by per-implementation variation. A store MUST reject a record whose `(type, schema_version)` is not in its registry. There are no implementation guides, hub profiles, or dialects — the lesson of EDI.
 
----
+### 3.7 Visibility
 
-## 11. Agent Autonomy Context
+| `visibility` | Readable by |
+|---|---|
+| `public` | anyone, unauthenticated |
+| `counterparties` | the subject; each counterparty; any module holding a live **read** grant for the type from the subject *or any counterparty* |
+| `granted` | the subject; modules holding a read grant from the subject |
+| `private` | the subject's own keys only |
 
-DTP is designed for both human-operated and agent-operated parties. To enable autonomous agent behavior, each party may maintain a private **Agent Autonomy Context** — a set of parameters that governs how their agent acts on their behalf.
+A module can always read `core.grant` records that name it as grantee. A store MUST NOT reveal the existence of a record the caller cannot read (`not_found`). The same rule filters the event feed.
 
-**Agent Autonomy Context is not a protocol message.** It is never transmitted, never stored on-chain, and never visible to the counterparty. It is private configuration held by the party's agent.
+### 3.8 Error codes
 
-### 11.1 Seller Agent Context
-
-```json
-{
-  "party_id": "string",
-  "cogs_per_unit": "decimal",
-  "target_margin_pct": "decimal",
-  "minimum_margin_pct": "decimal",
-  "pricing_guidelines": {
-    "auto_accept_above_floor": true,
-    "auto_counter_below_floor": true,
-    "escalate_to_human_below_margin_pct": "decimal"
-  }
-}
-```
-
-The seller's agent derives its floor price from `cogs_per_unit` and `minimum_margin_pct`. It publishes asking prices and tiers based on `target_margin_pct`. It can autonomously accept any offer above the derived floor, counter-offer below it, or escalate to a human if an offer falls below the escalation threshold.
-
-**Buyers never see COGS, floor price, or margin guidelines.** They see only the published asking price and tiers.
-
-### 11.2 Buyer Agent Context
-
-The buyer's agent operates like an internal procurement officer: it knows the company's economics, inventory position, supplier history, and spending authority — and negotiates on behalf of the company without exposing any of that to the seller.
-
-```json
-{
-  "party_id": "string",
-  "input_cost_targets": [
-    {
-      "product_category": "string",
-      "target_cost_per_unit": "decimal",
-      "max_cost_per_unit": "decimal",
-      "notes": "string | null"
-    }
-  ],
-  "budget": {
-    "category_budgets": [
-      {
-        "category": "string",
-        "period": "string",
-        "total": "decimal",
-        "remaining": "decimal",
-        "currency": "USDC"
-      }
-    ],
-    "per_order_authority": "decimal"
-  },
-  "inventory": {
-    "items": [
-      {
-        "product_category": "string",
-        "on_hand": {"amount": "decimal", "unit": "string"},
-        "reorder_point": {"amount": "decimal", "unit": "string"},
-        "storage_constraints": ["ambient_only | refrigerated | frozen | limited_space"]
-      }
-    ]
-  },
-  "supplier_preferences": {
-    "preferred_party_ids": ["string"],
-    "excluded_party_ids": ["string"],
-    "sourcing_priorities": ["local | minority_owned | cooperative | certified_organic | fair_trade"]
-  },
-  "negotiation_guidelines": {
-    "auto_accept_at_or_below_target_cost": true,
-    "auto_counter_above_target_up_to_max": true,
-    "escalate_to_human_above_spend": "decimal",
-    "auto_accept_tier_upgrade_if_savings_pct_gte": "decimal"
-  }
-}
-```
-
-**`input_cost_targets`** — the buyer's internal cost economics. Not an arbitrary ceiling but a derived target based on their own product margins or operational budget. The agent negotiates toward `target_cost_per_unit` and treats `max_cost_per_unit` as a hard ceiling. Sellers never see these values.
-
-**`budget`** — category-level spending authority for the period and per-order autonomous spending limit. The agent escalates to a human for any order exceeding `per_order_authority`.
-
-**`inventory`** — current stock and reorder state. The agent factors this into urgency and quantity decisions. Storage constraints limit which offers are physically viable (e.g., a buyer with no cold storage cannot accept a refrigerated listing).
-
-**`supplier_preferences`** — preferred and excluded suppliers inform matching ranking. Sourcing priorities (local, cooperative, etc.) can be weighted in the scoring algorithm without being exposed as mandatory filters.
-
-**`negotiation_guidelines`** — defines the boundary of autonomous action. Within these bounds the agent acts without human input. Outside them it escalates.
-
-### 11.3 TEE Integration
-
-In deployments using NEAR AI Cloud's Trusted Execution Environment (TEE), Agent Autonomy Context runs inside hardware-secured infrastructure where the context is encrypted and isolated — even the infrastructure operator cannot read it. This is the recommended deployment model for production agent autonomy.
+`{ "error": { "code", "message", "details" } }`. Codes and HTTP statuses: `bad_request` 400 · `auth_required`, `auth_invalid`, `signature_invalid`, `issuer_mismatch`, `key_unknown` 401 · `key_inactive`, `forbidden`, `grant_missing`, `issuer_not_party` 403 · `not_found` 404 · `duplicate_record_id`, `supersedes_conflict`, `transition_forbidden` 409 · `payload_too_large` 413 · `envelope_invalid`, `schema_invalid`, `float_not_allowed`, `unknown_type` 422 · `internal` 500. `schema_invalid` details carry `issues[]` with JSONPath-style `path` and `keyword`.
 
 ---
 
-## 12. Out of Scope (v1)
+## 4. Events and synchronization
 
-The following are explicitly out of scope for DTP v0 and may be addressed in future versions:
+A store MUST append exactly one `core.event` of kind `record_appended` for every accepted write, and for nothing else. An event carries the envelope's routing fields (`record_id`, `root_id`, `type`, `namespace`, `subject_company_id`, `counterparty_ids`, `issuer`, `visibility`, `supersedes`), the body's `status` when the type has one, the writer's `created_at`, and the store's `recorded_at`. Events are store assertions and are not signed; the record is the proof.
 
-- Automated IoT/sensor-based delivery verification
-- Decentralized solver/matching network
-- Cross-chain settlement (v0 settles on NEAR only)
-- Regulatory compliance automation (FSMA, etc.) — DTP carries certification references but does not validate them
-- Native DTP token or governance mechanism
+**Cursors** are opaque strings, totally ordered per store (a reference store uses a zero-padded sequence). `GET /events?after=<cursor>` returns events strictly after the cursor in order, visibility-filtered for the caller, with `next_cursor` when more are immediately available and `latest_cursor` so consumers know when they are caught up. Delivery is at-least-once; consumers persist the last cursor they processed. `next_cursor` advances past events the caller could not see, so hidden rows never stall a poller. Push delivery (webhooks, SSE, realtime) is a store extension outside v0.2.
+
+---
+
+## 5. Stores
+
+### 5.1 Obligations
+
+A conforming store MUST: validate per §3.3; store the signed envelope verbatim so records can be re-verified later; keep records append-only; maintain head-of-chain; index by subject, counterparties, type, namespace, and root; enforce §3.7 on every read and on the feed; emit events per §4; serve the schemas it accepts; and run **no business logic** — a store that inspects bodies to enforce cross-record consistency, pricing, or matching is an application, not a store.
+
+### 5.2 Reference HTTP API (informative)
+
+The reference store ([`supabase/functions/dtp-store`](supabase/functions/dtp-store)) exposes:
+
+| Method & path | Auth | Purpose |
+|---|---|---|
+| `GET /health`, `GET /schemas`, `GET /schemas/{type}` | none | liveness; type registry; one schema |
+| `POST /debug/canonicalize` | none | returns the canonical signing input, payload hash, and whether a supplied signature verifies |
+| `POST /companies` | none (self-certifying) | genesis `core.company` → `201 {company_id, record, keys:[{key_id, token}]}` |
+| `POST /modules` | self-certifying or publisher root token | genesis `core.module` → `201 {module_id, record, keys}` |
+| `GET /whoami` | bearer | the principal behind the token |
+| `GET /companies/{id}` · `GET /companies/{id}/grants` · `GET /modules/{id}` | optional / bearer | public spine (plus grants if owner); grants (owner sees all, a module sees its own) |
+| `POST /records` | bearer | signed envelope → `201` (or `200` on identical replay) |
+| `GET /records/{id}` · `GET /records?subject&type&namespace&counterparty&root_id&include_superseded&after&limit` | optional | visibility-filtered reads, ordered by sequence |
+| `GET /events?company&after&limit` | bearer | the feed (§4) |
+
+Builder walkthrough: [`docs/PROTOCOL_STORE.md`](docs/PROTOCOL_STORE.md).
+
+### 5.3 Credentials
+
+The reference store identifies callers with a bearer token per key (`dtps_…`, returned once when the key is registered) and proves authorship with the envelope signature. Signed-request authentication for reads is a planned upgrade; a store MAY implement it in addition. Tokens MUST be stored hashed.
+
+### 5.4 Profiles
+
+- **Off-chain store** (this document, reference implementation): Postgres-backed, one operator per store.
+- **On-chain store profile** (planned): a NEAR contract holding envelopes or their hashes with USDC escrow. The v0.1 contract in [`contracts/`](contracts) implements v0.1 objects and is not v0.2-conformant; Appendix E maps its types.
+
+---
+
+## 6. Trade namespace (`trade.*`)
+
+The v0.1 trade objects, ported onto the envelope. Global changes: ids, `version`, and timestamps leave the bodies (the envelope carries them); `PartyRef` becomes `*_company_id` strings; dates are RFC 3339; amounts are `Money`/`Quantity` strings; enums are `lower_snake`; state changes are superseding records. Appendix B has the field-by-field map.
+
+### 6.1 Shared sub-objects
+
+[`goods_spec`](spec/schemas/trade/goods_spec.schema.json) (category, product, `product_type` commodity | branded | value_added with the matching `*_details`, `quantity`, quality, required certifications), [`delivery_spec`](spec/schemas/trade/delivery_spec.schema.json) (destination address + optional GLN, window, method, temperature), [`freight_terms`](spec/schemas/trade/freight_terms.schema.json), [`pack_structure`](spec/schemas/trade/pack_structure.schema.json) (unit size, units per case, cases per pallet, MOQ), [`seller_pricing`](spec/schemas/trade/seller_pricing.schema.json) (model, asking price, tiers — floor price is never published), [`buyer_pricing`](spec/schemas/trade/buyer_pricing.schema.json) (ceiling, desired quantity), [`finance_terms`](spec/schemas/trade/finance_terms.schema.json) (payment timing, net days, PACA flag, financing mode). Shared with other namespaces: `Money`, `Quantity`, `Address`, `Attestation`, `CertificationRef`, `KybRef`.
+
+### 6.2 – 6.4 `trade.intent`, `trade.listing`, `trade.offer`
+
+Subjects: buyer / seller / offerer. An intent (`draft → posted → matched → contracted → fulfilled → settled`, or `expired`/`cancelled`) and a listing (`draft → active → matched → contracted`, or `expired`/`withdrawn`) are broadcasts; both are `public` by default. An offer targets one of them (`target_type`, `target_id` = its root, `target_owner_company_id` as counterparty) and the **target owner** moves it to `shortlisted`/`accepted`/`rejected` while the offerer may `retract`. Full field lists and transitions are in the schemas. *These three types are specified and strict in v0.2 but are not exercised by Sprint 01.*
+
+### 6.5 `trade.contract`
+
+Schema: [`trade/contract.schema.json`](spec/schemas/trade/contract.schema.json). Subject: **buyer** (it is the buyer's payable); seller is the counterparty. Default visibility `counterparties`. Created by whichever party accepted (`initial.by: buyer | seller`); may reference `intent_id`, `listing_id`, `offer_id`, `standing_agreement_id`, `lot_id`, and carry `buyer_po_number`. `escrow_ref` is `null` off-chain.
+
+States: `active → in_fulfillment` (seller, when it ships) `→ delivered` (buyer on attestation, or seller after `dispute_window_hours` — presumed acceptance) `→ settled` (buyer, on `trade.settlement`); `in_fulfillment → disputed` (buyer, within the window) `→ resolved_buyer | resolved_seller` (arbitrator, within 7 days) `→ settled`; `active → cancelled` (mutual: the other party countersigns by superseding again).
+
+### 6.6 `trade.fulfillment`
+
+Schema: [`trade/fulfillment.schema.json`](spec/schemas/trade/fulfillment.schema.json). Subject: **seller**; buyer is the counterparty. The seller creates it (`seller_attested`) with `seller_attestation`; the **buyer supersedes it** to add `buyer_attestation` and move to `buyer_attested` (or `disputed`) within the contract's dispute window; either party moves it to `complete`; the seller may move `seller_attested → complete` after the window (presumed acceptance). `Attestation` is `{company_id, attested_at, record_id, notes}` — the proof is the envelope signature of the record named by `record_id`; the v0.1 inner `signature` field is gone. Structured evidence (BOL, temperature logs, inspection) goes under `x_evidence` in v0.2; a first-class evidence type is a v0.3 candidate.
+
+### 6.7 `trade.settlement`
+
+Schema: [`trade/settlement.schema.json`](spec/schemas/trade/settlement.schema.json). Subject: buyer. Terminal, no status: `gross_amount`, `deductions[]`, `net_amount`, optional `escrow_release_tx`, and `settlement_event_ids[]` naming the `finance.settlement_event` records that moved the money. Corrections are a new settlement whose `corrects` names the old one.
+
+### 6.8 `trade.standing_agreement`
+
+Schema: [`trade/standing_agreement.schema.json`](spec/schemas/trade/standing_agreement.schema.json). Subject: proposer; counterparty countersigns by superseding, appending to `signatures[]` and setting `active`. Contracts under it reference `standing_agreement_id`. Relationship-based repeat trade is the majority of B2B volume; this type is first-class for that reason.
+
+### 6.9 Derived views (informative)
+
+**Reputation** and **relationship tier** are computations over a company's `trade.*` chains, not signed records — a company cannot sign its own reputation. v0.1's formula (`(completed − disputed) / completed × delivery_accuracy`) and tier thresholds (`new` < 3 trades; `established` ≥ 3 or 6 months; `preferred` ≥ 10 trades or $50k or an active standing agreement; `strategic` multi-year or $250k) are retained here as the recommended computation a store or module MAY expose.
+
+### 6.10 Accountability
+
+See Appendix A (generated). Every `trade.*` status transition names the role that owes it and, where v0.1 or ONDC practice supplied one, a clock.
+
+### 6.11 Matching (informative)
+
+v0.1 §4 — bidirectional continuous matching, eligibility rules (quantity, certifications, price ceiling, window overlap, expiry), four-dimension scoring, tier-comparison surfacing — is retained as guidance for **matcher modules**. Matching is module logic, never store logic; a `trade.match` record type is a v0.3 candidate.
+
+### 6.12 Settlement and dispute rules
+
+Normative as state rules on `trade.fulfillment` / `trade.contract`: settlement follows `complete`; absent a buyer attestation within `dispute_window_hours` (default 48) the seller may record presumed acceptance; a buyer dispute within the window moves the contract to `disputed`; only the contract's `arbitrator_company_id` may resolve it; deductions are agreed by both parties or ordered by the arbitrator. Escrow mechanics (locking, release, on-chain references) belong to the on-chain profile.
+
+---
+
+## 7. Finance namespace (`finance.*`)
+
+### 7.1 Why a peer namespace
+
+Every surviving food/ag trade platform monetizes payment timing, not matching ([`research/SYNTHESIS.md`](research/SYNTHESIS.md)). Financing is therefore a first-class namespace, designed so that a financer module can price an advance **from protocol records alone** and must say which ones (`pricing_basis`).
+
+### 7.2 `finance.invoice`
+
+Schema: [`finance/invoice.schema.json`](spec/schemas/finance/invoice.schema.json). Subject: **seller** (the receivable); buyer is the counterparty. Issued by the seller or a module with `finance` write from the seller. `contract_id` (and optionally `fulfillment_id`) are roots. States: `draft → issued` (seller) `→ acknowledged | disputed` (buyer, SHOULD within 48h) `→ partially_paid → paid` (seller, citing `settlement_event_ids`); `void` by the seller. `assigned_to_company_id` is set when an advance funds and the receivable is assigned to the financer — the field a factor's lockbox exists to replace.
+
+### 7.3 `finance.advance_offer`
+
+Schema: [`finance/advance_offer.schema.json`](spec/schemas/finance/advance_offer.schema.json). Subject: seller; **financer** is the counterparty and the issuer (via its module, which therefore needs a `finance` write grant from the financer and must be a party). `advance_amount`, `advance_bps`, `fee {fee_bps, apr_bps, fixed_fee}`, `repayment {source, due_at}`, `recourse`, `pricing_basis[] {record_id, type, note}`, `expires_at`. States: `offered` (financer) `→ accepted | declined` (seller) · `→ withdrawn` (financer) · `→ expired` (either, after `expires_at`).
+
+### 7.4 `finance.advance`
+
+Schema: [`finance/advance.schema.json`](spec/schemas/finance/advance.schema.json). Created by the financer only from an `accepted` offer; cites `funding_event_id`. States `funded → partially_repaid → repaid`, `→ defaulted` after maturity, `→ written_off`; every transition is the financer's and SHOULD cite settlement events.
+
+### 7.5 `finance.settlement_event`
+
+Schema: [`finance/settlement_event.schema.json`](spec/schemas/finance/settlement_event.schema.json). The money-movement primitive. Subject: **payer**; payee is the counterparty. `kind` (buyer_payment, advance_funding, advance_repayment, fee, refund, escrow_release, adjustment), `amount`, `occurred_at`, `rail` (`mock` is valid — the sprint moves no real money), `rail_ref`, `references {invoice_id, advance_id, contract_id, trade_settlement_id}`, `reverses`. Immutable: no status; corrections are compensating events.
+
+### 7.6 Accountability
+
+Appendix A. Sprint 01 grant set for a financing module: from the seller — `trade read`, `core.company read`, `finance write`; from the buyer — `trade read`, `finance read`; from the financer's own company — `finance write`.
+
+### 7.7 Policy defaults (informative, from v0.1 §3.6.2)
+
+For `financing_mode: lp_pool` trades: interest at a fixed 30% effective APR compounding daily; prepayment any time; balance due no later than day 60 (day 30 for PACA-covered produce — beyond 30 days the seller forfeits PACA trust protection, so this is a legal cliff, not a preference). These are policy defaults for the on-chain profile and are not schema-enforced.
+
+---
+
+## 8. Traceability namespace (`traceability.*`)
+
+[`traceability/cte.schema.json`](spec/schemas/traceability/cte.schema.json) ports the FSMA 204 Critical Tracking Event (`growing | creating | receiving | transforming | shipping`, keyed by a Traceability Lot Code, with actor/source/destination GLNs and a physical `event_date` distinct from the recording time) and [`coa_anchor.schema.json`](spec/schemas/traceability/coa_anchor.schema.json) anchors an off-chain lot document by SHA-256 or IPFS CID. Both are **loose** in v0.2 (`additionalProperties: true`): this namespace is exercised in a later sprint, and the design intent is that CTEs fall out of settled `trade.*` records rather than being entered separately, with an EPCIS 2.0 JSON-LD export as the interoperability surface. `lot_id` is opaque; `trade.lot` and `trade.catalog_entry` (Rust-only in v0.1) are v0.3 candidates.
+
+---
+
+## 9. Conformance
+
+**Targets.** *Producer*: emits envelopes that pass §3.3 steps 2–6 and reproduces [`spec/vectors/signatures.json`](spec/vectors/signatures.json). *Verifier*: checks any envelope against the schemas and signature; reproduces all vectors. *Store*: implements §5.1 and passes the reference suite ([`sdk/tests`](sdk/tests)) against its URL. *Module*: writes only conformant records, uses `x_` for anything missing, and never requires `x_` of others.
+
+**Normative artifacts.** `spec/schemas/**` (JSON Schema 2020-12), `spec/schemas/index.json` (the registry), `spec/vectors/**`. Generated artifacts ([`spec/generated/`](spec/generated)) are derived and rebuilt by `npm run build` in `sdk/`.
+
+**Extension rules.** New namespaces and types are added to the registry by pull request. Additive optional fields bump a type's minor version; breaking changes bump the major. `x_` fields are the only per-implementation freedom. No dialects.
+
+---
+
+## 10. Versioning and migration
+
+- `schema_version` is per record type and starts at `"0.2"` for all types. Stores list supported versions in `GET /schemas` and MUST reject unknown `(type, version)` pairs.
+- **v0.1 → v0.2.** There is no automatic upgrade: a v0.1 object is not a record (no envelope, no signature). Appendix B is the adapter map. The v0.1 `version` field (which carried the *protocol* version on every message) is removed; `schema_version` replaces it.
+- **Implementation labels.** `contracts/` — v0.1 on-chain reference (NEAR); not v0.2-conformant; future on-chain store profile. `mcp-server/`, `remote-mcp-server/` — v0.1 clients, frozen. `marketplace/` — the MVP (accounts, listings, intents, endorsements); pre-v0.2 data model; candidate to be re-based on the v0.2 store. `supabase/functions/dtp-store` + `sdk/` — the v0.2 reference store and SDK.
+
+---
+
+## 11. Out of scope and deferred
+
+Not in v0.2: on-chain escrow and USDC settlement (on-chain profile); a decentralized solver network; `trade.match`, `trade.dispute` (Sprint 02 candidate — a short-pay or chargeback as a dispute object with evidence and a clock), `trade.lot`, `trade.catalog_entry`, a first-class delivery-evidence type; push delivery of events (webhooks/SSE/realtime); vault encryption at rest and the "Login with DTP" consent UI ([`docs/PORTABLE_IDENTITY.md`](docs/PORTABLE_IDENTITY.md)); W3C Verifiable Credential wrappers for attestations; NEP-413 wallet signing; signed-request read authentication; body-level referential integrity; any native token.
+
+---
+
+## Appendices
+
+- **A. Accountability matrix** — generated: [`spec/generated/accountability.md`](spec/generated/accountability.md).
+- **B. v0.1 → v0.2 field map** — *Phase 2 (in progress).* Summary: `party_id`/`buyer`/`seller` → `*_company_id`; `intent_id`/`listing_id`/… on the object → envelope `root_id`; `version` → `schema_version`; `created_at`/`updated_at` → envelope; ISO strings / microdollars → `Money`/`Quantity` strings; `UPPER_SNAKE`/`PascalCase` → `lower_snake`; `Attestation.signature` dropped; `Party.reputation`/`authorized_agents` → derived view / delegate keys; `Party.gs1_gln` → `locations[].gln`; `Offer` uses the Rust shape (`target_type`, `target_id`, `offerer`).
+- **C. Agent Autonomy Context** — v0.1 §11 verbatim, informative: private module configuration (COGS, margins, budgets, negotiation guidelines) that is never a record and never stored in a cabinet. See [`docs/archive/SPEC_v0.1.md`](docs/archive/SPEC_v0.1.md) §11.
+- **D. v0.1 EventType map** — *Phase 2.* Every v0.1 `EventType` (e.g. `ContractEscrowLocked`, `FulfillmentBuyerAttested`) maps to `(type, status)` on a `record_appended` event.
+- **E. Rust type mapping** — *Phase 2* ([`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md)): ms ↔ RFC 3339, microdollars ↔ `Money`, milliamount ↔ `Quantity`, `AccountId` ↔ `company_id`, flattened ↔ nested `GoodsSpec`/`DeliverySpec`, `AuditEvent` ↔ `core.event`.
+- **F. Vector index** — [`spec/vectors/`](spec/vectors): `keys.json` (fixed key), `canonicalization.json` (4 cases), `signatures.json` (raw message + two signed records).
 
 ---
 

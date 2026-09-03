@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/money.schema.json",
+  "title": "Money",
+  "description": "Decimal string with up to 6 fractional digits (microdollar precision). Never a JSON number.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["amount", "currency"],
+  "properties": {
+    "amount": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]{1,6})?$" },
+    "currency": { "type": "string", "enum": ["USD", "USDC"] }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@dtp/sdk",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "DTP v0.2 SDK: canonicalization, keys, signing, store client, schema tooling",
+  "scripts": {
+    "build": "node scripts/build-schemas.ts",
+    "check:examples": "node scripts/check-examples.ts",
+    "check:transitions": "node scripts/check-transitions.ts",
+    "test": "node --test \"tests/*.test.ts\"",
+    "seed": "node scripts/seed.ts",
+    "keygen": "node scripts/keygen.ts",
+    "sign": "node scripts/sign.ts"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "^4.1.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/node": "^26.4.1",
+    "json-schema-to-typescript": "^15.0.4",
+    "postgres": "^3.4.9",
+    "supabase": "^2.40.7",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=23.5"
+  }
+}

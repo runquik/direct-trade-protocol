@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/core/envelope.schema.json",
+  "title": "Record envelope",
+  "description": "Every DTP record shares this wrapper. The signature is Ed25519 over the canonical JSON (RFC 8785, integer-only numbers) of the envelope minus `signature`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id", "root_id", "type", "namespace", "schema_version", "subject_company_id",
+    "counterparty_ids", "issuer", "visibility", "created_at", "supersedes", "body", "signature"
+  ],
+  "properties": {
+    "record_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "root_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId", "description": "record_id of the first record in this supersession chain; equals record_id for a genesis record. Bodies cross-reference entities by root_id." },
+    "type": { "$ref": "../common/ids.schema.json#/$defs/RecordType" },
+    "namespace": { "$ref": "../common/ids.schema.json#/$defs/Namespace", "description": "Must equal the prefix of `type`." },
+    "schema_version": { "$ref": "../common/ids.schema.json#/$defs/SchemaVersion" },
+    "subject_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId", "description": "Whose cabinet this record lives in." },
+    "counterparty_ids": {
+      "type": "array",
+      "items": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+      "uniqueItems": true,
+      "description": "Other parties to this record. Required non-empty when visibility is `counterparties`."
+    },
+    "issuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key_id", "company_id", "module_id"],
+      "properties": {
+        "key_id": { "$ref": "../common/ids.schema.json#/$defs/KeyId" },
+        "company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId", "description": "The principal. Must be subject_company_id or a member of counterparty_ids." },
+        "module_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/ModuleId" }, { "type": "null" }], "description": "Set when a module key signs on the company's behalf under a core.grant." }
+      }
+    },
+    "visibility": { "type": "string", "enum": ["public", "counterparties", "granted", "private"] },
+    "created_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime", "description": "Writer clock. The store records its own received_at on the event." },
+    "supersedes": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }], "description": "record_id of the current head of the chain this record replaces, or null for a genesis record." },
+    "body": { "type": "object", "description": "Validated against the schema registered for (type, schema_version). Integers only; decimals are strings." },
+    "signature": { "$ref": "../common/ids.schema.json#/$defs/Signature" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "visibility": { "const": "counterparties" } } },
+      "then": { "properties": { "counterparty_ids": { "minItems": 1 } } }
+    }
+  ]
+}

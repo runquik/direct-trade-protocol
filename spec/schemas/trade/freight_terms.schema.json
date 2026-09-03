@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/freight_terms.schema.json",
+  "title": "FreightTerms",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["payer", "estimated_freight", "quote_source", "quoted_at", "booked_at_contract"],
+  "properties": {
+    "payer": { "type": "string", "enum": ["buyer", "seller"] },
+    "estimated_freight": { "$ref": "../common/money.schema.json" },
+    "freight_allowance": { "oneOf": [{ "$ref": "../common/money.schema.json" }, { "type": "null" }] },
+    "quote_source": { "type": "string", "enum": ["project44", "manual_estimate", "carrier_quote"] },
+    "quote_ref": { "type": ["string", "null"] },
+    "quoted_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "quote_expires_at": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/DateTime" }, { "type": "null" }] },
+    "booked_at_contract": { "type": "boolean" }
+  }
+}

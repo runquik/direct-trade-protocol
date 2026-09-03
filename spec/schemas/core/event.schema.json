@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/core/event.schema.json",
+  "title": "core.event",
+  "description": "Exactly one event per accepted record write. Events are store assertions (unsigned); the record is the proof. Cursors are opaque strings ordered per store; delivery is at-least-once and visibility-filtered.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cursor", "event_id", "kind", "record_id", "root_id", "type", "namespace", "schema_version", "subject_company_id", "counterparty_ids", "issuer", "visibility", "supersedes", "status", "created_at", "recorded_at"],
+  "properties": {
+    "cursor": { "type": "string", "minLength": 1 },
+    "event_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "kind": { "type": "string", "enum": ["record_appended"] },
+    "record_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "root_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "type": { "$ref": "../common/ids.schema.json#/$defs/RecordType" },
+    "namespace": { "$ref": "../common/ids.schema.json#/$defs/Namespace" },
+    "schema_version": { "$ref": "../common/ids.schema.json#/$defs/SchemaVersion" },
+    "subject_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "counterparty_ids": { "type": "array", "items": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" } },
+    "issuer": { "$ref": "envelope.schema.json#/properties/issuer" },
+    "visibility": { "type": "string", "enum": ["public", "counterparties", "granted", "private"] },
+    "supersedes": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+    "status": { "type": ["string", "null"], "description": "Copied from body.status when the type defines one." },
+    "created_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "recorded_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" }
+  }
+}

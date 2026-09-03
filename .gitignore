@@ -6,3 +6,8 @@ mcp-server/.env
 remote-mcp-server/node_modules
 remote-mcp-server/dist
 remote-mcp-server/.env
+sdk/node_modules
+sdk/fixtures/dev-keys.json
+supabase/.temp
+supabase/.env.local
+supabase/.branches

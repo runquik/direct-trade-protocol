@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/attestation.schema.json",
+  "title": "Attestation",
+  "description": "A party's statement inside a record body. The proof is the envelope signature of the record that carried it (referenced by record_id); there is no inner signature.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["company_id", "attested_at", "record_id"],
+  "properties": {
+    "company_id": { "$ref": "ids.schema.json#/$defs/CompanyId" },
+    "attested_at": { "$ref": "ids.schema.json#/$defs/DateTime" },
+    "record_id": { "$ref": "ids.schema.json#/$defs/RecordId", "description": "The record whose envelope signature proves this attestation." },
+    "notes": { "type": ["string", "null"] }
+  }
+}

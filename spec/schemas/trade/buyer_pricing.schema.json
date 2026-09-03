@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/buyer_pricing.schema.json",
+  "title": "BuyerPricing",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["ceiling_price_per_unit"],
+  "properties": {
+    "ceiling_price_per_unit": { "$ref": "../common/money.schema.json" },
+    "desired_quantity": { "oneOf": [{ "$ref": "../common/quantity.schema.json" }, { "type": "null" }] }
+  }
+}

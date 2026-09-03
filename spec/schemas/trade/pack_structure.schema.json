@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/pack_structure.schema.json",
+  "title": "PackStructure",
+  "description": "Physical packaging hierarchy. Tier breakpoints are derived from it.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["unit_size", "units_per_case", "moq"],
+  "properties": {
+    "unit_size": { "$ref": "../common/quantity.schema.json" },
+    "units_per_case": { "type": "integer", "minimum": 1 },
+    "cases_per_pallet": { "type": ["integer", "null"], "minimum": 1 },
+    "pallets_per_truckload": { "type": ["integer", "null"], "minimum": 1 },
+    "moq": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quantity"],
+      "properties": {
+        "quantity": { "$ref": "../common/quantity.schema.json" },
+        "label": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

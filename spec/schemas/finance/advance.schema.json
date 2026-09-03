@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/finance/advance.schema.json",
+  "title": "finance.advance",
+  "description": "A funded advance, created only from an accepted advance_offer. Subject is the seller; the financer is the counterparty and owns every transition, each of which MUST cite settlement events.",
+  "x-dtp-subject": "seller_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "seller": "seller_company_id", "financer": "financer_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["funded"], "by": ["financer"] },
+    "transitions": [
+      { "from": "funded", "to": "partially_repaid", "by": ["financer"], "trigger": "finance.settlement_event" },
+      { "from": "funded", "to": "repaid", "by": ["financer"], "trigger": "finance.settlement_event" },
+      { "from": "funded", "to": "defaulted", "by": ["financer"], "after": "maturity_at" },
+      { "from": "partially_repaid", "to": "repaid", "by": ["financer"] },
+      { "from": "partially_repaid", "to": "defaulted", "by": ["financer"], "after": "maturity_at" },
+      { "from": "defaulted", "to": "repaid", "by": ["financer"] },
+      { "from": "defaulted", "to": "written_off", "by": ["financer"] }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["advance_offer_id", "invoice_id", "seller_company_id", "financer_company_id", "principal", "fee", "funded_at", "funding_event_id", "maturity_at", "repaid_amount", "outstanding", "status"],
+  "properties": {
+    "advance_offer_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "invoice_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "financer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "principal": { "$ref": "../common/money.schema.json" },
+    "fee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fee_bps", "apr_bps"],
+      "properties": {
+        "fee_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps" },
+        "apr_bps": { "$ref": "../common/ids.schema.json#/$defs/Bps" },
+        "fixed_fee": { "oneOf": [{ "$ref": "../common/money.schema.json" }, { "type": "null" }] }
+      }
+    },
+    "funded_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "funding_event_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId", "description": "root_id of the finance.settlement_event that funded it" },
+    "maturity_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "repaid_amount": { "$ref": "../common/money.schema.json" },
+    "outstanding": { "$ref": "../common/money.schema.json" },
+    "repayment_event_ids": { "type": "array", "items": { "$ref": "../common/ids.schema.json#/$defs/RecordId" } },
+    "status": { "type": "string", "enum": ["funded", "partially_repaid", "repaid", "defaulted", "written_off"] }
+  }
+}

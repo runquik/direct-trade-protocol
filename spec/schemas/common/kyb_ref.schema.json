@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/kyb_ref.schema.json",
+  "title": "KybRef",
+  "description": "Know-Your-Business attestation anchoring a company to a legal entity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["legal_name", "jurisdiction", "provider", "issued_at", "status"],
+  "properties": {
+    "legal_name": { "type": "string", "minLength": 1 },
+    "tax_id": { "type": ["string", "null"] },
+    "jurisdiction": { "$ref": "ids.schema.json#/$defs/CountryCode" },
+    "provider": { "type": "string", "minLength": 1, "description": "e.g. stripe_identity, persona, manual, mock" },
+    "attestation_ref": { "type": ["string", "null"] },
+    "issued_at": { "$ref": "ids.schema.json#/$defs/DateTime" },
+    "expires_at": { "oneOf": [{ "$ref": "ids.schema.json#/$defs/DateTime" }, { "type": "null" }] },
+    "status": { "type": "string", "enum": ["pending", "verified", "expired", "revoked"] }
+  }
+}

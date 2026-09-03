@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/intent.schema.json",
+  "title": "trade.intent",
+  "description": "A buyer's declaration of what it wants to purchase. Subject is the buyer.",
+  "x-dtp-subject": "buyer_company_id",
+  "x-dtp-default-visibility": "public",
+  "x-dtp-roles": { "buyer": "buyer_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["draft", "posted"], "by": ["buyer"] },
+    "transitions": [
+      { "from": "draft", "to": "posted", "by": ["buyer"] },
+      { "from": "draft", "to": "cancelled", "by": ["buyer"] },
+      { "from": "posted", "to": "matched", "by": ["buyer"], "note": "recorded by the buyer (or its matcher module) when a match is accepted for negotiation" },
+      { "from": "posted", "to": "cancelled", "by": ["buyer"] },
+      { "from": "posted", "to": "expired", "by": ["buyer"], "after": "expires_at" },
+      { "from": "matched", "to": "contracted", "by": ["buyer"] },
+      { "from": "matched", "to": "cancelled", "by": ["buyer"] },
+      { "from": "contracted", "to": "fulfilled", "by": ["buyer"] },
+      { "from": "fulfilled", "to": "settled", "by": ["buyer"] }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["buyer_company_id", "goods", "delivery", "pricing", "expires_at", "status"],
+  "properties": {
+    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "catalog_id": { "type": ["string", "null"] },
+    "goods": { "$ref": "goods_spec.schema.json" },
+    "delivery": { "$ref": "delivery_spec.schema.json" },
+    "pricing": { "$ref": "buyer_pricing.schema.json" },
+    "finance": { "oneOf": [{ "$ref": "finance_terms.schema.json" }, { "type": "null" }] },
+    "freight": { "oneOf": [{ "$ref": "freight_terms.schema.json" }, { "type": "null" }] },
+    "expires_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "status": { "type": "string", "enum": ["draft", "posted", "matched", "contracted", "fulfilled", "settled", "expired", "cancelled"] }
+  }
+}

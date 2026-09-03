@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/traceability/coa_anchor.schema.json",
+  "title": "traceability.coa_anchor",
+  "description": "Tamper-evident anchor for an off-chain lot document (Certificate of Analysis etc.) by content hash. Subject is the anchoring company.",
+  "x-dtp-subject": "company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "anchor": "company_id" },
+  "x-dtp-transitions": { "status_field": null, "initial": { "status": [], "by": ["anchor"] }, "transitions": [] },
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["company_id", "lot_id", "cert_type", "issuer", "doc_hash"],
+  "properties": {
+    "company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "lot_id": { "type": "string", "minLength": 1 },
+    "cert_type": { "type": "string", "minLength": 1 },
+    "issuer": { "type": "string", "minLength": 1 },
+    "doc_hash": { "type": "string", "description": "SHA-256 hex or IPFS CIDv1", "pattern": "^([0-9a-f]{64}|b[a-z2-7]{58,})$" },
+    "doc_uri_hint": { "type": ["string", "null"] },
+    "issued_at": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/DateTime" }, { "type": "null" }] },
+    "expires_at": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/DateTime" }, { "type": "null" }] }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/trade/delivery_spec.schema.json",
+  "title": "DeliverySpec",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["destination", "window", "method"],
+  "properties": {
+    "destination": { "$ref": "../common/address.schema.json" },
+    "destination_gln": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GLN" }, { "type": "null" }] },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["earliest", "latest"],
+      "properties": {
+        "earliest": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+        "latest": { "$ref": "../common/ids.schema.json#/$defs/DateTime" }
+      }
+    },
+    "method": { "type": "string", "enum": ["delivered", "fob_origin", "third_party_logistics"] },
+    "temperature_requirements": { "oneOf": [{ "type": "string", "enum": ["ambient", "refrigerated", "frozen"] }, { "type": "null" }] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

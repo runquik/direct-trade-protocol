@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/finance/invoice.schema.json",
+  "title": "finance.invoice",
+  "description": "A receivable. Subject is the seller (AR); the buyer is the counterparty. Issued by the seller or a module holding finance write from the seller. assigned_to_company_id is set when an advance funds and the receivable is assigned to the financer — the field a factor's lockbox exists to replace.",
+  "x-dtp-subject": "seller_company_id",
+  "x-dtp-default-visibility": "counterparties",
+  "x-dtp-roles": { "seller": "seller_company_id", "buyer": "buyer_company_id" },
+  "x-dtp-transitions": {
+    "status_field": "status",
+    "initial": { "status": ["draft", "issued"], "by": ["seller"] },
+    "transitions": [
+      { "from": "draft", "to": "issued", "by": ["seller"] },
+      { "from": "draft", "to": "void", "by": ["seller"] },
+      { "from": "issued", "to": "acknowledged", "by": ["buyer"], "within": "PT48H" },
+      { "from": "issued", "to": "disputed", "by": ["buyer"], "within": "PT48H" },
+      { "from": "issued", "to": "partially_paid", "by": ["seller"], "trigger": "finance.settlement_event" },
+      { "from": "issued", "to": "paid", "by": ["seller"], "trigger": "finance.settlement_event" },
+      { "from": "issued", "to": "void", "by": ["seller"] },
+      { "from": "acknowledged", "to": "partially_paid", "by": ["seller"] },
+      { "from": "acknowledged", "to": "paid", "by": ["seller"] },
+      { "from": "acknowledged", "to": "disputed", "by": ["buyer"] },
+      { "from": "disputed", "to": "acknowledged", "by": ["buyer"] },
+      { "from": "disputed", "to": "void", "by": ["seller"] },
+      { "from": "partially_paid", "to": "paid", "by": ["seller"] }
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "required": ["invoice_number", "seller_company_id", "buyer_company_id", "contract_id", "line_items", "subtotal", "deductions", "total", "issued_at", "due_at", "payment_terms", "status", "paid_amount", "settlement_event_ids"],
+  "properties": {
+    "invoice_number": { "type": "string", "minLength": 1 },
+    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
+    "contract_id": { "$ref": "../common/ids.schema.json#/$defs/RecordId" },
+    "fulfillment_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
+    "line_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "quantity", "unit_price", "amount"],
+        "properties": {
+          "description": { "type": "string", "minLength": 1 },
+          "sku": { "type": ["string", "null"] },
+          "quantity": { "$ref": "../common/quantity.schema.json" },
+          "unit_price": { "$ref": "../common/money.schema.json" },
+          "amount": { "$ref": "../common/money.schema.json" }
+        }
+      }
+    },
+    "subtotal": { "$ref": "../common/money.schema.json" },
+    "deductions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason", "amount"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 },
+          "amount": { "$ref": "../common/money.schema.json" }
+        }
+      }
+    },
+    "total": { "$ref": "../common/money.schema.json" },
+    "issued_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "due_at": { "$ref": "../common/ids.schema.json#/$defs/DateTime" },
+    "payment_terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["net_days", "paca_covered"],
+      "properties": {
+        "net_days": { "type": "integer", "minimum": 0, "maximum": 365 },
+        "paca_covered": { "type": "boolean" },
+        "early_pay_discount_bps": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/Bps" }, { "type": "null" }] }
+      }
+    },
+    "status": { "type": "string", "enum": ["draft", "issued", "acknowledged", "disputed", "partially_paid", "paid", "void"] },
+    "paid_amount": { "$ref": "../common/money.schema.json" },
+    "settlement_event_ids": { "type": "array", "items": { "$ref": "../common/ids.schema.json#/$defs/RecordId" } },
+    "assigned_to_company_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/CompanyId" }, { "type": "null" }] }
+  }
+}

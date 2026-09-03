@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtp.dev/schemas/0.2/common/ids.schema.json",
+  "title": "DTP identifier grammars",
+  "$defs": {
+    "RecordId": {
+      "type": "string",
+      "description": "Writer-assigned UUID (v4 or v7), lowercase.",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "CompanyId": {
+      "type": "string",
+      "description": "Company handle. NEAR account-id grammar so a later on-chain mapping is byte-compatible.",
+      "minLength": 2,
+      "maxLength": 64,
+      "pattern": "^(([a-z0-9]+[-_])*[a-z0-9]+\\.)*([a-z0-9]+[-_])*[a-z0-9]+$"
+    },
+    "ModuleId": {
+      "type": "string",
+      "description": "Module slug, unique per store.",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
+    },
+    "KeyId": {
+      "type": "string",
+      "description": "Ed25519 public key, NEAR encoding: ed25519:<base58(32 bytes)>.",
+      "pattern": "^ed25519:[1-9A-HJ-NP-Za-km-z]{43,44}$"
+    },
+    "Signature": {
+      "type": "string",
+      "description": "Ed25519 signature, NEAR encoding: ed25519:<base58(64 bytes)>.",
+      "pattern": "^ed25519:[1-9A-HJ-NP-Za-km-z]{86,88}$"
+    },
+    "RecordType": {
+      "type": "string",
+      "description": "<namespace>.<type>",
+      "pattern": "^[a-z]+\\.[a-z_]+$"
+    },
+    "Namespace": {
+      "type": "string",
+      "pattern": "^[a-z]+$"
+    },
+    "SchemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "DateTime": {
+      "type": "string",
+      "description": "RFC 3339 UTC. Writers SHOULD include milliseconds and MUST use Z.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,6})?Z$"
+    },
+    "Date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "GLN": {
+      "type": "string",
+      "description": "GS1 Global Location Number (13 digits).",
+      "pattern": "^[0-9]{13}$"
+    },
+    "GTIN": {
+      "type": "string",
+      "pattern": "^[0-9]{8}$|^[0-9]{12,14}$"
+    },
+    "DUNS": {
+      "type": "string",
+      "pattern": "^[0-9]{9}$"
+    },
+    "Bps": {
+      "type": "integer",
+      "description": "Basis points.",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "CountryCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    }
+  }
+}
