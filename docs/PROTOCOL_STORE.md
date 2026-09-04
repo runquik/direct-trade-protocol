@@ -46,7 +46,7 @@ Every record is an **envelope** around a typed **body**:
 
 | Field | Meaning |
 |---|---|
-| `record_id` | UUID you generate. Also the idempotency key: re-posting the identical record returns 200, a different body under the same id returns 409. |
+| `record_id` | UUID you generate. Also the idempotency key: re-posting the identical **original** envelope returns 200 (re-posting the store's response — which has `seq`, `payload_hash` etc. added — is rejected as `envelope_invalid`); a different body under the same id returns 409. |
 | `root_id` | The entity id. Equals `record_id` for a new thing; for an update it's the `root_id` of the chain. **Bodies cross-reference entities by `root_id`** (`contract_id`, `invoice_id`, …). |
 | `type` / `namespace` | `namespace.name`; namespace is repeated on purpose. |
 | `subject_company_id` | Whose cabinet the record lives in. Each type says which body field this must match (`GET /schemas`). |
@@ -63,7 +63,7 @@ Browse the type catalog: `GET $STORE_URL/schemas` (index) and `GET $STORE_URL/sc
 
 ## 2. Make a key
 
-Keys are Ed25519. Encodings match NEAR's, so a `near-api-js` key pair is a valid DTP key.
+Keys are Ed25519. Encodings match NEAR's, so a `near-api-js` key pair is a valid DTP key. A key belongs to exactly one company or module — reusing a key that is already registered elsewhere is rejected.
 
 ```
 key id     = "ed25519:" + base58(32-byte public key)
@@ -102,7 +102,9 @@ Reads only need the token. `GET $STORE_URL/whoami` tells you what the store thin
 
 `payload_hash` (returned on every stored record) is `sha256(canonical bytes)` as lowercase hex.
 
-**Check yourself before you write:** `POST $STORE_URL/debug/canonicalize` with your envelope (signature optional) returns the exact canonical string, its hash, and whether your signature verifies. No auth needed. Diff its `canonical` against yours and any mismatch is visible in seconds.
+**Check yourself before you write:** `POST $STORE_URL/debug/canonicalize` with a **full envelope** (signature optional) returns the exact canonical string the store signs, its hash, and whether your signature verifies. No auth needed. Diff its `canonical` against yours and any mismatch is visible in seconds. It canonicalizes envelopes only — to check the `canonicalization.json` vector cases, compare your canonicalizer's output to the file directly.
+
+Two traps: object keys sort as plain strings (`"10"` comes before `"9"`), which is *not* what JavaScript does if you rebuild an object and call `JSON.stringify` on it — serialize straight to text; and the number rule is value-based (`48`, `4.8e1`, `48.0` all canonicalize to `48`; anything with a fractional value is rejected).
 
 Fixed vectors: [`spec/vectors/canonicalization.json`](../spec/vectors/canonicalization.json) and [`spec/vectors/signatures.json`](../spec/vectors/signatures.json) contain a full signed `core.company` and `trade.contract` for the fixed key — reproduce the signature byte-for-byte and you're done.
 
@@ -126,7 +128,7 @@ Save the token. Company ids use NEAR account grammar (`acme-sauce.dtp`).
 Minimal body:
 
 ```json
-{ "display_name": "Acme Sauce Co.", "business_type": "brand", "jurisdiction": "US",
+{ "display_name": "Acme Sauce Co.", "business_types": ["brand"], "jurisdiction": "US",
   "locations": [ { "location_id": "hq", "address": { "city": "Austin", "region": "TX", "country": "US" } } ],
   "keys": [ { "key_id": "ed25519:…", "role": "root", "status": "active", "added_at": "2026-09-08T14:03:22.117Z" } ] }
 ```
@@ -138,7 +140,7 @@ To add or revoke keys later, supersede the company record (root key required). N
 Modules have their own keys and a **publisher company**. For the sprint:
 
 1. Create a publisher company for yourself (one call, above).
-2. `POST $STORE_URL/modules` with a signed genesis `core.module` envelope. Easiest is self-certified: sign with the module's own root key listed in `body.keys` and set `issuer.module_id` to your `module_id`, `issuer.company_id` and `subject_company_id` to the publisher. Response includes the module key's token.
+2. `POST $STORE_URL/modules` with a signed genesis `core.module` envelope, **sending your publisher company's bearer token** — the publisher has to consent, otherwise anyone could publish software in your company's name. Sign either with the module's own root key listed in `body.keys` (set `issuer.module_id` to your `module_id`) or with the publisher's root key (`issuer.module_id: null`); either way `issuer.company_id` and `subject_company_id` are the publisher. Response includes the module key's token.
 
 ```json
 { "module_id": "receivables-financing", "name": "Receivables Financing", "publisher_company_id": "boris-fin.dtp",
@@ -189,7 +191,7 @@ A module can always read the `core.grant` records that name it. Records you cann
 
 ### Update = supersede
 
-Write a new record with the same `type`, `subject_company_id`, `root_id`, and `supersedes` = the current head's `record_id`. If someone beat you to it you get `supersedes_conflict` with the new head's id — re-read and retry. Counterparties may supersede too, within the type's state machine: that's how the buyer attests receipt on the seller's `trade.fulfillment`.
+Write a new record with the same `type`, `subject_company_id`, `root_id`, **the same `counterparty_ids` and `visibility`** (locked for the life of a record), and `supersedes` = the current head's `record_id`. If someone beat you to it you get `supersedes_conflict` with the new head's id — re-read and retry. Counterparties may supersede too, but only by making a state transition the schema allows for their role: that's how the buyer attests receipt on the seller's `trade.fulfillment`. Changing a record's contents *without* changing its status is reserved to the subject. Who-is-who fields (`buyer_company_id`, `seller_company_id`, …) never change across a record's life; a third-party role like `arbitrator_company_id` can be set once, to someone who isn't the buyer or seller.
 
 ---
 
@@ -239,6 +241,7 @@ Full schemas: `spec/schemas/**` or `GET /schemas/{type}`. Generated TypeScript t
 | 401 | `auth_required` / `auth_invalid` | no token / unknown token |
 | 401 | `signature_invalid` | signature doesn't verify over the canonical envelope |
 | 401 | `issuer_mismatch` | `issuer.key_id` isn't the token's key, or `issuer.company_id`/`module_id` isn't who the key belongs to |
+| 409 | `duplicate_record_id` (on `POST /companies`) | that company id already exists — ids are first-come, and a new key does not let you take one over (an exact replay of your own genesis returns 200) |
 | 403 | `key_inactive` / `forbidden` / `grant_missing` / `issuer_not_party` | revoked key / rule violation / no live write grant / issuer isn't subject or counterparty |
 | 404 | `not_found` | unknown or invisible record, company, module, route |
 | 409 | `duplicate_record_id` / `supersedes_conflict` / `transition_forbidden` | id reused with a different body / target isn't head or chain mismatch / state change not allowed for your role |
@@ -249,7 +252,7 @@ Full schemas: `spec/schemas/**` or `GET /schemas/{type}`. Generated TypeScript t
 
 ## 10. Walkthrough with curl (from the seed)
 
-Assume `$STORE_URL`, and from `dev-keys.json`: `$MOD_TOKEN`, `$MOD_SECRET`, `$MOD_ID` (`demo-financing`), `$ACME` (`acme-sauce.dtp`), `$BLUESTEM`, `$FUL_ROOT` (the attested fulfillment's root), `$CONTRACT_ROOT`.
+Assume `$STORE_URL`, and the values George hands you from the seed (`$MOD_TOKEN`, `$MOD_SECRET`, `$MOD_ID` = `demo-financing`, `$ACME` = `acme-sauce.dtp`, `$BLUESTEM`, `$FUL_ROOT` the attested fulfillment's root, `$CONTRACT_ROOT`). The `node sdk/scripts/sign.ts` step uses the reference SDK for convenience; any Ed25519 + RFC 8785 implementation that matches the vectors works in its place.
 
 ```bash
 # who am I

@@ -31,7 +31,7 @@ export function companyBody(kp: KeyPair, name: string, opts: { business_type?: s
   return {
     display_name: name,
     legal_name: `${name} LLC`,
-    business_type: opts.business_type ?? "brand",
+    business_types: [opts.business_type ?? "brand"],
     jurisdiction: "US",
     locations: [
       {
@@ -97,7 +97,7 @@ export async function makeModule(base: DtpStoreClient, publisher: Company, prefi
     },
   });
   const env = (await signRecord(unsigned, kp.secretKey)) as Envelope;
-  const r = await base.createModule(env);
+  const r = await publisher.client.createModule(env); // publisher consent = publisher root token
   const token = r.keys!.find((k) => k.key_id === kp.keyId)!.token;
   return { id, publisher, kp, token, client: base.with(token) };
 }

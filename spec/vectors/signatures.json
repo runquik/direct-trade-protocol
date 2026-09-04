@@ -28,7 +28,9 @@
         "body": {
           "display_name": "Acme Sauce Co.",
           "legal_name": "Acme Sauce Company LLC",
-          "business_type": "brand",
+          "business_types": [
+            "brand"
+          ],
           "jurisdiction": "US",
           "locations": [
             {
@@ -71,11 +73,11 @@
           "facility_allergens": [],
           "data_vault_uri": null
         },
-        "signature": "ed25519:1Gk8Wda5B2x1yXHF7iufpWG894LEThhr1Y2JR6X4C4fDhBtB5ssq3AGqR9QuW9j3a5KBrSAoZN9qCohbtT4FdCN"
+        "signature": "ed25519:4v8cpTaz9mPbG5gpmTk8ifpkgV5BREe12DHJrA4dGuZRjBDCQpxtBEqKAo66pNy7ToqqMmZXBK42iXhNjzc2AFZz"
       },
-      "signing_input": "{\"body\":{\"business_type\":\"brand\",\"certifications\":[],\"data_vault_uri\":null,\"display_name\":\"Acme Sauce Co.\",\"facility_allergens\":[],\"fsma_pcqi_on_file\":false,\"identifiers\":{\"duns\":\"123456789\",\"near_account\":null,\"tax_id\":null},\"jurisdiction\":\"US\",\"keys\":[{\"added_at\":\"2026-09-08T14:03:22.117Z\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"label\":\"owner\",\"near_account\":null,\"revoked_at\":null,\"role\":\"root\",\"status\":\"active\"}],\"kyb\":null,\"legal_name\":\"Acme Sauce Company LLC\",\"locations\":[{\"address\":{\"city\":\"Austin\",\"country\":\"US\",\"line1\":\"12 Pepper Rd\",\"line2\":null,\"postal_code\":\"78701\",\"region\":\"TX\"},\"gln\":\"0614141000012\",\"label\":\"Plant and shipping dock\",\"location_id\":\"plant\",\"roles\":[\"ship_from\",\"plant\"]}]},\"counterparty_ids\":[],\"created_at\":\"2026-09-08T14:03:22.117Z\",\"issuer\":{\"company_id\":\"acme-sauce.dtp\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"module_id\":null},\"namespace\":\"core\",\"record_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"root_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"schema_version\":\"0.2\",\"subject_company_id\":\"acme-sauce.dtp\",\"supersedes\":null,\"type\":\"core.company\",\"visibility\":\"public\"}",
-      "payload_hash": "0b9bcd2e3d4a7f2686262e94ec18c2bdf634d748f7053c1ae0b16b77fd795401",
-      "signature": "ed25519:1Gk8Wda5B2x1yXHF7iufpWG894LEThhr1Y2JR6X4C4fDhBtB5ssq3AGqR9QuW9j3a5KBrSAoZN9qCohbtT4FdCN"
+      "signing_input": "{\"body\":{\"business_types\":[\"brand\"],\"certifications\":[],\"data_vault_uri\":null,\"display_name\":\"Acme Sauce Co.\",\"facility_allergens\":[],\"fsma_pcqi_on_file\":false,\"identifiers\":{\"duns\":\"123456789\",\"near_account\":null,\"tax_id\":null},\"jurisdiction\":\"US\",\"keys\":[{\"added_at\":\"2026-09-08T14:03:22.117Z\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"label\":\"owner\",\"near_account\":null,\"revoked_at\":null,\"role\":\"root\",\"status\":\"active\"}],\"kyb\":null,\"legal_name\":\"Acme Sauce Company LLC\",\"locations\":[{\"address\":{\"city\":\"Austin\",\"country\":\"US\",\"line1\":\"12 Pepper Rd\",\"line2\":null,\"postal_code\":\"78701\",\"region\":\"TX\"},\"gln\":\"0614141000012\",\"label\":\"Plant and shipping dock\",\"location_id\":\"plant\",\"roles\":[\"ship_from\",\"plant\"]}]},\"counterparty_ids\":[],\"created_at\":\"2026-09-08T14:03:22.117Z\",\"issuer\":{\"company_id\":\"acme-sauce.dtp\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"module_id\":null},\"namespace\":\"core\",\"record_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"root_id\":\"018f6d2e-3b1a-7c4e-9a1f-2f6c1a9d0e21\",\"schema_version\":\"0.2\",\"subject_company_id\":\"acme-sauce.dtp\",\"supersedes\":null,\"type\":\"core.company\",\"visibility\":\"public\"}",
+      "payload_hash": "3bbb3aac9242ca906ed955b0fef1c3d7560e9a990a3a3ef256c90ae017f8ef97",
+      "signature": "ed25519:4v8cpTaz9mPbG5gpmTk8ifpkgV5BREe12DHJrA4dGuZRjBDCQpxtBEqKAo66pNy7ToqqMmZXBK42iXhNjzc2AFZz"
     },
     {
       "name": "trade.contract",

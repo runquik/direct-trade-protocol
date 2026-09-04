@@ -2,32 +2,105 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://dtp.dev/schemas/0.2/core/company.schema.json",
   "title": "core.company",
-  "description": "The company spine: identity, locations, keys, and attested credentials. Subject is the company itself. The genesis record MUST be signed by a root key listed in its own keys[] (self-certifying bootstrap). Any superseding record that changes keys[] MUST be signed by a root key.",
+  "description": "The company spine: identity, locations, keys, and attested credentials. Subject is the company itself. The genesis record MUST be signed by a root key listed in its own keys[] (self-certifying bootstrap). Any superseding record that changes keys[] MUST be signed by a root key. A company has no role: business_types is descriptive; roles are per record.",
   "x-dtp-subject": "self",
   "x-dtp-default-visibility": "public",
   "x-dtp-roles": {},
   "x-dtp-transitions": null,
   "type": "object",
   "additionalProperties": false,
-  "patternProperties": { "^x_": {} },
-  "required": ["display_name", "business_type", "jurisdiction", "locations", "keys"],
+  "patternProperties": {
+    "^x_": {}
+  },
+  "required": [
+    "display_name",
+    "jurisdiction",
+    "locations",
+    "keys"
+  ],
   "properties": {
-    "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
-    "legal_name": { "type": ["string", "null"] },
-    "business_type": { "type": "string", "enum": ["producer", "brand", "distributor", "retailer", "cooperative", "financer", "service_provider", "agent", "other"] },
-    "jurisdiction": { "$ref": "../common/ids.schema.json#/$defs/CountryCode" },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "legal_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "business_types": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Descriptive only. What kinds of business this company does; a company may list none or several. NEVER a permission or a role: roles (buyer, seller, financer, arbitrator...) are named per record, per deal, in that record's body.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "producer",
+          "brand",
+          "distributor",
+          "retailer",
+          "cooperative",
+          "financer",
+          "service_provider",
+          "agent",
+          "other"
+        ]
+      }
+    },
+    "jurisdiction": {
+      "$ref": "../common/ids.schema.json#/$defs/CountryCode"
+    },
     "locations": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["location_id", "address"],
+        "required": [
+          "location_id",
+          "address"
+        ],
         "properties": {
-          "location_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,62}$" },
-          "label": { "type": ["string", "null"] },
-          "address": { "$ref": "../common/address.schema.json" },
-          "gln": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/GLN" }, { "type": "null" }] },
-          "roles": { "type": "array", "items": { "type": "string", "enum": ["ship_from", "ship_to", "bill_to", "plant", "warehouse", "office", "farm"] }, "uniqueItems": true }
+          "location_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "../common/address.schema.json"
+          },
+          "gln": {
+            "oneOf": [
+              {
+                "$ref": "../common/ids.schema.json#/$defs/GLN"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ship_from",
+                "ship_to",
+                "bill_to",
+                "plant",
+                "warehouse",
+                "office",
+                "farm"
+              ]
+            },
+            "uniqueItems": true
+          }
         }
       }
     },
@@ -35,20 +108,80 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "duns": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/DUNS" }, { "type": "null" }] },
-        "tax_id": { "type": ["string", "null"] },
-        "near_account": { "type": ["string", "null"], "description": "On-chain identity, if linked. A link, not the id." }
+        "duns": {
+          "oneOf": [
+            {
+              "$ref": "../common/ids.schema.json#/$defs/DUNS"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tax_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "near_account": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "On-chain identity, if linked. A link, not the id."
+        }
       }
     },
-    "keys": { "type": "array", "minItems": 1, "items": { "$ref": "../common/key.schema.json" } },
-    "kyb": { "oneOf": [{ "$ref": "../common/kyb_ref.schema.json" }, { "type": "null" }] },
-    "certifications": { "type": "array", "items": { "$ref": "../common/certification_ref.schema.json" } },
-    "fsma_pcqi_on_file": { "type": "boolean" },
+    "keys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "../common/key.schema.json"
+      }
+    },
+    "kyb": {
+      "oneOf": [
+        {
+          "$ref": "../common/kyb_ref.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "$ref": "../common/certification_ref.schema.json"
+      }
+    },
+    "fsma_pcqi_on_file": {
+      "type": "boolean"
+    },
     "facility_allergens": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "type": "string", "enum": ["milk", "eggs", "fish", "shellfish", "tree_nuts", "peanuts", "wheat", "soybeans", "sesame"] }
+      "items": {
+        "type": "string",
+        "enum": [
+          "milk",
+          "eggs",
+          "fish",
+          "shellfish",
+          "tree_nuts",
+          "peanuts",
+          "wheat",
+          "soybeans",
+          "sesame"
+        ]
+      }
     },
-    "data_vault_uri": { "type": ["string", "null"] }
+    "data_vault_uri": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
   }
 }

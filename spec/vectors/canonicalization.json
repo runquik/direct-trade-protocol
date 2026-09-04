@@ -51,6 +51,28 @@
       },
       "canonical": "{\"a\":null,\"c\":[null]}",
       "sha256": "43799946e7eb70c4e0bcb94f3c1d61bdb5280c3d320dad5c6d61e9fc93458ff3"
+    },
+    {
+      "name": "numeric-string keys sort as strings, not numbers",
+      "input": {
+        "1": 3,
+        "9": 2,
+        "10": 1,
+        "a": 4,
+        "": 5
+      },
+      "canonical": "{\"\":5,\"1\":3,\"10\":1,\"9\":2,\"a\":4}",
+      "sha256": "8d4d482b35df342f1e7451cddb739bafbbfd456e4f48075ea0e2a6e6cc7293cb"
+    },
+    {
+      "name": "negative zero and escapes in keys",
+      "input": {
+        "z\u0013": 1,
+        "\\": 2,
+        "n": 0
+      },
+      "canonical": "{\"\\\\\":2,\"n\":0,\"z\\u0013\":1}",
+      "sha256": "34b7b2f5cf997d02bfc0478d6d0ea673040c73f3ae751165fdb036327d1f87db"
     }
   ]
 }

@@ -64,3 +64,10 @@ export class StoreError extends Error {
 export function isStoreError(e: unknown): e is StoreError {
   return e instanceof StoreError || (typeof e === "object" && e !== null && (e as any).name === "StoreError");
 }
+
+/** Postgres unique-violation (SQLSTATE 23505) → the constraint name, or null if `e` is something else. */
+export function uniqueViolation(e: unknown): string | null {
+  const err = e as { code?: string; constraint_name?: string; constraint?: string; message?: string } | null;
+  if (!err || err.code !== "23505") return null;
+  return err.constraint_name ?? err.constraint ?? (err.message?.match(/constraint "([^"]+)"/)?.[1] ?? "unique");
+}

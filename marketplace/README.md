@@ -1,5 +1,8 @@
 # DTP Marketplace — Claude Code MVP
 
+> **Status: live MVP on a pre-v0.2 data model.** This is the Claude Code plugin backend (accounts, listings, intents, endorsements, matching, trust). The protocol has since moved to v0.2 — a company-record model with a separate reference store at [`supabase/functions/dtp-store`](../supabase/functions/dtp-store) ([`/SPEC.md`](../SPEC.md)). This MVP keeps running unchanged; re-basing it on the v0.2 store is a Sprint 02 candidate.
+
+
 This directory is the **productized MVP** of the Direct Trade Protocol: a live, shared
 marketplace accessible from Claude Code through the plugin in [`plugins/dtp`](../plugins/dtp).
 

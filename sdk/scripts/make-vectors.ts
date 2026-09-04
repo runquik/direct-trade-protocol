@@ -40,6 +40,8 @@ const canonCases = [
   { name: "unicode and escapes", input: { s: "héllo \"quoted\" \\ back\nnewline ", e: "" } },
   { name: "integers and arrays", input: { n: [0, -1, 9007199254740991], m: {} } },
   { name: "undefined is dropped, null kept", input: { a: null, b: undefined, c: [undefined] } },
+  { name: "numeric-string keys sort as strings, not numbers", input: { "10": 1, "9": 2, "1": 3, a: 4, "": 5 } },
+  { name: "negative zero and escapes in keys", input: { "z\u0013": 1, "\\": 2, n: -0 } },
 ];
 const canonical = await Promise.all(canonCases.map(async (c) => {
   const text = canonicalize(c.input);
@@ -56,7 +58,7 @@ const company = await signRecord({
   subject_company_id: companyId, counterparty_ids: [], issuer: { key_id: kp.keyId, company_id: companyId, module_id: null },
   visibility: "public", created_at, supersedes: null,
   body: {
-    display_name: "Acme Sauce Co.", legal_name: "Acme Sauce Company LLC", business_type: "brand", jurisdiction: "US",
+    display_name: "Acme Sauce Co.", legal_name: "Acme Sauce Company LLC", business_types: ["brand"], jurisdiction: "US",
     locations: [{ location_id: "plant", label: "Plant and shipping dock", address: { line1: "12 Pepper Rd", line2: null, city: "Austin", region: "TX", postal_code: "78701", country: "US" }, gln: "0614141000012", roles: ["ship_from", "plant"] }],
     identifiers: { duns: "123456789", tax_id: null, near_account: null },
     keys: [{ key_id: kp.keyId, role: "root", label: "owner", status: "active", added_at: created_at, revoked_at: null, near_account: null }],

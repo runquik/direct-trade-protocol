@@ -1,6 +1,6 @@
 // Company genesis (self-certifying) and spine reads.
 import { grantsByCompany, type GrantRow } from "../authz.ts";
-import { StoreError } from "../errors.ts";
+import { StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
 import { fetchRecordRow, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
@@ -25,6 +25,12 @@ export async function createCompany(ctx: Ctx, input: unknown): Promise<WriteResu
   if (!signing || signing.role !== "root" || signing.status !== "active") {
     throw new StoreError("forbidden", "genesis must be signed by an active root key listed in body.keys");
   }
+  // idempotent replay of the same genesis envelope
+  const replay = await fetchRecordRow(ctx.db, env.record_id);
+  if (replay) {
+    if (replay.payload_hash === v.payload_hash) return { company_id: env.subject_company_id, record: rowToRecord(replay), created: false, keys: [] } as any;
+    throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
+  }
   const exists = await ctx.db.query("select 1 from protocol.companies where id = $1", [env.subject_company_id]);
   if (exists.length) throw new StoreError("duplicate_record_id", `company ${env.subject_company_id} already exists`);
   for (const k of body.keys as any[]) {
@@ -34,6 +40,7 @@ export async function createCompany(ctx: Ctx, input: unknown): Promise<WriteResu
   checkTransition(info, null, env.body, rolesOf(info, env.body, { issuerCompanyId: env.issuer.company_id, subjectCompanyId: env.subject_company_id, counterpartyIds: [] }));
 
   const minted: { key_id: string; token: string }[] = [];
+  try {
   await ctx.db.transaction(async (tx) => {
     await tx.query("insert into protocol.companies (id, display_name, legal_name, head_record_id) values ($1, $2, $3, $4)", [
       env.subject_company_id, body.display_name, body.legal_name ?? null, env.record_id,
@@ -49,6 +56,11 @@ export async function createCompany(ctx: Ctx, input: unknown): Promise<WriteResu
     await insertRecord(tx, v, statusFromBody(info, env.body));
     await insertEvent(tx, v, null);
   });
+  } catch (e) {
+    const constraint = uniqueViolation(e);
+    if (constraint) throw new StoreError("duplicate_record_id", `this company already exists (concurrent creation)`, { constraint });
+    throw e;
+  }
   const row = await fetchRecordRow(ctx.db, env.record_id);
   return { company_id: env.subject_company_id, record: rowToRecord(row!), created: true, keys: minted };
 }

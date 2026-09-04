@@ -63,7 +63,9 @@ export async function listEvents(ctx: Ctx, q: EventsQuery) {
   );
   const visible = rows.filter((r) => canRead({ ...r, body: r.body ?? null }, p, grants, ctx.now));
   const page = visible.slice(0, limit);
-  const latest = await ctx.db.query<{ seq: number | string | null }>("select max(seq) as seq from protocol.events");
+  // latest_cursor is scoped to what this caller may see, so it does not leak store-wide activity volume
+  const [latestPre, latestParams] = readPrefilter(p, grants, "e", 1);
+  const latest = await ctx.db.query<{ seq: number | string | null }>(`select max(e.seq) as seq from protocol.events e where ${latestPre}`, latestParams);
   const events = page.map((e) => ({
     cursor: cursor(e.seq),
     event_id: e.event_id,

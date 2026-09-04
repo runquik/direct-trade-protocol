@@ -51,7 +51,7 @@ async function module(publisher: Company, id: string, name: string): Promise<Mod
     requested_scopes: [{ namespace: "trade", access: "read" }, { type: "core.company", access: "read" }, { namespace: "finance", access: "write" }],
   };
   const env = (await signRecord(draft({ type: "core.module", subject_company_id: publisher.id, issuer: { key_id: kp.keyId, company_id: publisher.id, module_id: id }, visibility: "public", body }), kp.secretKey)) as Envelope;
-  const r = await base.createModule(env);
+  const r = await publisher.client.createModule(env);
   const token = r.keys!.find((k) => k.key_id === kp.keyId)!.token;
   return { id, publisher, kp, token, client: base.with(token) };
 }

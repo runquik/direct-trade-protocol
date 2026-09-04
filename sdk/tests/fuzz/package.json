@@ -1,0 +1,16 @@
+{
+  "name": "dtp-fuzz",
+  "private": true,
+  "type": "module",
+  "description": "Property-based fuzz + concurrency tests for the DTP v0.2 SDK and store (not part of the main suite)",
+  "scripts": {
+    "fuzz": "node fuzz-canonical.test.ts && node fuzz-encodings.test.ts && node fuzz-signing.test.ts",
+    "race": "node race-store.test.ts"
+  },
+  "dependencies": {
+    "bs58": "^6.0.0",
+    "canonicalize": "^4.0.0",
+    "json-canonicalize": "^3.0.0",
+    "tweetnacl": "^1.0.3"
+  }
+}

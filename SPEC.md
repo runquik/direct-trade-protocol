@@ -66,14 +66,16 @@ Company handles use NEAR's grammar so that a later on-chain identity mapping is 
 
 Schema: [`core/company.schema.json`](spec/schemas/core/company.schema.json). Subject: the company itself. Default visibility: `public`.
 
-The spine is deliberately small: names, business type, jurisdiction, **locations** (each with an optional GS1 GLN — GLNs belong to locations, not to the company), external **identifiers** (DUNS, tax id, linked NEAR account), **keys**, and optional attested credentials (`kyb`, `certifications`, FSMA fields). Everything else about a company accretes as records in other namespaces, written by whichever module first needs them.
+The spine is deliberately small: names, jurisdiction, **locations** (each with an optional GS1 GLN — GLNs belong to locations, not to the company), external **identifiers** (DUNS, tax id, linked NEAR account), **keys**, and optional attested credentials (`kyb`, `certifications`, FSMA fields). Everything else about a company accretes as records in other namespaces, written by whichever module first needs them.
 
 Rules:
 
 - The **genesis** record MUST be signed by a `root` key listed in its own `body.keys` (self-certifying bootstrap). A store verifies the signature with that embedded public key and issues bearer tokens for the active keys (§5.3).
 - Only a `root` key may write a superseding `core.company` record that changes `keys[]`. Adding a key = supersede with the new key appended; rotating = add then revoke; a key removed from the list is treated as revoked.
 - A revoked key's signatures on records created before `revoked_at` remain valid.
+- **A key belongs to exactly one principal.** A store MUST reject (`forbidden`) any attempt to list, as a company or module key, a key already registered to another company or module.
 - `reputation` and `authorized_agents` from v0.1 are gone: reputation is a derived view (§6.9); agents are `delegate` keys (a NEAR sub-account key MAY be listed with `near_account` set).
+- **A company has no role.** `business_types` is an optional, plural, purely descriptive list (brand, distributor, financer, …). Stores and modules MUST NOT derive any permission from it. Roles — buyer, seller, financer, arbitrator, payer, payee — are named per record, in that record's body, and the same company is routinely several of them at once across its records.
 
 ### 2.3 `Key`
 
@@ -83,7 +85,7 @@ Schema: [`common/key.schema.json`](spec/schemas/common/key.schema.json). `key_id
 
 Schema: [`core/module.schema.json`](spec/schemas/core/module.schema.json). Subject: the **publisher company**. Default visibility: `public`.
 
-A module is a software identity with its own `keys[]`. Its genesis MAY be self-certified (signed by a module root key listed in `body.keys`, with `issuer.module_id = body.module_id`) or publisher-signed (signed by a publisher root key, `issuer.module_id = null`). `requested_scopes` is advisory — what a consent screen would show; authority comes only from grants. `module_id` is unique per store.
+A module is a software identity with its own `keys[]`. Its genesis MAY be signed by a module root key listed in `body.keys` (self-certified key ownership, `issuer.module_id = body.module_id`) or by a publisher root key (`issuer.module_id = null`) — but in both cases the write MUST be authorized by the publisher: a store MUST require a credential for a root key of `publisher_company_id`. Without this, anyone could publish software attributed to a company they do not control. `requested_scopes` is advisory — what a consent screen would show; authority comes only from grants. `module_id` is unique per store.
 
 ### 2.5 `core.grant`
 
@@ -150,7 +152,7 @@ Schema: [`core/envelope.schema.json`](spec/schemas/core/envelope.schema.json). E
 
 **Signing input** = the UTF-8 bytes of the canonical JSON of the envelope minus `signature`, where a missing `supersedes` is `null` and a missing `counterparty_ids` is `[]`.
 
-**Canonical JSON** = [RFC 8785 (JCS)](https://www.rfc-editor.org/rfc/rfc8785) with one restriction: **no non-integer numbers**. With that restriction JCS reduces to: sort object keys recursively by UTF-16 code units; no whitespace; strings escaped exactly as ECMAScript `JSON.stringify`; integers as plain digits; `null`/`true`/`false` literal; undefined-valued keys omitted. Any implementation with a sorted-keys serializer therefore produces byte-identical output — the reason for the number restriction.
+**Canonical JSON** = [RFC 8785 (JCS)](https://www.rfc-editor.org/rfc/rfc8785) with one restriction: **no non-integer numbers**. With that restriction JCS reduces to: sort object keys recursively by UTF-16 code units (plain string comparison — **not** the numeric-first ordering ECMAScript objects apply to keys like `"10"`); no whitespace; strings escaped exactly as ECMAScript `JSON.stringify`; integers as plain digits (`-0` serializes as `0`); `null`/`true`/`false` literal; undefined-valued keys omitted; strings MUST be well-formed Unicode (lone surrogates are rejected). Serialize straight to text in sorted order — building an intermediate object and calling a JSON library on it reorders numeric-string keys and drops `__proto__` in JavaScript. The vectors include these cases.
 
 **Signature** = Ed25519 over the raw signing-input bytes, no pre-hash. Deterministic. Encoded `ed25519:` + base58(64 bytes), which is NEAR's signature encoding, so a `near-api-js` key pair signs valid DTP records.
 
@@ -166,15 +168,15 @@ A store MUST perform these checks, in this order, and answer with the named erro
 2. Validate against the envelope schema; reject any non-integer JSON number anywhere (`envelope_invalid`, `float_not_allowed`).
 3. `namespace` equals the prefix of `type`; subject not among counterparties; genesis has `root_id == record_id` (`envelope_invalid`).
 4. `(type, schema_version)` is in the registry (`unknown_type`).
-5. `body` validates against the type schema (`schema_invalid`, with issue paths).
+5. `body` validates against the type schema (`schema_invalid`, with issue paths), and the body field named by the schema's `x-dtp-subject` equals `subject_company_id` (`schema_invalid`).
 6. Recompute the signing input; verify `signature` with `issuer.key_id` (`signature_invalid`).
-7. The caller's credential belongs to `issuer.key_id`, and the key belongs to the principal the envelope names — a company key with `module_id == null` and `company_id` equal to the key's owner, or a module key with `module_id` equal to the key's owner (`issuer_mismatch`); the key is active (`key_inactive`); `core.*` types require a root key and reject module keys (`forbidden`).
-8. `issuer.company_id` is the subject or a counterparty (`issuer_not_party`).
-9. For a module key: a live write grant from `issuer.company_id` covers `type` (`grant_missing`).
-10. `record_id` is new, or is an exact replay (`duplicate_record_id`).
-11. If `supersedes` is set: the target exists, is the head, and has the same `type`, `subject_company_id`, and `root_id` (`supersedes_conflict`, with the current head's id in `details`).
-12. The state transition is permitted for the issuer's roles (§3.5; `transition_forbidden`).
-13. Append the record, mark the superseded record no longer head, and append exactly one event — atomically.
+7. If `supersedes` is set, resolve the target first: it exists, is the head, and has the same `type`, `subject_company_id`, `root_id`, **`counterparty_ids` (as a set), and `visibility`** (`supersedes_conflict`, with the current head's id in `details`). Parties and visibility are locked for the life of a chain.
+8. The caller's credential belongs to `issuer.key_id`, and the key belongs to the principal the envelope names — a company key with `module_id == null` and `company_id` equal to the key's owner, or a module key with `module_id` equal to the key's owner (`issuer_mismatch`); the key is active (`key_inactive`); `core.*` types require a root key and reject module keys (`forbidden`).
+9. `issuer.company_id` is the subject or a counterparty **of the record as it exists** — the superseded head's parties for a supersede, the new envelope's for genesis (`issuer_not_party`).
+10. For a module key: a live write grant from `issuer.company_id` covers `type` (`grant_missing`).
+11. `record_id` is new, or is an exact replay of an existing record, which returns the stored record (this applies to genesis records too).
+12. Roles are resolved from the **previous** body for a supersede (§3.5); role fields are continuous; the state transition is permitted for those roles (`transition_forbidden`).
+13. Append the record, mark the superseded record no longer head, and append exactly one event — atomically. A concurrent writer that loses the race receives `supersedes_conflict` (or `duplicate_record_id` for a genesis race), never an internal error.
 
 ### 3.4 Supersession
 
@@ -190,7 +192,15 @@ Every record-type schema carries three extension keywords, ignored by validators
 - `x-dtp-roles` — a map from role name to the body field holding that role's company id, e.g. `{"buyer": "buyer_company_id", "seller": "seller_company_id"}`. Two roles are implicit: `subject` and `counterparty`.
 - `x-dtp-transitions` — `status_field`, the allowed `initial` statuses and creator roles, and a list of `{from, to, by[], within?, after?}` transitions.
 
-A store MUST enforce: genesis records start in an `initial` status and are created by an `initial.by` role; a superseding record that changes `status` matches a listed transition whose `by` includes one of the issuer's roles; a same-status revision is permitted for the subject or any counterparty. Types with `status_field: null` have no state machine; any party MAY supersede. `within`/`after` clocks are informative in v0.2 (stores SHOULD expose them; they are not enforced).
+A store MUST enforce:
+
+- **Roles are read from the record being superseded**, never from body fields the writer just supplied. For a genesis record they are read from the new body, which the issuer is bound to by `x-dtp-subject` and the party rule.
+- **Role fields are continuous.** A body field named in `x-dtp-roles` MUST NOT change across a supersede, except that a field listed in `x-dtp-third-party-roles` (e.g. a contract's `arbitrator_company_id`) MAY go from `null` to a value once, and that value MUST NOT be the subject or a counterparty.
+- Genesis records start in an `initial` status and are created by an `initial.by` role.
+- A superseding record whose status matches a listed `from → to` transition is permitted for the roles in that transition's `by`. An unlisted **same-status revision is permitted for the subject only** — a counterparty can change what a record *says* only by making a listed transition. Types with `status_field: null` may be superseded by the subject only.
+- `within`/`after` clocks are informative in v0.2 (stores SHOULD expose them; they are not enforced).
+
+*Known gap (v0.2):* a third party named as arbitrator is not a party to the record and therefore cannot write the resolution itself; in Sprint 01 the resolution is recorded by a party. A `trade.dispute` record with the arbitrator as subject is the planned fix.
 
 The rendered matrix of every transition is [`spec/generated/accountability.md`](spec/generated/accountability.md) (Appendix A). It answers the question ONDC never did: for each state of each record, who owes the next move.
 
@@ -212,7 +222,7 @@ A module can always read `core.grant` records that name it as grantee. A store M
 
 ### 3.8 Error codes
 
-`{ "error": { "code", "message", "details" } }`. Codes and HTTP statuses: `bad_request` 400 · `auth_required`, `auth_invalid`, `signature_invalid`, `issuer_mismatch`, `key_unknown` 401 · `key_inactive`, `forbidden`, `grant_missing`, `issuer_not_party` 403 · `not_found` 404 · `duplicate_record_id`, `supersedes_conflict`, `transition_forbidden` 409 · `payload_too_large` 413 · `envelope_invalid`, `schema_invalid`, `float_not_allowed`, `unknown_type` 422 · `internal` 500. `schema_invalid` details carry `issues[]` with JSONPath-style `path` and `keyword`.
+`{ "error": { "code", "message", "details" } }`. Codes and HTTP statuses: `bad_request` 400 · `auth_required`, `auth_invalid`, `signature_invalid`, `issuer_mismatch` 401 · `key_inactive`, `forbidden`, `grant_missing`, `issuer_not_party` 403 · `not_found` 404 · `duplicate_record_id`, `supersedes_conflict`, `transition_forbidden` 409 · `payload_too_large` 413 · `envelope_invalid`, `schema_invalid`, `float_not_allowed`, `unknown_type` 422 · `internal` 500. `schema_invalid` details carry `issues[]` with JSONPath-style `path` and `keyword`.
 
 ---
 
@@ -372,10 +382,10 @@ Not in v0.2: on-chain escrow and USDC settlement (on-chain profile); a decentral
 ## Appendices
 
 - **A. Accountability matrix** — generated: [`spec/generated/accountability.md`](spec/generated/accountability.md).
-- **B. v0.1 → v0.2 field map** — *Phase 2 (in progress).* Summary: `party_id`/`buyer`/`seller` → `*_company_id`; `intent_id`/`listing_id`/… on the object → envelope `root_id`; `version` → `schema_version`; `created_at`/`updated_at` → envelope; ISO strings / microdollars → `Money`/`Quantity` strings; `UPPER_SNAKE`/`PascalCase` → `lower_snake`; `Attestation.signature` dropped; `Party.reputation`/`authorized_agents` → derived view / delegate keys; `Party.gs1_gln` → `locations[].gln`; `Offer` uses the Rust shape (`target_type`, `target_id`, `offerer`).
+- **B. v0.1 → v0.2 field map** — [`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md) §1–§3 (conventions, `core.*`, `trade.*`, field by field against `contracts/src/types.rs`). Summary: `party_id`/`buyer`/`seller` → `*_company_id`; per-object ids → envelope `root_id`; `version` → `schema_version`; `created_at`/`updated_at` → envelope; microdollars/milliamounts → `Money`/`Quantity` strings; `UPPER_SNAKE`/`PascalCase` → `lower_snake`; `Attestation.signature` dropped; `Party.reputation`/`authorized_agents` → derived view / delegate keys; `Party.gs1_gln` → `locations[].gln`; `Offer` uses the Rust shape.
 - **C. Agent Autonomy Context** — v0.1 §11 verbatim, informative: private module configuration (COGS, margins, budgets, negotiation guidelines) that is never a record and never stored in a cabinet. See [`docs/archive/SPEC_v0.1.md`](docs/archive/SPEC_v0.1.md) §11.
-- **D. v0.1 EventType map** — *Phase 2.* Every v0.1 `EventType` (e.g. `ContractEscrowLocked`, `FulfillmentBuyerAttested`) maps to `(type, status)` on a `record_appended` event.
-- **E. Rust type mapping** — *Phase 2* ([`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md)): ms ↔ RFC 3339, microdollars ↔ `Money`, milliamount ↔ `Quantity`, `AccountId` ↔ `company_id`, flattened ↔ nested `GoodsSpec`/`DeliverySpec`, `AuditEvent` ↔ `core.event`.
+- **D. v0.1 EventType map** — [`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md) §4. Every v0.1 `EventType` is recoverable as `(type, status)` on a `record_appended` event (e.g. `FulfillmentBuyerAttested` ≡ `(trade.fulfillment, buyer_attested)`); escrow events belong to the on-chain profile.
+- **E. Rust type mapping** — [`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md), including §5: what the NEAR contract needs to become a conforming on-chain store profile.
 - **F. Vector index** — [`spec/vectors/`](spec/vectors): `keys.json` (fixed key), `canonicalization.json` (4 cases), `signatures.json` (raw message + two signed records).
 
 ---

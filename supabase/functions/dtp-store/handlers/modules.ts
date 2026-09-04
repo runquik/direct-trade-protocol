@@ -1,7 +1,7 @@
 // Module genesis. Subject is the publisher company; signed by a module root key listed in body.keys
 // (self-certifying, issuer.module_id = module_id) or by a publisher root key (issuer.module_id null).
 import { generateToken, tokenHash } from "../auth.ts";
-import { StoreError } from "../errors.ts";
+import { StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
 import { fetchRecordRow, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
@@ -19,9 +19,21 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
   }
   const publisher = await ctx.db.query("select 1 from protocol.companies where id = $1", [env.subject_company_id]);
   if (!publisher.length) throw new StoreError("not_found", `publisher company ${env.subject_company_id} is not registered`);
+  // idempotent replay of the same genesis envelope
+  const replay = await fetchRecordRow(ctx.db, env.record_id);
+  if (replay) {
+    if (replay.payload_hash === v.payload_hash) return { module_id: moduleId, record: rowToRecord(replay), created: false, keys: [] } as any;
+    throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
+  }
   const exists = await ctx.db.query("select 1 from protocol.modules where id = $1", [moduleId]);
   if (exists.length) throw new StoreError("duplicate_record_id", `module ${moduleId} already exists`);
 
+  // The publisher must consent: whichever key signs the genesis, the caller must present the publisher's
+  // root-key bearer token. Without this, anyone could register a module "published by" a company they don't control.
+  const p = ctx.principal;
+  if (!p || p.kind !== "company" || p.id !== env.subject_company_id || p.role !== "root") {
+    throw new StoreError("forbidden", "module genesis requires a bearer token for a root key of the publisher company");
+  }
   const keys = body.keys as any[];
   const selfKey = keys.find((k) => k.key_id === env.issuer.key_id);
   if (env.issuer.module_id === moduleId) {
@@ -29,9 +41,8 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
       throw new StoreError("forbidden", "self-certified module genesis must be signed by an active root key in body.keys");
     }
   } else if (env.issuer.module_id === null) {
-    const p = ctx.principal;
-    if (!p || p.kind !== "company" || p.id !== env.subject_company_id || p.role !== "root" || p.key_id !== env.issuer.key_id) {
-      throw new StoreError("forbidden", "publisher-signed module genesis requires the publisher's root key bearer token");
+    if (p.key_id !== env.issuer.key_id) {
+      throw new StoreError("forbidden", "publisher-signed module genesis must be signed by the key the bearer token belongs to");
     }
   } else {
     throw new StoreError("envelope_invalid", "issuer.module_id must be null (publisher-signed) or body.module_id (self-certified)");
@@ -43,6 +54,7 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
   checkTransition(info, null, env.body, rolesOf(info, env.body, { issuerCompanyId: env.issuer.company_id, subjectCompanyId: env.subject_company_id, counterpartyIds: env.counterparty_ids }));
 
   const minted: { key_id: string; token: string }[] = [];
+  try {
   await ctx.db.transaction(async (tx) => {
     await tx.query("insert into protocol.modules (id, publisher_company_id, name, head_record_id) values ($1, $2, $3, $4)", [
       moduleId, env.subject_company_id, body.name, env.record_id,
@@ -58,6 +70,11 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
     await insertRecord(tx, v, statusFromBody(info, env.body));
     await insertEvent(tx, v, null);
   });
+  } catch (e) {
+    const constraint = uniqueViolation(e);
+    if (constraint) throw new StoreError("duplicate_record_id", `this module already exists (concurrent creation)`, { constraint });
+    throw e;
+  }
   const row = await fetchRecordRow(ctx.db, env.record_id);
   return { module_id: moduleId, record: rowToRecord(row!), created: true, keys: minted };
 }

@@ -1,6 +1,8 @@
 // DTP canonical JSON: RFC 8785 (JCS) restricted to integer-only numbers.
-// With that restriction JCS reduces to: recursively sort object keys by UTF-16 code units,
-// no whitespace, JSON.stringify string escaping, integers as plain digits.
+//
+// Serialized directly from the input in sorted-key order — never via an intermediate object — because
+// ECMAScript objects reorder array-index-like keys ("10" before "9") and swallow "__proto__", both of which
+// would silently diverge from JCS (and from any conforming second implementation).
 
 export class FloatNotAllowedError extends Error {
   readonly path: string;
@@ -11,12 +13,27 @@ export class FloatNotAllowedError extends Error {
   }
 }
 
+export class CanonicalizationError extends Error {
+  readonly path: string;
+  constructor(path: string, message: string) {
+    super(`${message} at ${path}`);
+    this.name = "CanonicalizationError";
+    this.path = path;
+  }
+}
+
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
+// A high surrogate not followed by a low one, or a low surrogate not preceded by a high one.
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
 function checkNumber(n: number, path: string): void {
   if (!Number.isFinite(n) || !Number.isInteger(n) || Math.abs(n) > MAX_SAFE) {
     throw new FloatNotAllowedError(path);
   }
+}
+
+function checkString(s: string, path: string): void {
+  if (LONE_SURROGATE.test(s)) throw new CanonicalizationError(path, "lone surrogate in string (RFC 8785 requires well-formed Unicode)");
 }
 
 /** Throws FloatNotAllowedError if any number in `value` is not a safe integer. */
@@ -27,35 +44,52 @@ export function assertNoFloats(value: unknown, path = "$"): void {
     return;
   }
   if (value && typeof value === "object") {
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    for (const k of Object.keys(value as object)) {
+      const v = (value as Record<string, unknown>)[k];
       if (v !== undefined) assertNoFloats(v, `${path}.${k}`);
     }
   }
 }
 
-function sortDeep(value: unknown, path: string): unknown {
-  if (value === null) return null;
-  if (typeof value === "number") {
-    checkNumber(value, path);
-    return value;
+/** JCS key order: by UTF-16 code units, which is the default JS string comparison. */
+function compareKeys(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function serialize(value: unknown, path: string): string {
+  if (value === null || value === undefined) return "null";
+  switch (typeof value) {
+    case "boolean":
+      return value ? "true" : "false";
+    case "number":
+      checkNumber(value, path);
+      return value === 0 ? "0" : String(value); // -0 -> "0" (JCS Appendix B)
+    case "string":
+      checkString(value, path);
+      return JSON.stringify(value); // ECMAScript escaping == JCS escaping for well-formed strings
+    case "bigint":
+      throw new CanonicalizationError(path, "bigint not allowed");
+    case "object": {
+      if (Array.isArray(value)) {
+        return "[" + value.map((v, i) => serialize(v, `${path}[${i}]`)).join(",") + "]";
+      }
+      const obj = value as Record<string, unknown>;
+      const keys = Object.keys(obj).filter((k) => obj[k] !== undefined).sort(compareKeys);
+      const parts: string[] = [];
+      for (const k of keys) {
+        checkString(k, `${path}.${k}`);
+        parts.push(JSON.stringify(k) + ":" + serialize(obj[k], `${path}.${k}`));
+      }
+      return "{" + parts.join(",") + "}";
+    }
+    default:
+      throw new CanonicalizationError(path, `unsupported value type ${typeof value}`);
   }
-  if (typeof value === "bigint") throw new TypeError(`bigint not allowed at ${path}`);
-  if (Array.isArray(value)) {
-    return value.map((v, i) => sortDeep(v === undefined ? null : v, `${path}[${i}]`));
-  }
-  if (typeof value === "object") {
-    const obj = value as Record<string, unknown>;
-    const keys = Object.keys(obj).filter((k) => obj[k] !== undefined).sort();
-    const out: Record<string, unknown> = {};
-    for (const k of keys) out[k] = sortDeep(obj[k], `${path}.${k}`);
-    return out;
-  }
-  return value; // string | boolean
 }
 
 /** Canonical JSON text for `value` (JCS with integer-only numbers). */
 export function canonicalize(value: unknown): string {
-  return JSON.stringify(sortDeep(value, "$"));
+  return serialize(value, "$");
 }
 
 export function canonicalBytes(value: unknown): Uint8Array {

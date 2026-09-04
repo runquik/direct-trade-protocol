@@ -106,8 +106,8 @@ test("supersession: state machine, roles, head tracking, conflicts", async () =>
   await expectCode(acme.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID() }), acme.kp.secretKey), "supersedes_conflict");
   // wrong root_id
   await expectCode(acme.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, root_id: crypto.randomUUID() }), acme.kp.secretKey), "supersedes_conflict");
-  // wrong subject
-  await expectCode(acme.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, subject_company_id: acme.id, counterparty_ids: [bluestem.id] }), acme.kp.secretKey), "supersedes_conflict");
+  // wrong subject (body kept consistent with the forged subject so the supersede check is what fires)
+  await expectCode(acme.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, subject_company_id: acme.id, counterparty_ids: [bluestem.id], body: contractBody(acme.id, bluestem.id, { status: "in_fulfillment" }) }), acme.kp.secretKey), "supersedes_conflict");
   // a stranger is not a party
   await expectCode(stranger.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, issuer: { key_id: stranger.kp.keyId, company_id: stranger.id, module_id: null } }), stranger.kp.secretKey), "issuer_not_party");
   // invalid transition (in_fulfillment -> settled)

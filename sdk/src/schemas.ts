@@ -633,7 +633,7 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://dtp.dev/schemas/0.2/core/company.schema.json",
     "title": "core.company",
-    "description": "The company spine: identity, locations, keys, and attested credentials. Subject is the company itself. The genesis record MUST be signed by a root key listed in its own keys[] (self-certifying bootstrap). Any superseding record that changes keys[] MUST be signed by a root key.",
+    "description": "The company spine: identity, locations, keys, and attested credentials. Subject is the company itself. The genesis record MUST be signed by a root key listed in its own keys[] (self-certifying bootstrap). Any superseding record that changes keys[] MUST be signed by a root key. A company has no role: business_types is descriptive; roles are per record.",
     "x-dtp-subject": "self",
     "x-dtp-default-visibility": "public",
     "x-dtp-roles": {},
@@ -645,7 +645,6 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     },
     "required": [
       "display_name",
-      "business_type",
       "jurisdiction",
       "locations",
       "keys"
@@ -662,19 +661,24 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
           "null"
         ]
       },
-      "business_type": {
-        "type": "string",
-        "enum": [
-          "producer",
-          "brand",
-          "distributor",
-          "retailer",
-          "cooperative",
-          "financer",
-          "service_provider",
-          "agent",
-          "other"
-        ]
+      "business_types": {
+        "type": "array",
+        "uniqueItems": true,
+        "description": "Descriptive only. What kinds of business this company does; a company may list none or several. NEVER a permission or a role: roles (buyer, seller, financer, arbitrator...) are named per record, per deal, in that record's body.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "producer",
+            "brand",
+            "distributor",
+            "retailer",
+            "cooperative",
+            "financer",
+            "service_provider",
+            "agent",
+            "other"
+          ]
+        }
       },
       "jurisdiction": {
         "$ref": "../common/ids.schema.json#/$defs/CountryCode"
@@ -2269,6 +2273,9 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
       "seller": "seller_company_id",
       "arbitrator": "arbitrator_company_id"
     },
+    "x-dtp-third-party-roles": [
+      "arbitrator"
+    ],
     "x-dtp-transitions": {
       "status_field": "status",
       "initial": {

@@ -5,8 +5,19 @@ import { grantCovers, type GrantLike } from "../../../../sdk/src/scopes.ts";
 import { generateToken, tokenHash, type Principal } from "../auth.ts";
 import { canRead, grantsForModule, readPrefilter, type GrantRow } from "../authz.ts";
 import type { Db } from "../db.ts";
-import { StoreError } from "../errors.ts";
-import { checkTransition, rolesOf } from "../transitions.ts";
+import { StoreError, uniqueViolation } from "../errors.ts";
+import { checkRoleContinuity, checkTransition, rolesOf } from "../transitions.ts";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export function isUuid(s: unknown): s is string {
+  return typeof s === "string" && UUID_RE.test(s);
+}
+
+function sameSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const s = new Set(a);
+  return b.every((x) => s.has(x));
+}
 import { statusFromBody, validateSignedEnvelope, type ValidatedRecord } from "../validate.ts";
 import { decodeKeyId } from "../../../../sdk/src/keys.ts";
 
@@ -60,6 +71,7 @@ export function rowToRecord(r: RecordRow): StoredRecord {
 }
 
 export async function fetchRecordRow(db: Db, recordId: string): Promise<RecordRow | null> {
+  if (!isUuid(recordId)) return null;
   const rows = await db.query<RecordRow>(`${RECORD_SELECT} where r.record_id = $1`, [recordId]);
   return rows[0] ?? null;
 }
@@ -90,9 +102,11 @@ interface KeyRow {
 
 /**
  * Authorization for a validated envelope against the caller's principal.
+ * `prev` is the head being superseded (null for genesis): party membership is judged against the PREVIOUS
+ * record's subject and counterparties, never against lists the writer just supplied.
  * Returns the grants used (for modules) so callers need not re-query.
  */
-async function authorizeWrite(ctx: Ctx, v: ValidatedRecord): Promise<GrantRow[]> {
+async function authorizeWrite(ctx: Ctx, v: ValidatedRecord, prev: RecordRow | null): Promise<GrantRow[]> {
   const { env, info } = v;
   const p = ctx.principal;
   if (!p) throw new StoreError("auth_required", "writes require a bearer token for the signing key");
@@ -112,8 +126,8 @@ async function authorizeWrite(ctx: Ctx, v: ValidatedRecord): Promise<GrantRow[]>
     if (info.namespace === "core") throw new StoreError("forbidden", "modules cannot write core.* records");
   }
 
-  // 2. the issuing company must be a party to the record
-  const parties = [env.subject_company_id, ...env.counterparty_ids];
+  // 2. the issuing company must be a party to the record — the record as it EXISTS, for a supersede
+  const parties = prev ? [prev.subject_company_id, ...prev.counterparty_ids] : [env.subject_company_id, ...env.counterparty_ids];
   if (!parties.includes(env.issuer.company_id)) {
     throw new StoreError("issuer_not_party", "issuer.company_id must be the subject or a counterparty of the record");
   }
@@ -217,7 +231,33 @@ export async function writeRecord(ctx: Ctx, input: unknown): Promise<WriteResult
     throw new StoreError("bad_request", `create a new ${env.type} via POST /${env.type === "core.company" ? "companies" : "modules"}`);
   }
 
-  await authorizeWrite(ctx, v);
+  // subject binding: the body field the schema names as the subject must equal the envelope's subject
+  if (info.subject !== "self") {
+    const bound = (env.body as Record<string, unknown>)[info.subject];
+    if (bound !== env.subject_company_id) {
+      throw new StoreError("schema_invalid", `body.${info.subject} must equal subject_company_id for ${env.type}`, { field: info.subject, value: bound });
+    }
+  }
+
+  // supersession target is resolved first: authorization and roles are judged against the existing record
+  let prev: RecordRow | null = null;
+  if (env.supersedes) {
+    prev = await fetchRecordRow(ctx.db, env.supersedes);
+    if (!prev) throw new StoreError("supersedes_conflict", `supersedes target ${env.supersedes} does not exist`);
+    if (!prev.is_head) throw new StoreError("supersedes_conflict", `record ${env.supersedes} is already superseded by ${prev.superseded_by}`, { head: prev.superseded_by });
+    if (prev.type !== env.type) throw new StoreError("supersedes_conflict", "superseding record must have the same type");
+    if (prev.subject_company_id !== env.subject_company_id) throw new StoreError("supersedes_conflict", "superseding record must have the same subject");
+    if (prev.root_id !== env.root_id) throw new StoreError("supersedes_conflict", `root_id must be ${prev.root_id}`, { root_id: prev.root_id });
+    // continuity: parties and visibility are locked for the life of a chain
+    if (!sameSet(prev.counterparty_ids, env.counterparty_ids)) {
+      throw new StoreError("supersedes_conflict", "counterparty_ids cannot change across a supersede", { counterparty_ids: prev.counterparty_ids });
+    }
+    if (prev.visibility !== env.visibility) {
+      throw new StoreError("supersedes_conflict", "visibility cannot change across a supersede", { visibility: prev.visibility });
+    }
+  }
+
+  await authorizeWrite(ctx, v, prev);
 
   if (!(await companyExists(ctx.db, env.subject_company_id))) {
     throw new StoreError("not_found", `subject company ${env.subject_company_id} is not registered`);
@@ -233,30 +273,39 @@ export async function writeRecord(ctx: Ctx, input: unknown): Promise<WriteResult
     throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
   }
 
-  // supersession
-  let prev: RecordRow | null = null;
-  if (env.supersedes) {
-    prev = await fetchRecordRow(ctx.db, env.supersedes);
-    if (!prev) throw new StoreError("supersedes_conflict", `supersedes target ${env.supersedes} does not exist`);
-    if (!prev.is_head) throw new StoreError("supersedes_conflict", `record ${env.supersedes} is already superseded by ${prev.superseded_by}`, { head: prev.superseded_by });
-    if (prev.type !== env.type) throw new StoreError("supersedes_conflict", "superseding record must have the same type");
-    if (prev.subject_company_id !== env.subject_company_id) throw new StoreError("supersedes_conflict", "superseding record must have the same subject");
-    if (prev.root_id !== env.root_id) throw new StoreError("supersedes_conflict", `root_id must be ${prev.root_id}`, { root_id: prev.root_id });
-  }
-
-  // state machine
-  const roles = rolesOf(info, env.body, { issuerCompanyId: env.issuer.company_id, subjectCompanyId: env.subject_company_id, counterpartyIds: env.counterparty_ids });
+  // roles come from the record being superseded (or the new body for genesis), then continuity + state machine
+  const party = { issuerCompanyId: env.issuer.company_id, subjectCompanyId: env.subject_company_id, counterpartyIds: env.counterparty_ids };
+  const roles = rolesOf(info, prev ? prev.body : env.body, party);
+  checkRoleContinuity(info, prev ? prev.body : null, env.body, party);
   checkTransition(info, prev ? prev.body : null, env.body, roles);
 
   const status = statusFromBody(info, env.body);
 
-  const result = await ctx.db.transaction(async (tx) => {
-    await insertRecord(tx, v, status);
-    if (prev) await tx.query("update protocol.records set is_head = false where record_id = $1", [prev.record_id]);
-    const seq = await insertEvent(tx, v, status);
-    const keys = await runHooks(tx, ctx, v, prev);
-    return { seq, keys };
-  });
+  let result: { seq: number; keys: { key_id: string; token: string }[] };
+  try {
+    result = await ctx.db.transaction(async (tx) => {
+      await insertRecord(tx, v, status);
+      if (prev) await tx.query("update protocol.records set is_head = false where record_id = $1", [prev.record_id]);
+      const seq = await insertEvent(tx, v, status);
+      const keys = await runHooks(tx, ctx, v, prev);
+      return { seq, keys };
+    });
+  } catch (e) {
+    // Concurrent writers: the DB's unique constraints are the arbiter. Translate them into the spec's answers.
+    const constraint = uniqueViolation(e);
+    if (constraint) {
+      if (constraint.includes("records_pkey")) {
+        const now = await fetchRecordRow(ctx.db, env.record_id);
+        if (now && now.payload_hash === v.payload_hash) return { record: rowToRecord(now), created: false };
+        throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
+      }
+      if (constraint.includes("records_one_successor")) {
+        const head = env.supersedes ? await fetchRecordRow(ctx.db, env.supersedes) : null;
+        throw new StoreError("supersedes_conflict", `record ${env.supersedes} was superseded concurrently`, { head: head?.superseded_by ?? null });
+      }
+    }
+    throw e;
+  }
 
   const row = await fetchRecordRow(ctx.db, env.record_id);
   const out: WriteResult = { record: rowToRecord(row!), created: true };
@@ -304,6 +353,7 @@ async function grantsFor(ctx: Ctx): Promise<GrantRow[]> {
 }
 
 export async function getRecord(ctx: Ctx, recordId: string): Promise<StoredRecord> {
+  if (!isUuid(recordId)) throw new StoreError("not_found", `record ${recordId} not found`);
   const row = await fetchRecordRow(ctx.db, recordId);
   if (!row) throw new StoreError("not_found", `record ${recordId} not found`);
   const grants = await grantsFor(ctx);
@@ -326,6 +376,7 @@ export interface ListQuery {
 }
 
 export async function listRecords(ctx: Ctx, q: ListQuery): Promise<{ records: StoredRecord[]; next_cursor: string | null }> {
+  if (q.root_id !== undefined && !isUuid(q.root_id)) return { records: [], next_cursor: null };
   const grants = await grantsFor(ctx);
   const params: unknown[] = [];
   const where: string[] = [];

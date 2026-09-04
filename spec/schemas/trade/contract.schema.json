@@ -5,45 +5,248 @@
   "description": "Binding record of agreed trade terms. Subject is the buyer (it is the buyer's payable); the seller reads it as a counterparty. Created by whichever party accepted the offer; may also be created directly under a standing agreement or by mutual direct agreement.",
   "x-dtp-subject": "buyer_company_id",
   "x-dtp-default-visibility": "counterparties",
-  "x-dtp-roles": { "buyer": "buyer_company_id", "seller": "seller_company_id", "arbitrator": "arbitrator_company_id" },
+  "x-dtp-roles": {
+    "buyer": "buyer_company_id",
+    "seller": "seller_company_id",
+    "arbitrator": "arbitrator_company_id"
+  },
+  "x-dtp-third-party-roles": [
+    "arbitrator"
+  ],
   "x-dtp-transitions": {
     "status_field": "status",
-    "initial": { "status": ["active"], "by": ["buyer", "seller"] },
+    "initial": {
+      "status": [
+        "active"
+      ],
+      "by": [
+        "buyer",
+        "seller"
+      ]
+    },
     "transitions": [
-      { "from": "active", "to": "in_fulfillment", "by": ["seller"], "trigger": "trade.fulfillment created" },
-      { "from": "active", "to": "cancelled", "by": ["buyer", "seller"], "note": "mutual: the other party countersigns by superseding again" },
-      { "from": "in_fulfillment", "to": "delivered", "by": ["buyer"], "trigger": "fulfillment complete" },
-      { "from": "in_fulfillment", "to": "delivered", "by": ["seller"], "after": "dispute_window_hours past seller attestation", "note": "presumed acceptance" },
-      { "from": "in_fulfillment", "to": "disputed", "by": ["buyer"], "within": "dispute_window_hours" },
-      { "from": "delivered", "to": "settled", "by": ["buyer"], "trigger": "trade.settlement created" },
-      { "from": "disputed", "to": "resolved_buyer", "by": ["arbitrator"], "within": "P7D" },
-      { "from": "disputed", "to": "resolved_seller", "by": ["arbitrator"], "within": "P7D" },
-      { "from": "resolved_buyer", "to": "settled", "by": ["buyer"] },
-      { "from": "resolved_seller", "to": "settled", "by": ["buyer"] }
+      {
+        "from": "active",
+        "to": "in_fulfillment",
+        "by": [
+          "seller"
+        ],
+        "trigger": "trade.fulfillment created"
+      },
+      {
+        "from": "active",
+        "to": "cancelled",
+        "by": [
+          "buyer",
+          "seller"
+        ],
+        "note": "mutual: the other party countersigns by superseding again"
+      },
+      {
+        "from": "in_fulfillment",
+        "to": "delivered",
+        "by": [
+          "buyer"
+        ],
+        "trigger": "fulfillment complete"
+      },
+      {
+        "from": "in_fulfillment",
+        "to": "delivered",
+        "by": [
+          "seller"
+        ],
+        "after": "dispute_window_hours past seller attestation",
+        "note": "presumed acceptance"
+      },
+      {
+        "from": "in_fulfillment",
+        "to": "disputed",
+        "by": [
+          "buyer"
+        ],
+        "within": "dispute_window_hours"
+      },
+      {
+        "from": "delivered",
+        "to": "settled",
+        "by": [
+          "buyer"
+        ],
+        "trigger": "trade.settlement created"
+      },
+      {
+        "from": "disputed",
+        "to": "resolved_buyer",
+        "by": [
+          "arbitrator"
+        ],
+        "within": "P7D"
+      },
+      {
+        "from": "disputed",
+        "to": "resolved_seller",
+        "by": [
+          "arbitrator"
+        ],
+        "within": "P7D"
+      },
+      {
+        "from": "resolved_buyer",
+        "to": "settled",
+        "by": [
+          "buyer"
+        ]
+      },
+      {
+        "from": "resolved_seller",
+        "to": "settled",
+        "by": [
+          "buyer"
+        ]
+      }
     ]
   },
   "type": "object",
   "additionalProperties": false,
-  "patternProperties": { "^x_": {} },
-  "required": ["buyer_company_id", "seller_company_id", "goods", "delivery", "price_per_unit", "total_value", "dispute_window_hours", "status"],
+  "patternProperties": {
+    "^x_": {}
+  },
+  "required": [
+    "buyer_company_id",
+    "seller_company_id",
+    "goods",
+    "delivery",
+    "price_per_unit",
+    "total_value",
+    "dispute_window_hours",
+    "status"
+  ],
   "properties": {
-    "buyer_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
-    "seller_company_id": { "$ref": "../common/ids.schema.json#/$defs/CompanyId" },
-    "intent_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
-    "listing_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
-    "offer_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
-    "standing_agreement_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/RecordId" }, { "type": "null" }] },
-    "lot_id": { "type": ["string", "null"] },
-    "buyer_po_number": { "type": ["string", "null"] },
-    "goods": { "$ref": "goods_spec.schema.json" },
-    "delivery": { "$ref": "delivery_spec.schema.json" },
-    "finance": { "oneOf": [{ "$ref": "finance_terms.schema.json" }, { "type": "null" }] },
-    "freight": { "oneOf": [{ "$ref": "freight_terms.schema.json" }, { "type": "null" }] },
-    "price_per_unit": { "$ref": "../common/money.schema.json" },
-    "total_value": { "$ref": "../common/money.schema.json" },
-    "escrow_ref": { "type": ["string", "null"], "description": "On-chain escrow reference; null off-chain." },
-    "dispute_window_hours": { "type": "integer", "minimum": 0, "default": 48 },
-    "arbitrator_company_id": { "oneOf": [{ "$ref": "../common/ids.schema.json#/$defs/CompanyId" }, { "type": "null" }] },
-    "status": { "type": "string", "enum": ["active", "in_fulfillment", "delivered", "settled", "disputed", "resolved_buyer", "resolved_seller", "cancelled"] }
+    "buyer_company_id": {
+      "$ref": "../common/ids.schema.json#/$defs/CompanyId"
+    },
+    "seller_company_id": {
+      "$ref": "../common/ids.schema.json#/$defs/CompanyId"
+    },
+    "intent_id": {
+      "oneOf": [
+        {
+          "$ref": "../common/ids.schema.json#/$defs/RecordId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "listing_id": {
+      "oneOf": [
+        {
+          "$ref": "../common/ids.schema.json#/$defs/RecordId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "offer_id": {
+      "oneOf": [
+        {
+          "$ref": "../common/ids.schema.json#/$defs/RecordId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "standing_agreement_id": {
+      "oneOf": [
+        {
+          "$ref": "../common/ids.schema.json#/$defs/RecordId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "lot_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "buyer_po_number": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "goods": {
+      "$ref": "goods_spec.schema.json"
+    },
+    "delivery": {
+      "$ref": "delivery_spec.schema.json"
+    },
+    "finance": {
+      "oneOf": [
+        {
+          "$ref": "finance_terms.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "freight": {
+      "oneOf": [
+        {
+          "$ref": "freight_terms.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "price_per_unit": {
+      "$ref": "../common/money.schema.json"
+    },
+    "total_value": {
+      "$ref": "../common/money.schema.json"
+    },
+    "escrow_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "On-chain escrow reference; null off-chain."
+    },
+    "dispute_window_hours": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 48
+    },
+    "arbitrator_company_id": {
+      "oneOf": [
+        {
+          "$ref": "../common/ids.schema.json#/$defs/CompanyId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "in_fulfillment",
+        "delivered",
+        "settled",
+        "disputed",
+        "resolved_buyer",
+        "resolved_seller",
+        "cancelled"
+      ]
+    }
   }
 }
