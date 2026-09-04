@@ -42,37 +42,22 @@ These make the test valid. Breaking them invalidates the result.
 
 ## 4. The modules
 
-Three modules. Each does a small set of things really well — a workflow, not an app.
+Four candidate modules; **each builder picks two**. Each does a small set of things really well — a workflow, not an app. Neither builder needs the other's code; interop happens through the store or not at all.
 
-### M1 — Passport (spine/onboarding) — *George*
+**1. Passport — the front door.** A company signs up once (name, locations, keys it controls) and from then on decides which tools may enter its records and what they may touch — and can pull that permission back at any time. It also shows the company its own drawer, by category, filling up as other tools work. Proves onboarding happens once, not once per app.
 
-Creates a company's protocol spine and proves the "onboard once" claim.
+**2. Trade Ledger — the order book.** Two signed-up companies do a deal: the buyer orders, the seller ships and says so, the buyer confirms receipt. Each step is signed by the party responsible and moves through states the protocol enforces (the seller can't mark "received"; the buyer can't mark "shipped"). Produces the thing financing needs: a confirmed delivery someone is now owed money for.
 
-- Create company: legal entity info, locations, keypair, mock-KYB flag, delegated agent keys. Target: **under 5 minutes** of user effort.
-- Grant/revoke a module's access to the company's data (the crude v1 of scoping).
-- View "my protocol state": everything on-protocol about this company, by namespace — this view is also our accretion instrument (watch it fill up as M2/M3 run).
+**3. Early Pay — the financing wedge.** Watches for confirmed deliveries and offers to pay the seller now instead of in 30–60 days — with no application, no phone call, no document requests, because everything it needs is already on record and signed by the people who'd know. Writes the invoice, makes the offer, and on acceptance records the payout and payoff so everyone sees the money moved.
 
-### M2 — Trade Ledger — *George*
+**4. Books — the read-only ledger.** Writes nothing. Reads across everyone's records it's permitted to see and produces the plain accounting picture: who owes whom, paid, overdue, and a complete who-did-what history — assembled entirely from records other tools created. The hardest test of the permission system.
 
-Runs a trade between two spine-holding companies through the existing DTP state machine.
-
-- Create a trade (as either a direct Contract or Intent→Offer→Contract, whichever the spec makes cheaper — note which).
-- Advance it: accepted → fulfilled, with a **delivery attestation** recorded by the buyer side.
-- Show trade state, readable by any authorized module.
-
-### M3 — Invoice + Financing — *Boris*
-
-Built with zero knowledge of M1/M2 internals. This is the interop test and the wedge test in one.
-
-- Reads trades it did not create, for companies that authorized it.
-- Issues an **invoice** against a fulfilled trade (`finance.invoice` exists in v0.2 but was written *without* a financing module's input — anything it lacks is a gap-log entry).
-- The aha moment: for an attested receivable, offer an **instant advance** — one click, no intake forms — priced off protocol state alone (trade value, attestation, counterparty history, spine data). Mock the money; make the decision logic real enough to show *why* protocol state suffices where a factor needs a lockbox.
-- Writes the advance and final settlement as protocol events that M1/M2 can display.
+Natural pairings: Passport + Trade Ledger set the table; Early Pay + Books eat off it — but any split works.
 
 ### Deferred (explicitly out of this sprint)
 
-- **Deductions/dispute module** — the CPG-corridor killer demo (a short-pay as a protocol dispute object with evidence + a clock), but dispute machinery deserves design, not a sprint week.
-- **Aging-inventory secondary market** — needs inventory objects; strong v2.
+- **Deductions/dispute module** — the CPG-corridor killer demo (a short-pay as a protocol dispute object with evidence + a clock); dispute machinery deserves design, not a sprint week (`trade.dispute` is a documented gap in SPEC §3.5).
+- **Inventory / Manufacturing, Reputation, Demand Plan, aging-inventory secondary market** — next on the hit list, after the sprint.
 - Matching engine, escrow on chain, real KYB, FSMA CTEs, freight.
 
 ## 5. Demo narrative (the 90-second version)
@@ -80,6 +65,8 @@ Built with zero knowledge of M1/M2 internals. This is the interop test and the w
 > **Acme Sauce Co.** onboards via Passport in five minutes. It trades a pallet order with **Bluestem Distribution** in Trade Ledger; delivery is attested. Boris's Financing module — which has never met Acme, and whose builder never spoke to Trade Ledger's builder — sees the attested receivable and offers an advance in one click. Acme accepts. Both apps now show the same settlement state, and Acme's Passport view shows a company record that accreted from use, not from a form.
 
 ## 6. Success criteria
+
+In plain terms, the sprint succeeded if we can honestly say all of these at the end of the week: **sign up once, use everything** · **a stranger's tool works without a conversation** (the spec was the only thing we had in common) · **a money decision from records alone** · **everyone sees the same truth** at the same moment, with a history that can't be quietly edited · **nobody saw or did anything they weren't allowed to** (we tried on purpose) · **we came out with a list, not just a demo.** It's a failure even if the demo works if either of us read the other's code or worked around the spec without writing it down.
 
 | # | Criterion | Verdict method |
 |---|---|---|
