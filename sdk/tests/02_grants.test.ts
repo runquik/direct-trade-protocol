@@ -53,6 +53,8 @@ test("module without a grant cannot write, and cannot read counterparties record
   await expectCode(mod.client.sign(invoice(), mod.kp.secretKey), "grant_missing");
   const list = await mod.client.listRecords({ subject: acme.id, namespace: "trade" });
   assert.equal(list.records.length, 0, "the public spine is visible, trade records are not");
+  const asCp = await mod.client.listRecords({ counterparty: acme.id, namespace: "trade" });
+  assert.equal(asCp.records.filter((r) => r.visibility !== "public").length, 0);
 });
 
 test("module cannot issue a grant to itself", async () => {
@@ -70,8 +72,10 @@ test("grant unlocks reads and writes exactly per scope; revocation removes them"
   const g = await grant(acme, mod, [{ namespace: "trade", access: "read" }, { type: "finance.invoice", access: "write" }]);
   assert.equal(g.record.type, "core.grant");
   // reads: trade.* from acme, including the fulfillment (subject acme) and the contract (acme is counterparty)
+  // (shared stores accumulate public records from other runs, so look only at records involving acme)
+  const mine = (rs: any[]) => rs.filter((r) => r.subject_company_id === acme.id || r.counterparty_ids.includes(acme.id));
   const trade = await mod.client.listRecords({ namespace: "trade" });
-  const types = trade.records.map((r) => r.type).sort();
+  const types = mine(trade.records).map((r) => r.type).sort();
   assert.deepEqual(types, ["trade.contract", "trade.fulfillment"]);
   // write: finance.invoice ok
   const inv = await mod.client.sign(invoice(), mod.kp.secretKey);
@@ -106,7 +110,7 @@ test("grant unlocks reads and writes exactly per scope; revocation removes them"
   });
   await acme.client.sign(revoke, acme.kp.secretKey);
   await expectCode(mod.client.sign(invoice({ invoice_number: "INV-2" }), mod.kp.secretKey), "grant_missing");
-  assert.equal((await mod.client.listRecords({ namespace: "trade" })).records.length, 0);
+  assert.equal(mine((await mod.client.listRecords({ namespace: "trade" })).records).length, 0);
 });
 
 test("expired grant does not authorize", async () => {

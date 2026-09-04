@@ -155,12 +155,18 @@ test("concurrent duplicate genesis: one 201, the rest duplicate_record_id (never
 });
 
 test("BB-F6: latest_cursor is scoped to the caller's visibility", async () => {
-  const before = await stranger.client.events();
-  await makeContract(buyer, seller); // counterparties-only; invisible to stranger
-  const after1 = await stranger.client.events();
-  assert.equal(after1.latest_cursor, before.latest_cursor, "an outsider must not observe hidden writes via latest_cursor");
+  const c = await makeContract(buyer, seller); // counterparties-only; invisible to stranger
+  const hiddenSeq = String(c.record.seq).padStart(16, "0");
+  const s = await stranger.client.events();
+  // whatever the stranger's latest_cursor is, it must be an event the stranger can actually read
+  // (on a shared store other public writes may land later, so we cannot assert a fixed value)
+  assert.notEqual(s.latest_cursor, hiddenSeq, "an outsider must not observe a hidden write via latest_cursor");
+  if (Number(s.latest_cursor) > 0) {
+    const tail = await stranger.client.events({ after: String(Number(s.latest_cursor) - 1) });
+    assert.ok(tail.events.some((e) => e.cursor === s.latest_cursor), "latest_cursor must point at a visible event");
+  }
   const own = await buyer.client.events({ company: buyer.id });
-  assert.ok(own.latest_cursor > before.latest_cursor);
+  assert.ok(own.latest_cursor >= hiddenSeq);
 });
 
 test("business_types is optional and plural; a company can be several things and roles are per record", async () => {
