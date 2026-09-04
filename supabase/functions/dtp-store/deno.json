@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@cfworker/json-schema": "npm:@cfworker/json-schema@4.1.1"
+  }
+}
