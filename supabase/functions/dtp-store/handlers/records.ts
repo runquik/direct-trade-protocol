@@ -7,6 +7,7 @@ import { canRead, grantsForModule, readPrefilter, type GrantRow } from "../authz
 import type { Db } from "../db.ts";
 import { StoreError, uniqueViolation } from "../errors.ts";
 import { checkRoleContinuity, checkTransition, rolesOf } from "../transitions.ts";
+import { checkIntegrity } from "../integrity.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 export function isUuid(s: unknown): s is string {
@@ -187,6 +188,9 @@ async function syncKeys(
   principal: Principal,
 ): Promise<{ key_id: string; token: string }[]> {
   const minted: { key_id: string; token: string }[] = [];
+  if (!keys.some(k => k.role === "root" && k.status === "active")) {
+    throw new StoreError("forbidden", "an identity must retain at least one active root key; add a replacement before revoking or demoting the last root");
+  }
   const changed = JSON.stringify(prevKeys ?? null) !== JSON.stringify(keys);
   if (prevKeys && changed && principal.role !== "root") {
     throw new StoreError("forbidden", "only a root key may change keys[]");
@@ -240,10 +244,27 @@ export async function writeRecord(ctx: Ctx, input: unknown): Promise<WriteResult
   }
 
   // supersession target is resolved first: authorization and roles are judged against the existing record
+  if (!ctx.principal) throw new StoreError("auth_required", "writes require a bearer token for the signing key");
   let prev: RecordRow | null = null;
   if (env.supersedes) {
     prev = await fetchRecordRow(ctx.db, env.supersedes);
-    if (!prev) throw new StoreError("supersedes_conflict", `supersedes target ${env.supersedes} does not exist`);
+    const grants = ctx.principal.kind === "module" ? await grantsForModule(ctx.db, ctx.principal.id) : [];
+    if (!prev || !canRead(prev, ctx.principal, grants, ctx.now)) {
+      throw new StoreError("not_found", "supersedes target not found");
+    }
+  }
+  await authorizeWrite(ctx, v, prev);
+
+  // Exact retries are acknowledgments, not new transitions. Require current
+  // authorization and read access before returning any stored metadata.
+  const existing = await fetchRecordRow(ctx.db, env.record_id);
+  if (existing) {
+    const grants = ctx.principal.kind === "module" ? await grantsForModule(ctx.db, ctx.principal.id) : [];
+    if (!canRead(existing, ctx.principal, grants, ctx.now)) throw new StoreError("not_found", "record not found");
+    if (existing.payload_hash === v.payload_hash) return { record: rowToRecord(existing), created: false };
+    throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
+  }
+  if (prev) {
     if (!prev.is_head) throw new StoreError("supersedes_conflict", `record ${env.supersedes} is already superseded by ${prev.superseded_by}`, { head: prev.superseded_by });
     if (prev.type !== env.type) throw new StoreError("supersedes_conflict", "superseding record must have the same type");
     if (prev.subject_company_id !== env.subject_company_id) throw new StoreError("supersedes_conflict", "superseding record must have the same subject");
@@ -257,8 +278,6 @@ export async function writeRecord(ctx: Ctx, input: unknown): Promise<WriteResult
     }
   }
 
-  await authorizeWrite(ctx, v, prev);
-
   if (!(await companyExists(ctx.db, env.subject_company_id))) {
     throw new StoreError("not_found", `subject company ${env.subject_company_id} is not registered`);
   }
@@ -266,18 +285,12 @@ export async function writeRecord(ctx: Ctx, input: unknown): Promise<WriteResult
     if (!(await companyExists(ctx.db, c))) throw new StoreError("not_found", `counterparty ${c} is not registered`);
   }
 
-  // idempotency
-  const existing = await fetchRecordRow(ctx.db, env.record_id);
-  if (existing) {
-    if (existing.payload_hash === v.payload_hash) return { record: rowToRecord(existing), created: false };
-    throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
-  }
-
   // roles come from the record being superseded (or the new body for genesis), then continuity + state machine
   const party = { issuerCompanyId: env.issuer.company_id, subjectCompanyId: env.subject_company_id, counterpartyIds: env.counterparty_ids };
   const roles = rolesOf(info, prev ? prev.body : env.body, party);
   checkRoleContinuity(info, prev ? prev.body : null, env.body, party);
   checkTransition(info, prev ? prev.body : null, env.body, roles);
+  checkIntegrity(env, prev ? prev.body : null);
 
   const status = statusFromBody(info, env.body);
 
@@ -391,7 +404,7 @@ export async function listRecords(ctx: Ctx, q: ListQuery): Promise<{ records: St
   if (q.root_id) add("r.root_id = ?", q.root_id);
   if (!q.include_superseded) where.push("r.is_head = true");
   if (q.after !== undefined) add("r.seq > ?", q.after);
-  const [pre, preParams] = readPrefilter(ctx.principal, grants, "r", params.length + 1);
+  const [pre, preParams] = readPrefilter(ctx.principal, grants, "r", params.length + 1, ctx.now);
   params.push(...preParams);
   where.push(pre);
   const limit = Math.min(Math.max(q.limit ?? 50, 1), 500);

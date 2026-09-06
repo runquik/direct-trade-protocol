@@ -4,6 +4,8 @@
   "title": "finance.advance_offer",
   "description": "A financer's offer to advance cash against an invoice. Subject is the seller; the financer is the counterparty and the issuer (via its module). pricing_basis lists the protocol records the decision was made from — proof that no out-of-band intake was needed.",
   "x-dtp-subject": "seller_company_id",
+  "x-dtp-revision-by": ["financer"],
+  "x-dtp-immutable-fields": ["invoice_id", "seller_company_id", "financer_company_id", "advance_amount", "advance_bps", "fee", "repayment", "recourse", "pricing_basis", "expires_at"],
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": { "seller": "seller_company_id", "financer": "financer_company_id" },
   "x-dtp-transitions": {

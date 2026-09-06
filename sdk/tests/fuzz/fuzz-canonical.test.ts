@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import refCanonicalize from "canonicalize"; // reference implementation by the RFC author (cyberphone)
 import { canonicalize as jsonCanonicalize } from "json-canonicalize"; // second, independent implementation
-import { assertNoFloats, canonicalize, FloatNotAllowedError } from "../../src/canonical.ts";
+import { assertNoFloats, canonicalize, CanonicalizationError, FloatNotAllowedError } from "../../src/canonical.ts";
 import { BAD_NUMBERS, cu, INTERESTING_INTS, INTERESTING_STRINGS, injectAtRandomPath, KEY_FAMILIES, LONE_SURROGATES, randomJson, Rng, shuffleKeys, u, type Json } from "./rng.ts";
 
 const SEED = Number(process.env.FUZZ_SEED ?? 20260903);
@@ -128,17 +128,20 @@ test(`integer-only JSON: canonicalize() vs RFC 8785 reference implementations ($
     assert.equal(canonicalize(shuffleKeys(r, v)), ours, `seed ${s}: key insertion order changed the output`);
     // Fixed point under parse. If plain JSON.parse itself does not round-trip, the *runtime* mis-parsed the text
     // (V8 JSON.parse key fault, see repro-v8-*.mjs and FINDINGS); record it separately instead of blaming the SDK.
-    if (JSON.stringify(JSON.parse(ours)) !== ours) {
+    // JSON.stringify reorders numeric keys, so comparing its output to canonical
+    // text falsely labels valid parses as runtime faults. Re-canonicalize first.
+    if (canonicalize(JSON.parse(ours)) !== ours) {
       runtimeParseFaults.push(s);
     } else {
       assert.equal(canonicalize(JSON.parse(ours)), ours, `seed ${s}: not a fixed point under parse/canonicalize`);
     }
   }
-  console.log(`  naive sorted-keys JSON.stringify replacer agrees with the SDK on ${naiveAgreesWithSdk}/${ITER} (both share the numeric-key bug); ${toJsonKeyed} inputs had a "toJSON" key and skipped the json-canonicalize oracle`);
+  console.log(`  naive sorted-keys JSON.stringify replacer agrees with the SDK on ${naiveAgreesWithSdk}/${ITER}; ${toJsonKeyed} inputs had a "toJSON" key and skipped the json-canonicalize oracle`);
   console.log(`  runtime JSON.parse round-trip faults (V8 bug, not SDK): ${runtimeParseFaults.length}${runtimeParseFaults.length ? " at seeds " + runtimeParseFaults.slice(0, 5).join(", ") : ""}`);
   console.log(`  json-canonicalize disagreed with cyberphone/canonicalize on ${oracleDisagreements.length} inputs${oracleDisagreements.length ? " (seeds " + oracleDisagreements.slice(0, 5).join(", ") + ")" : ""}`);
   summarize("integer-only fuzz", divs, ITER);
   assert.equal(divs.length, 0, `${divs.length} divergences from RFC 8785 (see summary above)`);
+  assert.equal(runtimeParseFaults.length, 0, "runtime JSON round-trip must preserve canonical records");
 });
 
 test(`non-integer / unsafe / non-finite numbers throw FloatNotAllowedError with the right path (${ITER} cases)`, () => {
@@ -223,7 +226,7 @@ test("key sorting: UTF-16 code-unit order (not code point, not locale, not NFC-e
   }
 });
 
-test("DIVERGENCE: keys that are canonical array indices ('0', '9', '10', ... up to 2^32-2) are emitted first in numeric order, not in code-unit order", () => {
+test("numeric-string keys are emitted in canonical code-unit order", () => {
   // Minimal reproducers. ECMAScript orders integer-like own keys first, ascending numerically, regardless of insertion order;
   // sortDeep() builds a plain object and then JSON.stringify() serializes in that property order, undoing the sort.
   const cases: [string, string][] = [
@@ -262,7 +265,7 @@ test("string escaping: exactly JSON.stringify (short escapes, lowercase u00XX fo
   assert.equal(canonicalize(u(0x2028)), '"' + u(0x2028) + '"');
 });
 
-test("DIVERGENCE: RFC 8785 3.2.2.2 says lone surrogates MUST be rejected; the SDK escapes them (backslash-u dXXX) instead", () => {
+test("RFC 8785: lone surrogates are rejected", () => {
   const rows: string[] = [];
   for (const s of LONE_SURROGATES) {
     assert.throws(() => refCanonicalize(s), /Lone surrogate/, "reference rejects");
@@ -278,14 +281,12 @@ test("DIVERGENCE: RFC 8785 3.2.2.2 says lone surrogates MUST be rejected; the SD
   assert.throws(() => canonicalize(cu(0xd800)), "SDK should reject a lone surrogate per RFC 8785 3.2.2.2");
 });
 
-test("lone-surrogate fuzz: the SDK accepts every input the reference rejects; well-formed inputs agree (modulo the numeric-key divergence)", () => {
+test("lone-surrogate fuzz: SDK rejects malformed Unicode and matches the reference on well-formed inputs", () => {
   const n = Math.max(200, Math.floor(ITER / 5));
   let refRejected = 0;
-  let sdkAccepted = 0;
-  let sdkSurrogateEscapes = 0;
+  let sdkRejected = 0;
   let wellFormed = 0;
   let wellFormedDiverging = 0;
-  const escapeRe = new RegExp(BACKSLASH + BACKSLASH + "ud[89ab][0-9a-f]{2}", "i");
   for (let i = 0; i < n; i++) {
     const r = new Rng(caseSeed(i) ^ 0x10ce);
     const v = randomJson(r, { loneSurrogates: true });
@@ -295,20 +296,20 @@ test("lone-surrogate fuzz: the SDK accepts every input the reference rejects; we
     } catch {
       refRejected++;
     }
-    const ours = canonicalize(v);
     if (ref === null) {
-      sdkAccepted++;
-      if (escapeRe.test(ours)) sdkSurrogateEscapes++;
+      assert.throws(() => canonicalize(v), CanonicalizationError);
+      sdkRejected++;
     } else {
       wellFormed++;
-      if (ours !== ref) wellFormedDiverging++;
+      if (canonicalize(v) !== ref) wellFormedDiverging++;
     }
   }
-  console.log(`  ${n} cases: reference rejected ${refRejected} (lone surrogates), SDK accepted all ${sdkAccepted} of them (${sdkSurrogateEscapes} emit a lone-surrogate escape); ${wellFormed} well-formed, ${wellFormedDiverging} of those diverge (numeric keys)`);
-  assert.equal(sdkAccepted, refRejected);
+  console.log(`  ${n} cases: ${sdkRejected} malformed inputs rejected, ${wellFormed} well-formed inputs compared`);
+  assert.equal(sdkRejected, refRejected);
+  assert.equal(wellFormedDiverging, 0);
 });
 
-test("DIVERGENCE: a JSON key named __proto__ is silently dropped from the canonical form", () => {
+test("a JSON key named __proto__ is preserved in the canonical form", () => {
   const v = JSON.parse('{"__proto__":1,"a":2}');
   assert.equal(refCanonicalize(v), '{"__proto__":1,"a":2}');
   assert.equal(jsonCanonicalize(v), '{"__proto__":1,"a":2}');
@@ -329,11 +330,10 @@ test("non-JSON inputs (informational): toJSON objects, Map/Set, bigint, undefine
   console.log(`  Date: sdk ${canonicalize(d)}  ref ${refCanonicalize(d)}  (SDK ignores toJSON; only matters for non-JSON input)`);
   console.log(`  Map:  sdk ${canonicalize(new Map([["a", 1]]))}  ref ${refCanonicalize(new Map([["a", 1]]))}`);
   console.log(`  top-level undefined: sdk ${String(canonicalize(undefined))}  ref ${String(refCanonicalize(undefined))}`);
-  assert.throws(() => canonicalize(10n), TypeError, "bigint rejected");
+  assert.throws(() => canonicalize(10n), CanonicalizationError, "bigint rejected");
   assert.equal(canonicalize({ a: undefined, b: 1 }), '{"b":1}');
   assert.equal(canonicalize([undefined, 1]), "[null,1]");
-  assert.equal(canonicalize({ f: () => 1, b: 1 }), '{"b":1}', "functions dropped like JSON.stringify");
-  console.log(`  function-valued key: sdk ${canonicalize({ f: () => 1, b: 1 })}  ref ${refCanonicalize({ f: () => 1, b: 1 })}  (reference emits invalid JSON for non-JSON input; not a DTP concern)`);
+  assert.throws(() => canonicalize({ f: () => 1, b: 1 }), CanonicalizationError, "function values are not JSON");
 });
 
 test("deep nesting (informational): recursion limits", () => {

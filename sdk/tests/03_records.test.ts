@@ -95,7 +95,7 @@ test("supersession: state machine, roles, head tracking, conflicts", async () =>
   const bySeller = draft({
     type: "trade.contract", subject_company_id: bluestem.id, counterparty_ids: [acme.id], root_id: root, supersedes: c.record.record_id,
     issuer: { key_id: acme.kp.keyId, company_id: acme.id, module_id: null }, visibility: "counterparties",
-    body: contractBody(bluestem.id, acme.id, { status: "in_fulfillment" }),
+    body: { ...c.record.body, status: "in_fulfillment" },
   });
   const v2 = await acme.client.sign(bySeller, acme.kp.secretKey);
   assert.equal(v2.record.is_head, true);
@@ -109,7 +109,7 @@ test("supersession: state machine, roles, head tracking, conflicts", async () =>
   // wrong subject (body kept consistent with the forged subject so the supersede check is what fires)
   await expectCode(acme.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, subject_company_id: acme.id, counterparty_ids: [bluestem.id], body: contractBody(acme.id, bluestem.id, { status: "in_fulfillment" }) }), acme.kp.secretKey), "supersedes_conflict");
   // a stranger is not a party
-  await expectCode(stranger.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, issuer: { key_id: stranger.kp.keyId, company_id: stranger.id, module_id: null } }), stranger.kp.secretKey), "issuer_not_party");
+  await expectCode(stranger.client.sign(draft({ ...bySeller, record_id: crypto.randomUUID(), supersedes: v2.record.record_id, issuer: { key_id: stranger.kp.keyId, company_id: stranger.id, module_id: null } }), stranger.kp.secretKey), "not_found");
   // invalid transition (in_fulfillment -> settled)
   await expectCode(bluestem.client.sign(draft({ ...contractDraft({ status: "settled" }), root_id: root, supersedes: v2.record.record_id }), bluestem.kp.secretKey), "transition_forbidden");
   // list hides superseded by default, includes with flag

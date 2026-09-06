@@ -4,6 +4,7 @@
   "title": "finance.settlement_event",
   "description": "An immutable money movement. Subject is the payer; the payee is the counterparty. No status: corrections are a compensating event whose `reverses` names this one.",
   "x-dtp-subject": "from_company_id",
+  "x-dtp-append-only": true,
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": { "payer": "from_company_id", "payee": "to_company_id" },
   "x-dtp-transitions": {

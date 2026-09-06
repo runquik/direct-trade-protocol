@@ -6,8 +6,11 @@
   "description": "DTP v0.2 SDK: canonicalization, keys, signing, store client, schema tooling",
   "scripts": {
     "build": "node scripts/build-schemas.ts",
-    "check:examples": "node scripts/check-examples.ts",
-    "check:transitions": "node scripts/check-transitions.ts",
+    "check:runtime": "node tests/fuzz/repro-v8-check.mjs tests/fuzz/v8-repro/polluter.min.json tests/fuzz/v8-repro/target.min.json print",
+    "check:transitions": "node --test tests/03_records.test.ts tests/06_redteam.test.ts tests/07_infra.test.ts",
+    "test:fuzz": "node --test tests/fuzz/fuzz-canonical.test.ts tests/fuzz/fuzz-encodings.test.ts tests/fuzz/fuzz-signing.test.ts tests/fuzz/race-store.test.ts",
+    "typecheck": "tsc --noEmit",
+    "test:postgres": "node --test tests/postgres/concurrency.test.ts",
     "test": "node --test \"tests/*.test.ts\"",
     "seed": "node scripts/seed.ts",
     "keygen": "node scripts/keygen.ts",
@@ -25,6 +28,6 @@
     "typescript": "^5.9.2"
   },
   "engines": {
-    "node": ">=23.5"
+    "node": ">=22.23.2 <23"
   }
 }

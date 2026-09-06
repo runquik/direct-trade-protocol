@@ -130,6 +130,13 @@ for (const [type, entry] of Object.entries(registry.types)) {
     continue;
   }
   md += `Initial status: ${t.initial.status.length ? t.initial.status.map((x: string) => `\`${x}\``).join(", ") : "(none)"} — created by: ${t.initial.by.join(", ")}\n\n`;
+  if (s["x-dtp-append-only"]) md += "Append-only entity: supersession forbidden; append a correction/compensating record.\n\n";
+  if (s["x-dtp-revision-by"]) md += `Unlisted same-status revisions: ${s["x-dtp-revision-by"].join(", ")}.\n\n`;
+  if (s["x-dtp-immutable-fields"]) {
+    md += "Immutable fields: " + s["x-dtp-immutable-fields"].map((f: string) => "`" + f + "`").join(", ") + ".";
+    if (s["x-dtp-lock-after-statuses"]) md += " Applies when the previous status is: " + s["x-dtp-lock-after-statuses"].join(", ") + ".";
+    md += "\n\n";
+  }
   if (t.transitions.length) {
     md += `| From | To | Who | Clock | Note |\n|---|---|---|---|---|\n`;
     for (const tr of t.transitions) {

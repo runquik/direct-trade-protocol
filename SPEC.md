@@ -72,6 +72,7 @@ Rules:
 
 - The **genesis** record MUST be signed by a `root` key listed in its own `body.keys` (self-certifying bootstrap). A store verifies the signature with that embedded public key and issues bearer tokens for the active keys (§5.3).
 - Only a `root` key may write a superseding `core.company` record that changes `keys[]`. Adding a key = supersede with the new key appended; rotating = add then revoke; a key removed from the list is treated as revoked.
+- Company and module `keys[]` MUST contain unique `key_id` values and retain at least one active root. Revoking, removing, or demoting the last root is rejected (`forbidden`). Deliberate identity closure is not defined in v0.2.
 - A revoked key's signatures on records created before `revoked_at` remain valid.
 - **A key belongs to exactly one principal.** A store MUST reject (`forbidden`) any attempt to list, as a company or module key, a key already registered to another company or module.
 - `reputation` and `authorized_agents` from v0.1 are gone: reputation is a derived view (§6.9); agents are `delegate` keys (a NEAR sub-account key MAY be listed with `near_account` set).
@@ -133,7 +134,7 @@ Schema: [`core/envelope.schema.json`](spec/schemas/core/envelope.schema.json). E
 | Field | Rule |
 |---|---|
 | `record_id` | Writer-assigned UUID. Globally unique; a store rejects a second write with the same id and a different payload (`duplicate_record_id`) and answers an identical replay with the stored record. Inside the signature. |
-| `root_id` | `record_id` of the first record in this supersession chain; equals `record_id` for a genesis record. **The entity id.** Every cross-reference in any body (`contract_id`, `offer_id`, `invoice_id`, …) is a `root_id`, never a version's `record_id`. |
+| `root_id` | `record_id` of the first record in this supersession chain; equals `record_id` for a genesis record. **The entity id.** Business links (`contract_id`, `offer_id`, `invoice_id`, …) use `root_id`. Evidence links (`Attestation.record_id`, `pricing_basis[].record_id`) instead name the **exact signed version** used as evidence; they MUST NOT follow a changing head. |
 | `type` | Must exist in the registry ([`index.json`](spec/schemas/index.json)) for `schema_version`. |
 | `namespace` | MUST equal the prefix of `type`. Redundant on purpose: grants and indexes key on it without parsing. |
 | `schema_version` | `MAJOR.MINOR`; `"0.2"` for every type in this release. Selects the body schema. |
@@ -162,7 +163,7 @@ Fixed vectors: [`spec/vectors/keys.json`](spec/vectors/keys.json), [`canonicaliz
 
 ### 3.3 Verification algorithm (normative)
 
-A store MUST perform these checks, in this order, and answer with the named error on the first failure:
+A store MUST enforce the following checks and dependencies. Authentication MAY reject a missing or invalid credential earlier. Target-derived errors MUST NOT precede access control; implementations need not match error precedence between unrelated malformed input fields.
 
 1. Parse; reject non-objects and bodies over the store's size limit (`bad_request`, `payload_too_large`).
 2. Validate against the envelope schema; reject any non-integer JSON number anywhere (`envelope_invalid`, `float_not_allowed`).
@@ -170,34 +171,37 @@ A store MUST perform these checks, in this order, and answer with the named erro
 4. `(type, schema_version)` is in the registry (`unknown_type`).
 5. `body` validates against the type schema (`schema_invalid`, with issue paths), and the body field named by the schema's `x-dtp-subject` equals `subject_company_id` (`schema_invalid`).
 6. Recompute the signing input; verify `signature` with `issuer.key_id` (`signature_invalid`).
-7. If `supersedes` is set, resolve the target first: it exists, is the head, and has the same `type`, `subject_company_id`, `root_id`, **`counterparty_ids` (as a set), and `visibility`** (`supersedes_conflict`, with the current head's id in `details`). Parties and visibility are locked for the life of a chain.
-8. The caller's credential belongs to `issuer.key_id`, and the key belongs to the principal the envelope names — a company key with `module_id == null` and `company_id` equal to the key's owner, or a module key with `module_id` equal to the key's owner (`issuer_mismatch`); the key is active (`key_inactive`); `core.*` types require a root key and reject module keys (`forbidden`).
+7. A general write requires a bearer token (`auth_required`). If `supersedes` is set, resolve the target privately. A missing or unreadable target receives the same `not_found` response, with no target-derived details.
+8. The caller's credential belongs to `issuer.key_id`, and the key belongs to the principal the envelope names — a company key with `module_id == null` and `company_id` equal to the key's owner, or a module key with `module_id` equal to the key's owner (`issuer_mismatch`); the key is active (`key_inactive`); `core.*` types require a root key and reject module keys (`forbidden`). Authorization MUST be refreshed at the write's serialized acceptance point, not only when the request starts.
 9. `issuer.company_id` is the subject or a counterparty **of the record as it exists** — the superseded head's parties for a supersede, the new envelope's for genesis (`issuer_not_party`).
 10. For a module key: a live write grant from `issuer.company_id` covers `type` (`grant_missing`).
-11. `record_id` is new, or is an exact replay of an existing record, which returns the stored record (this applies to genesis records too).
-12. Roles are resolved from the **previous** body for a supersede (§3.5); role fields are continuous; the state transition is permitted for those roles (`transition_forbidden`).
+11. After current authorization and read visibility checks, an identical stored payload returns `200`, `created: false`, and no new event, even if its predecessor or the replayed record has since been superseded. No bearer tokens are reissued. A different payload using a readable existing `record_id` receives `duplicate_record_id`. For a new supersede, its predecessor must still be head and have the same `type`, `subject_company_id`, `root_id`, **`counterparty_ids` (as a set), and `visibility`** (`supersedes_conflict`). Target details are returned only to authorized writers. Idempotency does not bypass key/grant revocation.
+12. Roles are resolved from the **previous** body for a supersede (§3.5); role fields, immutable terms, evidence and assignment invariants are preserved; the state transition is permitted for those roles (`transition_forbidden`).
 13. Append the record, mark the superseded record no longer head, and append exactly one event — atomically. A concurrent writer that loses the race receives `supersedes_conflict` (or `duplicate_record_id` for a genesis race), never an internal error.
 
 ### 3.4 Supersession
 
-Records are never edited or deleted. To change one, write a new record with `supersedes` = the current head's `record_id`, the same `type`, `subject_company_id`, and `root_id`. The old record stays readable (with `include_superseded`) and carries `superseded_by`. Concurrent writers: the second one to land gets `supersedes_conflict` and must re-read and retry — optimistic concurrency, no locks.
+Records are never edited or deleted. To change one, write a new record with `supersedes` = the current head's `record_id`, the same `type`, `subject_company_id`, and `root_id`. The old record stays readable (with `include_superseded`) and carries `superseded_by`. Concurrent distinct successors: the second one to land gets `supersedes_conflict` and must re-read and retry. This is optimistic concurrency at the API; stores may use internal locks. Types declaring `x-dtp-append-only: true` cannot be superseded at all; append their defined correction or compensating record instead.
 
 A **counterparty** MAY supersede a record it did not create, when the type's state machine allows it for its role. That is how a buyer attests receipt on the seller's `trade.fulfillment`, how a target owner accepts a `trade.offer`, and how a seller accepts a `finance.advance_offer`. The issuer of the superseding record is recorded on that record; the chain therefore shows who did what.
 
 ### 3.5 State machines and accountability
 
-Every record-type schema carries three extension keywords, ignored by validators and read by stores and tooling:
+Record-type schemas carry extension keywords, ignored by JSON Schema validators and read by stores and tooling:
 
 - `x-dtp-subject` — the body field that must equal `subject_company_id` (or `self`).
 - `x-dtp-roles` — a map from role name to the body field holding that role's company id, e.g. `{"buyer": "buyer_company_id", "seller": "seller_company_id"}`. Two roles are implicit: `subject` and `counterparty`.
 - `x-dtp-transitions` — `status_field`, the allowed `initial` statuses and creator roles, and a list of `{from, to, by[], within?, after?}` transitions.
+- `x-dtp-append-only: true` — forbids supersession of the entity, even by its subject.
+- `x-dtp-immutable-fields` — body fields whose canonical values MUST remain equal across supersession (absent and null are treated equally). Optional `x-dtp-lock-after-statuses` restricts this check to the named **previous** statuses; otherwise it applies to every supersede.
+- `x-dtp-revision-by` — overrides the default subject-only permission for an unlisted same-status revision. Both `finance.advance` and `finance.advance_offer` specify `financer`.
 
 A store MUST enforce:
 
 - **Roles are read from the record being superseded**, never from body fields the writer just supplied. For a genesis record they are read from the new body, which the issuer is bound to by `x-dtp-subject` and the party rule.
 - **Role fields are continuous.** A body field named in `x-dtp-roles` MUST NOT change across a supersede, except that a field listed in `x-dtp-third-party-roles` (e.g. a contract's `arbitrator_company_id`) MAY go from `null` to a value once, and that value MUST NOT be the subject or a counterparty.
 - Genesis records start in an `initial` status and are created by an `initial.by` role.
-- A superseding record whose status matches a listed `from → to` transition is permitted for the roles in that transition's `by`. An unlisted **same-status revision is permitted for the subject only** — a counterparty can change what a record *says* only by making a listed transition. Types with `status_field: null` may be superseded by the subject only.
+- A superseding record whose status matches a listed `from → to` transition is permitted for the roles in that transition's `by`. An unlisted same-status revision is permitted for `x-dtp-revision-by`, defaulting to the subject only. All such writes still obey immutable-field and evidence rules. Types with `status_field: null` may be superseded by the subject only unless `x-dtp-append-only` forbids supersession.
 - `within`/`after` clocks are informative in v0.2 (stores SHOULD expose them; they are not enforced).
 
 *Known gap (v0.2):* a third party named as arbitrator is not a party to the record and therefore cannot write the resolution itself; in Sprint 01 the resolution is recorded by a party. A `trade.dispute` record with the arbitrator as subject is the planned fix.
@@ -220,6 +224,8 @@ The rendered matrix of every transition is [`spec/generated/accountability.md`](
 
 A module can always read `core.grant` records that name it as grantee. A store MUST NOT reveal the existence of a record the caller cannot read (`not_found`). The same rule filters the event feed.
 
+This applies to identity endpoints as well as record endpoints: public is a default, not permission to disclose a private spine. Apply the full visibility predicate (including grant type, expiry and private-record exclusions) **before** pagination limits and cursor aggregation. A module with a write grant still cannot read a `private` record; use `granted` or `counterparties` for workflows that need module reads and retries.
+
 ### 3.8 Error codes
 
 `{ "error": { "code", "message", "details" } }`. Codes and HTTP statuses: `bad_request` 400 · `auth_required`, `auth_invalid`, `signature_invalid`, `issuer_mismatch` 401 · `key_inactive`, `forbidden`, `grant_missing`, `issuer_not_party` 403 · `not_found` 404 · `duplicate_record_id`, `supersedes_conflict`, `transition_forbidden` 409 · `payload_too_large` 413 · `envelope_invalid`, `schema_invalid`, `float_not_allowed`, `unknown_type` 422 · `internal` 500. `schema_invalid` details carry `issues[]` with JSONPath-style `path` and `keyword`.
@@ -230,7 +236,11 @@ A module can always read `core.grant` records that name it as grantee. A store M
 
 A store MUST append exactly one `core.event` of kind `record_appended` for every accepted write, and for nothing else. An event carries the envelope's routing fields (`record_id`, `root_id`, `type`, `namespace`, `subject_company_id`, `counterparty_ids`, `issuer`, `visibility`, `supersedes`), the body's `status` when the type has one, the writer's `created_at`, and the store's `recorded_at`. Events are store assertions and are not signed; the record is the proof.
 
-**Cursors** are opaque strings, totally ordered per store (a reference store uses a zero-padded sequence). `GET /events?after=<cursor>` returns events strictly after the cursor in order, visibility-filtered for the caller, with `next_cursor` when more are immediately available and `latest_cursor` so consumers know when they are caught up. Delivery is at-least-once; consumers persist the last cursor they processed. `next_cursor` advances past events the caller could not see, so hidden rows never stall a poller. Push delivery (webhooks, SSE, realtime) is a store extension outside v0.2.
+**Cursors** are opaque strings, totally ordered per store (the reference store uses a zero-padded sequence). `GET /events?after=<cursor>` returns events strictly after the cursor in order, visibility-filtered for the caller. `next_cursor` is the last returned event when another visible page exists; `latest_cursor` is the maximum visible cursor for the same optional `company` filter, independent of `after`. Hidden rows do not truncate a page. Numeric sequence gaps remain observable; this does not provide traffic-volume confidentiality.
+
+Consumers MUST persist the cursor of the last event actually processed, not jump to `latest_cursor`: concurrent appends may make that value newer than the returned page. Delivery is at-least-once; deduplicate by event/record ID. When permissions expand, backfill readable records/history rather than expecting older newly visible events after an already-advanced cursor.
+
+The reference HTTP write path serializes all append transactions with a transaction-scoped PostgreSQL advisory lock (`1146376208`), acquired before credential/grant revalidation and held through commit. Thus a committed revocation excludes any subsequently accepted write; an earlier accepted write commits before revocation. Event sequence allocation is commit-ordered, avoiding a higher committed cursor overtaking a pending lower one. The lock is intentionally coarse for Sprint 01. Direct database writes or standalone handler calls are not a supported production ingress. A higher-throughput design must preserve these guarantees. Push delivery is outside v0.2.
 
 ---
 
@@ -249,9 +259,9 @@ The reference store ([`supabase/functions/dtp-store`](supabase/functions/dtp-sto
 | `GET /health`, `GET /schemas`, `GET /schemas/{type}` | none | liveness; type registry; one schema |
 | `POST /debug/canonicalize` | none | returns the canonical signing input, payload hash, and whether a supplied signature verifies |
 | `POST /companies` | none (self-certifying) | genesis `core.company` → `201 {company_id, record, keys:[{key_id, token}]}` |
-| `POST /modules` | self-certifying or publisher root token | genesis `core.module` → `201 {module_id, record, keys}` |
+| `POST /modules` | publisher root token (including self-signed module keys) | genesis `core.module` → `201 {module_id, record, keys}` |
 | `GET /whoami` | bearer | the principal behind the token |
-| `GET /companies/{id}` · `GET /companies/{id}/grants` · `GET /modules/{id}` | optional / bearer | public spine (plus grants if owner); grants (owner sees all, a module sees its own) |
+| `GET /companies/{id}` · `GET /companies/{id}/grants` · `GET /modules/{id}` | optional / bearer | visibility-filtered spine (plus grants if owner); grants (owner sees all, a module sees its own) |
 | `POST /records` | bearer | signed envelope → `201` (or `200` on identical replay) |
 | `GET /records/{id}` · `GET /records?subject&type&namespace&counterparty&root_id&include_superseded&after&limit` | optional | visibility-filtered reads, ordered by sequence |
 | `GET /events?company&after&limit` | bearer | the feed (§4) |
@@ -261,6 +271,8 @@ Builder walkthrough: [`docs/PROTOCOL_STORE.md`](docs/PROTOCOL_STORE.md).
 ### 5.3 Credentials
 
 The reference store identifies callers with a bearer token per key (`dtps_…`, returned once when the key is registered) and proves authorship with the envelope signature. Signed-request authentication for reads is a planned upgrade; a store MAY implement it in addition. Tokens MUST be stored hashed.
+
+Exact identity retries return `200` without new tokens, and remain subject to read visibility (module retries also require current publisher-root consent). **Recovery limitation:** if the first genesis response is lost and no other credential was retained, possession of the root private key alone cannot yet recover a bearer token. Passport must persist keys before registration and credentials immediately afterward. A domain-bound, short-lived, single-use proof-of-possession recovery flow is a required follow-up before real-company onboarding; public genesis replay MUST NOT be used to recover secrets.
 
 ### 5.4 Profiles
 
@@ -287,9 +299,15 @@ Schema: [`trade/contract.schema.json`](spec/schemas/trade/contract.schema.json).
 
 States: `active → in_fulfillment` (seller, when it ships) `→ delivered` (buyer on attestation, or seller after `dispute_window_hours` — presumed acceptance) `→ settled` (buyer, on `trade.settlement`); `in_fulfillment → disputed` (buyer, within the window) `→ resolved_buyer | resolved_seller` (arbitrator, within 7 days) `→ settled`; `active → cancelled` (mutual: the other party countersigns by superseding again).
 
+Commercial terms and referenced agreements are immutable from genesis, as enumerated by `x-dtp-immutable-fields`. A permitted status change does not authorize a price, quantity, delivery-window or reference change. v0.2 has no in-chain amendment/reapproval flow; negotiate a new agreement rather than silently editing the old one. A single issuer's `active` record alone does not prove mutual agreement: modules must verify the evidence of both parties' approval.
+
 ### 6.6 `trade.fulfillment`
 
 Schema: [`trade/fulfillment.schema.json`](spec/schemas/trade/fulfillment.schema.json). Subject: **seller**; buyer is the counterparty. The seller creates it (`seller_attested`) with `seller_attestation`; the **buyer supersedes it** to add `buyer_attestation` and move to `buyer_attested` (or `disputed`) within the contract's dispute window; either party moves it to `complete`; the seller may move `seller_attested → complete` after the window (presumed acceptance). `Attestation` is `{company_id, attested_at, record_id, notes}` — the proof is the envelope signature of the record named by `record_id`; the v0.1 inner `signature` field is gone. Structured evidence (BOL, temperature logs, inspection) goes under `x_evidence` in v0.2; a first-class evidence type is a v0.3 candidate.
+
+Local evidence invariants (enforced on new writes): genesis contains a seller attestation naming the seller and the genesis's exact `record_id`, and `buyer_attestation: null`. Contract, parties, delivered time, quantity and seller attestation cannot change across the chain. Only a buyer-written transition to `buyer_attested` may introduce buyer evidence; it must name the buyer and that exact new version. `buyer_attested` requires non-null evidence. Once introduced, buyer evidence cannot change or be removed. Deductions may change only when the buyer first acknowledges or disputes a `seller_attested` version; they are then frozen.
+
+These checks establish who asserted a particular version, not that physical delivery occurred or that both parties agreed to deductions. Consumers MUST verify exact evidence signatures, signer authority at acceptance, terms/reference consistency, chain membership and current dispute state. `x_evidence` is untrusted supplementary data; use the version actually attested, not a later extension. `complete` can represent presumed acceptance and MUST NOT be treated as equivalent to an explicit buyer attestation. Email extraction is observation, not a counterparty signature. Sprint financing uses simulated counterparties and `rail: mock`.
 
 ### 6.7 `trade.settlement`
 
@@ -327,6 +345,8 @@ Every surviving food/ag trade platform monetizes payment timing, not matching ([
 
 Schema: [`finance/invoice.schema.json`](spec/schemas/finance/invoice.schema.json). Subject: **seller** (the receivable); buyer is the counterparty. Issued by the seller or a module with `finance` write from the seller. `contract_id` (and optionally `fulfillment_id`) are roots. States: `draft → issued` (seller) `→ acknowledged | disputed` (buyer, SHOULD within 48h) `→ partially_paid → paid` (seller, citing `settlement_event_ids`); `void` by the seller. `assigned_to_company_id` is set when an advance funds and the receivable is assigned to the financer — the field a factor's lockbox exists to replace.
 
+Once issued (including acknowledged/disputed/paid/void states), invoice terms named in `x-dtp-immutable-fields` cannot change. Only the seller may establish `assigned_to_company_id`; once non-null it cannot be replaced or cleared, even on a status change. Assignment transfer/release requires a future explicit protocol, not a same-status overwrite. This protects one chain; it does not prove the existence of the assignee, establish assignment consent, or prevent duplicate receivables under different roots. Those checks remain module responsibilities.
+
 ### 7.3 `finance.advance_offer`
 
 Schema: [`finance/advance_offer.schema.json`](spec/schemas/finance/advance_offer.schema.json). Subject: seller; **financer** is the counterparty and the issuer (via its module, which therefore needs a `finance` write grant from the financer and must be a party). `advance_amount`, `advance_bps`, `fee {fee_bps, apr_bps, fixed_fee}`, `repayment {source, due_at}`, `recourse`, `pricing_basis[] {record_id, type, note}`, `expires_at`. States: `offered` (financer) `→ accepted | declined` (seller) · `→ withdrawn` (financer) · `→ expired` (either, after `expires_at`).
@@ -334,6 +354,8 @@ Schema: [`finance/advance_offer.schema.json`](spec/schemas/finance/advance_offer
 ### 7.4 `finance.advance`
 
 Schema: [`finance/advance.schema.json`](spec/schemas/finance/advance.schema.json). Created by the financer only from an `accepted` offer; cites `funding_event_id`. States `funded → partially_repaid → repaid`, `→ defaulted` after maturity, `→ written_off`; every transition is the financer's and SHOULD cite settlement events.
+
+Same-status revisions of advances and advance offers are financer-only. Funded principal, fees, offer/invoice references, funding evidence and maturity are immutable. Offered commercial terms and `pricing_basis` are likewise immutable, including during seller acceptance: changing a quote requires a new offer. Store acceptance does not validate the referenced accepted offer or repayment arithmetic.
 
 ### 7.5 `finance.settlement_event`
 

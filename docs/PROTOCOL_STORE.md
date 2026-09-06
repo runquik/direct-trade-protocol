@@ -6,12 +6,14 @@ The store is a small HTTP service. It holds **records**: signed, append-only JSO
 
 There is no business logic in the store. If you need something it doesn't do, that's a finding for the sprint gap log — work around it with an `x_`-prefixed field and write it down.
 
+**September 6 hardening:** use the store and SPEC from the same revision. See [the implementation/compatibility notes](INFRA_HARDENING_2026-09-06.md). Existing signed history is not retroactively certified. Sprint data and financing remain simulated; root-key token recovery and consumer evidence verification are still production gates.
+
 ---
 
 ## 0. What you need
 
 - The store URL (`STORE_URL`), e.g. `https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store` or a local `http://127.0.0.1:8787/dtp-store`.
-- Any language with Ed25519, SHA-256, base58, and JSON. The reference SDK is TypeScript in [`sdk/`](../sdk) and runs on Node ≥ 23.5 or Deno; you do not have to use it.
+- Any language with Ed25519, SHA-256, base58, and JSON. The reference SDK is TypeScript in [`sdk/`](../sdk); the qualified local runtime is Node 22.23.2 (see `.node-version`). Run `npm run check:runtime` before qualifying alternatives; Deno/Edge needs independent verification. You do not have to use the SDK.
 - The seed output (`sdk/fixtures/dev-keys.json` after `npm run seed`, or the summary George hands you) with the fixture companies, the demo module, and their tokens.
 
 Check the store is up:
@@ -47,7 +49,7 @@ Every record is an **envelope** around a typed **body**:
 | Field | Meaning |
 |---|---|
 | `record_id` | UUID you generate. Also the idempotency key: re-posting the identical **original** envelope returns 200 (re-posting the store's response — which has `seq`, `payload_hash` etc. added — is rejected as `envelope_invalid`); a different body under the same id returns 409. |
-| `root_id` | The entity id. Equals `record_id` for a new thing; for an update it's the `root_id` of the chain. **Bodies cross-reference entities by `root_id`** (`contract_id`, `invoice_id`, …). |
+| `root_id` | The entity id. Equals `record_id` for a new thing; for an update it's the `root_id` of the chain. **Business references use `root_id`** (`contract_id`, `invoice_id`, …). Evidence references (`Attestation.record_id`, `pricing_basis[].record_id`) instead identify the exact signed version. |
 | `type` / `namespace` | `namespace.name`; namespace is repeated on purpose. |
 | `subject_company_id` | Whose cabinet the record lives in. Each type says which body field this must match (`GET /schemas`). |
 | `counterparty_ids` | The other parties. They can read the record when visibility is `counterparties`, and they may be allowed to change its state. |
@@ -90,6 +92,8 @@ Two things, deliberately separate:
 2. **The signature proves authorship of a record.** Writes must be signed by the key the token belongs to (`issuer.key_id` must equal the token's key), or the store answers `issuer_mismatch`.
 
 Reads only need the token. `GET $STORE_URL/whoami` tells you what the store thinks you are.
+
+Persist the private key before onboarding and returned tokens immediately afterward. An exact replay never remints tokens. Lost-token recovery using only a retained root private key is not yet implemented. Both companies and modules must retain at least one active root; key IDs in the list must be unique. Root keys should not be supplied to a model or unrelated module.
 
 ---
 
@@ -191,7 +195,11 @@ A module can always read the `core.grant` records that name it. Records you cann
 
 ### Update = supersede
 
-Write a new record with the same `type`, `subject_company_id`, `root_id`, **the same `counterparty_ids` and `visibility`** (locked for the life of a record), and `supersedes` = the current head's `record_id`. If someone beat you to it you get `supersedes_conflict` with the new head's id — re-read and retry. Counterparties may supersede too, but only by making a state transition the schema allows for their role: that's how the buyer attests receipt on the seller's `trade.fulfillment`. Changing a record's contents *without* changing its status is reserved to the subject. Who-is-who fields (`buyer_company_id`, `seller_company_id`, …) never change across a record's life; a third-party role like `arbitrator_company_id` can be set once, to someone who isn't the buyer or seller.
+Write a new record with the same `type`, `subject_company_id`, `root_id`, **the same `counterparty_ids` and `visibility`**, and `supersedes` = the current head's `record_id`. An authorized writer losing to a distinct successor gets `supersedes_conflict`; an unreadable target gets `not_found`. Retrying an already accepted identical envelope returns 200, even after later supersession, provided you still have authorization and read visibility. Counterparties may supersede when the state machine permits their role. Unlisted same-status revisions default to the subject, except where `x-dtp-revision-by` overrides this (advances/offers: financer).
+
+All revisions also obey `x-dtp-immutable-fields` and role continuity. Contract terms and attested delivery facts cannot be edited on a status change. Issued invoice and advance/offer terms freeze at the documented points. Invoice assignment cannot be removed or reassigned once established. `x-dtp-append-only` settlements cannot be superseded at all; append compensating/correction records. A third-party arbitrator can be appointed once but cannot be a buyer or seller.
+
+For fulfillment genesis, `seller_attestation.record_id` is the new envelope's own ID, its company is the seller, and buyer evidence is null. The buyer adds its own attestation naming its new signed version on the `buyer_attested` transition. Preserve both evidence objects afterward. Email-extracted observations are not buyer signatures; use a separate simulated buyer in Sprint 01.
 
 ---
 
@@ -206,7 +214,7 @@ Write a new record with the same `type`, `subject_company_id`, `root_id`, **the 
   "next_cursor": null, "latest_cursor": "0000000000000042" }
 ```
 
-Poll every few seconds, persist the last cursor you processed, pass it as `after`. `next_cursor` non-null means there's more right now. Delivery is at-least-once. `status` is copied from the record body so you can react without fetching (`trade.fulfillment` / `buyer_attested` is the "attested receivable" moment M3 waits for).
+Poll every few seconds, persist the last event cursor you actually processed, and pass it as `after`. `next_cursor` non-null means another visible page exists. Do not jump to `latest_cursor`, which can reflect concurrent appends newer than the returned page; it respects the same company and visibility filters. Backfill history when grants expand. Delivery is at-least-once; deduplicate record/event IDs. `status` is a notification hint, not financing evidence: fetch and verify exact attestation versions, current dispute state and relevant business references before making a decision.
 
 ---
 
@@ -299,4 +307,4 @@ From here M3 continues: `finance.advance_offer` (subject Acme, counterparty your
 - **`x_` fields** are accepted on every strict type. Use them for anything missing; log each one as a gap (`docs/SPRINT_01_GAP_LOG.md`).
 - **No referential integrity inside bodies.** The store does not check that `contract_id` exists. If your module needs that guarantee, that's a finding.
 - **Run the store yourself** without Docker: `cd sdk && npm install && node scripts/dev-server.ts` (embedded Postgres, in-memory; `DTP_DEV_DATA=./.pglite` to persist). Then `npm run seed`.
-- **Tests as documentation:** `sdk/tests/*.test.ts` exercise every rule above against a live store; `STORE_URL=… npm test` runs them against any deployment.
+- **Tests as documentation:** `sdk/tests/*.test.ts` exercise core conformance and regressions. Most original tests can target an explicitly authorized test deployment via `STORE_URL`; `07_infra.test.ts` deliberately always uses fresh local stores. Default is local PGlite. Never run adversarial writes against production as a health check.

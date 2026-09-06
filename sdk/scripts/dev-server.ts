@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
 import { pgliteDb } from "../../supabase/functions/dtp-store/db.ts";
 import { handle } from "../../supabase/functions/dtp-store/router.ts";
+import { MAX_BODY_BYTES } from "../../supabase/functions/dtp-store/validate.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const migration = resolve(here, "../../supabase/migrations/20260903000000_protocol_store.sql");
@@ -21,7 +22,16 @@ export async function createDevStore(dataDir?: string) {
   const port = Number(process.env.DTP_DEV_PORT ?? 8787);
   const server = createServer(async (req, res) => {
     const chunks: Buffer[] = [];
-    for await (const c of req) chunks.push(c as Buffer);
+    let size = 0;
+    for await (const c of req) {
+      size += c.length;
+      if (size > MAX_BODY_BYTES) {
+        res.writeHead(413, { "content-type": "application/json", connection: "close" });
+        res.end(JSON.stringify({ error: { code: "payload_too_large", message: "request too large", details: {} } }));
+        return;
+      }
+      chunks.push(c as Buffer);
+    }
     const body = Buffer.concat(chunks);
     const url = `http://${req.headers.host ?? "127.0.0.1"}${req.url ?? "/"}`;
     const headers = new Headers();

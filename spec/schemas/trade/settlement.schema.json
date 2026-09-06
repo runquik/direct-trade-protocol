@@ -4,6 +4,7 @@
   "title": "trade.settlement",
   "description": "Final accounting for a contract. Subject is the buyer (payer); the seller is the counterparty. Terminal: corrections are a new settlement whose `corrects` names this one.",
   "x-dtp-subject": "buyer_company_id",
+  "x-dtp-append-only": true,
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": { "buyer": "buyer_company_id", "seller": "seller_company_id" },
   "x-dtp-transitions": {

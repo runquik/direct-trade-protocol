@@ -4,6 +4,7 @@
   "title": "trade.fulfillment",
   "description": "Delivery record for a contract. Subject is the seller (who attests shipment/delivery); the buyer attests receipt by superseding this record with buyer_attestation filled in. Structured evidence (BOL, temperature logs, inspection) may be attached under x_evidence in v0.2; a first-class evidence type is a v0.3 candidate.",
   "x-dtp-subject": "seller_company_id",
+  "x-dtp-immutable-fields": ["contract_id", "seller_company_id", "buyer_company_id", "delivered_at", "quantity_delivered", "seller_attestation"],
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": { "seller": "seller_company_id", "buyer": "buyer_company_id" },
   "x-dtp-transitions": {

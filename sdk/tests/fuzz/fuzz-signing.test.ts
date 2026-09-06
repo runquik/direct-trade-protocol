@@ -115,14 +115,13 @@ test("spec vector record: verifies; unknown top-level fields do not break verifi
   assert.equal((await verifyRecord(tampered)).ok, false);
 });
 
-test("__proto__ in body: a record with an injected __proto__ key verifies with the ORIGINAL signature (canonical form drops the key)", async () => {
+test("__proto__ injection changes the signing input and invalidates the original signature", async () => {
   const injected = JSON.parse(JSON.stringify(vectorEnvelope).replace('"body":{', '"body":{"__proto__":{"polluted":true},')) as Envelope;
   assert.ok(Object.prototype.hasOwnProperty.call(injected.body, "__proto__"), "JSON.parse creates an own __proto__ property");
   const v = await verifyRecord(injected);
   console.log(`  verifyRecord(with __proto__ in body).ok = ${v.ok}; payload_hash equal to original: ${v.payload_hash === (await payloadHash(vectorEnvelope))}`);
   console.log(`  JSON.stringify(injected.body) still contains __proto__: ${JSON.stringify(injected.body).includes("__proto__")}`);
-  // Document the current behaviour; see FINDINGS-fuzz.md
-  assert.equal(v.ok, true);
+    assert.equal(v.ok, false);
 });
 
 test("signRecord: output contains exactly SIGNED_FIELDS + signature, drops unknown fields, refuses floats, is deterministic", async () => {

@@ -1,0 +1,58 @@
+name: Protocol conformance
+on:
+  push:
+    branches: [main, "codex/**"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  local-conformance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            sdk/package-lock.json
+            sdk/tests/fuzz/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix tests/fuzz
+      - run: npm run check:runtime
+      - run: npm run build
+      - run: git diff --exit-code -- src/schemas.ts ../spec/generated
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:fuzz
+  postgres-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: dtp
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: dtp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dtp -d dtp_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - run: npm ci
+      - run: npm run test:postgres
+        env:
+          DTP_TEST_DATABASE_URL: postgres://dtp:test-only@127.0.0.1:5432/dtp_test

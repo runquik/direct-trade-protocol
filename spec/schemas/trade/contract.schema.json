@@ -4,6 +4,7 @@
   "title": "trade.contract",
   "description": "Binding record of agreed trade terms. Subject is the buyer (it is the buyer's payable); the seller reads it as a counterparty. Created by whichever party accepted the offer; may also be created directly under a standing agreement or by mutual direct agreement.",
   "x-dtp-subject": "buyer_company_id",
+  "x-dtp-immutable-fields": ["buyer_company_id", "seller_company_id", "intent_id", "listing_id", "offer_id", "standing_agreement_id", "lot_id", "buyer_po_number", "goods", "delivery", "finance", "freight", "price_per_unit", "total_value", "escrow_ref", "dispute_window_hours"],
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": {
     "buyer": "buyer_company_id",

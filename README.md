@@ -1,8 +1,24 @@
 # Direct Trade Protocol (DTP)
 
-**A platform-agnostic protocol for direct, agent-native trade of physical goods — with on-chain settlement, regulatory compliance, and portable business identity.**
+**An open company identity and signed-record protocol for independently built business modules.**
 
-> **🛒 Live MVP — use DTP from Claude Code today:**
+## Current development: v0.2 company records
+
+Start with [SPEC.md](SPEC.md), the [builder quickstart](docs/PROTOCOL_STORE.md), and [progress.md](progress.md).
+The current implementation is the off-chain reference store in `supabase/functions/dtp-store` and the TypeScript `sdk`.
+Trade and finance are the first workflows; a company workspace and module marketplace are proposed products on top, not prerequisites of the protocol.
+
+- [Infrastructure fixes and remaining production gates](docs/INFRA_HARDENING_2026-09-06.md)
+- [Workspace/marketplace foundations and build order](docs/WORKSPACE_FOUNDATIONS.md)
+- [Sprint 01 interoperability experiment](docs/SPRINT_01_PROTOCOL_INTEROP.md)
+
+Use the Node version in `.node-version`; run `npm run check:runtime`, `npm test`, and `npm run test:fuzz` from `sdk` (install the separate fuzz dependencies first). No live lender or real money is required for Sprint 01. No changes here imply a live deployment.
+
+## Historical v0.1 marketplace and roadmap
+
+The remainder of this README describes the earlier NEAR-based prototype and historical roadmap, **not the current v0.2 store's guarantees or setup**. Its contracts, marketplace and MCP servers are frozen legacy surfaces. Use the current docs above for company-record work.
+
+> **🛒 Legacy v0.1 MVP — not the v0.2 company-record integration:**
 >
 > ```
 > /plugin marketplace add runquik/direct-trade-protocol

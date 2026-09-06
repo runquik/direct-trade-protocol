@@ -46,14 +46,14 @@ export async function listEvents(ctx: Ctx, q: EventsQuery) {
   const params: unknown[] = [];
   const where: string[] = [];
   const after = q.after ? Number(q.after) : 0;
-  if (!Number.isFinite(after) || after < 0) throw new StoreError("bad_request", "after must be a non-negative cursor");
+  if ((q.after !== undefined && !/^\d+$/.test(q.after)) || !Number.isSafeInteger(after) || after < 0) throw new StoreError("bad_request", "after must be a non-negative integer cursor");
   params.push(after);
   where.push(`e.seq > $${params.length}`);
   if (q.company) {
     params.push(q.company);
     where.push(`(e.subject_company_id = $${params.length} or $${params.length} = any(e.counterparty_ids))`);
   }
-  const [pre, preParams] = readPrefilter(p, grants, "e", params.length + 1);
+  const [pre, preParams] = readPrefilter(p, grants, "e", params.length + 1, ctx.now, "r");
   params.push(...preParams);
   where.push(pre);
   const limit = Math.min(Math.max(q.limit ?? 100, 1), 500);
@@ -63,9 +63,15 @@ export async function listEvents(ctx: Ctx, q: EventsQuery) {
   );
   const visible = rows.filter((r) => canRead({ ...r, body: r.body ?? null }, p, grants, ctx.now));
   const page = visible.slice(0, limit);
-  // latest_cursor is scoped to what this caller may see, so it does not leak store-wide activity volume
-  const [latestPre, latestParams] = readPrefilter(p, grants, "e", 1);
-  const latest = await ctx.db.query<{ seq: number | string | null }>(`select max(e.seq) as seq from protocol.events e where ${latestPre}`, latestParams);
+  // Same visibility AND company filter as the page, but independent of `after`.
+  // Numeric sequence gaps are still observable; this is not traffic-volume privacy.
+  const [latestPre, latestParams] = readPrefilter(p, grants, "e", 1, ctx.now, "r");
+  let companyFilter = "";
+  if (q.company) {
+    latestParams.push(q.company);
+    companyFilter = ` and (e.subject_company_id = $${latestParams.length} or $${latestParams.length} = any(e.counterparty_ids))`;
+  }
+  const latest = await ctx.db.query<{ seq: number | string | null }>(`select max(e.seq) as seq from protocol.events e join protocol.records r on r.record_id = e.record_id where ${latestPre}${companyFilter}`, latestParams);
   const events = page.map((e) => ({
     cursor: cursor(e.seq),
     event_id: e.event_id,
