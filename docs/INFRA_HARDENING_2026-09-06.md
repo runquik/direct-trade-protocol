@@ -36,7 +36,16 @@ npm test
 npm run test:fuzz
 ```
 
-Baseline/regression suite: 63 tests. Auxiliary fuzz/race suite: 37 tests. Real PostgreSQL suite: 2 tests in a separately provisioned disposable local `dtp_test` database; `npm run test:postgres` requires `DTP_TEST_DATABASE_URL` and refuses remote/non-test databases or an existing protocol schema. CI provisions this database, with no deployment credentials. Docker was not running locally, so that suite is validated through CI rather than claimed from PGlite.
+Baseline/regression suite: 64 tests after the September 7 review. Auxiliary fuzz/race suite: 37 tests. Real PostgreSQL suite: 2 tests in a separately provisioned disposable local `dtp_test` database; `npm run test:postgres` requires `DTP_TEST_DATABASE_URL` and refuses remote/non-test databases or an existing protocol schema. CI provisions this database, with no deployment credentials. Docker was not running locally, so that suite is validated through CI rather than claimed from PGlite.
+
+## Independent pre-merge review (September 7)
+
+Two review agents independently checked authorization/privacy/concurrency and trade/finance integrity. They identified two gaps, addressed in PR #4:
+
+- Identity lookup failures now normalize hidden and missing identities to the same endpoint error, without leaking a private head record UUID. The A01 regression compares anonymous and unrelated authenticated errors before and after private registration.
+- Buyer invoice acknowledgment/dispute transitions now preserve seller-controlled `paid_amount` and `settlement_event_ids`. B09 tests each payment field across all four buyer transitions, permits unchanged buyer actions and legitimate seller accounting updates, and checks that rejected writes leave the head unchanged.
+
+These are local authorization invariants; neither fix certifies referenced payment events or changes the production gates below.
 
 ## Compatibility and rollout
 

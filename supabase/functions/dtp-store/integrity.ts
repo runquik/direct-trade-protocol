@@ -10,6 +10,13 @@ function reject(message: string): never { throw new StoreError("transition_forbi
 export function checkIntegrity(env: Envelope<Record<string, unknown>>, prev: Record<string, unknown> | null): void {
   const body = env.body;
   if (env.type === "finance.invoice") {
+    // A buyer's acknowledgment/dispute is not authority to change the seller's
+    // payment accounting. References and arithmetic still need consumer checks.
+    if (prev && env.issuer.company_id !== prev.seller_company_id) {
+      for (const field of ["paid_amount", "settlement_event_ids"]) {
+        if (!equal(prev[field], body[field])) reject(`only the seller may change invoice ${field}`);
+      }
+    }
     const assigned = body.assigned_to_company_id ?? null;
     const before = prev?.assigned_to_company_id ?? null;
     if (before !== null && assigned !== before) reject("invoice assignment cannot be removed or reassigned; an assignment-release protocol is not defined in v0.2");

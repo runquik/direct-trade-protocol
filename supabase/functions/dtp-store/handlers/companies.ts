@@ -1,6 +1,6 @@
 // Company genesis (self-certifying) and spine reads.
 import { grantsByCompany, type GrantRow } from "../authz.ts";
-import { StoreError, uniqueViolation } from "../errors.ts";
+import { isStoreError, StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
 import { fetchRecordRow, getRecord, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
@@ -77,7 +77,11 @@ export async function getCompany(ctx: Ctx, id: string): Promise<CompanyView> {
   const rows = await ctx.db.query<{ id: string; head_record_id: string | null }>("select id, head_record_id from protocol.companies where id = $1", [id]);
   if (!rows.length) throw new StoreError("not_found", `company ${id} not found`);
   if (!rows[0].head_record_id) throw new StoreError("not_found", `company ${id} not found`);
-  const head = await getRecord(ctx, rows[0].head_record_id);
+  const head = await getRecord(ctx, rows[0].head_record_id).catch(e => {
+    // Do not disclose whether this identity exists, or its private head UUID.
+    if (isStoreError(e) && e.code === "not_found") throw new StoreError("not_found", `company ${id} not found`);
+    throw e;
+  });
   const keys = await ctx.db.query<{ key_id: string; role: string; label: string | null }>(
     "select key_id, role, label from protocol.keys where owner_kind = 'company' and owner_id = $1 and status = 'active' order by created_at",
     [id],

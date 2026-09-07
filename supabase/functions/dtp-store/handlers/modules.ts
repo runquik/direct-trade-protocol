@@ -1,7 +1,7 @@
 // Module genesis. Subject is the publisher company; signed by a module root key listed in body.keys
 // (self-certifying, issuer.module_id = module_id) or by a publisher root key (issuer.module_id null).
 import { generateToken, tokenHash } from "../auth.ts";
-import { StoreError, uniqueViolation } from "../errors.ts";
+import { isStoreError, StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
 import { fetchRecordRow, getRecord, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
@@ -86,6 +86,9 @@ export async function getModule(ctx: Ctx, id: string) {
   );
   if (!rows.length) throw new StoreError("not_found", `module ${id} not found`);
   if (!rows[0].head_record_id) throw new StoreError("not_found", `module ${id} not found`);
-  const head = await getRecord(ctx, rows[0].head_record_id);
+  const head = await getRecord(ctx, rows[0].head_record_id).catch(e => {
+    if (isStoreError(e) && e.code === "not_found") throw new StoreError("not_found", `module ${id} not found`);
+    throw e;
+  });
   return { module_id: id, publisher_company_id: rows[0].publisher_company_id, name: rows[0].name, record: head };
 }

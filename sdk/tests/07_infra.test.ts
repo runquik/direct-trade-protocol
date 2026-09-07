@@ -42,9 +42,17 @@ test("A01: private identities are hidden through every read endpoint", async () 
   const env = await signRecord(draft({ type: "core.company", subject_company_id: id,
     issuer: { key_id: kp.keyId, company_id: id, module_id: null }, visibility: "private",
     body: companyBody(kp, "Private identity") }), kp.secretKey);
+  const missingCompany = await errorOf(base.getCompany(id));
   await base.createCompany(env);
   assert.equal((await errorOf(base.getRecord(env.record_id))).status, 404);
-  assert.equal((await errorOf(base.getCompany(id))).status, 404);
+  for (const client of [base, buyer.client]) {
+    const hidden = await errorOf(client.getCompany(id));
+    assert.equal(hidden.status, 404);
+    assert.equal(hidden.code, missingCompany.code);
+    assert.equal(hidden.message, missingCompany.message);
+    assert.deepEqual(hidden.details, missingCompany.details);
+    assert.ok(!hidden.message.includes(env.record_id));
+  }
 
   const moduleKey = await generateKeyPair();
   const moduleId = uniq("astra-private-module");
@@ -53,9 +61,17 @@ test("A01: private identities are hidden through every read endpoint", async () 
     body: { module_id: moduleId, name: "Private module", publisher_company_id: publisher.id,
       keys: [{ key_id: moduleKey.keyId, role: "root", status: "active", added_at: nowIso() }] }
   }), moduleKey.secretKey);
+  const missingModule = await errorOf(base.getModule(moduleId));
   await publisher.client.createModule(mod);
   assert.equal((await errorOf(base.getRecord(mod.record_id))).status, 404);
-  assert.equal((await errorOf(base.getModule(moduleId))).status, 404);
+  for (const client of [base, buyer.client]) {
+    const hidden = await errorOf(client.getModule(moduleId));
+    assert.equal(hidden.status, 404);
+    assert.equal(hidden.code, missingModule.code);
+    assert.equal(hidden.message, missingModule.message);
+    assert.deepEqual(hidden.details, missingModule.details);
+    assert.ok(!hidden.message.includes(mod.record_id));
+  }
   assert.equal((await publisher.client.getModule(moduleId)).record.record_id, mod.record_id);
   assert.equal((await errorOf(base.createModule(mod))).code, "forbidden");
   const replay = await publisher.client.request<any>("POST", "/modules", mod);
@@ -101,6 +117,39 @@ test("B02: invoice assignment is seller-controlled and cannot be cleared or reas
   }
   const acknowledged = await buyer.client.sign(revision(assigned.record, buyer, { status: "acknowledged" }), buyer.kp.secretKey);
   assert.equal(acknowledged.created, true);
+});
+
+test("B09: buyer invoice transitions preserve seller-controlled payment accounting", async () => {
+  const usd = (amount: string) => ({ amount, currency: "USD" });
+  for (const [from, to] of [["issued", "acknowledged"], ["issued", "disputed"],
+    ["acknowledged", "disputed"], ["disputed", "acknowledged"]]) {
+    let current = await seller.client.sign(draft({ type: "finance.invoice", subject_company_id: seller.id,
+      counterparty_ids: [buyer.id], issuer: { key_id: seller.kp.keyId, company_id: seller.id, module_id: null },
+      body: { invoice_number: `PAY-${from}-${to}`, seller_company_id: seller.id, buyer_company_id: buyer.id,
+        contract_id: crypto.randomUUID(), line_items: [{ description: "test", quantity: { amount: "1", unit: "case" }, unit_price: usd("100"), amount: usd("100") }],
+        subtotal: usd("100"), deductions: [], total: usd("100"), issued_at: nowIso(), due_at: nowIso(),
+        payment_terms: { net_days: 30, paca_covered: false }, status: "issued", paid_amount: usd("0"), settlement_event_ids: [] }
+    }), seller.kp.secretKey);
+    if (from !== "issued") current = await buyer.client.sign(revision(current.record, buyer, { status: from }), buyer.kp.secretKey);
+    const paymentId = crypto.randomUUID();
+    current = await seller.client.sign(revision(current.record, seller, {
+      paid_amount: usd("25"), settlement_event_ids: [paymentId]
+    }), seller.kp.secretKey);
+    for (const attack of [{ paid_amount: usd("100") }, { settlement_event_ids: [crypto.randomUUID()] }, { settlement_event_ids: [] }]) {
+      const rejected = await errorOf(buyer.client.sign(revision(current.record, buyer, { status: to, ...attack }), buyer.kp.secretKey));
+      assert.equal(rejected.code, "transition_forbidden", `${from} -> ${to}`);
+    }
+    // Rejected writes leave the head unchanged; legitimate buyer action still works.
+    assert.equal((await seller.client.getRecord(current.record.record_id)).is_head, true);
+    const accepted = await buyer.client.sign(revision(current.record, buyer, { status: to }), buyer.kp.secretKey);
+    assert.deepEqual(accepted.record.body.paid_amount, usd("25"));
+    assert.deepEqual(accepted.record.body.settlement_event_ids, [paymentId]);
+    const payment = await seller.client.sign(revision(accepted.record, seller, {
+      ...(to === "acknowledged" ? { status: "partially_paid" } : {}),
+      paid_amount: usd("50"), settlement_event_ids: [paymentId, crypto.randomUUID()]
+    }), seller.kp.secretKey);
+    assert.equal(payment.created, true);
+  }
 });
 
 test("B03: accepting an advance offer cannot change the offered price", async () => {
