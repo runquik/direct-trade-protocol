@@ -30,6 +30,7 @@
   ],
   "exclude": [
     "../supabase/functions/dtp-store/index.ts",
+    "../supabase/functions/pbp-store/index.ts",
     "tests/redteam/**",
     "tests/fuzz/**"
   ]

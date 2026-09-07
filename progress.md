@@ -2,6 +2,8 @@
 
 ## Latest: Portable Business Protocol and v0.3 authority preview
 
+- Deployment follow-up: the user explicitly authorized merge and a shared development deployment. The branch now includes a gated Deno hosting adapter, additive `pbp_v03` migration, private builder-access token, browser-origin allowlist, database timeouts, capacity rollback and a hosted synthetic smoke test. Connection/release instructions are in [PBP_DEVELOPMENT_DEPLOYMENT.md](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is not production approval or an implemented browser wireframe; the release PR/task records the deployed revision and smoke result.
+
 - **Portable Business Protocol (PBP)** is the adopted working name. Current prose is renamed; v0.2 wire IDs, schema URIs, package/API symbols, fixture identities, historical records and the GitHub repository name remain compatible. See [PBP_DIRECTION.md](docs/PBP_DIRECTION.md).
 - PR #4 was independently reviewed, two remaining privacy/payment-authority issues were fixed, and it merged to main at `2b75ec4`. The v0.2 suite has 64 tests, with 37 auxiliary and two PostgreSQL tests. Nothing was deployed.
 - The separate [v0.3 reference preview](spec/v0.3/SPEC.md) implements person identities, accepted company memberships, explicit capabilities, installation-scoped module keys, exact signed attribution, controller quorum, retained-key recovery, and pinned trusted-store migration. It uses `/pbp-store/commands` and isolated `pbp_v03` persistence, not a v0.2 root-credential proxy.

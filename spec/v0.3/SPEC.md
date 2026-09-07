@@ -1,6 +1,6 @@
 # Portable Business Protocol 0.3 — identity and authority reference preview
 
-Status: **implemented experimental profile, pending independent review**. September 7, 2026.
+Status: **implemented experimental profile, pending independent review**. September 7, 2026. An explicitly gated synthetic-data hosting adapter is described in [development deployment](../../docs/PBP_DEVELOPMENT_DEPLOYMENT.md); this does not waive production gates.
 
 This is a separate protocol surface from [the frozen v0.2 company-record specification](../../SPEC.md). It implements portable personal/company identity, memberships, explicit capabilities, installation-scoped module authority, signed attribution, controller quorum, retained-key recovery and bounded trusted-store migration. It is not a production certification, a completed workspace UI, or a replacement for all business evidence verification.
 

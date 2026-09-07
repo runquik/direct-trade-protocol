@@ -6,7 +6,7 @@ import type { State } from "../../../sdk/src/v03/model.ts";
 import { FloatNotAllowedError, CanonicalizationError } from "../../../sdk/src/canonical.ts";
 
 export const MAX_BYTES = 1024 * 1024;
-export interface Deps extends Omit<EngineOptions, "now"> { db: Db; now?: () => number }
+export interface Deps extends Omit<EngineOptions, "now"> { db: Db; now?: () => number; maxStateBytes?: number }
 function json(value: unknown, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { "content-type": "application/json", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
 }
@@ -48,7 +48,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       const state = structuredClone(rows[0].body);
       // Authorization and clock freshness are evaluated after acquiring the write lock.
       const out = await execute(state, input, { ...deps, now: deps.now?.() ?? Date.now() });
-      await tx.query("update pbp_v03.state set body = $1::jsonb, revision = revision + 1 where singleton = true", [JSON.stringify(state)]);
+      const serialized = JSON.stringify(state);
+      if (deps.maxStateBytes && new TextEncoder().encode(serialized).length > deps.maxStateBytes) throw new PbpError("development_capacity", "development store capacity reached", 507);
+      await tx.query("update pbp_v03.state set body = $1::jsonb, revision = revision + 1 where singleton = true", [serialized]);
       return out;
     });
     return json({ result });

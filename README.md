@@ -1,5 +1,7 @@
 # Portable Business Protocol (PBP)
 
+Building against v0.3? See the [shared development backend connection and deployment guide](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is separate from the v0.2 API and is for synthetic data only.
+
 **An open protocol for company-controlled identity, authority, and business records across independent software.**
 
 *Your company, independent of its software.*

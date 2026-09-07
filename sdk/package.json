@@ -8,6 +8,8 @@
     "dev:pbp": "node scripts/pbp-dev-server.ts",
     "build:pbp": "node scripts/build-pbp-schema.ts",
     "build:pbp-vectors": "node scripts/build-pbp-vectors.ts",
+    "build:pbp-migration": "node scripts/build-pbp-migration.ts",
+    "smoke:pbp-hosted": "node scripts/pbp-hosted-smoke.ts",
     "demo:passport": "node scripts/passport-demo.ts",
     "test:pbp": "node --test tests/08_pbp.test.ts",
     "build": "node scripts/build-schemas.ts",

@@ -7,7 +7,7 @@ import { personId, organizationId } from "../../../sdk/src/v03/wire.ts";
 export interface PassportIdentity { id: string; key: KeyPair }
 export class Passport {
   client: PbpClient;
-  constructor(audience: string) { this.client = new PbpClient(audience); }
+  constructor(audience: string, accessToken?: string) { this.client = new PbpClient(audience, accessToken); }
   async createIdentity(): Promise<PassportIdentity> {
     const key = await generateKeyPair(); const identity = { id: await personId(key.keyId), key };
     await this.client.act(identity, "person.register", null, { keys: [key.keyId] }); return identity;

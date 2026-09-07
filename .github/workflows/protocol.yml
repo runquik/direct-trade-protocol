@@ -27,7 +27,11 @@ jobs:
       - run: git diff --exit-code -- src/schemas.ts ../spec/generated
       - run: npm run build:pbp
       - run: npm run build:pbp-vectors
+      - run: npm run build:pbp-migration
+      - run: git diff --exit-code -- ../supabase/migrations/20260907000000_pbp_v03.sql
       - run: git diff --exit-code -- ../spec/v0.3/command.schema.json ../spec/v0.3/signing-vector.json
+      - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json ../supabase/functions/pbp-store/index.ts
+      - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/pbp-runtime-probe.ts
       - run: npm run typecheck
       - run: npm test
       - run: npm run demo:passport

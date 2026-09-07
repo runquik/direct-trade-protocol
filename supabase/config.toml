@@ -415,3 +415,7 @@ enabled = true
 # DTP v0.2 protocol store. Auth is bearer-token + Ed25519 record signatures inside the function, not Supabase JWT.
 [functions.dtp-store]
 verify_jwt = false
+
+# PBP v0.3 gated synthetic-data development service; signatures enforce authority.
+[functions.pbp-store]
+verify_jwt = false
