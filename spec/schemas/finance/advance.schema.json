@@ -4,6 +4,8 @@
   "title": "finance.advance",
   "description": "A funded advance, created only from an accepted advance_offer. Subject is the seller; the financer is the counterparty and owns every transition, each of which MUST cite settlement events.",
   "x-dtp-subject": "seller_company_id",
+  "x-dtp-revision-by": ["financer"],
+  "x-dtp-immutable-fields": ["advance_offer_id", "invoice_id", "seller_company_id", "financer_company_id", "principal", "fee", "funded_at", "funding_event_id", "maturity_at"],
   "x-dtp-default-visibility": "counterparties",
   "x-dtp-roles": { "seller": "seller_company_id", "financer": "financer_company_id" },
   "x-dtp-transitions": {

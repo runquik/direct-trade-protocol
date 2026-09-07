@@ -1,4 +1,4 @@
-// Ed25519 keys via WebCrypto (Node >=23.5, Deno, Supabase edge runtime).
+// Ed25519 keys via WebCrypto (qualified Node version in /.node-version; also used by Deno).
 // Encodings are NEAR-compatible:
 //   key id     = "ed25519:" + base58(32-byte public key)
 //   secret key = "ed25519:" + base58(32-byte seed || 32-byte public key)   (64 bytes, like NEAR)

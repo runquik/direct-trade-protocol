@@ -10,6 +10,7 @@
 //    subject alone. Types without a status field may be superseded by the subject alone.
 import type { TypeInfo } from "../../../sdk/src/registry.ts";
 import { StoreError } from "./errors.ts";
+import { canonicalize } from "../../../sdk/src/canonical.ts";
 
 export interface PartyContext {
   issuerCompanyId: string;
@@ -75,6 +76,20 @@ export function checkTransition(
   newBody: Record<string, unknown>,
   roles: Set<string>,
 ): void {
+  if (prevBody) {
+    if (info.schema["x-dtp-append-only"] === true) {
+      throw new StoreError("transition_forbidden", `${info.type} cannot be superseded; append a compensating record`);
+    }
+    const lockAfter = info.schema["x-dtp-lock-after-statuses"] as string[] | undefined;
+    const fields = info.schema["x-dtp-immutable-fields"] as string[] | undefined;
+    if (!lockAfter || lockAfter.includes(String(statusOf(info, prevBody)))) {
+      for (const field of fields ?? []) {
+        if (canonicalize(prevBody[field] ?? null) !== canonicalize(newBody[field] ?? null)) {
+          throw new StoreError("transition_forbidden", `${info.type}.${field} is immutable; amendments require a new agreement`, { field });
+        }
+      }
+    }
+  }
   const t = info.transitions;
   if (!t) {
     if (prevBody && !roles.has("subject")) throw new StoreError("transition_forbidden", "only the subject may supersede this record");
@@ -108,9 +123,9 @@ export function checkTransition(
     return;
   }
   if (prev === next) {
-    // unlisted same-status revision: subject only
-    if (!roles.has("subject")) {
-      throw new StoreError("transition_forbidden", `only the subject may revise a ${info.type} without changing its status`, { status: prev, roles: [...roles] });
+    const by = (info.schema["x-dtp-revision-by"] as string[] | undefined) ?? ["subject"];
+    if (!allowed(by)) {
+      throw new StoreError("transition_forbidden", `same-status revisions of ${info.type} require: ${by.join(", ")}`, { status: prev, roles: [...roles] });
     }
     return;
   }

@@ -1,9 +1,9 @@
 // Company genesis (self-certifying) and spine reads.
 import { grantsByCompany, type GrantRow } from "../authz.ts";
-import { StoreError, uniqueViolation } from "../errors.ts";
+import { isStoreError, StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
-import { fetchRecordRow, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
+import { fetchRecordRow, getRecord, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
 import { generateToken, tokenHash } from "../auth.ts";
 import { decodeKeyId } from "../../../../sdk/src/keys.ts";
 
@@ -28,7 +28,7 @@ export async function createCompany(ctx: Ctx, input: unknown): Promise<WriteResu
   // idempotent replay of the same genesis envelope
   const replay = await fetchRecordRow(ctx.db, env.record_id);
   if (replay) {
-    if (replay.payload_hash === v.payload_hash) return { company_id: env.subject_company_id, record: rowToRecord(replay), created: false, keys: [] } as any;
+    if (replay.payload_hash === v.payload_hash) return { company_id: env.subject_company_id, record: await getRecord(ctx, env.record_id), created: false, keys: [] };
     throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
   }
   const exists = await ctx.db.query("select 1 from protocol.companies where id = $1", [env.subject_company_id]);
@@ -76,12 +76,17 @@ export interface CompanyView {
 export async function getCompany(ctx: Ctx, id: string): Promise<CompanyView> {
   const rows = await ctx.db.query<{ id: string; head_record_id: string | null }>("select id, head_record_id from protocol.companies where id = $1", [id]);
   if (!rows.length) throw new StoreError("not_found", `company ${id} not found`);
-  const head = rows[0].head_record_id ? await fetchRecordRow(ctx.db, rows[0].head_record_id) : null;
+  if (!rows[0].head_record_id) throw new StoreError("not_found", `company ${id} not found`);
+  const head = await getRecord(ctx, rows[0].head_record_id).catch(e => {
+    // Do not disclose whether this identity exists, or its private head UUID.
+    if (isStoreError(e) && e.code === "not_found") throw new StoreError("not_found", `company ${id} not found`);
+    throw e;
+  });
   const keys = await ctx.db.query<{ key_id: string; role: string; label: string | null }>(
     "select key_id, role, label from protocol.keys where owner_kind = 'company' and owner_id = $1 and status = 'active' order by created_at",
     [id],
   );
-  const view: CompanyView = { company_id: id, record: head ? rowToRecord(head) : null, active_keys: keys };
+  const view: CompanyView = { company_id: id, record: head, active_keys: keys };
   if (ctx.principal?.kind === "company" && ctx.principal.id === id) view.grants_issued = await grantsByCompany(ctx.db, id);
   return view;
 }

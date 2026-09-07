@@ -83,6 +83,8 @@ Subject: `buyer_company_id` · default visibility: `counterparties` · writable 
 
 Initial status: `active` — created by: buyer, seller
 
+Immutable fields: `buyer_company_id`, `seller_company_id`, `intent_id`, `listing_id`, `offer_id`, `standing_agreement_id`, `lot_id`, `buyer_po_number`, `goods`, `delivery`, `finance`, `freight`, `price_per_unit`, `total_value`, `escrow_ref`, `dispute_window_hours`.
+
 | From | To | Who | Clock | Note |
 |---|---|---|---|---|
 | active | in_fulfillment | seller |  | trigger: trade.fulfillment created |
@@ -102,6 +104,8 @@ Subject: `seller_company_id` · default visibility: `counterparties` · writable
 
 Initial status: `seller_attested` — created by: seller
 
+Immutable fields: `contract_id`, `seller_company_id`, `buyer_company_id`, `delivered_at`, `quantity_delivered`, `seller_attestation`.
+
 | From | To | Who | Clock | Note |
 |---|---|---|---|---|
 | seller_attested | buyer_attested | buyer | within contract.dispute_window_hours |  |
@@ -115,6 +119,8 @@ Initial status: `seller_attested` — created by: seller
 Subject: `buyer_company_id` · default visibility: `counterparties` · writable by: company, module
 
 Initial status: (none) — created by: buyer
+
+Append-only entity: supersession forbidden; append a correction/compensating record.
 
 ## `trade.standing_agreement`
 
@@ -139,6 +145,8 @@ Subject: `seller_company_id` · default visibility: `counterparties` · writable
 
 Initial status: `draft`, `issued` — created by: seller
 
+Immutable fields: `invoice_number`, `seller_company_id`, `buyer_company_id`, `contract_id`, `fulfillment_id`, `line_items`, `subtotal`, `deductions`, `total`, `issued_at`, `due_at`, `payment_terms`. Applies when the previous status is: issued, acknowledged, disputed, partially_paid, paid, void.
+
 | From | To | Who | Clock | Note |
 |---|---|---|---|---|
 | draft | issued | seller |  |  |
@@ -161,6 +169,10 @@ Subject: `seller_company_id` · default visibility: `counterparties` · writable
 
 Initial status: `offered` — created by: financer
 
+Unlisted same-status revisions: financer.
+
+Immutable fields: `invoice_id`, `seller_company_id`, `financer_company_id`, `advance_amount`, `advance_bps`, `fee`, `repayment`, `recourse`, `pricing_basis`, `expires_at`.
+
 | From | To | Who | Clock | Note |
 |---|---|---|---|---|
 | offered | accepted | seller |  |  |
@@ -173,6 +185,10 @@ Initial status: `offered` — created by: financer
 Subject: `seller_company_id` · default visibility: `counterparties` · writable by: company, module
 
 Initial status: `funded` — created by: financer
+
+Unlisted same-status revisions: financer.
+
+Immutable fields: `advance_offer_id`, `invoice_id`, `seller_company_id`, `financer_company_id`, `principal`, `fee`, `funded_at`, `funding_event_id`, `maturity_at`.
 
 | From | To | Who | Clock | Note |
 |---|---|---|---|---|
@@ -189,6 +205,8 @@ Initial status: `funded` — created by: financer
 Subject: `from_company_id` · default visibility: `counterparties` · writable by: company, module
 
 Initial status: (none) — created by: payer
+
+Append-only entity: supersession forbidden; append a correction/compensating record.
 
 ## `traceability.cte`
 

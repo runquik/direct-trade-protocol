@@ -40,6 +40,11 @@ export async function validateSignedEnvelope(input: unknown): Promise<ValidatedR
   }
   const bodyCheck = validateBody(env.type, env.body);
   if (!bodyCheck.ok) throw new StoreError("schema_invalid", `body does not conform to ${env.type}`, { issues: bodyCheck.issues });
+  if (env.type === "core.company" || env.type === "core.module") {
+    const keys = env.body.keys as { key_id: string; role: string; status: string }[];
+    if (new Set(keys.map(k => k.key_id)).size !== keys.length) throw new StoreError("schema_invalid", "keys must contain unique key_id values");
+    if (!keys.some(k => k.role === "root" && k.status === "active")) throw new StoreError("forbidden", "an identity must retain at least one active root key");
+  }
 
   const v = await verifyRecord(env);
   if (!v.ok) throw new StoreError("signature_invalid", v.error ?? "signature does not verify", { key_id: env.issuer.key_id });

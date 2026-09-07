@@ -79,7 +79,7 @@ test(`race 1: ${N} simultaneous superseding writes of the same head (different r
       counterparty_ids: [seller.id],
       issuer: { key_id: buyer.kp.keyId, company_id: buyer.id, module_id: null },
       visibility: "counterparties",
-      body: { ...(prev.body as any), buyer_po_number: `PO-race-${i}` },
+      body: { ...(prev.body as any), x_note: `race-${i}` },
     });
     envs.push((await signRecord(unsigned, buyer.kp.secretKey)) as Envelope);
   }

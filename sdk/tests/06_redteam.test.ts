@@ -44,9 +44,9 @@ function supersedeOf(prev: any, issuer: Company, body: Record<string, unknown>, 
 test("WB-CRITICAL: a stranger cannot hijack a record by naming itself as counterparty on a supersede", async () => {
   const c = await makeContract(buyer, seller);
   const attack = supersedeOf(c.record, stranger, { ...(c.record.body as any), total_value: { amount: "0.01", currency: "USD" } }, { counterparty_ids: [stranger.id] });
-  await expectCode(stranger.client.sign(attack, stranger.kp.secretKey), "supersedes_conflict"); // counterparties are locked
+  await expectCode(stranger.client.sign(attack, stranger.kp.secretKey), "not_found"); // unreadable targets do not reveal continuity
   const attack2 = supersedeOf(c.record, stranger, { ...(c.record.body as any), total_value: { amount: "0.01", currency: "USD" } });
-  await expectCode(stranger.client.sign(attack2, stranger.kp.secretKey), "issuer_not_party"); // and even with the right list, a stranger is not a party
+  await expectCode(stranger.client.sign(attack2, stranger.kp.secretKey), "not_found");
   const head = await buyer.client.getRecord(c.record.record_id);
   assert.equal(head.is_head, true, "the original is still the head");
 });
@@ -65,13 +65,12 @@ test("BB-F4: counterparty_ids and visibility cannot change across a supersede (n
   assert.equal(still.is_head, true);
 });
 
-test("BB-F5: a counterparty cannot rewrite body fields under an unchanged status; the subject can", async () => {
+test("BB-F5: neither party can rewrite agreed contract terms under an unchanged status", async () => {
   const c = await makeContract(buyer, seller); // subject = buyer
   const bySeller = supersedeOf(c.record, seller, { ...(c.record.body as any), total_value: { amount: "0.01", currency: "USD" } });
   await expectCode(seller.client.sign(bySeller, seller.kp.secretKey), "transition_forbidden");
   const byBuyer = supersedeOf(c.record, buyer, { ...(c.record.body as any), buyer_po_number: "PO-CORRECTED" });
-  const r = await buyer.client.sign(byBuyer, buyer.kp.secretKey);
-  assert.equal((r.record.body as any).buyer_po_number, "PO-CORRECTED");
+  await expectCode(buyer.client.sign(byBuyer, buyer.kp.secretKey), "transition_forbidden");
 });
 
 test("WB-HIGH: x-dtp-subject binding is enforced — the body field must name the envelope subject", async () => {
@@ -103,7 +102,7 @@ test("WB-HIGH: roles come from the previous record and role fields are immutable
   await expectCode(seller.client.sign(supersedeOf(v3.record, seller, { ...(v3.record.body as any), seller_company_id: stranger.id }), seller.kp.secretKey), "transition_forbidden");
   // the arbitrator is not a party (not subject, not counterparty) — it cannot write to this record at all in v0.2
   // (design note: arbitration by a non-party is a gap-log item; here we assert the store does not let anyone else do it)
-  await expectCode(arbiter.client.sign(supersedeOf(v3.record, arbiter, { ...(v3.record.body as any), status: "resolved_buyer" }), arbiter.kp.secretKey), "issuer_not_party");
+  await expectCode(arbiter.client.sign(supersedeOf(v3.record, arbiter, { ...(v3.record.body as any), status: "resolved_buyer" }), arbiter.kp.secretKey), "not_found");
 });
 
 test("WB/BB-F3: module genesis requires the publisher's own root token (no publisher spoofing)", async () => {
@@ -129,7 +128,7 @@ test("BB-F1 / WB-MEDIUM: concurrent supersedes yield exactly one 201 and the res
   const c = await makeContract(buyer, seller);
   const attempts = await Promise.all(
     Array.from({ length: 8 }, (_, i) =>
-      buyer.client.sign(supersedeOf(c.record, buyer, { ...(c.record.body as any), buyer_po_number: `PO-${i}` }), buyer.kp.secretKey).then(
+      buyer.client.sign(supersedeOf(c.record, buyer, { ...(c.record.body as any), x_note: `attempt-${i}` }), buyer.kp.secretKey).then(
         () => 201,
         (e) => (e instanceof StoreRequestError ? `${e.status}:${e.code}` : `ERR:${String(e)}`),
       ),

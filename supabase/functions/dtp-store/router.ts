@@ -33,12 +33,42 @@ export function relativePath(url: URL): string[] {
 async function readJson(req: Request): Promise<unknown> {
   const len = Number(req.headers.get("content-length") ?? 0);
   if (len > MAX_BODY_BYTES) throw new StoreError("payload_too_large", `body exceeds ${MAX_BODY_BYTES} bytes`);
-  const text = await req.text();
-  if (text.length > MAX_BODY_BYTES) throw new StoreError("payload_too_large", `body exceeds ${MAX_BODY_BYTES} bytes`);
+  const reader = req.body?.getReader();
+  if (!reader) throw new StoreError("bad_request", "empty body");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_BODY_BYTES) {
+        void reader.cancel().catch(() => {});
+        throw new StoreError("payload_too_large", `body exceeds ${MAX_BODY_BYTES} bytes`);
+      }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  let text: string;
+  try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+  catch { throw new StoreError("bad_request", "body is not valid UTF-8"); }
   if (!text.trim()) throw new StoreError("bad_request", "empty body");
   try {
-    return JSON.parse(text);
-  } catch {
+    const parsed = JSON.parse(text);
+    const pending: { value: unknown; depth: number }[] = [{ value: parsed, depth: 0 }];
+    while (pending.length) {
+      const { value, depth } = pending.pop()!;
+      if (depth > 64) throw new StoreError("bad_request", "JSON nesting exceeds 64 levels");
+      if (value && typeof value === "object") {
+        for (const child of Object.values(value)) pending.push({ value: child, depth: depth + 1 });
+      }
+    }
+    return parsed;
+  } catch (e) {
+    if (isStoreError(e)) throw e;
     throw new StoreError("bad_request", "body is not valid JSON");
   }
 }
@@ -47,7 +77,7 @@ function intParam(url: URL, name: string): number | undefined {
   const v = url.searchParams.get(name);
   if (v === null || v === "") return undefined;
   const n = Number(v);
-  if (!Number.isFinite(n)) throw new StoreError("bad_request", `${name} must be a number`);
+  if (!/^\d+$/.test(v) || !Number.isSafeInteger(n) || n < (name === "limit" ? 1 : 0)) throw new StoreError("bad_request", `${name} must be a ${name === "limit" ? "positive" : "non-negative"} safe integer`);
   return n;
 }
 
@@ -58,11 +88,12 @@ export interface Deps {
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-  const url = new URL(req.url);
-  const path = relativePath(url);
-  const now = deps.now ? deps.now() : new Date();
-
   try {
+    const url = new URL(req.url);
+    let path: string[];
+    try { path = relativePath(url); }
+    catch { throw new StoreError("bad_request", "malformed path encoding"); }
+    const now = deps.now ? deps.now() : new Date();
     let principal: Principal | null;
     try {
       principal = await resolvePrincipal(deps.db, req.headers);
@@ -71,6 +102,18 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       throw e;
     }
     const ctx: Ctx = { db: deps.db, principal, now };
+    // Sprint reference store: serialize ALL append transactions. This makes event
+    // sequence allocation commit-ordered and authorization/revocation linearizable.
+    // Revisit the coarse lock before high-throughput deployment, not its guarantees.
+    async function atomicWrite<T>(run: (writeCtx: Ctx) => Promise<T>): Promise<T> {
+      return deps.db.transaction(async tx => {
+        await tx.query("select pg_advisory_xact_lock(1146376208)");
+        const current = await resolvePrincipal(tx, req.headers);
+        // Handlers' inner transactions join this outer transaction (no early commit).
+        const joined: Db = { query: (sql, params) => tx.query(sql, params), transaction: fn => fn(joined) };
+        return run({ db: joined, principal: current, now: deps.now ? deps.now() : new Date() });
+      });
+    }
     const m = req.method;
     const [a, b, c] = path;
 
@@ -88,8 +131,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     if (a === "companies") {
       if (m === "POST" && b === undefined) {
-        const r = await createCompany(ctx, await readJson(req));
-        return json(r, 201);
+        const input = await readJson(req);
+        const r = await atomicWrite(c => createCompany(c, input));
+        return json(r, r.created ? 201 : 200);
       }
       if (m === "GET" && b !== undefined && c === undefined) return json(await getCompany(ctx, b));
       if (m === "GET" && b !== undefined && c === "grants") return json({ grants: await listCompanyGrants(ctx, b) });
@@ -97,15 +141,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     if (a === "modules") {
       if (m === "POST" && b === undefined) {
-        const r = await createModule(ctx, await readJson(req));
-        return json(r, 201);
+        const input = await readJson(req);
+        const r = await atomicWrite(c => createModule(c, input));
+        return json(r, r.created ? 201 : 200);
       }
       if (m === "GET" && b !== undefined) return json(await getModule(ctx, b));
     }
 
     if (a === "records") {
       if (m === "POST" && b === undefined) {
-        const r = await writeRecord(ctx, await readJson(req));
+        const input = await readJson(req);
+        const r = await atomicWrite(c => writeRecord(c, input));
         return json(r, r.created ? 201 : 200);
       }
       if (m === "GET" && b !== undefined) return json({ record: await getRecord(ctx, b) });
@@ -135,6 +181,6 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
   } catch (e) {
     if (isStoreError(e)) return json(e.toBody(), e.status);
     console.error("dtp-store internal error:", e);
-    return json({ error: { code: "internal", message: (e as Error)?.message ?? "internal error", details: {} } }, 500);
+    return json({ error: { code: "internal", message: "internal error", details: {} } }, 500);
   }
 }

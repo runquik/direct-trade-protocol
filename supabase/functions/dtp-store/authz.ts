@@ -1,5 +1,5 @@
 // Read visibility and grant lookups.
-import { grantCovers, type GrantLike, type Scope } from "../../../sdk/src/scopes.ts";
+import { grantCovers, isGrantLive, type GrantLike, type Scope } from "../../../sdk/src/scopes.ts";
 import type { Principal } from "./auth.ts";
 import type { Db } from "./db.ts";
 
@@ -64,10 +64,11 @@ export function canRead(row: VisibilityInput, principal: Principal | null, grant
 }
 
 /**
- * SQL prefilter for reads: narrows rows before the JS canRead pass. `alias` is the table alias.
+ * Exact SQL equivalent of canRead, applied BEFORE LIMIT/MAX. `bodyAlias` supplies
+ * the record body when the routing fields come from the events table.
  * Returns [clause, params] with placeholders numbered from `startIndex`.
  */
-export function readPrefilter(principal: Principal | null, grants: GrantRow[], alias: string, startIndex: number): [string, unknown[]] {
+export function readPrefilter(principal: Principal | null, grants: GrantRow[], alias: string, startIndex: number, now = new Date(), bodyAlias = alias): [string, unknown[]] {
   if (!principal) return [`${alias}.visibility = 'public'`, []];
   if (principal.kind === "company") {
     return [
@@ -75,9 +76,22 @@ export function readPrefilter(principal: Principal | null, grants: GrantRow[], a
       [principal.id],
     ];
   }
-  const grantors = [...new Set(grants.map((g) => g.grantor_company_id))];
-  return [
-    `(${alias}.visibility = 'public' or ${alias}.type = 'core.grant' or ${alias}.subject_company_id = any($${startIndex}::text[]) or (${alias}.visibility = 'counterparties' and ${alias}.counterparty_ids && $${startIndex}::text[]))`,
-    [grantors],
-  ];
+  const params: unknown[] = [];
+  const bind = (v: unknown) => { params.push(v); return `$${startIndex + params.length - 1}`; };
+  const clauses = [`${alias}.visibility = 'public'`,
+    `(${alias}.type = 'core.grant' and ${bodyAlias}.body->>'module_id' = ${bind(principal.id)})`];
+  for (const g of grants) {
+    if (!isGrantLive(g, now)) continue;
+    const scopes = g.scopes.filter(s => s.access === "read" || s.access === "write").map(s => {
+      if (s.type) return `${alias}.type = ${bind(s.type)}`;
+      if (s.namespace === "*") return "true";
+      if (s.namespace) return `${alias}.namespace = ${bind(s.namespace)}`;
+      return "false";
+    });
+    if (!scopes.length) continue;
+    const company = bind(g.grantor_company_id);
+    clauses.push(`(${alias}.visibility <> 'private' and (${scopes.join(" or ")}) and
+      (${alias}.subject_company_id = ${company} or (${alias}.visibility = 'counterparties' and ${company} = any(${alias}.counterparty_ids))))`);
+  }
+  return [`(${clauses.join(" or ")})`, params];
 }

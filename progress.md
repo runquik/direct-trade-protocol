@@ -1,4 +1,18 @@
-# DTP — save point (2026-09-04)
+# DTP — save point (updated 2026-09-06)
+
+## Latest: infrastructure hardening and workspace direction
+
+The September 4 save point below is historical. The current fix batch and remaining gates are in [docs/INFRA_HARDENING_2026-09-06.md](docs/INFRA_HARDENING_2026-09-06.md). Read that before treating the old "all findings closed" statement as current.
+
+- Privacy, filtered sync, exact retries, agreed-term/evidence integrity, immutable settlements, finance revision/assignment controls, last-root safeguards and serialized write authorization have been tightened. Schemas and SPEC move together; original signature vectors are unchanged.
+- Local default suite: 63 tests; auxiliary suite: 37. Node 22.23.2 is the qualified local runtime. Actual deployed Edge runtime remains a separate gate. CI includes disposable PostgreSQL concurrency checks. No live deployment is implied.
+- Passport token recovery and the full consumer-side evidence verifier remain prerequisites for real operations; do not onboard real companies or advance real money based on this batch alone.
+- Proposed sprint split is Passport + Early Pay on George's side, brand-side Trade Ledger + Books on the other side, pending the existing-product demo and agreement on the end-to-end test. Simulated lender and payments; independently built signing; records must flow both directions. The earlier "then Trade Ledger" instruction below is superseded as a working plan, not evidence that the new split has been accepted.
+- [Workspace foundations](docs/WORKSPACE_FOUNDATIONS.md): same operations across chat/manual UI, narrow permissions, durable jobs/approvals, usage receipts later. No marketplace or workspace implementation added.
+
+---
+
+## Historical September 4 save point
 
 *Read this first when picking the project back up. It replaces the March 2026 contract-era `task_plan.md` / `findings.md`.*
 

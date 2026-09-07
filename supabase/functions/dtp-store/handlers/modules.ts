@@ -1,10 +1,10 @@
 // Module genesis. Subject is the publisher company; signed by a module root key listed in body.keys
 // (self-certifying, issuer.module_id = module_id) or by a publisher root key (issuer.module_id null).
 import { generateToken, tokenHash } from "../auth.ts";
-import { StoreError, uniqueViolation } from "../errors.ts";
+import { isStoreError, StoreError, uniqueViolation } from "../errors.ts";
 import { checkTransition, rolesOf } from "../transitions.ts";
 import { statusFromBody, validateSignedEnvelope } from "../validate.ts";
-import { fetchRecordRow, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
+import { fetchRecordRow, getRecord, insertEvent, insertRecord, rowToRecord, type Ctx, type WriteResult } from "./records.ts";
 import { decodeKeyId } from "../../../../sdk/src/keys.ts";
 
 export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResult & { module_id: string }> {
@@ -19,10 +19,14 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
   }
   const publisher = await ctx.db.query("select 1 from protocol.companies where id = $1", [env.subject_company_id]);
   if (!publisher.length) throw new StoreError("not_found", `publisher company ${env.subject_company_id} is not registered`);
+  const p = ctx.principal;
+  if (!p || p.kind !== "company" || p.id !== env.subject_company_id || p.role !== "root") {
+    throw new StoreError("forbidden", "module genesis requires a bearer token for a root key of the publisher company");
+  }
   // idempotent replay of the same genesis envelope
   const replay = await fetchRecordRow(ctx.db, env.record_id);
   if (replay) {
-    if (replay.payload_hash === v.payload_hash) return { module_id: moduleId, record: rowToRecord(replay), created: false, keys: [] } as any;
+    if (replay.payload_hash === v.payload_hash) return { module_id: moduleId, record: await getRecord(ctx, env.record_id), created: false, keys: [] };
     throw new StoreError("duplicate_record_id", `record_id ${env.record_id} already exists with a different payload`);
   }
   const exists = await ctx.db.query("select 1 from protocol.modules where id = $1", [moduleId]);
@@ -30,10 +34,6 @@ export async function createModule(ctx: Ctx, input: unknown): Promise<WriteResul
 
   // The publisher must consent: whichever key signs the genesis, the caller must present the publisher's
   // root-key bearer token. Without this, anyone could register a module "published by" a company they don't control.
-  const p = ctx.principal;
-  if (!p || p.kind !== "company" || p.id !== env.subject_company_id || p.role !== "root") {
-    throw new StoreError("forbidden", "module genesis requires a bearer token for a root key of the publisher company");
-  }
   const keys = body.keys as any[];
   const selfKey = keys.find((k) => k.key_id === env.issuer.key_id);
   if (env.issuer.module_id === moduleId) {
@@ -85,6 +85,10 @@ export async function getModule(ctx: Ctx, id: string) {
     [id],
   );
   if (!rows.length) throw new StoreError("not_found", `module ${id} not found`);
-  const head = rows[0].head_record_id ? await fetchRecordRow(ctx.db, rows[0].head_record_id) : null;
-  return { module_id: id, publisher_company_id: rows[0].publisher_company_id, name: rows[0].name, record: head ? rowToRecord(head) : null };
+  if (!rows[0].head_record_id) throw new StoreError("not_found", `module ${id} not found`);
+  const head = await getRecord(ctx, rows[0].head_record_id).catch(e => {
+    if (isStoreError(e) && e.code === "not_found") throw new StoreError("not_found", `module ${id} not found`);
+    throw e;
+  });
+  return { module_id: id, publisher_company_id: rows[0].publisher_company_id, name: rows[0].name, record: head };
 }

@@ -1243,6 +1243,20 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "finance.advance",
     "description": "A funded advance, created only from an accepted advance_offer. Subject is the seller; the financer is the counterparty and owns every transition, each of which MUST cite settlement events.",
     "x-dtp-subject": "seller_company_id",
+    "x-dtp-revision-by": [
+      "financer"
+    ],
+    "x-dtp-immutable-fields": [
+      "advance_offer_id",
+      "invoice_id",
+      "seller_company_id",
+      "financer_company_id",
+      "principal",
+      "fee",
+      "funded_at",
+      "funding_event_id",
+      "maturity_at"
+    ],
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "seller": "seller_company_id",
@@ -1415,6 +1429,21 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "finance.advance_offer",
     "description": "A financer's offer to advance cash against an invoice. Subject is the seller; the financer is the counterparty and the issuer (via its module). pricing_basis lists the protocol records the decision was made from — proof that no out-of-band intake was needed.",
     "x-dtp-subject": "seller_company_id",
+    "x-dtp-revision-by": [
+      "financer"
+    ],
+    "x-dtp-immutable-fields": [
+      "invoice_id",
+      "seller_company_id",
+      "financer_company_id",
+      "advance_amount",
+      "advance_bps",
+      "fee",
+      "repayment",
+      "recourse",
+      "pricing_basis",
+      "expires_at"
+    ],
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "seller": "seller_company_id",
@@ -1599,6 +1628,28 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "finance.invoice",
     "description": "A receivable. Subject is the seller (AR); the buyer is the counterparty. Issued by the seller or a module holding finance write from the seller. assigned_to_company_id is set when an advance funds and the receivable is assigned to the financer — the field a factor's lockbox exists to replace.",
     "x-dtp-subject": "seller_company_id",
+    "x-dtp-immutable-fields": [
+      "invoice_number",
+      "seller_company_id",
+      "buyer_company_id",
+      "contract_id",
+      "fulfillment_id",
+      "line_items",
+      "subtotal",
+      "deductions",
+      "total",
+      "issued_at",
+      "due_at",
+      "payment_terms"
+    ],
+    "x-dtp-lock-after-statuses": [
+      "issued",
+      "acknowledged",
+      "disputed",
+      "partially_paid",
+      "paid",
+      "void"
+    ],
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "seller": "seller_company_id",
@@ -1892,6 +1943,7 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "finance.settlement_event",
     "description": "An immutable money movement. Subject is the payer; the payee is the counterparty. No status: corrections are a compensating event whose `reverses` names this one.",
     "x-dtp-subject": "from_company_id",
+    "x-dtp-append-only": true,
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "payer": "from_company_id",
@@ -2267,6 +2319,24 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "trade.contract",
     "description": "Binding record of agreed trade terms. Subject is the buyer (it is the buyer's payable); the seller reads it as a counterparty. Created by whichever party accepted the offer; may also be created directly under a standing agreement or by mutual direct agreement.",
     "x-dtp-subject": "buyer_company_id",
+    "x-dtp-immutable-fields": [
+      "buyer_company_id",
+      "seller_company_id",
+      "intent_id",
+      "listing_id",
+      "offer_id",
+      "standing_agreement_id",
+      "lot_id",
+      "buyer_po_number",
+      "goods",
+      "delivery",
+      "finance",
+      "freight",
+      "price_per_unit",
+      "total_value",
+      "escrow_ref",
+      "dispute_window_hours"
+    ],
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "buyer": "buyer_company_id",
@@ -2724,6 +2794,14 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "trade.fulfillment",
     "description": "Delivery record for a contract. Subject is the seller (who attests shipment/delivery); the buyer attests receipt by superseding this record with buyer_attestation filled in. Structured evidence (BOL, temperature logs, inspection) may be attached under x_evidence in v0.2; a first-class evidence type is a v0.3 candidate.",
     "x-dtp-subject": "seller_company_id",
+    "x-dtp-immutable-fields": [
+      "contract_id",
+      "seller_company_id",
+      "buyer_company_id",
+      "delivered_at",
+      "quantity_delivered",
+      "seller_attestation"
+    ],
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "seller": "seller_company_id",
@@ -3670,6 +3748,7 @@ export const SCHEMAS: Record<string, Record<string, unknown>> = {
     "title": "trade.settlement",
     "description": "Final accounting for a contract. Subject is the buyer (payer); the seller is the counterparty. Terminal: corrections are a new settlement whose `corrects` names this one.",
     "x-dtp-subject": "buyer_company_id",
+    "x-dtp-append-only": true,
     "x-dtp-default-visibility": "counterparties",
     "x-dtp-roles": {
       "buyer": "buyer_company_id",
