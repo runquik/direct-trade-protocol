@@ -11,3 +11,5 @@ sdk/fixtures/dev-keys.json
 supabase/.temp
 supabase/.env.local
 supabase/.branches
+sdk/.pbp-data/
+sdk/.pbp-keys.json

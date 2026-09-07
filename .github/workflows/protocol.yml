@@ -25,8 +25,12 @@ jobs:
       - run: npm run check:runtime
       - run: npm run build
       - run: git diff --exit-code -- src/schemas.ts ../spec/generated
+      - run: npm run build:pbp
+      - run: npm run build:pbp-vectors
+      - run: git diff --exit-code -- ../spec/v0.3/command.schema.json ../spec/v0.3/signing-vector.json
       - run: npm run typecheck
       - run: npm test
+      - run: npm run demo:passport
       - run: npm run test:fuzz
   postgres-concurrency:
     runs-on: ubuntu-latest

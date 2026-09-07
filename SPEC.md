@@ -1,9 +1,11 @@
-# DTP Specification v0.2 — Company Record Protocol
+# PBP Specification v0.2 — Company Record Protocol
 
-**Direct Trade Protocol — Protocol Specification**
+**Portable Business Protocol — Protocol Specification**
 
 > Status: Draft for Sprint 01 | Version: 0.2 | Date: 2026-09-03
 > Supersedes v0.1 (archived at [`docs/archive/SPEC_v0.1.md`](docs/archive/SPEC_v0.1.md)).
+
+> Naming update (2026-09-07): Portable Business Protocol (PBP), formerly Direct Trade Protocol (DTP). This v0.2 specification retains its existing wire identifiers and signing vectors. The separate [v0.3 identity/authority preview](spec/v0.3/SPEC.md) and Passport work are tracked in [PBP_DIRECTION.md](docs/PBP_DIRECTION.md); they are not part of this version's conformance claims.
 
 The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described in RFC 2119.
 
@@ -15,7 +17,7 @@ The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described
 
 ## 1. Overview
 
-DTP defines how a business's commercial records — who it is, what it trades, what it is owed, what it has attested — are written, signed, shared, and read by independent software, without any single application owning them.
+PBP defines how a business's commercial records — who it is, what it trades, what it is owed, what it has attested — are written, signed, shared, and read by independent software, without any single application owning them.
 
 Three kinds of actor:
 
@@ -155,7 +157,7 @@ Schema: [`core/envelope.schema.json`](spec/schemas/core/envelope.schema.json). E
 
 **Canonical JSON** = [RFC 8785 (JCS)](https://www.rfc-editor.org/rfc/rfc8785) with one restriction: **no non-integer numbers**. With that restriction JCS reduces to: sort object keys recursively by UTF-16 code units (plain string comparison — **not** the numeric-first ordering ECMAScript objects apply to keys like `"10"`); no whitespace; strings escaped exactly as ECMAScript `JSON.stringify`; integers as plain digits (`-0` serializes as `0`); `null`/`true`/`false` literal; undefined-valued keys omitted; strings MUST be well-formed Unicode (lone surrogates are rejected). Serialize straight to text in sorted order — building an intermediate object and calling a JSON library on it reorders numeric-string keys and drops `__proto__` in JavaScript. The vectors include these cases.
 
-**Signature** = Ed25519 over the raw signing-input bytes, no pre-hash. Deterministic. Encoded `ed25519:` + base58(64 bytes), which is NEAR's signature encoding, so a `near-api-js` key pair signs valid DTP records.
+**Signature** = Ed25519 over the raw signing-input bytes, no pre-hash. Deterministic. Encoded `ed25519:` + base58(64 bytes), which is NEAR's signature encoding, so a `near-api-js` key pair signs valid PBP records.
 
 **Payload hash** = SHA-256 of the signing input, lowercase hex. Stores return it on every record; it mirrors the v0.1 `AuditEvent.payload_hash` but over canonical bytes.
 
@@ -412,4 +414,4 @@ Not in v0.2: on-chain escrow and USDC settlement (on-chain profile); a decentral
 
 ---
 
-*DTP is open protocol infrastructure. It is not a product, a marketplace, or a company.*
+*PBP is open protocol infrastructure. It is not a product, a marketplace, or a company.*

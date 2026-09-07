@@ -1,6 +1,8 @@
-# DTP Protocol Store — Builder Quickstart
+# PBP Protocol Store — Builder Quickstart
 
-*For someone building a module against the DTP v0.2 store with no other context. Everything here is also specified in [`SPEC.md`](../SPEC.md); this is the practical path.*
+*For someone building a module against the PBP v0.2 store with no other context. Everything here is also specified in [`SPEC.md`](../SPEC.md); this is the practical path.*
+
+**Naming:** PBP means Portable Business Protocol, formerly DTP. Commands, `DtpStoreClient`, `dtp-store` endpoints, `dtps_` tokens, schema IDs, and example company IDs remain unchanged for v0.2 compatibility. No deployed endpoint or GitHub repository has been renamed. Memberships and granular user permissions belong to the separate [v0.3 reference preview](../spec/v0.3/SPEC.md), not this API.
 
 The store is a small HTTP service. It holds **records**: signed, append-only JSON documents that belong to a **company**. A **module** (your software) reads and writes records on a company's behalf once that company has given it a **grant**. Every write is validated against a JSON Schema and an Ed25519 signature; every accepted write produces one **event** you can poll.
 
@@ -65,7 +67,7 @@ Browse the type catalog: `GET $STORE_URL/schemas` (index) and `GET $STORE_URL/sc
 
 ## 2. Make a key
 
-Keys are Ed25519. Encodings match NEAR's, so a `near-api-js` key pair is a valid DTP key. A key belongs to exactly one company or module — reusing a key that is already registered elsewhere is rejected.
+Keys are Ed25519. Encodings match NEAR's, so a `near-api-js` key pair is a valid PBP key. A key belongs to exactly one company or module — reusing a key that is already registered elsewhere is rejected.
 
 ```
 key id     = "ed25519:" + base58(32-byte public key)

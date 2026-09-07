@@ -1,4 +1,6 @@
-# spec/ — DTP v0.2 normative artifacts
+# spec/ — PBP v0.2 normative artifacts
+
+Portable Business Protocol (PBP) is the new working name for DTP. Existing `https://dtp.dev/` schema IDs, `x-dtp-*` keywords, version numbers, and fixed signing vectors are unchanged. See [the naming policy and isolated v0.3 reference preview](../docs/PBP_DIRECTION.md).
 
 The prose specification is [`/SPEC.md`](../SPEC.md). This directory holds what *decides*:
 

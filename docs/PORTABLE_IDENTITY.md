@@ -1,5 +1,7 @@
 # Portable Business Identity
 
+> Historical March 2026 DTP vision. The project is now Portable Business Protocol (PBP). For current identity/authority behavior use the [v0.3 preview specification](../spec/v0.3/SPEC.md) and [current scope](PBP_DIRECTION.md), not this document's earlier NEAR-account assumptions.
+
 > DTP Phase 3 Design Document
 > Status: Vision / Pre-design | Updated: 2026-03-10
 

@@ -1,14 +1,14 @@
 # Company workspace and module marketplace: proposed foundations
 
-2026-09-06. Design recommendation, **not a new normative protocol or an implemented workspace**.
+2026-09-06, with September 7 naming/status update. Design recommendation, **not an implemented workspace**. The current name is Portable Business Protocol (PBP). [PBP_DIRECTION.md](PBP_DIRECTION.md) records the expanded person/company hierarchy, agreed dashboard layout and implementation queue; [v0.3](../spec/v0.3/SPEC.md) implements an isolated authority preview, not the complete roadmap below.
 
 ## Product boundary
 
-DTP remains the open company identity, permissions and signed business-record layer. A company workspace and module marketplace can be products on top of it; neither should be required to use the protocol. Chat, dashboards and manual controls invoke the same capabilities and inspect the same durable work. The company-facing home is orders, inventory, money and attention needed, not a disconnected collection of app screens.
+PBP remains the open company identity, permissions and signed business-record layer. A company workspace and module marketplace can be products on top of it; neither should be required to use the protocol. Chat, dashboards and manual controls invoke the same capabilities and inspect the same durable work. The company-facing home is orders, inventory, money and attention needed, not a disconnected collection of app screens.
 
 | Layer | Owns | Must not own exclusively |
 |---|---|---|
-| DTP | Identity, record meaning, evidence references, authorization, synchronization | A particular UI, model provider, billing operator or discovery channel |
+| PBP | Identity, record meaning, evidence references, authorization, synchronization | A particular UI, model provider, billing operator or discovery channel |
 | Workspace / execution service | Module installation, job execution, approvals, operational projections, credential custody | The only usable company identity or only copy of essential workflow state |
 | Marketplace | Discovery, publisher verification, pricing presentation, billing reconciliation and payouts | Developers' distribution rights, mandatory exclusivity or the only compatible module registry |
 | Modules | Implementations, specialist behavior, optional custom UI | Undocumented essential state that prevents another implementation taking over |
@@ -59,7 +59,7 @@ Prove that one action can start in chat, be inspected in a table, approved manua
 
 Separate module usage, agreed pricing, a bill, and actual settlement. A publisher-signed immutable usage claim is not independently verified measurement. Define meters, failure/retry charging, caps, reconciliation, dispute and correction flows before putting billing into the protocol. Require customer spending authorization independently of data grants. Avoid a universal token meter; operations may be priced in understandable units.
 
-Discovery rankings, commissions, subscriptions/allowances and payout-provider plumbing are marketplace concerns. Promote only shared receipt semantics to DTP after an independent producer and billing consumer need them. The marketplace should earn repeat use through convenience and reliability, not exclusive control of data or module distribution.
+Discovery rankings, commissions, subscriptions/allowances and payout-provider plumbing are marketplace concerns. Promote only shared receipt semantics to PBP after an independent producer and billing consumer need them. The marketplace should earn repeat use through convenience and reliability, not exclusive control of data or module distribution.
 
 ## Sprint acceptance test, adjusted without expanding the sprint
 
@@ -68,7 +68,7 @@ Proposed module split is Passport + Early Pay versus brand-side Trade Ledger + B
 1. One company identity/grant flow works across the independently built modules.
 2. Imported records retain their provenance; buyer-side confirmation is supplied explicitly by a separate simulated buyer identity.
 3. Early Pay reads the published trade/evidence records, records why it made a test offer, and writes mock finance records.
-4. Independently built Books consumes those finance records back through DTP. This must be bidirectional operational integration, not merely an export into the store.
+4. Independently built Books consumes those finance records back through PBP. This must be bidirectional operational integration, not merely an export into the store.
 5. Revocation removes access; narrow permissions do not truncate sync. After new grants, readers backfill history.
 6. Retry after a lost acknowledgment produces no duplicate record/event. Settlement corrections preserve the original movement.
 7. As a stretch test, replace a read-only module and reconstruct the same accounting picture from permitted records, then test an unfinished workflow when durable actions exist.
