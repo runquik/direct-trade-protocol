@@ -1,6 +1,21 @@
-# DTP — save point (updated 2026-09-06)
+# PBP — save point (updated 2026-09-07)
 
-## Latest: infrastructure hardening and workspace direction
+## Latest: Portable Business Protocol and v0.3 authority preview
+
+- Deployment follow-up: the user explicitly authorized merge and a shared development deployment. The branch now includes a gated Deno hosting adapter, additive `pbp_v03` migration, private builder-access token, browser-origin allowlist, database timeouts, capacity rollback and a hosted synthetic smoke test. Connection/release instructions are in [PBP_DEVELOPMENT_DEPLOYMENT.md](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is not production approval or an implemented browser wireframe; the release PR/task records the deployed revision and smoke result.
+
+- **Portable Business Protocol (PBP)** is the adopted working name. Current prose is renamed; v0.2 wire IDs, schema URIs, package/API symbols, fixture identities, historical records and the GitHub repository name remain compatible. See [PBP_DIRECTION.md](docs/PBP_DIRECTION.md).
+- PR #4 was independently reviewed, two remaining privacy/payment-authority issues were fixed, and it merged to main at `2b75ec4`. The v0.2 suite has 64 tests, with 37 auxiliary and two PostgreSQL tests. Nothing was deployed.
+- The separate [v0.3 reference preview](spec/v0.3/SPEC.md) implements person identities, accepted company memberships, explicit capabilities, installation-scoped module keys, exact signed attribution, controller quorum, retained-key recovery, and pinned trusted-store migration. It uses `/pbp-store/commands` and isolated `pbp_v03` persistence, not a v0.2 root-credential proxy.
+- [Passport core](modules/passport/README.md) and `cd sdk; npm run demo:passport` demonstrate one person entering three fictional companies and retaining access to two after revocation in the third. No private keys are printed. This is a developer walkthrough, not a browser dashboard.
+- Local validation on Node 22.23.2: 84 conformance tests (64 existing + 20 v0.3), 37 auxiliary tests, type-checking, generated v0.2 artifact compatibility and the Passport walkthrough pass. The additional v0.3 PostgreSQL concurrency tests require the disposable CI database; local PGlite is not proof of multi-connection PostgreSQL behavior.
+- New code remains a reviewable preview. Do not merge/deploy it as production authority without independent review and the explicit gates in the v0.3 specification. Whole-state JSON persistence, source-store trust, bounded migration and absence of all-keys-lost recovery are intentional limits, not solved production concerns.
+- The role-oriented movable-widget workspace, notifications and connected-module bars are captured in [PASSPORT_DEMO.md](docs/PASSPORT_DEMO.md); UI, custody UX, general job execution, the full consumer evidence verifier and marketplace billing are still next work.
+- Preserve Boris's agreed v0.2 revision until the builders explicitly choose otherwise. ShelfKit demo and module split remain pending agreement; synthetic data, simulated buyer/lender/funds and independent signing remain the sprint boundary.
+
+---
+
+## September 6 save point: infrastructure hardening and workspace direction
 
 The September 4 save point below is historical. The current fix batch and remaining gates are in [docs/INFRA_HARDENING_2026-09-06.md](docs/INFRA_HARDENING_2026-09-06.md). Read that before treating the old "all findings closed" statement as current.
 

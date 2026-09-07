@@ -1,4 +1,6 @@
-# Sprint 01: Protocol Interop Test
+# Sprint 01: PBP Protocol Interop Test
+
+> September 7 update: the project is now **Portable Business Protocol (PBP)**, formerly DTP. The technical v0.2 identifiers remain unchanged. Agree one store/spec revision with Boris before testing; the proposed v0.3 authority model is not silently added to this sprint. The original module split and schedule below are historical planning: the proposed split is George on Passport + Early Pay and Boris on brand-side Trade Ledger + Books, pending the ShelfKit demo and agreement. Financing, buyer fixtures, and payments remain simulated. See [the current direction](PBP_DIRECTION.md) and [adjusted acceptance tests](WORKSPACE_FOUNDATIONS.md#sprint-acceptance-test-adjusted-without-expanding-the-sprint).
 
 **Participants:** George Milton, Boris Korsunsky
 **Duration:** ~1 week (5 working days + kickoff)
@@ -9,7 +11,7 @@
 
 ## 1. Purpose
 
-Test DTP's core claim — that **independently built apps can share company and trade state through protocol objects, with the spec as the only coordination channel** — and produce a concrete list of what the protocol is missing.
+Test PBP's core claim — that **independently built apps can share company and trade state through protocol objects, with the spec as the only coordination channel** — and produce a concrete list of what the protocol is missing.
 
 This is not a product sprint. The demo matters, but **the primary deliverable is the gap list**: every field, semantic, permission, or state the protocol lacks, discovered by two people building against it without talking to each other about data shapes.
 

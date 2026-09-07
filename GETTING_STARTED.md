@@ -1,4 +1,6 @@
-# DTP Getting Started Guide
+# Historical DTP v0.1 Getting Started Guide
+
+> This guide describes the frozen trade/MCP prototype, not the current Portable Business Protocol (PBP) store or planned Passport workspace. For current development use the [PBP README](README.md) and [v0.2 builder quickstart](docs/PROTOCOL_STORE.md). Legacy names and commands below are preserved as historical documentation; their availability has not been reverified by the rename.
 
 **Direct Trade Protocol** lets businesses buy and sell physical goods directly through Claude, with on-chain settlement on NEAR Protocol. No dashboards, no portals — just tell Claude what you need.
 

@@ -24,10 +24,13 @@
     "src/**/*.ts",
     "scripts/**/*.ts",
     "tests/**/*.ts",
-    "../supabase/functions/dtp-store/**/*.ts"
+    "../supabase/functions/dtp-store/**/*.ts",
+    "../supabase/functions/pbp-store/**/*.ts",
+    "../modules/passport/src/**/*.ts"
   ],
   "exclude": [
     "../supabase/functions/dtp-store/index.ts",
+    "../supabase/functions/pbp-store/index.ts",
     "tests/redteam/**",
     "tests/fuzz/**"
   ]

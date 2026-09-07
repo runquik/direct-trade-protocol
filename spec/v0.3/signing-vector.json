@@ -1,0 +1,32 @@
+{
+  "description": "PBP 0.3 fixed signing vector. Uses the public test-only key in ../vectors/keys.json; never use it in a real identity.",
+  "person_id": "d794e3a3-1a47-11e4-d93f-c62a16c7b12c",
+  "command": {
+    "version": "0.3",
+    "audience": "https://store.example.test",
+    "request_id": "00000000-0000-4000-8000-000000000003",
+    "issued_at": "2026-09-07T00:00:00.000Z",
+    "expires_at": "2026-09-07T00:02:00.000Z",
+    "organization_id": null,
+    "actor": {
+      "kind": "person",
+      "id": "d794e3a3-1a47-11e4-d93f-c62a16c7b12c",
+      "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+    },
+    "requested_by": "d794e3a3-1a47-11e4-d93f-c62a16c7b12c",
+    "action": "person.register",
+    "payload": {
+      "keys": [
+        "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+      ]
+    },
+    "signatures": [
+      {
+        "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+        "signature": "ed25519:2tbpJ96dPrwmQykuzcFwheqgrqRZBB1SLFPARw88nXZpKdJt3A5BAGLaKwEm6k4yfGDbTYN7J991BJ4TbRdA4ytF"
+      }
+    ]
+  },
+  "signing_input_utf8": "{\"command\":{\"action\":\"person.register\",\"actor\":{\"id\":\"d794e3a3-1a47-11e4-d93f-c62a16c7b12c\",\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"kind\":\"person\"},\"audience\":\"https://store.example.test\",\"expires_at\":\"2026-09-07T00:02:00.000Z\",\"issued_at\":\"2026-09-07T00:00:00.000Z\",\"organization_id\":null,\"payload\":{\"keys\":[\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\"]},\"request_id\":\"00000000-0000-4000-8000-000000000003\",\"requested_by\":\"d794e3a3-1a47-11e4-d93f-c62a16c7b12c\",\"version\":\"0.3\"},\"domain\":\"PBP-COMMAND-0.3\"}",
+  "request_hash": "a038e962914ae30176b689001b4ceb6ebdfcb39b43c06810c21be2461b3566a9"
+}

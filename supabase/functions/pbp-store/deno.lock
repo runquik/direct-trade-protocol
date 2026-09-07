@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@cfworker/json-schema@4.1.1": "4.1.1",
+    "npm:postgres@3.4.9": "3.4.9"
+  },
+  "npm": {
+    "@cfworker/json-schema@4.1.1": {
+      "integrity": "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="
+    },
+    "postgres@3.4.9": {
+      "integrity": "sha512-GD3qdB0x1z9xgFI6cdRD6xu2Sp2WCOEoe3mtnyB5Ee0XrrL5Pe+e4CCnJrRMnL1zYtRDZmQQVbvOttLnKDLnaw=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@cfworker/json-schema@4.1.1"
+    ]
+  }
+}

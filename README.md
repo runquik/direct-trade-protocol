@@ -1,12 +1,20 @@
-# Direct Trade Protocol (DTP)
+# Portable Business Protocol (PBP)
 
-**An open company identity and signed-record protocol for independently built business modules.**
+Building against v0.3? See the [shared development backend connection and deployment guide](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is separate from the v0.2 API and is for synthetic data only.
+
+**An open protocol for company-controlled identity, authority, and business records across independent software.**
+
+*Your company, independent of its software.*
+
+PBP is the working name adopted September 7, 2026; it was previously Direct Trade Protocol (DTP). This is a project-name change, not a wire-format migration. Existing `dtp-*` paths, package/API names, schema identifiers, and signed records remain compatible. See [naming, scope, and the queued build plan](docs/PBP_DIRECTION.md).
 
 ## Current development: v0.2 company records
 
 Start with [SPEC.md](SPEC.md), the [builder quickstart](docs/PROTOCOL_STORE.md), and [progress.md](progress.md).
 The current implementation is the off-chain reference store in `supabase/functions/dtp-store` and the TypeScript `sdk`.
 Trade and finance are the first workflows; a company workspace and module marketplace are proposed products on top, not prerequisites of the protocol.
+
+An **isolated v0.3 reference preview** now implements people/memberships, scoped capabilities, company-specific installations, signed attribution, controller quorum and trusted-store migration. See [the v0.3 specification](spec/v0.3/SPEC.md). It is not deployed or production-qualified; v0.2 still has its original company/module credentials. [Passport core and its local developer demo](modules/passport/README.md) exercise the new authority model; the customizable browser workspace is not built yet.
 
 - [Infrastructure fixes and remaining production gates](docs/INFRA_HARDENING_2026-09-06.md)
 - [Workspace/marketplace foundations and build order](docs/WORKSPACE_FOUNDATIONS.md)

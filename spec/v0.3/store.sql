@@ -1,0 +1,24 @@
+-- PBP v0.3 isolated reference store. Also used by the gated development deployment.
+-- Never changes the v0.2 protocol schema or enables a v0.2 root-key bypass.
+create schema pbp_v03;
+create table pbp_v03.state (
+  singleton boolean primary key default true check (singleton),
+  revision bigint not null default 0,
+  body jsonb not null
+);
+insert into pbp_v03.state (body) values ('{"persons":{},"organizations":{},"modules":{},"records":{},"receipts":{},"transfers":{},"next_seq":1}');
+alter table pbp_v03.state enable row level security;
+-- No public/PostgREST policies. Only the reference service database role accesses this state.
+revoke all on schema pbp_v03 from public;
+revoke all on all tables in schema pbp_v03 from public;
+-- Supabase may configure default grants for its API roles. Explicitly remove those.
+do $$
+declare api_role text;
+begin
+  foreach api_role in array array['anon', 'authenticated', 'service_role'] loop
+    if exists (select 1 from pg_roles where rolname = api_role) then
+      execute format('revoke all on schema pbp_v03 from %I', api_role);
+      execute format('revoke all on all tables in schema pbp_v03 from %I', api_role);
+    end if;
+  end loop;
+end $$;
