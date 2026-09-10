@@ -1,0 +1,205 @@
+{
+  "fixture_version": "1",
+  "profile": "dtp.inventory/1",
+  "semantics": "inventory-v1",
+  "schema_digest": "6c793c7ad4ee80938f1924af9e767121111db6633a0f313faf16b174b2dd501f",
+  "scope": {
+    "company_id": "11111111-1111-1111-1111-111111111111",
+    "pool_id": "22222222-2222-2222-2222-222222222222",
+    "product_id": "jerky-a",
+    "base_unit": "unit"
+  },
+  "opening_balance": {
+    "status": "known",
+    "amount": "0"
+  },
+  "complete": true,
+  "events": [
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-0",
+      "expected_revision": 0,
+      "occurred_at": "2026-09-10T00:00:00.000Z",
+      "kind": "packaging",
+      "packaging": {
+        "company_id": "11111111-1111-1111-1111-111111111111",
+        "product_id": "jerky-a",
+        "packaging_id": "case",
+        "version": "1",
+        "base_unit": "unit",
+        "pack_unit": "case",
+        "base_units_per_pack": "12"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-1",
+      "expected_revision": 1,
+      "occurred_at": "2026-09-10T00:01:00.000Z",
+      "kind": "receive",
+      "quantity": "10",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-2",
+      "expected_revision": 2,
+      "occurred_at": "2026-09-10T00:02:00.000Z",
+      "kind": "reserve",
+      "reservation_id": "order-a",
+      "quantity": "8",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-3",
+      "expected_revision": 3,
+      "occurred_at": "2026-09-10T00:03:00.000Z",
+      "kind": "fulfill",
+      "reservation_id": "order-a",
+      "quantity": "3",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-4",
+      "expected_revision": 4,
+      "occurred_at": "2026-09-10T00:04:00.000Z",
+      "kind": "release",
+      "reservation_id": "order-a",
+      "quantity": "2",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-5",
+      "expected_revision": 5,
+      "occurred_at": "2026-09-10T00:05:00.000Z",
+      "kind": "adjust",
+      "quantity": "-12",
+      "unit": "unit",
+      "reason": "Cycle count found twelve damaged units"
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-6",
+      "expected_revision": 6,
+      "occurred_at": "2026-09-10T00:06:00.000Z",
+      "kind": "packaging",
+      "packaging": {
+        "company_id": "11111111-1111-1111-1111-111111111111",
+        "product_id": "jerky-a",
+        "packaging_id": "case",
+        "version": "2",
+        "base_unit": "unit",
+        "pack_unit": "case",
+        "base_units_per_pack": "24"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-7",
+      "expected_revision": 7,
+      "occurred_at": "2026-09-10T00:07:00.000Z",
+      "kind": "receive",
+      "quantity": "1",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "2",
+        "digest": "0919f7bc7da23dcef027ec3520573e11f1e4700245b691e82b2dfb9e078f281f"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-8",
+      "expected_revision": 8,
+      "occurred_at": "2020-01-01T00:00:00.000Z",
+      "kind": "receive",
+      "quantity": "1",
+      "unit": "unit"
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-9",
+      "expected_revision": 9,
+      "occurred_at": "2026-09-10T00:09:00.000Z",
+      "kind": "fulfill",
+      "reservation_id": "order-a",
+      "quantity": "3",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    },
+    {
+      "company_id": "11111111-1111-1111-1111-111111111111",
+      "pool_id": "22222222-2222-2222-2222-222222222222",
+      "source_id": "acme/scanner-a",
+      "observation_id": "observation-1",
+      "expected_revision": 1,
+      "occurred_at": "2026-09-10T00:01:00.000Z",
+      "kind": "receive",
+      "quantity": "10",
+      "unit": "case",
+      "packaging_pin": {
+        "packaging_id": "case",
+        "version": "1",
+        "digest": "f5f038d912cd5b88f34630b4720822735ad3cfb8fda465a9b831ed36ad6c48db"
+      }
+    }
+  ],
+  "expected": {
+    "status": "known",
+    "on_hand": "61",
+    "reserved": "0",
+    "available": "61",
+    "revision": 10,
+    "unique_observations": 10,
+    "duplicate_observations": 1,
+    "reservations": {},
+    "pack_versions": 2
+  }
+}

@@ -1,7 +1,7 @@
 import { demand, instant } from "./wire.ts";
 import type { Organization, State, Installation } from "./model.ts";
 import { typeInfo } from "../registry.ts";
-const MANAGEMENT = ["members.manage", "installations.manage", "modules.publish", "records.export", "finance.accept_offer", "finance.fund"];
+const MANAGEMENT = ["members.manage", "installations.manage", "modules.publish", "records.export", "records.share", "finance.accept_offer", "finance.fund"];
 export function permissions(input: unknown): string[] {
   demand(Array.isArray(input) && input.length <= 64 && new Set(input).size === input.length, "invalid", "expected unique permission list", 400);
   for (const p of input) {

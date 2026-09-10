@@ -142,3 +142,23 @@ Local configuration: `PBP_PORT` (default 8788), optional `PBP_DATA`, required st
 CI includes the old v0.2 suite, new v0.3 integration tests, generated-artifact drift checks, Passport CLI walkthrough, auxiliary fuzz/race suite and two isolated real-PostgreSQL authority tests in addition to v0.2's two PostgreSQL tests. No tests require live credentials or company data.
 
 Before real deployment: independent authorization review, production runtime qualification, request deadlines/rate/identity quotas, storage limits and encrypted custody/backups, identity recovery UX, privacy review, complete historical evidence verification, financial-operation policy and large/federated migration design. This cut does not implement the browser dashboard, an unrestricted AI agent, a general durable job runner, actual money movement or marketplace billing.
+
+## 9. September 8 local experimental disclosure extension
+
+This extension supports the [Early Pay local demonstration](../../modules/early-pay/README.md). It is not deployed to the shared development backend. Builders must agree a revision before using these additional actions; old v0.3 services will reject them. No v0.2 wire identifiers change.
+
+`records.share` is a person-delegable capability, distinct from reading or exporting. It cannot be requested by a module manifest. Sharing requires an explicit human command, readable current versions owned by the source company, an active recipient company, 1–20 unique record IDs, a purpose and an expiry within one year (and no later than a non-controller author's membership). The purpose describes agreed intent; it cannot technically prevent reuse after disclosure.
+
+| Action | Context | Meaning |
+|---|---|---|
+| `disclosure.create` | Source company | `disclosure_id`, `recipient`, `record_ids`, `purpose`, `summary`, `expires_at`; persist signed, immutable selection |
+| `disclosure.read` | Recipient or source company | `source`, `disclosure_id`; return that package only while active/unexpired and source remains active |
+| `disclosure.revoke` | Source company | `disclosure_id`; require `records.share` and read rights for all affected record types |
+
+Disclosure reads check every selected `records.read:<type>` permission before returning any content. Interactive installations may read through the same human/installation intersection as normal record reads; they cannot create/revoke disclosures. Explicit disclosure may include a private owned record, without making it visible to installations through ordinary `records.list`. Person/installation expiry and revocation are still enforced. The recipient does not gain source membership or broader record visibility.
+
+`summary` is opaque, size-bounded signed text (up to 12,000 characters), not protocol-certified truth. Early Pay uses it for its request profile and optional separately signed fictional attestation. Consumers must validate the application format and issuer trust; applications must never execute embedded instructions. Structured interoperable evidence/attestation schemas remain future standardization work.
+
+Selected record IDs never advance automatically. Reads return original versions and a `stale` flag if any is no longer the head. Early Pay blocks new offer/accept/fund actions on stale, revoked, expired or invalid evidence. Source policy audit retains the disclosure command. An accepted disclosure persists as company authority even if its author later leaves; source controllers or authorized sharers can revoke it explicitly. Removing a recipient member immediately removes that person's access.
+
+Migration freezes source disclosure reads and disables imported disclosure projections, like imported installations. Explicit reauthorization is required; a transfer is not automatic re-sharing. Revocation does not erase previously downloaded evidence or independently shared financial agreements. The reference disclosure ID discovery/request inbox is currently module-managed; a portable discovery/read-model contract is not yet specified.
