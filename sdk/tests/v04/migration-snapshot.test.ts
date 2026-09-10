@@ -101,6 +101,10 @@ test("migration capacity: finalize replaces staged payload rather than retaining
   const token:any=await f.call("migration.prepare",f.org,{destination:{audience:ctx.audience,key_id:key.keyId}}),mid=token.body.manifest.migration_id;
   await migrationStage(destination,ctx,token);
   for(let i=0;i<token.body.manifest.chunk_hashes.length;i++)await migrationUpload(destination,mid,i,migrationChunk(f.s,mid,i).data,ctx);
+  destination.next_seq=Number.MAX_SAFE_INTEGER;
+  await assert.rejects(migrationReady(destination,mid,ctx,snap=>validateSnapshot(destination,snap)),(e:any)=>e.code==="migration_capacity");
+  assert.equal(destination.incoming[mid].ready_token,undefined);assert.equal(f.s.organizations[f.org].status,"active");
+  destination.next_seq=1;
   const ready=await migrationReady(destination,mid,ctx,snap=>validateSnapshot(destination,snap));
   const before=JSON.stringify(destination).length,capacity=before+16384;
   f.ctx.now=ctx.now;const commit=await migrationCommit(f.s,mid,ready,f.ctx,buildSnapshot(f.s,f.org,f.ctx));

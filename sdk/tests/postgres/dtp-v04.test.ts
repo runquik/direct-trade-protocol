@@ -109,7 +109,9 @@ test("v0.4 PostgreSQL: post-update failure rolls back record, receipt and state 
   const owner = await person(client), org = await company(client, owner), pol = await policy(client, owner, org, [grant(owner)]), schema = await profile(client, owner, org);
   const payload = record(org, pol, crypto.randomUUID(), schema, { note: "Synthetic rollback test" });
   const command = await signCommand(draftCommand(client.audience, owner, "record.append", org, payload), [owner.key]);
-  const before = (await db.query<{ revision: string | number }>("select revision from dtp_v04.state where singleton=true"))[0].revision;
+  const stored = (await db.query<{ revision: string | number; shape: string }>("select revision, jsonb_typeof(body) as shape from dtp_v04.state where singleton=true"))[0];
+  assert.equal(stored.shape, "object", "driver must not double-encode state into a JSON string");
+  const before = stored.revision;
   failNextUpdate = true;
   const failed = await client.send(command); assert.equal(failed.status, 500); assert.equal(failed.error.code, "internal");
   assert.ok(!JSON.stringify(failed).includes("synthetic failure"));

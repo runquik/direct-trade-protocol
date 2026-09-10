@@ -50,7 +50,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       const out = await execute(state, input, { ...deps, now: deps.now?.() ?? Date.now() });
       const serialized = JSON.stringify(state);
       if (deps.maxStateBytes && new TextEncoder().encode(serialized).length > deps.maxStateBytes) throw new PbpError("development_capacity", "development store capacity reached", 507);
-      await tx.query("update pbp_v03.state set body = $1::jsonb, revision = revision + 1 where singleton = true", [serialized]);
+      // Already serialized JSON must bind as text, not driver-serialized JSONB.
+      await tx.query("update pbp_v03.state set body = $1::text::jsonb, revision = revision + 1 where singleton = true", [serialized]);
       return out;
     });
     return json({ result });

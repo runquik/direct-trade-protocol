@@ -21,7 +21,7 @@ function decode(value: unknown): Uint8Array {
 function manifestShape(m: MigrationManifest) {
   exact(m, ["migration_id", "organization_id", "generation", "source", "destination", "snapshot_hash", "byte_length", "chunk_hashes", "expires_at"]);
   exact(m.source, ["audience", "key_id"]); exact(m.destination, ["audience", "key_id"]);
-  demand(id(m.migration_id) && id(m.organization_id) && Number.isSafeInteger(m.generation) && m.generation >= 1 && hex(m.snapshot_hash), "invalid_manifest", "invalid migration identity", 400);
+  demand(id(m.migration_id) && id(m.organization_id) && Number.isSafeInteger(m.generation) && m.generation >= 1 && m.generation < Number.MAX_SAFE_INTEGER && hex(m.snapshot_hash), "invalid_manifest", "invalid migration identity or exhausted generation", 400);
   demand(typeof m.source.audience === "string" && typeof m.destination.audience === "string" && m.source.audience !== m.destination.audience && m.source.key_id !== m.destination.key_id, "invalid_manifest", "migration needs distinct hosts", 400);
   demand(Number.isSafeInteger(m.byte_length) && m.byte_length > 0 && m.byte_length <= MIGRATION_MAX_BYTES && Array.isArray(m.chunk_hashes) && m.chunk_hashes.length === Math.ceil(m.byte_length / MIGRATION_CHUNK_BYTES) && m.chunk_hashes.every(hex), "invalid_manifest", "invalid migration size or hashes", 400);
   instant(m.expires_at);
@@ -71,6 +71,7 @@ export async function migrationPrepare(s: State, c: Command, ctx: Context, snaps
   exact(destination, ["audience", "key_id"]);
   const org = s.organizations[snapshot.organization.id];
   demand(org?.status === "active" && snapshot.source === ctx.audience && org.generation === snapshot.organization.generation && c.organization_id === org.id && c.actor.kind === "person" && org.controllers.includes(c.actor.id) && id(c.request_id), "invalid_source", "snapshot is not the authorized active source company");
+  demand(Number.isSafeInteger(org.generation) && org.generation >= 1 && org.generation < Number.MAX_SAFE_INTEGER,"migration_capacity","authority generation cannot be incremented safely",507);
   demand(ctx.pins[destination.audience] === destination.key_id && destination.audience !== ctx.audience && destination.key_id !== ctx.storeKey.keyId, "untrusted_destination", "destination key must be explicitly pinned");
   const bytes = encoder.encode(canonicalize(snapshot));
   demand(bytes.length > 0 && bytes.length <= MIGRATION_MAX_BYTES, "migration_too_large", "snapshot exceeds the 32 MiB candidate limit", 413);
@@ -130,6 +131,10 @@ export async function migrationReady(s: State, migrationId: string, ctx: Context
   demand(await digest(snapshot!) === m.snapshot_hash && encoder.encode(canonicalize(snapshot!)).length === m.byte_length, "invalid_snapshot", "snapshot digest or size differs", 400);
   demand(snapshot!.version === "0.4" && snapshot!.source === m.source.audience && snapshot!.organization.id === m.organization_id && snapshot!.organization.generation === m.generation && snapshot!.organization.status === "active", "invalid_snapshot", "snapshot identity differs", 400);
   demand(snapshot!.organization.controllers.includes(stage.manifest_token.body.actor_id), "invalid_snapshot", "migration initiator is not an exported controller");
+  demand(Array.isArray(snapshot!.records),"invalid_snapshot","snapshot records are required",400);
+  const reservedSequences=Object.values(s.incoming).filter(other=>other!==stage && other.ready_token && !other.activated && !other.aborted).reduce((total,other)=>total+(other.snapshot?.records.length??0),0);
+  const nextSequence=s.next_seq+reservedSequences+snapshot!.records.length;
+  demand(m.generation<Number.MAX_SAFE_INTEGER && Number.isSafeInteger(s.next_seq) && s.next_seq>=1 && Number.isSafeInteger(nextSequence) && nextSequence<=Number.MAX_SAFE_INTEGER,"migration_capacity","destination sequence or generation capacity exhausted",507);
   demand(!s.organizations[m.organization_id], "conflict", "company exists at destination", 409);
   await validateSnapshot(snapshot!, m);
   stage.snapshot = structuredClone(snapshot!);

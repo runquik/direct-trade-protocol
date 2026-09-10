@@ -77,6 +77,12 @@ test("migration: changed source and expired readiness leave source writable", as
   assert.equal(f.sa.organizations[f.orgId].status, "active"); assert.equal(f.sa.outgoing[f.mid].commit_token, undefined);
 });
 
+test("migration: exhausted generation rejects preparation while source stays active", async () => {
+  const f=await fixture();f.sa.organizations[f.orgId].generation=Number.MAX_SAFE_INTEGER;f.snapshot.organization.generation=Number.MAX_SAFE_INTEGER;
+  await rejectsCode(migrationPrepare(f.sa,{...f.cmd,request_id:crypto.randomUUID()},f.a,f.snapshot,{audience:f.b.audience,key_id:f.b.storeKey.keyId}),"migration_capacity");
+  assert.equal(f.sa.organizations[f.orgId].status,"active");
+});
+
 test("migration: readiness for another migration or forged destination cannot freeze source", async () => {
   const f = await fixture(), ready = await f.ready();
   const body = { ...ready.body, organization_id: crypto.randomUUID() };

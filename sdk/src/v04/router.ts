@@ -31,7 +31,9 @@ export async function handle(req:Request,deps:Dependencies):Promise<Response>{
       const reservedSequences=readyStages.reduce((n,stage)=>n+(stage.snapshot?.records.length??0),0);
       if(!Number.isSafeInteger(state.next_seq)||state.next_seq<1||reservedSequences>Number.MAX_SAFE_INTEGER-state.next_seq)throw new DtpError("capacity","record sequence capacity reserved for migration",507);
       const serialized=JSON.stringify(state);if(new TextEncoder().encode(serialized).length+reserved>(deps.maxStateBytes??128*1024*1024))throw new DtpError("capacity","candidate storage capacity or migration reservation exceeded",507);
-      await tx.query("update dtp_v04.state set body=$1::jsonb,revision=revision+1 where singleton=true",[serialized]);return result;
+      // Bind the already serialized value as text. postgres.js otherwise infers
+      // JSONB and JSON.stringify's the string again, storing a JSON scalar.
+      await tx.query("update dtp_v04.state set body=$1::text::jsonb,revision=revision+1 where singleton=true",[serialized]);return result;
     });return json({result});
   }catch(error){
     if(error instanceof DtpError)return json({error:{code:error.code,message:error.message}},error.status);

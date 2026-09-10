@@ -83,7 +83,7 @@ Keep the greatest processed sequence when the last page has `next_cursor:null`. 
 
 Write receipts contain an ID, sequence and duplicate flag, not a blanket grant to read. Replaying a previously signed request does not bypass membership, policy, module or assessment revocation. Reconcile after a lost acknowledgement before creating a fresh business operation.
 
-For invoices, render original `validation` separately from current `live_validation`. Neither is a buyer signature, paid settlement or clean-lien finding. Unknown/inaccessible references must remain unknown. Do not present an arithmetic check as full business approval.
+For invoices, render original `validation` separately from current `live_validation`. Reference recognition additionally requires the host's explicit `referenceProfiles` pins; naming your custom schema `trade.contract` is not sufficient. Neither report is a buyer signature, paid settlement or clean-lien finding. Unknown/inaccessible references must remain unknown. Do not present an arithmetic check as full business approval.
 
 ## Bring an inventory app
 
@@ -97,7 +97,7 @@ The shared profile provides packaging, receipt/adjustment, reservation/release a
 
 Host administrators explicitly configure trusted host keys. Each company administrator imports fresh remote authority proofs through the same signed API. These proofs establish a short-lived trusted location/generation assertion; they do not grant access to the other company's records.
 
-For sharing, an authorized person selects exact record versions using `evidence.issue`, naming the remote recipient organization, audience, policy/resource and purpose. The recipient calls `evidence.inspect` with its accepted profile set under that compartment's read authority. Tokens are bounded, short-lived and contain plaintext; transmit them only to authorized recipients. Their expiry limits API inspection, not possession of copies. Inspecting evidence never turns it into locally owned current state.
+For sharing, an authorized person selects exact record versions using `evidence.issue`, naming the remote recipient organization, audience, policy/resource and purpose. The recipient calls `evidence.inspect` with its accepted profile set under that compartment's read authority. Tokens include the bounded profile dependency closure; private dependency redistribution still needs authority. They are short-lived and contain plaintext; transmit them only to authorized recipients. Their expiry limits API inspection, not possession of copies. Inspecting evidence never turns it into locally owned current state. Display `issuer_projection` as the source host's historical assertion, not the recipient's new validation; selected inventory evidence is not a complete stock replay.
 
 When the source company moves, the observer calls `authority.relocate` with the durable old-host commit and fresh new-host authority. The protocol checks both hosts' proof chain and the next generation. Use a separate explicit read/disclosure to get updated business data; a locator change is not a subscription or automatic replication service.
 
@@ -112,7 +112,7 @@ Use two disposable stores and synthetic records first. The exact [migration and 
 - Before commit, cancel at the source and abort the destination stage when abandoning a move. After commit, retry finalization; **do not reactivate the source**.
 - Move one company while its buyer stays behind. Check authority relocation and explicit evidence access, not merely file-count equality.
 
-The current maximum snapshot is 32 MiB, and the destination must have capacity for staging plus active state. Default reference state capacity is 128 MiB. Keep pins, persistent storage and backups available through cutover. The in-memory development host cannot rehearse recovery from actual durable-host loss; restarting it discards the staging state.
+The current maximum snapshot is 32 MiB; default reference state capacity is 128 MiB. Readiness preserves 64 KiB completion headroom per pending ready migration and enough safe-integer sequence space. Finalization atomically replaces the staged snapshot and removes chunks, so it does not retain a second full copy. Do not lower host capacity or bypass reservations mid-move. Keep pins, persistent storage and backups available through cutover. The in-memory development host cannot rehearse recovery from actual durable-host loss; restarting it discards the staging state.
 
 ## What you can build next, and what you cannot assume
 
