@@ -46,7 +46,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
   try {
     if (!event || !identity(event.company_id) || !identity(event.pool_id) || !identity(event.source_id) ||
         !identity(event.observation_id) || !Number.isSafeInteger(event.expected_revision) || event.expected_revision < 0 ||
-        !Number.isSafeInteger(state.revision) || state.revision < 0 || state.revision >= Number.MAX_SAFE_INTEGER) return fail('invalid', 'invalid event identity or revision');
+        !Number.isSafeInteger(state.revision) || state.revision < 0) return fail('invalid', 'invalid event identity or revision');
     if (event.company_id !== state.company_id || event.pool_id !== state.pool_id) return fail('wrong_scope', 'event belongs to another company or stock pool');
     if (typeof event.occurred_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(event.occurred_at) ||
         !Number.isFinite(Date.parse(event.occurred_at)) || new Date(event.occurred_at).toISOString().slice(0, 19) !== event.occurred_at.slice(0, 19)) return fail('invalid', 'occurred_at must be a real UTC timestamp');
@@ -61,6 +61,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
       return state.observations[observationKey] === eventHash ? { ok: true, duplicate: true, state }
         : fail('observation_conflict', 'observation identity already names a different event');
     }
+    if (state.revision >= Number.MAX_SAFE_INTEGER) return fail('invalid', 'inventory revision capacity exhausted');
     if (event.expected_revision !== state.revision) return fail('revision_conflict', 'stock pool changed; reload before deciding a new action');
     const next: InventoryState = { ...state, revision: state.revision + 1,
       reservations: { ...state.reservations }, packaging: { ...state.packaging },

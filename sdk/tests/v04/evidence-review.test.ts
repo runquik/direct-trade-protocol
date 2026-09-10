@@ -114,6 +114,14 @@ test('evidence review: profile dependencies travel with an honest evidence bundl
   assert.ok(viewed.profiles.some((profile: any) => profile.digest === f.profile), 'required dependency omitted from portable evidence');
 });
 
+test('evidence review: a trusted envelope cannot relabel an unchanged signed profile publication', async () => {
+  const f = await pair(), token = await f.issue();
+  token.body.profiles[0].id = `${f.source.org}/finance.verified-credit-score@1.0.0`;
+  // The contract digest and original publisher command still describe evidence.notes.
+  // Re-signing the transport envelope must not authenticate a different display identity.
+  await assert.rejects(f.inspect(await signToken(token.body, f.source.ctx)), denied);
+});
+
 test('evidence review: signed outer issuer claims cannot substitute for deterministic record validation', async () => {
   const f = await pair(), token = await f.issue();
   token.body.records[0].validation = { profile: f.profile, level: 'structural', business_verified: true };

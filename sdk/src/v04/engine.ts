@@ -223,6 +223,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     case "records.export":
     case "workspace.view": {
       exact(p,["after","limit","profile_digests"]);const o=currentOrg();demand(Number.isSafeInteger(p.after)&&p.after>=0&&Number.isInteger(p.limit)&&p.limit>0&&p.limit<=100&&Array.isArray(p.profile_digests)&&p.profile_digests.length<=32&&p.profile_digests.every((d:any)=>typeof d==="string"&&/^[0-9a-f]{64}$/.test(d)),"invalid","invalid scoped page",400);
+      demand(p.profile_digests.every((d:string)=>Object.hasOwn(s.profiles,d)&&accessibleProfile(s.profiles[d],o.id)),"unsupported_profile","requested profile unavailable or unsupported",422);
       const rows=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.seq>p.after&&p.profile_digests.includes(r.profile_digest)&&can(r.policy_id,r.resource_id,"read")&&(c.action!=="records.export"||can(r.policy_id,r.resource_id,"export"))&&understands(r.profile_digest)).sort((a,b)=>a.seq-b.seq).slice(0,p.limit+1);
       const page=rows.slice(0,p.limit);result={organization:{id:o.id,name:o.name,generation:o.generation},records:page.map(viewRecord),next_cursor:rows.length>p.limit?page.at(-1)!.seq:null};break;
     }
@@ -236,7 +237,8 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     case "inventory.get": {
       exact(p,["policy_id","pool_id"]);id(p.pool_id);const o=currentOrg();const pool=s.inventory[o.id]?.pools[p.pool_id];
       const inventoryConsumer=c.actor.kind==="person"||s.releases[o.installations[c.actor.id].release_digest].profiles.some(d=>s.profiles[d]?.semantics==="inventory-v1");
-      demand(pool&&pool.policy_id===p.policy_id&&can(p.policy_id,p.pool_id,"read")&&inventoryConsumer,"not_found","pool unavailable",404);result=structuredClone(pool);break;
+      const understandsPool=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.resource_id===p.pool_id&&s.profiles[r.profile_digest]?.semantics==="inventory-v1").every(r=>understands(r.profile_digest));
+      demand(pool&&pool.policy_id===p.policy_id&&can(p.policy_id,p.pool_id,"read")&&inventoryConsumer&&understandsPool,"not_found","pool unavailable",404);result=structuredClone(pool);break;
     }
     case "authority.export": {exact(p,[]);const o=currentOrg();management(s,o,c,"authority.manage",ctx);result=await authorityIssue(s,o.id,ctx);break;}
     case "authority.import": {exact(p,["token"]);management(s,currentOrg(),c,"authority.manage",ctx);result=await authorityAccept(s,p.token,ctx);break;}

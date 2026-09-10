@@ -25,9 +25,10 @@ before the implementation owner fixed it.
 | `sdk/tests/interop/inventory-conformance.test.ts` | 8 | Separately coded consumer agreement with pinned public fixtures, accepted prefixes, incompatible profiles, signed fixture binding and unknown-versus-zero handling |
 | `sdk/tests/v04/review-probes.test.ts` | 10 | Company metadata isolation, module profile intersections, inventory policy binding, non-disclosing mutation receipts, prototype-name rejection, independent assessment trust and installed-module expiry/revocation |
 | `sdk/tests/v04/snapshot-review.test.ts` | 6 | Valid signed snapshots; rejection of never-associated signers/grantees; cancellation of losing migration attempts after another destination wins; destination installation-ID collision rejection |
-| `sdk/tests/v04/evidence-review.test.ts` | 14 | Exact recipient/compartment/host binding, source read-and-export authority, module authority, expiry/signature checks, malformed payloads, dependency-complete evidence, deterministic recipient validation, and permission-scoped live invoice reference checks |
+| `sdk/tests/v04/evidence-review.test.ts` | 15 | Exact recipient/compartment/host binding, source read-and-export authority, module authority, expiry/signature checks, malformed payloads, dependency-complete evidence, signed profile display-identity binding, deterministic recipient validation, and permission-scoped live invoice reference checks |
+| `sdk/tests/release/independent-release-review.test.ts` | 2 | Failed runtime preflight supersedes prior success; executable observations require pinned runtime and explicit zero skipped tests |
 
-The aggregate is **52 tests**, in addition to the separately maintained kernel,
+The owned aggregate is **55 tests**, in addition to the separately maintained kernel,
 HTTP, migration, PostgreSQL and existing compatibility suites. These counts are
 test-runner cases, not an estimate of all possible attack paths.
 
@@ -58,6 +59,39 @@ test-runner cases, not an estimate of all possible attack paths.
   checks. A publisher choosing the name `trade.contract` does not establish a
   standardized contract type. Missing, inaccessible and undeclared-module
   references remain unknown rather than becoming an existence oracle.
+- Bound the displayed profile identity to its signed publisher/name/version;
+  a trusted transport issuer cannot relabel an unchanged publication.
+
+## Release automation and migration capacity closure
+
+Independently read the complete release-graph runner, exact G00-G10 graph,
+fingerprint/evidence evaluator, migration finalization and router transaction
+capacity admission. Identified a runtime-preflight stale-success path: a missing
+or incorrect runtime previously threw before recording the failed attempt.
+The implementation owner now persists a pending attempt before launching the
+runtime and a blocked result on failed preflight. Interrupted execution therefore
+does not leave the previous successful observation as the latest result. Passed
+executable observations also require the exact pinned runtime and an explicit
+zero skipped-test count. Desired-invariant regressions pass; these changes landed
+before their first execution, so this is not claimed as a captured red-to-green run.
+
+Migration finalization applies the validated snapshot and discards its staged
+snapshot/chunk copies in the same transaction. Every router write preserves
+64 KiB of capacity per ready, unactivated migration. Independently reran the
+implementation owner's actual-HTTP capacity test: insufficient ready capacity
+does not freeze the source; after readiness, intervening writes fill ordinary
+capacity to HTTP 507, but commit, finalization, read and retry still succeed.
+No additional capacity defect was identified in this bounded review. This does
+not cover an operator reducing the configured capacity after readiness, loss of
+storage, or a malicious pinned host.
+
+The combined rerun passed **71 tests with zero skipped/cancelled/todo cases**:
+55 owned tests, 15 existing release-graph tests and one actual-HTTP migration
+capacity test. The release graph now explicitly includes the independent runner
+regressions. Evidence files and reviewer labels remain trusted repository/CI
+inputs, not cryptographically authenticated attestations of reviewer identity.
+The runner cannot prevent an authorized repository editor from forging evidence
+or weakening test contents; protected review and CI are separate controls.
 
 ## Boundaries that remain important
 
@@ -95,7 +129,7 @@ are not established by these unit and integration checks.
 From `sdk`, using the repository's pinned runtime:
 
 ```text
-node --test tests/profiles/business-profiles.test.ts tests/interop/inventory-conformance.test.ts tests/v04/review-probes.test.ts tests/v04/snapshot-review.test.ts tests/v04/evidence-review.test.ts
+node --test tests/profiles/business-profiles.test.ts tests/interop/inventory-conformance.test.ts tests/v04/review-probes.test.ts tests/v04/snapshot-review.test.ts tests/v04/evidence-review.test.ts tests/release/independent-release-review.test.ts tests/release/release-gates.test.ts tests/v04/migration-capacity.test.ts
 node node_modules/typescript/bin/tsc --noEmit
 ```
 

@@ -130,6 +130,8 @@ The host appends signed attribution and derived metadata: `command`, `seq`, `is_
 
 `records.list`, `records.export` and `workspace.view` accept `{after,limit,profile_digests}`. Authorization and accepted profiles filter before pagination. `next_cursor` is the last returned sequence only when another matching page exists; `null` means no next page at that observation. Preserve the greatest processed sequence when polling later; do not reset to zero because the final cursor is null. A replayed read uses current authorization. These are data APIs, not a dashboard, notification system or subscription delivery service.
 
+An unknown or unavailable requested profile is an explicit `unsupported_profile` error, not a successful empty company. An installed module's derived inventory read must declare every exact profile contributing events to that pool; sharing the `inventory-v1` semantic family alone does not authorize other profiles' observations or aggregates.
+
 ### Inventory/packaging profile
 
 Create an authorized pool with `inventory.create {policy_id,pool_id,product_id,base_unit}`. Its signed creation travels with migration. An `inventory-v1` record names that pool as `resource_id` and must use the pool's policy. Events use company/source/observation identity, exact expected revision and physical `occurred_at`. Supported operations are packaging revision, receipt, explicit adjustment, reservation, release and fulfillment; [the frozen flow and schema](fixtures/README.md) define the fixture.

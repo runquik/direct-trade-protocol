@@ -42,6 +42,9 @@ export const expectedDependencies: Record<string, string[]> = {
   G10: ["G00", "G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09"],
 };
 const hash = (value: string | Uint8Array) => createHash("sha256").update(value).digest("hex");
+function pinnedRuntime(kind: Check["kind"], runtime: unknown): boolean {
+  return typeof runtime === "string" && (kind === "node" ? /^v22\.23\.2$/.test(runtime) : kind === "deno" ? /^deno 2\.9\.6(?:\s|$)/.test(runtime) : false);
+}
 function sourceHash(bytes: Buffer): string {
   // Source checkouts may have Git CRLF conversion on Windows. Preserve binary
   // inputs exactly; normalize only round-trippable UTF-8 text for cross-host CI.
@@ -167,7 +170,7 @@ export function evaluate(graph: Graph, evidence: Evidence, root: string): { read
       else if (observation.status !== "passed") { reasons.push(`${checkId}: ${observation.status}`); status = observation.status; valid = false; }
       else if (observation.source_hash !== fingerprint) { reasons.push(`${checkId}: source/dependency evidence stale`); status = "stale"; valid = false; }
       else {
-        if (check.kind !== "manual" && (observation.exit_code !== 0 || (observation.skipped_tests ?? 0) > 0 || !observation.command?.length || !observation.runtime)) {
+        if (check.kind !== "manual" && (observation.exit_code !== 0 || observation.skipped_tests !== 0 || !observation.command?.length || !pinnedRuntime(check.kind, observation.runtime))) {
           reasons.push(`${checkId}: successful, unskipped command/runtime evidence required`); status = "failed"; valid = false;
         }
         if (check.kind !== "manual" && sorted(observation.command?.slice(1)) !== sorted(check.args)) { reasons.push(`${checkId}: command differs from graph`); status = "failed"; valid = false; }
@@ -230,19 +233,26 @@ export function main(args = process.argv.slice(2), root = fileURLToPath(new URL(
         const check = graph.checks.find(c => c.id === checkId)!;
         if (check.kind === "manual") { console.log(`${check.id}: manual review requires record plus artifact`); continue; }
         const fingerprint = gateFingerprint(graph, id, root), runtime = runtimes[check.kind];
-        const version = spawnSync(runtime, ["--version"], { cwd: resolve(root, "sdk"), encoding: "utf8", timeout: 10000, windowsHide: true, shell: false });
-        assert(version.status === 0, `${check.id}: runtime unavailable`);
-        assert(check.kind !== "node" || /^v22\.23\.2\s*$/.test(version.stdout.trim()), "release loop requires pinned Node22.23.2");
-        assert(check.kind !== "deno" || /^deno 2\.9\.6\b/.test(version.stdout), "release loop requires pinned Deno2.9.6");
-        console.log(`Running ${id}/${check.id}`);
+        // Persist the attempt BEFORE runtime discovery. A failed preflight or a
+        // killed runner must invalidate the previous successful observation.
         const started = new Date().toISOString();
+        const artifact = `docs/release/evidence/${check.id}-${started.replace(/[:.]/g, "-")}.txt`;
+        const attempt: Observation = { check_id: check.id, status: "pending", source_hash: fingerprint, recorded_at: started, actor: "release-runner", summary: "Execution started; no successful result yet", artifacts: {}, command: [runtime, ...check.args!] };
+        evidence.observations.push(attempt); save(safePath(root, evidencePath), evidence);
+        const version = spawnSync(runtime, ["--version"], { cwd: resolve(root, "sdk"), encoding: "utf8", timeout: 10000, windowsHide: true, shell: false });
+        if (version.status !== 0 || !pinnedRuntime(check.kind, version.stdout?.trim())) {
+          const output = `Runtime preflight failed: expected pinned ${check.kind}\n${version.stdout ?? ""}\n${version.stderr ?? ""}\n${version.error ?? ""}`;
+          mkdirSync(dirname(safePath(root, artifact)), { recursive: true }); writeFileSync(safePath(root, artifact), output);
+          Object.assign(attempt, { status: "blocked", summary: "Runtime preflight failed; previous pass invalidated", artifacts: { [artifact]: hash(output) }, exit_code: version.status, runtime: version.stdout?.trim() ?? "" });
+          save(safePath(root, evidencePath), evidence); console.log(output); return 1;
+        }
+        console.log(`Running ${id}/${check.id}`);
         const result = spawnSync(runtime, check.args!, { cwd: resolve(root, "sdk"), encoding: "utf8", timeout: check.timeout_ms ?? 300000, maxBuffer: 16 * 1024 * 1024, windowsHide: true, shell: false });
         const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}\n${result.error ? String(result.error) : ""}`;
         const skipped = skippedTests(output), fresh = fingerprint === gateFingerprint(graph, id, root);
         const status: Status = result.status === 0 && !skipped && fresh ? "passed" : "failed";
-        const artifact = `docs/release/evidence/${check.id}-${started.replace(/[:.]/g, "-")}.txt`;
         mkdirSync(dirname(safePath(root, artifact)), { recursive: true }); writeFileSync(safePath(root, artifact), output);
-        evidence.observations.push({ check_id: check.id, status, source_hash: fingerprint, recorded_at: new Date().toISOString(), actor: "release-runner", summary: fresh ? `${check.title}: ${status}` : "Source changed during run; evidence invalid", artifacts: { [artifact]: hash(output) }, exit_code: result.status, skipped_tests: skipped, command: [runtime, ...check.args!], runtime: version.stdout.trim() });
+        Object.assign(attempt, { status, recorded_at: new Date().toISOString(), summary: fresh ? `${check.title}: ${status}` : "Source changed during run; evidence invalid", artifacts: { [artifact]: hash(output) }, exit_code: result.status, skipped_tests: skipped, runtime: version.stdout.trim() });
         save(safePath(root, evidencePath), evidence);
         if (status !== "passed") { console.log(output); console.log(`${check.id}: loop stopped; reproduce/fix/review before rerun`); console.log(JSON.stringify(evaluate(graph, evidence, root), null, 2)); return 1; }
         if (checkId === selectedCheck) selectedPassed = true;

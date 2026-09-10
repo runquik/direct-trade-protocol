@@ -213,3 +213,24 @@ test('inventory deterministic mixed-event stress preserves invariants across 100
   }
   assert.ok(seen.size > 100, 'fixture must exercise a substantial accepted event history');
 });
+
+test('review: final safe inventory revision preserves exact retry but rejects a new effect', () => {
+  const initial = start();
+  initial.revision = Number.MAX_SAFE_INTEGER - 1;
+  const event: InventoryEvent = { ...base(initial, 'last-safe-observation'), kind: 'receive', quantity: '1', unit: 'unit' };
+  const accepted = applyInventoryEvent(initial, event);
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.state.revision, Number.MAX_SAFE_INTEGER);
+  const terminal = structuredClone(accepted.state);
+
+  const retry = applyInventoryEvent(accepted.state, event);
+  assert.equal(retry.ok && retry.duplicate, true, 'terminal revision must not prevent a no-op retry');
+  assert.strictEqual(retry.state, accepted.state);
+
+  const fresh = applyInventoryEvent(accepted.state, {
+    ...event, observation_id: 'would-overflow', expected_revision: Number.MAX_SAFE_INTEGER,
+  });
+  assert.equal(fresh.ok, false, 'new effect must not increment past the safe integer bound');
+  assert.strictEqual(fresh.state, accepted.state);
+  assert.deepEqual(accepted.state, terminal, 'retry and overflow rejection leave the terminal state unchanged');
+});

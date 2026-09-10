@@ -110,3 +110,74 @@ The implementation/review loop closed concrete defects rather than merely adding
 Relevant reproducible suites: `sdk/tests/v04/migration.test.ts`, `migration-snapshot.test.ts`, `snapshot-review.test.ts` and the independently authored HTTP migration tests. A greater-than-1-MiB transfer is covered both by helper probes and actual signed HTTP stores. These use one reference implementation across hosts, not independently authored servers.
 
 Remaining trust boundary: a pinned source is still trusted for completeness, original accepted ordering, and historical delegated data authorization that cannot be replayed exactly from command issuance timestamps alone. Foreign publishers' private authority directories are not copied into every consuming company's export. Historical assessment signatures are preserved, but issuer trust is not transferred and expired approvals are not renewed. Destination installations remain disabled pending explicit admission. These limits must appear in the candidate specification and prevent a hostile-host, production-HR or universal-federation claim.
+
+## Final independent profile and consumer review
+
+This reviewer did not implement `sdk/src/profiles/decimal.ts`, `invoice.ts`,
+`inventory.ts`, or the separately coded fixture reader. The final review read
+those implementations, the pinned inventory schema/flow and consumer tests,
+`sdk/src/v04/profiles.ts`, and the invoice/inventory admission and read integration
+in `sdk/src/v04/engine.ts`. The profile and consumer suites were independently
+rerun with Node 22.23.2: 22 tests passed, none failed. This is focused evidence,
+not a replacement for the final transactional HTTP and runtime gates.
+
+Verified boundaries:
+
+- Decimal parsing is string-only, precision- and magnitude-bounded, with exact
+  bigint multiplication and half-away-from-zero ties. Invoice totals use each
+  six-place rounded line, not a binary-float aggregate. Stock conversions instead
+  reject fractional remainders beyond three decimal places.
+- Inventory transitions preserve the input state on acceptance and denial,
+  bind observations to company/source identity, pin immutable packaging, and
+  enforce revision, available-stock and named-reservation constraints. The engine
+  adds company-wide observation uniqueness across pools, exact policy/resource
+  binding and atomic persistence; the pure reducer alone cannot guarantee those
+  database properties. Derived inventory now requires an installation to understand
+  every contributing exact profile, not just another profile with the same
+  semantic label.
+- Invoice admission enforces arithmetic and envelope parties while recording
+  references as unresolved. Live reference inspection rechecks visibility and
+  exact operator-pinned profile meaning; unreadable and absent references remain
+  indistinguishable. Original validation is not silently rewritten.
+- The fixture reader genuinely has separate decimal, canonicalization, signature
+  verification and transition code. Both consumers agree with explicit expected
+  results and each accepted prefix; incompatible schemas/semantics, altered
+  signatures, untrusted keys, conflicting observations, stale allocations and
+  incorrect packaging pins are negative controls.
+
+One narrow defect was reproduced and reported for correction: the pure inventory
+reducer accepts an event at revision `Number.MAX_SAFE_INTEGER - 1`, but its exact
+retry against the resulting terminal revision fails before observation
+deduplication. Reproduction uses a synthetic authoritative starting state at that
+revision, a one-unit receive, and an identical retry. The required behavior is a
+duplicate no-op; only a new event should fail on revision exhaustion. This is a
+P2 bounded-contract inconsistency, not an achievable-scale attack against the
+candidate store. The engine's earlier observation lookup masks the retry problem
+at its HTTP boundary. The focused 22 passing tests did not cover this edge; this
+review does not mark it resolved until a desired-result regression passes.
+
+Resolution verified: the reducer now validates the safe-integer state first,
+deduplicates the exact observation next, and rejects exhausted capacity only for
+a new effect. This reviewer independently reran the expanded profile/consumer
+suites after the fix: **23 passed, zero failed**, including the regression proving
+terminal exact retry succeeds and a new event cannot overflow or mutate state.
+No unresolved release-blocking finding remains from this bounded independent
+profile review. Final whole-tree certification remains a separate release gate.
+
+Concrete exclusions remain important. The inventory stock pool is not a complete
+lot/location ontology, correction-linkage graph, serial-number system, physical
+sensor authenticity proof, or cross-company title ledger. A source ID namespaces
+a declared observation; it does not authenticate a scanner independently of the
+authorized writer. Invoice validation does not reconcile referenced settlement
+amounts, verify payment rails, calculate tax, implement a complete invoice-status
+state machine, or validate credit-note history. It is supplemental to the pinned
+structural schema; a custom publisher's schema remains responsible for additional
+required fields and enum restrictions.
+
+The consumer artifact proves separately coded agreement by one author, not an
+independent organization's cold implementation. Its detached signature domain is
+explicitly fixture-only, not DTP command-wire certification. Trusted keys, opening
+balance and history completeness are caller-supplied preconditions, and an
+incomplete stream returns unknown rather than zero. Those limitations are already
+visible in `spec/v0.4/fixtures/README.md`; do not broaden G04 into independent-host
+or universal-profile interoperability certification.
