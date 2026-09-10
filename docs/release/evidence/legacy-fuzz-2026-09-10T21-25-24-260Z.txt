@@ -1,0 +1,316 @@
+TAP version 13
+#   naive sorted-keys JSON.stringify replacer agrees with the SDK on 2903/5000; 1144 inputs had a "toJSON" key and skipped the json-canonicalize oracle
+#   runtime JSON.parse round-trip faults (V8 bug, not SDK): 0
+#   json-canonicalize disagreed with cyberphone/canonicalize on 0 inputs
+#   integer-only fuzz: 5000 cases, 0 divergences
+#     {"10":1,"9":2}  ->  sdk {"10":1,"9":2}  ref {"10":1,"9":2}  ok
+#     {"b":1,"1":2}  ->  sdk {"1":2,"b":1}  ref {"1":2,"b":1}  ok
+#     {"-1":1,"1":2}  ->  sdk {"-1":1,"1":2}  ref {"-1":1,"1":2}  ok
+#     {"1":0,"01":1}  ->  sdk {"01":1,"1":0}  ref {"01":1,"1":0}  ok
+#     {"a":1," ":2,"0":3}  ->  sdk {" ":2,"0":3,"a":1}  ref {" ":2,"0":3,"a":1}  ok
+#     {"4294967294":1,"4294967295":2,"A":3}  ->  sdk {"4294967294":1,"4294967295":2,"A":3}  ref {"4294967294":1,"4294967295":2,"A":3}  ok
+#     "\\ud800" -> sdk threw CanonicalizationError
+#     "\\udc00" -> sdk threw CanonicalizationError
+#     "\\udfff" -> sdk threw CanonicalizationError
+#     "a\\ud800" -> sdk threw CanonicalizationError
+#     "\\udc00b" -> sdk threw CanonicalizationError
+#     "\\ud83d" -> sdk threw CanonicalizationError
+#     "\\ude00\\ud83d" -> sdk threw CanonicalizationError
+#     "\\ud800\\ud800" -> sdk threw CanonicalizationError
+#   1000 cases: 490 malformed inputs rejected, 510 well-formed inputs compared
+#     {"__proto__":1,"a":2} -> sdk {"__proto__":1,"a":2}  ref {"__proto__":1,"a":2}
+#     {"a":2,"__proto__":{"x":1}} -> sdk {"__proto__":{"x":1},"a":2} (same bytes as {"a":2}: false)
+#   Date: sdk {}  ref "1970-01-01T00:00:00.000Z"  (SDK ignores toJSON; only matters for non-JSON input)
+#   Map:  sdk {}  ref {}
+#   top-level undefined: sdk null  ref undefined
+#   depth 1000: sdk ok, ref ok
+#   depth 5000: sdk RangeError, ref RangeError
+#   depth 20000: sdk RangeError, ref RangeError
+#   numeric-string keys in the fixed vectors: 3 (so the vectors cannot catch the numeric-key divergence)
+# Subtest: integer-only JSON: canonicalize() vs RFC 8785 reference implementations (5000 cases, seed 20260903)
+ok 1 - integer-only JSON: canonicalize() vs RFC 8785 reference implementations (5000 cases, seed 20260903)
+  ---
+  duration_ms: 50570.3563
+  type: 'test'
+  ...
+# Subtest: non-integer / unsafe / non-finite numbers throw FloatNotAllowedError with the right path (5000 cases)
+ok 2 - non-integer / unsafe / non-finite numbers throw FloatNotAllowedError with the right path (5000 cases)
+  ---
+  duration_ms: 3789.0164
+  type: 'test'
+  ...
+# Subtest: number table: every BAD_NUMBERS entry is rejected at top level and nested; every INTERESTING_INTS entry is accepted and matches the reference
+ok 3 - number table: every BAD_NUMBERS entry is rejected at top level and nested; every INTERESTING_INTS entry is accepted and matches the reference
+  ---
+  duration_ms: 2.0879
+  type: 'test'
+  ...
+# Subtest: negative zero: accepted as an integer and serialized as 0 (matches JCS Appendix B and JSON.stringify)
+ok 4 - negative zero: accepted as an integer and serialized as 0 (matches JCS Appendix B and JSON.stringify)
+  ---
+  duration_ms: 0.2158
+  type: 'test'
+  ...
+# Subtest: float that is integral in JS (1.0, 100.0, 1e2) is indistinguishable from an integer and is accepted
+ok 5 - float that is integral in JS (1.0, 100.0, 1e2) is indistinguishable from an integer and is accepted
+  ---
+  duration_ms: 0.1672
+  type: 'test'
+  ...
+# Subtest: MAX_SAFE_INTEGER boundary: 2^53-1 accepted, 2^53 rejected, 2^53+1 (== 2^53 as a double) rejected, 1e16 and 1e21 rejected
+ok 6 - MAX_SAFE_INTEGER boundary: 2^53-1 accepted, 2^53 rejected, 2^53+1 (== 2^53 as a double) rejected, 1e16 and 1e21 rejected
+  ---
+  duration_ms: 0.2854
+  type: 'test'
+  ...
+# Subtest: key sorting: UTF-16 code-unit order (not code point, not locale, not NFC-equivalence, not case-fold)
+ok 7 - key sorting: UTF-16 code-unit order (not code point, not locale, not NFC-equivalence, not case-fold)
+  ---
+  duration_ms: 0.6255
+  type: 'test'
+  ...
+# Subtest: numeric-string keys are emitted in canonical code-unit order
+ok 8 - numeric-string keys are emitted in canonical code-unit order
+  ---
+  duration_ms: 0.3752
+  type: 'test'
+  ...
+# Subtest: string escaping: exactly JSON.stringify (short escapes, lowercase u00XX for other controls, U+2028/2029 and DEL literal)
+ok 9 - string escaping: exactly JSON.stringify (short escapes, lowercase u00XX for other controls, U+2028/2029 and DEL literal)
+  ---
+  duration_ms: 0.3452
+  type: 'test'
+  ...
+# Subtest: RFC 8785: lone surrogates are rejected
+ok 10 - RFC 8785: lone surrogates are rejected
+  ---
+  duration_ms: 0.7067
+  type: 'test'
+  ...
+# Subtest: lone-surrogate fuzz: SDK rejects malformed Unicode and matches the reference on well-formed inputs
+ok 11 - lone-surrogate fuzz: SDK rejects malformed Unicode and matches the reference on well-formed inputs
+  ---
+  duration_ms: 197.6616
+  type: 'test'
+  ...
+# Subtest: a JSON key named __proto__ is preserved in the canonical form
+ok 12 - a JSON key named __proto__ is preserved in the canonical form
+  ---
+  duration_ms: 0.5218
+  type: 'test'
+  ...
+# Subtest: non-JSON inputs (informational): toJSON objects, Map/Set, bigint, undefined, functions
+ok 13 - non-JSON inputs (informational): toJSON objects, Map/Set, bigint, undefined, functions
+  ---
+  duration_ms: 0.8613
+  type: 'test'
+  ...
+# Subtest: deep nesting (informational): recursion limits
+ok 14 - deep nesting (informational): recursion limits
+  ---
+  duration_ms: 5.513
+  type: 'test'
+  ...
+# Subtest: reference implementations reproduce the spec vectors (sanity check on the oracle); vectors contain no numeric-string keys
+ok 15 - reference implementations reproduce the spec vectors (sanity check on the oracle); vectors contain no numeric-string keys
+  ---
+  duration_ms: 1.0243
+  type: 'test'
+  ...
+#   random 32-byte keys: 4722 encode to 44 chars, 278 to 43 chars
+#   0 leading zero bytes -> 44 chars ok
+#   1 leading zero bytes -> 44 chars ok
+#   2 leading zero bytes -> 43 chars ok
+#   3 leading zero bytes -> 43 chars ok
+#   4 leading zero bytes -> 43 chars ok
+#   5 leading zero bytes -> 42 chars REJECTED by protocol.keys check
+#   6 leading zero bytes -> 42 chars REJECTED by protocol.keys check
+#   7 leading zero bytes -> 42 chars REJECTED by protocol.keys check
+#   8 leading zero bytes -> 41 chars REJECTED by protocol.keys check
+# Subtest: base58: byte-identical to bs58 and round-trips for random byte strings (5000 cases)
+ok 16 - base58: byte-identical to bs58 and round-trips for random byte strings (5000 cases)
+  ---
+  duration_ms: 204.4168
+  type: 'test'
+  ...
+# Subtest: base58: fixed patterns (empty, all 0x00, all 0xff, single bytes, leading zeros)
+ok 17 - base58: fixed patterns (empty, all 0x00, all 0xff, single bytes, leading zeros)
+  ---
+  duration_ms: 4.8554
+  type: 'test'
+  ...
+# Subtest: base58 decode rejects every character outside the Bitcoin alphabet (0 O I l, whitespace, punctuation, unicode)
+ok 18 - base58 decode rejects every character outside the Bitcoin alphabet (0 O I l, whitespace, punctuation, unicode)
+  ---
+  duration_ms: 1.1725
+  type: 'test'
+  ...
+# Subtest: base58 is a bijection on 32-byte keys: encode(decode(s)) == s for every valid encoding, no non-canonical forms
+ok 19 - base58 is a bijection on 32-byte keys: encode(decode(s)) == s for every valid encoding, no non-canonical forms
+  ---
+  duration_ms: 128.6427
+  type: 'test'
+  ...
+# Subtest: key ids with many leading zero bytes encode shorter than the DB check constraint allows (theoretical, p ~ 2^-40)
+ok 20 - key ids with many leading zero bytes encode shorter than the DB check constraint allows (theoretical, p ~ 2^-40)
+  ---
+  duration_ms: 0.6146
+  type: 'test'
+  ...
+# Subtest: decodeKeyId / decodeSignature / decodeSecretKey reject wrong prefix, wrong lengths, bad alphabet, empty
+ok 21 - decodeKeyId / decodeSignature / decodeSecretKey reject wrong prefix, wrong lengths, bad alphabet, empty
+  ---
+  duration_ms: 1.6126
+  type: 'test'
+  ...
+# Subtest: encodeSecretKey / decodeSecretKey round-trip and keyPairFromSecret rebuilds the key id
+ok 22 - encodeSecretKey / decodeSecretKey round-trip and keyPairFromSecret rebuilds the key id
+  ---
+  duration_ms: 577.2342
+  type: 'test'
+  ...
+# Subtest: NEAR compatibility: fixed vector matches tweetnacl + bs58 byte for byte
+ok 23 - NEAR compatibility: fixed vector matches tweetnacl + bs58 byte for byte
+  ---
+  duration_ms: 4.4821
+  type: 'test'
+  ...
+# Subtest: NEAR compatibility: signatures interoperate both ways with tweetnacl (200 random keys)
+ok 24 - NEAR compatibility: signatures interoperate both ways with tweetnacl (200 random keys)
+  ---
+  duration_ms: 2834.7329
+  type: 'test'
+  ...
+#   S+L malleated signature: WebCrypto (our SDK) -> false, tweetnacl -> true (tweetnacl does not enforce S < L; see FINDINGS)
+#   all-zero public key: verify -> false
+#   public key ffffffff...: verify -> false
+#   public key 01000000...: verify -> false
+# Subtest: signature malleability: non-canonical S (S + L) and bit flips are rejected by WebCrypto and tweetnacl
+ok 25 - signature malleability: non-canonical S (S + L) and bit flips are rejected by WebCrypto and tweetnacl
+  ---
+  duration_ms: 9.108
+  type: 'test'
+  ...
+#   signing inputs that are not RFC 8785 of the signing object: 0/5000 (numeric-string keys in body; see fuzz-canonical). First: -
+# Subtest: signingObject: field order, unknown top-level fields and signature never change the signing input (5000 cases)
+ok 26 - signingObject: field order, unknown top-level fields and signature never change the signing input (5000 cases)
+  ---
+  duration_ms: 10777.6796
+  type: 'test'
+  ...
+# Subtest: signingObject defaults: missing supersedes -> null, missing counterparty_ids -> [], explicit null counterparty_ids -> []
+ok 27 - signingObject defaults: missing supersedes -> null, missing counterparty_ids -> [], explicit null counterparty_ids -> []
+  ---
+  duration_ms: 5.3881
+  type: 'test'
+  ...
+# Subtest: signingObject: any other missing signed field becomes null (the store's schema catches it before signing matters)
+ok 28 - signingObject: any other missing signed field becomes null (the store's schema catches it before signing matters)
+  ---
+  duration_ms: 0.5786
+  type: 'test'
+  ...
+# Subtest: spec vector record: verifies; unknown top-level fields do not break verification (schema rejects them separately)
+ok 29 - spec vector record: verifies; unknown top-level fields do not break verification (schema rejects them separately)
+  ---
+  duration_ms: 12.0562
+  type: 'test'
+  ...
+#   verifyRecord(with __proto__ in body).ok = false; payload_hash equal to original: false
+#   JSON.stringify(injected.body) still contains __proto__: true
+# Subtest: __proto__ injection changes the signing input and invalidates the original signature
+ok 30 - __proto__ injection changes the signing input and invalidates the original signature
+  ---
+  duration_ms: 1.4548
+  type: 'test'
+  ...
+# Subtest: signRecord: output contains exactly SIGNED_FIELDS + signature, drops unknown fields, refuses floats, is deterministic
+ok 31 - signRecord: output contains exactly SIGNED_FIELDS + signature, drops unknown fields, refuses floats, is deterministic
+  ---
+  duration_ms: 280.9449
+  type: 'test'
+  ...
+# Subtest: payload_hash is over the canonical signing input and matches the spec vector
+ok 32 - payload_hash is over the canonical signing input and matches the spec vector
+  ---
+  duration_ms: 0.7132
+  type: 'test'
+  ...
+# Subtest: race 1: 10 simultaneous superseding writes of the same head (different record_ids)
+ok 33 - race 1: 10 simultaneous superseding writes of the same head (different record_ids)
+  ---
+  duration_ms: 2121.2207
+  type: 'test'
+  ...
+# Subtest: race 2: 10 simultaneous genesis POST /companies for one company id with different keys
+ok 34 - race 2: 10 simultaneous genesis POST /companies for one company id with different keys
+  ---
+  duration_ms: 137.3253
+  type: 'test'
+  ...
+# Subtest: race 3: 10 identical-envelope replays of one record write (idempotency under contention)
+ok 35 - race 3: 10 identical-envelope replays of one record write (idempotency under contention)
+  ---
+  duration_ms: 184.1541
+  type: 'test'
+  ...
+# Subtest: race 4: grant and the module write that depends on it, issued simultaneously
+ok 36 - race 4: grant and the module write that depends on it, issued simultaneously
+  ---
+  duration_ms: 762.852
+  type: 'test'
+  ...
+# \#\# Concurrency results: local PGlite (in-process)
+# \#\#\# Race 1: 10 concurrent supersedes of one head (POST /records)
+# | status code | count | example message |
+# |---|---|---|
+# | 201 ok | 1 |  |
+# | 409 supersedes_conflict | 9 | record 7d32dbfd-e126-495d-b43e-be4c4e610c9f is already superseded by 79be3a2e-a3e3-41ee-bf46-bb02c5563e3e |
+# Post-state: 2 records in the chain, 1 head(s); old head is_head=false, superseded_by=set
+# \#\#\# Race 2: 10 concurrent genesis writes for one company id (POST /companies)
+# | status code | count | example message |
+# |---|---|---|
+# | 201 ok | 1 |  |
+# | 409 duplicate_record_id | 9 | company fz-a9b6419f.dtp already exists |
+# Post-state: company exists with 1 active key(s); winner key listed: true
+# \#\#\# Race 3: 10 identical replays of one envelope (POST /records)
+# | status code | count | example message |
+# |---|---|---|
+# | 200 ok (replay) | 9 |  |
+# | 201 ok | 1 |  |
+# Post-state: 1 record(s) with that root_id
+# \#\#\# Race 3b: 5 identical replays of one genesis envelope (POST /companies)
+# | status code | count | example message |
+# |---|---|---|
+# | 200 ok (replay) | 4 |  |
+# | 201 ok | 1 |  |
+# Sequential identical replay after the race: 200 ok (replay) (spec 3.5 idempotency says an identical envelope should be 200)
+# \#\#\# Race 4: grant + dependent module write fired together
+# | round | grant | write | retry after grant |
+# |---|---|---|---|
+# | 1 | 201 ok | 201 ok | - |
+# | 2 | 201 ok | 201 ok | - |
+# | 3 | 201 ok | 201 ok | - |
+# | 4 | 201 ok | 201 ok | - |
+# | 5 | 201 ok | 201 ok | - |
+# \#\#\# Events: 50 writes in 5 concurrent batches of 10, then paging
+# Write outcomes: 201 ok x50
+# limit=7: 8 pages, 51 distinct events, dupes=0, missing=0, unexpected=0, strictly increasing cursors=true
+# limit=17: 3 pages, 51 distinct events, dupes=0, missing=0, unexpected=0, strictly increasing cursors=true
+# Subtest: events: 50 quick writes, then page the feed with limit=7 from cursor 0; every record exactly once, in seq order
+ok 37 - events: 50 quick writes, then page the feed with limit=7 from cursor 0; every record exactly once, in seq order
+  ---
+  duration_ms: 952.4083
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54696.525
+
+

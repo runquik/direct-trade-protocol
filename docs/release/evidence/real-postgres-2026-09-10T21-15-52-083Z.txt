@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: event cursors cannot overtake an uncommitted append
+ok 1 - event cursors cannot overtake an uncommitted append
+  ---
+  duration_ms: 366.072941
+  type: 'test'
+  ...
+# Subtest: a module request queued before revocation rechecks its grant inside the transaction
+ok 2 - a module request queued before revocation rechecks its grant inside the transaction
+  ---
+  duration_ms: 57.261623
+  type: 'test'
+  ...
+# Subtest: v0.4 PostgreSQL: concurrent last-stock reservations serialize without overselling or partial effects
+ok 3 - v0.4 PostgreSQL: concurrent last-stock reservations serialize without overselling or partial effects
+  ---
+  duration_ms: 335.908056
+  type: 'test'
+  ...
+# Subtest: v0.4 PostgreSQL: concurrent supersession produces exactly one new head
+ok 4 - v0.4 PostgreSQL: concurrent supersession produces exactly one new head
+  ---
+  duration_ms: 80.441883
+  type: 'test'
+  ...
+# Subtest: v0.4 PostgreSQL: queued signed read observes committed membership revocation
+ok 5 - v0.4 PostgreSQL: queued signed read observes committed membership revocation
+  ---
+  duration_ms: 98.804834
+  type: 'test'
+  ...
+# Subtest: v0.4 PostgreSQL: post-update failure rolls back record, receipt and state revision; identical request can retry
+ok 6 - v0.4 PostgreSQL: post-update failure rolls back record, receipt and state revision; identical request can retry
+  ---
+  duration_ms: 59.051425
+  type: 'test'
+  ...
+# Subtest: PBP PostgreSQL: concurrent identical bootstrap commits only one authority event
+ok 7 - PBP PostgreSQL: concurrent identical bootstrap commits only one authority event
+  ---
+  duration_ms: 304.48082
+  type: 'test'
+  ...
+# Subtest: PBP PostgreSQL: queued member request observes preceding revocation commit
+ok 8 - PBP PostgreSQL: queued member request observes preceding revocation commit
+  ---
+  duration_ms: 78.764694
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1018.512697
+
+

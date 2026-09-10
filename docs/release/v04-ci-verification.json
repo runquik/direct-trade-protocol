@@ -1,0 +1,19 @@
+{
+  "repository": "runquik/portable-business-protocol",
+  "branch": "codex/dtp-v04-release",
+  "source_commit": "8e5a380ab7f96c1df414500602fd861bff1baa4c",
+  "run_id": 34531146470,
+  "url": "https://github.com/runquik/portable-business-protocol/actions/runs/34531146470",
+  "jobs": [
+    { "id": 103051880091, "name": "local-conformance", "conclusion": "success", "default_tests": 103, "candidate_tests": 116, "fuzz_tests": 37, "required_skipped_tests": 0 },
+    { "id": 103051880379, "name": "postgres-concurrency", "conclusion": "success", "tests": 8, "required_skipped_tests": 0 }
+  ],
+  "database_artifact": {
+    "id": 10173540275,
+    "name": "dtp-v04-postgres-evidence",
+    "downloaded_zip_sha256": "2db0dafa10b1d63064ee6bbd1fa163cf262510d837f43fb78c5f443a0c3dd524",
+    "evidence": "ci-34531146470/extracted/v04-evidence.json",
+    "log_sha256": "67a178e9854c7afaf2ec5a4d01a276612c5b6ac16cdaabdbc2c667e3843899eb"
+  },
+  "scope": "Synthetic tests on disposable CI infrastructure; no merge, deployment, production data or external financial effects. Exact graph input fingerprints, not this summary alone, determine whether evidence is current."
+}

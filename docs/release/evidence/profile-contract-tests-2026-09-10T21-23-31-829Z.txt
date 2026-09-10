@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: pinned inventory schema and two separately coded consumers agree with explicit fixture result
+ok 1 - pinned inventory schema and two separately coded consumers agree with explicit fixture result
+  ---
+  duration_ms: 10.3407
+  type: 'test'
+  ...
+# Subtest: consumers agree after each accepted prefix, including partial fulfillment and late observations
+ok 2 - consumers agree after each accepted prefix, including partial fulfillment and late observations
+  ---
+  duration_ms: 21.9761
+  type: 'test'
+  ...
+# Subtest: consumer rejects unsupported semantics, unknown profile and mutation behind pinned schema digest
+ok 3 - consumer rejects unsupported semantics, unknown profile and mutation behind pinned schema digest
+  ---
+  duration_ms: 2.3886
+  type: 'test'
+  ...
+# Subtest: unknown or incomplete inventory remains unknown, never default zero
+ok 4 - unknown or incomplete inventory remains unknown, never default zero
+  ---
+  duration_ms: 0.9824
+  type: 'test'
+  ...
+# Subtest: consumer verifies signed event binding and trusted key without SDK signing helpers
+ok 5 - consumer verifies signed event binding and trusted key without SDK signing helpers
+  ---
+  duration_ms: 5.4111
+  type: 'test'
+  ...
+# Subtest: both consumers reject conflicting observation reuse, stale allocation and unpinned conversions
+ok 6 - both consumers reject conflicting observation reuse, stale allocation and unpinned conversions
+  ---
+  duration_ms: 9.6728
+  type: 'test'
+  ...
+# Subtest: a different packaging version cannot retroactively multiply a pinned historical fulfillment
+ok 7 - a different packaging version cannot retroactively multiply a pinned historical fulfillment
+  ---
+  duration_ms: 2.9244
+  type: 'test'
+  ...
+# Subtest: both consumers reject undeclared event fields, empty observation identity and unsupported units
+ok 8 - both consumers reject undeclared event fields, empty observation identity and unsupported units
+  ---
+  duration_ms: 3.2187
+  type: 'test'
+  ...
+# Subtest: v0.4 profile admission rejects unbounded, executable, remote and excessive schemas
+ok 9 - v0.4 profile admission rejects unbounded, executable, remote and excessive schemas
+  ---
+  duration_ms: 1766.1926
+  type: 'test'
+  ...
+# Subtest: v0.4 profile versions bind exact meaning and private publication is not community consent
+ok 10 - v0.4 profile versions bind exact meaning and private publication is not community consent
+  ---
+  duration_ms: 1618.4651
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3910.1451
+
+

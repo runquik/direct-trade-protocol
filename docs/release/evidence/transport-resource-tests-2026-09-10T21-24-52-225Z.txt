@@ -1,0 +1,36 @@
+TAP version 13
+# Subtest: v0.4 public client preserves exact retries, errors and audience isolation
+ok 1 - v0.4 public client preserves exact retries, errors and audience isolation
+  ---
+  duration_ms: 1593.2912
+  type: 'test'
+  ...
+# Subtest: v0.4 HTTP rejects oversized, deep, malformed and float inputs without leaking internals
+ok 2 - v0.4 HTTP rejects oversized, deep, malformed and float inputs without leaking internals
+  ---
+  duration_ms: 1425.276
+  type: 'test'
+  ...
+# Subtest: v0.4 storage capacity failure rolls back enrollment and preserves a controlled error
+ok 3 - v0.4 storage capacity failure rolls back enrollment and preserves a controlled error
+  ---
+  duration_ms: 1125.5514
+  type: 'test'
+  ...
+# Subtest: v0.4 filtered pagination advances over unauthorized compartments without losing records
+ok 4 - v0.4 filtered pagination advances over unauthorized compartments without losing records
+  ---
+  duration_ms: 1106.7793
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5461.5191
+
+

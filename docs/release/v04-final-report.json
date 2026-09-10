@@ -1,0 +1,72 @@
+{
+  "ready": true,
+  "gates": [
+    {
+      "id": "G00",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "1c7ee49b1a6f2ec589c3225a1e54274a7434d2d648ee538145ab79f8b7b882d4"
+    },
+    {
+      "id": "G01",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "ce0e777cbdea172a5ec00bbb98d0a80cf9cd3c692f7fb28402d1b04a51e51409"
+    },
+    {
+      "id": "G02",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "ba4616f321ba316c164830976c1e5a3dd3c96dedcca268f112bca83d954fd73b"
+    },
+    {
+      "id": "G03",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "a5e3ca91f72602c8ca8e7dc383d5fe871dec24c27ca2222fe59c65144b187387"
+    },
+    {
+      "id": "G04",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "666062ad3f36a7b51de65845e9415cb13c3fee5672a24cc08c1463b2af76fdbf"
+    },
+    {
+      "id": "G05",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "73cba48804f4adb1b48538ca65d4013142e9082e20a580df80ce4f4456e84da7"
+    },
+    {
+      "id": "G06",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "ad0533be4188cf2e91fdace992bff6d3c548a29d7f3655c6c00ec0f5671744ef"
+    },
+    {
+      "id": "G07",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "56e79997aa8897b8afe02ddf5f35445ae8198031d55dc59ccd89d85a5e33025d"
+    },
+    {
+      "id": "G08",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "b9b514e47776ea255e1d68ac60e888ead1de5f216da217f83ffc150fc08cce0d"
+    },
+    {
+      "id": "G09",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "303398adb09e045fc6d89366c901ff19c8a1bdd35171457741a939c0a94b2d04"
+    },
+    {
+      "id": "G10",
+      "status": "passed",
+      "reasons": [],
+      "source_hash": "f63212249babd915b88163ba057e153799621fcccdb93732eac690dfb5ccc70e"
+    }
+  ],
+  "open_blockers": []
+}

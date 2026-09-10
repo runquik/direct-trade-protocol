@@ -1,0 +1,3 @@
+PASS: runtime Ed25519, schema validation, authority bootstrap, scoped workspace and tamper rejection
+
+

@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: review: registered outsiders cannot enumerate private organization metadata through empty data pages
+ok 1 - review: registered outsiders cannot enumerate private organization metadata through empty data pages
+  ---
+  duration_ms: 27.4044
+  type: 'test'
+  ...
+# Subtest: review: a module cannot fetch a readable record in an undeclared release profile
+ok 2 - review: a module cannot fetch a readable record in an undeclared release profile
+  ---
+  duration_ms: 25.669
+  type: 'test'
+  ...
+# Subtest: review: module list profile filtering intersects installation release declarations
+ok 3 - review: module list profile filtering intersects installation release declarations
+  ---
+  duration_ms: 23.9096
+  type: 'test'
+  ...
+# Subtest: review: inventory writes cannot substitute an accessible policy for the stock pool policy
+ok 4 - review: inventory writes cannot substitute an accessible policy for the stock pool policy
+  ---
+  duration_ms: 17.0416
+  type: 'test'
+  ...
+# Subtest: review: exact write replay does not return full stored records after read permission is revoked
+ok 5 - review: exact write replay does not return full stored records after read permission is revoked
+  ---
+  duration_ms: 11.83
+  type: 'test'
+  ...
+# Subtest: review: inherited prototype names return controlled invalid/not-found errors, never TypeError
+ok 6 - review: inherited prototype names return controlled invalid/not-found errors, never TypeError
+  ---
+  duration_ms: 9.4453
+  type: 'test'
+  ...
+# Subtest: review: a structural-only module cannot bypass profile scope through the derived inventory endpoint
+ok 7 - review: a structural-only module cannot bypass profile scope through the derived inventory endpoint
+  ---
+  duration_ms: 17.3106
+  type: 'test'
+  ...
+# Subtest: review: host federation trust alone does not authorize an artifact security assessment
+ok 8 - review: host federation trust alone does not authorize an artifact security assessment
+  ---
+  duration_ms: 10.5272
+  type: 'test'
+  ...
+# Subtest: review: already-installed modules stop when their exact artifact assessment expires
+ok 9 - review: already-installed modules stop when their exact artifact assessment expires
+  ---
+  duration_ms: 20.1484
+  type: 'test'
+  ...
+# Subtest: review: revoking an assessment disables its installed artifact without deleting business records
+ok 10 - review: revoking an assessment disables its installed artifact without deleting business records
+  ---
+  duration_ms: 16.0953
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 330.8456
+
+

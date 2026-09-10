@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: snapshot: private uninstalled developer IP, signed authority and expired grants survive migration
+ok 1 - snapshot: private uninstalled developer IP, signed authority and expired grants survive migration
+  ---
+  duration_ms: 42.0866
+  type: 'test'
+  ...
+# Subtest: snapshot: unsigned policy, membership, profile visibility and head edits are rejected
+ok 2 - snapshot: unsigned policy, membership, profile visibility and head edits are rejected
+  ---
+  duration_ms: 32.4931
+  type: 'test'
+  ...
+# Subtest: snapshot: policy update replay and stale supersession chains are checked
+ok 3 - snapshot: policy update replay and stale supersession chains are checked
+  ---
+  duration_ms: 24.7017
+  type: 'test'
+  ...
+# Subtest: snapshot: personal aliases and immutable publisher versions cannot collide at destination
+ok 4 - snapshot: personal aliases and immutable publisher versions cannot collide at destination
+  ---
+  duration_ms: 13.4419
+  type: 'test'
+  ...
+# Subtest: snapshot: another ready migration reserves IDs before either company is activated
+ok 5 - snapshot: another ready migration reserves IDs before either company is activated
+  ---
+  duration_ms: 25.9151
+  type: 'test'
+  ...
+# Subtest: snapshot: signed stock initialization and event replay reject inflated projected inventory
+ok 6 - snapshot: signed stock initialization and event replay reject inflated projected inventory
+  ---
+  duration_ms: 28.609
+  type: 'test'
+  ...
+# Subtest: migration capacity: finalize replaces staged payload rather than retaining a second company copy
+ok 7 - migration capacity: finalize replaces staged payload rather than retaining a second company copy
+  ---
+  duration_ms: 30.8748
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 330.3931
+
+

@@ -1,0 +1,24 @@
+TAP version 13
+# Subtest: v0.4 HTTP custom profile, scoped company access, head CAS and revoked replay
+ok 1 - v0.4 HTTP custom profile, scoped company access, head CAS and revoked replay
+  ---
+  duration_ms: 1509.7528
+  type: 'test'
+  ...
+# Subtest: v0.4 controller governance alone cannot read personnel, export or migrate it
+ok 2 - v0.4 controller governance alone cannot read personnel, export or migrate it
+  ---
+  duration_ms: 1147.4161
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2849.4601
+
+

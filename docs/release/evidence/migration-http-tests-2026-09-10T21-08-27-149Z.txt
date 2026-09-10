@@ -1,0 +1,36 @@
+TAP version 13
+# Subtest: v0.4 HTTP migration: genuine >1MiB state survives adversarial chunks, cutover retries and remote-party continuation
+ok 1 - v0.4 HTTP migration: genuine >1MiB state survives adversarial chunks, cutover retries and remote-party continuation
+  ---
+  duration_ms: 5994.3211
+  type: 'test'
+  ...
+# Subtest: v0.4 HTTP migration: stale or expired destination readiness never freezes writable source
+ok 2 - v0.4 HTTP migration: stale or expired destination readiness never freezes writable source
+  ---
+  duration_ms: 2029.2129
+  type: 'test'
+  ...
+# Subtest: v0.4 HTTP migration: personnel export requires current stewards for manifest and chunks, and keeps destination privacy
+ok 3 - v0.4 HTTP migration: personnel export requires current stewards for manifest and chunks, and keeps destination privacy
+  ---
+  duration_ms: 2147.3493
+  type: 'test'
+  ...
+# Subtest: v0.4 HTTP migration: active and previously revoked installations both arrive disabled
+ok 4 - v0.4 HTTP migration: active and previously revoked installations both arrive disabled
+  ---
+  duration_ms: 2155.2592
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12530.8839
+
+

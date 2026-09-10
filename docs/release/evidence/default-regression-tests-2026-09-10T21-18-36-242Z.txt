@@ -1,0 +1,634 @@
+Candidate validation: default
+TAP version 13
+# Subtest: health reports protocol version
+ok 1 - health reports protocol version
+  ---
+  duration_ms: 5864.7792
+  type: 'test'
+  ...
+# Subtest: company genesis is self-certifying and mints a token per active key
+ok 2 - company genesis is self-certifying and mints a token per active key
+  ---
+  duration_ms: 191.7679
+  type: 'test'
+  ...
+# Subtest: genesis signed by a key not in body.keys is rejected
+ok 3 - genesis signed by a key not in body.keys is rejected
+  ---
+  duration_ms: 52.2135
+  type: 'test'
+  ...
+# Subtest: genesis with a tampered signature is rejected
+ok 4 - genesis with a tampered signature is rejected
+  ---
+  duration_ms: 21.1979
+  type: 'test'
+  ...
+# Subtest: duplicate company id is rejected
+ok 5 - duplicate company id is rejected
+  ---
+  duration_ms: 66.4388
+  type: 'test'
+  ...
+# Subtest: company id must follow the NEAR account grammar
+ok 6 - company id must follow the NEAR account grammar
+  ---
+  duration_ms: 28.9244
+  type: 'test'
+  ...
+# Subtest: genesis core.company via POST /records is redirected to /companies
+ok 7 - genesis core.company via POST /records is redirected to /companies
+  ---
+  duration_ms: 31.0866
+  type: 'test'
+  ...
+# Subtest: company can rotate keys by superseding its spine with a root key
+ok 8 - company can rotate keys by superseding its spine with a root key
+  ---
+  duration_ms: 148.3375
+  type: 'test'
+  ...
+# Subtest: module genesis: self-certified by its own root key
+ok 9 - module genesis: self-certified by its own root key
+  ---
+  duration_ms: 91.9419
+  type: 'test'
+  ...
+# Subtest: module genesis: publisher-signed requires the publisher root token
+ok 10 - module genesis: publisher-signed requires the publisher root token
+  ---
+  duration_ms: 88.6637
+  type: 'test'
+  ...
+# Subtest: unknown bearer token is rejected
+ok 11 - unknown bearer token is rejected
+  ---
+  duration_ms: 13.6727
+  type: 'test'
+  ...
+# Subtest: module without a grant cannot write, and cannot read counterparties records
+ok 12 - module without a grant cannot write, and cannot read counterparties records
+  ---
+  duration_ms: 6181.6436
+  type: 'test'
+  ...
+# Subtest: module cannot issue a grant to itself
+ok 13 - module cannot issue a grant to itself
+  ---
+  duration_ms: 17.183
+  type: 'test'
+  ...
+# Subtest: grant unlocks reads and writes exactly per scope; revocation removes them
+ok 14 - grant unlocks reads and writes exactly per scope; revocation removes them
+  ---
+  duration_ms: 227.2029
+  type: 'test'
+  ...
+# Subtest: expired grant does not authorize
+ok 15 - expired grant does not authorize
+  ---
+  duration_ms: 46.8457
+  type: 'test'
+  ...
+# Subtest: a module writing on behalf of a company must be a party to the record
+ok 16 - a module writing on behalf of a company must be a party to the record
+  ---
+  duration_ms: 46.4954
+  type: 'test'
+  ...
+# Subtest: issuer.module_id must match the module the token belongs to
+ok 17 - issuer.module_id must match the module the token belongs to
+  ---
+  duration_ms: 91.2355
+  type: 'test'
+  ...
+# Subtest: signed write returns a stored record with seq and payload_hash
+ok 18 - signed write returns a stored record with seq and payload_hash
+  ---
+  duration_ms: 6142.319
+  type: 'test'
+  ...
+# Subtest: rejections: no token, tampered body, issuer mismatch, float, unknown type, schema path, namespace, subject-in-counterparties
+ok 19 - rejections: no token, tampered body, issuer mismatch, float, unknown type, schema path, namespace, subject-in-counterparties
+  ---
+  duration_ms: 216.9606
+  type: 'test'
+  ...
+# Subtest: x_ extension fields are accepted on strict types
+ok 20 - x_ extension fields are accepted on strict types
+  ---
+  duration_ms: 27.676
+  type: 'test'
+  ...
+# Subtest: idempotency: identical replay returns 200, same id with a different body returns 409
+ok 21 - idempotency: identical replay returns 200, same id with a different body returns 409
+  ---
+  duration_ms: 67.1333
+  type: 'test'
+  ...
+# Subtest: supersession: state machine, roles, head tracking, conflicts
+ok 22 - supersession: state machine, roles, head tracking, conflicts
+  ---
+  duration_ms: 271.4026
+  type: 'test'
+  ...
+# Subtest: buyer attests the seller's fulfillment by superseding it (counterparty transition)
+ok 23 - buyer attests the seller's fulfillment by superseding it (counterparty transition)
+  ---
+  duration_ms: 163.7424
+  type: 'test'
+  ...
+# Subtest: visibility: public / counterparties / granted / private
+ok 24 - visibility: public / counterparties / granted / private
+  ---
+  duration_ms: 401.0416
+  type: 'test'
+  ...
+# Subtest: record ids are validated and unknown records are 404 for everyone
+ok 25 - record ids are validated and unknown records are 404 for everyone
+  ---
+  duration_ms: 8.5072
+  type: 'test'
+  ...
+# Subtest: events are ordered, cursor-paginated, and carry status
+ok 26 - events are ordered, cursor-paginated, and carry status
+  ---
+  duration_ms: 6285.3577
+  type: 'test'
+  ...
+# Subtest: feed is visibility-filtered per principal; anonymous is rejected
+ok 27 - feed is visibility-filtered per principal; anonymous is rejected
+  ---
+  duration_ms: 123.072
+  type: 'test'
+  ...
+# Subtest: a module sees events only for types and companies it is granted
+ok 28 - a module sees events only for types and companies it is granted
+  ---
+  duration_ms: 174.9397
+  type: 'test'
+  ...
+# Subtest: fixed key round-trips through the encodings
+ok 29 - fixed key round-trips through the encodings
+  ---
+  duration_ms: 5627.4282
+  type: 'test'
+  ...
+# Subtest: canonicalization vectors
+ok 30 - canonicalization vectors
+  ---
+  duration_ms: 31.7642
+  type: 'test'
+  ...
+# Subtest: raw signature vector verifies and is reproduced deterministically
+ok 31 - raw signature vector verifies and is reproduced deterministically
+  ---
+  duration_ms: 6.6454
+  type: 'test'
+  ...
+# Subtest: record vectors: signing input, hash, and signature all match; store agrees
+ok 32 - record vectors: signing input, hash, and signature all match; store agrees
+  ---
+  duration_ms: 170.3638
+  type: 'test'
+  ...
+# Subtest: WB-CRITICAL: a stranger cannot hijack a record by naming itself as counterparty on a supersede
+ok 33 - WB-CRITICAL: a stranger cannot hijack a record by naming itself as counterparty on a supersede
+  ---
+  duration_ms: 5948.9013
+  type: 'test'
+  ...
+# Subtest: BB-F4: counterparty_ids and visibility cannot change across a supersede (no hiding/exposing)
+ok 34 - BB-F4: counterparty_ids and visibility cannot change across a supersede (no hiding/exposing)
+  ---
+  duration_ms: 256.4862
+  type: 'test'
+  ...
+# Subtest: BB-F5: neither party can rewrite agreed contract terms under an unchanged status
+ok 35 - BB-F5: neither party can rewrite agreed contract terms under an unchanged status
+  ---
+  duration_ms: 86.2468
+  type: 'test'
+  ...
+# Subtest: WB-HIGH: x-dtp-subject binding is enforced — the body field must name the envelope subject
+ok 36 - WB-HIGH: x-dtp-subject binding is enforced — the body field must name the envelope subject
+  ---
+  duration_ms: 22.3175
+  type: 'test'
+  ...
+# Subtest: WB-HIGH: roles come from the previous record and role fields are immutable; third-party roles cannot be a party
+ok 37 - WB-HIGH: roles come from the previous record and role fields are immutable; third-party roles cannot be a party
+  ---
+  duration_ms: 287.0397
+  type: 'test'
+  ...
+# Subtest: WB/BB-F3: module genesis requires the publisher's own root token (no publisher spoofing)
+ok 38 - WB/BB-F3: module genesis requires the publisher's own root token (no publisher spoofing)
+  ---
+  duration_ms: 61.0219
+  type: 'test'
+  ...
+# Subtest: BB-F2: malformed record ids on the read path are a clean 404
+ok 39 - BB-F2: malformed record ids on the read path are a clean 404
+  ---
+  duration_ms: 47.8903
+  type: 'test'
+  ...
+# Subtest: BB-F1 / WB-MEDIUM: concurrent supersedes yield exactly one 201 and the rest 409 supersedes_conflict
+ok 40 - BB-F1 / WB-MEDIUM: concurrent supersedes yield exactly one 201 and the rest 409 supersedes_conflict
+  ---
+  duration_ms: 157.1299
+  type: 'test'
+  ...
+# Subtest: concurrent duplicate genesis: one 201, the rest duplicate_record_id (never 500)
+ok 41 - concurrent duplicate genesis: one 201, the rest duplicate_record_id (never 500)
+  ---
+  duration_ms: 61.716
+  type: 'test'
+  ...
+# Subtest: BB-F6: latest_cursor is scoped to the caller's visibility
+ok 42 - BB-F6: latest_cursor is scoped to the caller's visibility
+  ---
+  duration_ms: 77.2148
+  type: 'test'
+  ...
+# Subtest: business_types is optional and plural; a company can be several things and roles are per record
+ok 43 - business_types is optional and plural; a company can be several things and roles are per record
+  ---
+  duration_ms: 226.0394
+  type: 'test'
+  ...
+# Subtest: A01: private identities are hidden through every read endpoint
+ok 44 - A01: private identities are hidden through every read endpoint
+  ---
+  duration_ms: 6378.9063
+  type: 'test'
+  ...
+# Subtest: B01: only the financer may revise an advance, and funded terms never change
+ok 45 - B01: only the financer may revise an advance, and funded terms never change
+  ---
+  duration_ms: 152.3006
+  type: 'test'
+  ...
+# Subtest: B02: invoice assignment is seller-controlled and cannot be cleared or reassigned
+ok 46 - B02: invoice assignment is seller-controlled and cannot be cleared or reassigned
+  ---
+  duration_ms: 273.8217
+  type: 'test'
+  ...
+# Subtest: B09: buyer invoice transitions preserve seller-controlled payment accounting
+ok 47 - B09: buyer invoice transitions preserve seller-controlled payment accounting
+  ---
+  duration_ms: 823.6507
+  type: 'test'
+  ...
+# Subtest: B03: accepting an advance offer cannot change the offered price
+ok 48 - B03: accepting an advance offer cannot change the offered price
+  ---
+  duration_ms: 92.6176
+  type: 'test'
+  ...
+# Subtest: B04: trade settlements are append-only too
+ok 49 - B04: trade settlements are append-only too
+  ---
+  duration_ms: 40.4409
+  type: 'test'
+  ...
+# Subtest: B05: duplicate key IDs cannot defeat the last-root safeguard
+ok 50 - B05: duplicate key IDs cannot defeat the last-root safeguard
+  ---
+  duration_ms: 50.625
+  type: 'test'
+  ...
+# Subtest: B06: event pages and latest_cursor honor the same company filter
+ok 51 - B06: event pages and latest_cursor honor the same company filter
+  ---
+  duration_ms: 121.5886
+  type: 'test'
+  ...
+# Subtest: B07: list visibility matches direct reads for expired, revoked, private and scoped grants
+ok 52 - B07: list visibility matches direct reads for expired, revoked, private and scoped grants
+  ---
+  duration_ms: 761.2311
+  type: 'test'
+  ...
+# Subtest: B08: invalid HTTP inputs are bounded and return safe client errors
+ok 53 - B08: invalid HTTP inputs are bounded and return safe client errors
+  ---
+  duration_ms: 4.6604
+  type: 'test'
+  ...
+# Subtest: A02: hidden rows do not truncate a module's record pagination
+ok 54 - A02: hidden rows do not truncate a module's record pagination
+  ---
+  duration_ms: 257.0521
+  type: 'test'
+  ...
+# Subtest: A03: latest_cursor never names an event outside the module's read scope
+ok 55 - A03: latest_cursor never names an event outside the module's read scope
+  ---
+  duration_ms: 77.3612
+  type: 'test'
+  ...
+# Subtest: A04: exact supersede retries return 200 even after further supersession
+ok 56 - A04: exact supersede retries return 200 even after further supersession
+  ---
+  duration_ms: 109.9477
+  type: 'test'
+  ...
+# Subtest: A05: anonymous and outsider writes reveal no private target details
+ok 57 - A05: anonymous and outsider writes reveal no private target details
+  ---
+  duration_ms: 97.6324
+  type: 'test'
+  ...
+# Subtest: A06: attested delivery terms and deductions cannot be rewritten
+ok 58 - A06: attested delivery terms and deductions cannot be rewritten
+  ---
+  duration_ms: 130.1297
+  type: 'test'
+  ...
+# Subtest: A07: a permitted seller status transition cannot rewrite contract price
+ok 59 - A07: a permitted seller status transition cannot rewrite contract price
+  ---
+  duration_ms: 67.3261
+  type: 'test'
+  ...
+# Subtest: A08: immutable settlement_event rejects supersession and allows compensating events
+ok 60 - A08: immutable settlement_event rejects supersession and allows compensating events
+  ---
+  duration_ms: 112.3341
+  type: 'test'
+  ...
+# Subtest: A09: buyer_attested requires evidence identifying the exact buyer-signed version
+ok 61 - A09: buyer_attested requires evidence identifying the exact buyer-signed version
+  ---
+  duration_ms: 125.641
+  type: 'test'
+  ...
+# Subtest: A10: genesis retry returns 200 without reissuing a bearer token
+ok 62 - A10: genesis retry returns 200 without reissuing a bearer token
+  ---
+  duration_ms: 44.8307
+  type: 'test'
+  ...
+# Subtest: A11: revoking or demoting the sole root key cannot strand the company
+ok 63 - A11: revoking or demoting the sole root key cannot strand the company
+  ---
+  duration_ms: 108.1515
+  type: 'test'
+  ...
+# Subtest: A12: an in-flight write reauthorizes after a preceding revocation commits
+ok 64 - A12: an in-flight write reauthorizes after a preceding revocation commits
+  ---
+  duration_ms: 1511.8545
+  type: 'test'
+  ...
+# Subtest: PBP: self-certifying person enrollment and exact request retry
+ok 65 - PBP: self-certifying person enrollment and exact request retry
+  ---
+  duration_ms: 6201.9958
+  type: 'test'
+  ...
+# Subtest: PBP: one fractional CFO has different rights in three isolated companies
+ok 66 - PBP: one fractional CFO has different rights in three isolated companies
+  ---
+  duration_ms: 564.5493
+  type: 'test'
+  ...
+# Subtest: PBP: membership requires acceptance and cannot outlive or exceed its delegator
+ok 67 - PBP: membership requires acceptance and cannot outlive or exceed its delegator
+  ---
+  duration_ms: 179.0187
+  type: 'test'
+  ...
+# Subtest: PBP: invitation is invalid if its authorizer loses authority before acceptance
+ok 68 - PBP: invitation is invalid if its authorizer loses authority before acceptance
+  ---
+  duration_ms: 164.8508
+  type: 'test'
+  ...
+# Subtest: PBP: controller policy and full-company export require distinct-person quorum
+ok 69 - PBP: controller policy and full-company export require distinct-person quorum
+  ---
+  duration_ms: 154.5646
+  type: 'test'
+  ...
+# Subtest: PBP: root proof-of-possession recovery, key rotation and last-key safeguard
+ok 70 - PBP: root proof-of-possession recovery, key rotation and last-key safeguard
+  ---
+  duration_ms: 141.8134
+  type: 'test'
+  ...
+# Subtest: PBP: modules pin immutable manifests and use separate company installation keys
+ok 71 - PBP: modules pin immutable manifests and use separate company installation keys
+  ---
+  duration_ms: 246.1828
+  type: 'test'
+  ...
+# Subtest: PBP: interactive actions require both human and installation authority
+ok 72 - PBP: interactive actions require both human and installation authority
+  ---
+  duration_ms: 269.6626
+  type: 'test'
+  ...
+# Subtest: PBP: writable data access is not authority to accept financing
+ok 73 - PBP: writable data access is not authority to accept financing
+  ---
+  duration_ms: 218.5879
+  type: 'test'
+  ...
+# Subtest: PBP: v0.2 finance integrity guards still reject buyer payment-field changes
+ok 74 - PBP: v0.2 finance integrity guards still reject buyer payment-field changes
+  ---
+  duration_ms: 141.7637
+  type: 'test'
+  ...
+# Subtest: PBP: record read and export scopes are enforced before pagination
+ok 75 - PBP: record read and export scopes are enforced before pagination
+  ---
+  duration_ms: 311.0551
+  type: 'test'
+  ...
+# Subtest: PBP: wrong audience, expired commands, duplicate IDs and tampering fail closed
+ok 76 - PBP: wrong audience, expired commands, duplicate IDs and tampering fail closed
+  ---
+  duration_ms: 97.5574
+  type: 'test'
+  ...
+# Subtest: PBP: membership revocation invalidates a previously signed request and cached read
+ok 77 - PBP: membership revocation invalidates a previously signed request and cached read
+  ---
+  duration_ms: 200.5462
+  type: 'test'
+  ...
+# Subtest: PBP: signed company migration freezes source, pins destination and preserves records
+ok 78 - PBP: signed company migration freezes source, pins destination and preserves records
+  ---
+  duration_ms: 2062.1172
+  type: 'test'
+  ...
+# Subtest: PBP: oversized and malformed HTTP bodies do not expose internal errors
+ok 79 - PBP: oversized and malformed HTTP bodies do not expose internal errors
+  ---
+  duration_ms: 13.3857
+  type: 'test'
+  ...
+# Subtest: PBP: fixed 0.3 signing vector round-trips independently of v0.2 envelope signing
+ok 80 - PBP: fixed 0.3 signing vector round-trips independently of v0.2 envelope signing
+  ---
+  duration_ms: 1.8886
+  type: 'test'
+  ...
+# Subtest: PBP: narrowing permissions invalidates cached record and workspace data
+ok 81 - PBP: narrowing permissions invalidates cached record and workspace data
+  ---
+  duration_ms: 372.5611
+  type: 'test'
+  ...
+# Subtest: PBP: two keys belonging to one controller do not satisfy two-person quorum
+ok 82 - PBP: two keys belonging to one controller do not satisfy two-person quorum
+  ---
+  duration_ms: 155.5717
+  type: 'test'
+  ...
+# Subtest: PBP: installation creation cannot exceed the installing member's permissions
+ok 83 - PBP: installation creation cannot exceed the installing member's permissions
+  ---
+  duration_ms: 123.6721
+  type: 'test'
+  ...
+# Subtest: PBP: unauthenticated and unknown input fields fail closed
+ok 84 - PBP: unauthenticated and unknown input fields fail closed
+  ---
+  duration_ms: 30.0788
+  type: 'test'
+  ...
+# PBP v0.3 request failed Error
+# Subtest: PBP Edge: path prefix, private access gate and explicit browser origins
+ok 85 - PBP Edge: path prefix, private access gate and explicit browser origins
+  ---
+  duration_ms: 27.1949
+  type: 'test'
+  ...
+# Subtest: PBP Edge: builder access does not replace signatures; state limit rolls back enrollment
+ok 86 - PBP Edge: builder access does not replace signatures; state limit rolls back enrollment
+  ---
+  duration_ms: 5946.5345
+  type: 'test'
+  ...
+# Subtest: Passport browser demo: real authority, isolated companies and revocable modules
+    # Subtest: assets and local request protections
+    ok 1 - assets and local request protections
+      ---
+      duration_ms: 69.2465
+      type: 'test'
+      ...
+    # Subtest: invitation acceptance and company-specific scope
+    ok 2 - invitation acceptance and company-specific scope
+      ---
+      duration_ms: 581.9462
+      type: 'test'
+      ...
+    # Subtest: module installation and human permissions intersect; revocation stops access
+    ok 3 - module installation and human permissions intersect; revocation stops access
+      ---
+      duration_ms: 728.0959
+      type: 'test'
+      ...
+    # Subtest: membership revocation, separate sessions, re-invitation and stale persona protection
+    ok 4 - membership revocation, separate sessions, re-invitation and stale persona protection
+      ---
+      duration_ms: 1144.7894
+      type: 'test'
+      ...
+    1..4
+ok 87 - Passport browser demo: real authority, isolated companies and revocable modules
+  ---
+  duration_ms: 10039.0938
+  type: 'test'
+  ...
+# Subtest: purchase order is a business document with folded raw source
+ok 88 - purchase order is a business document with folded raw source
+  ---
+  duration_ms: 31.0038
+  type: 'test'
+  ...
+# Subtest: invoice shows cents, parties, dates, payment terms and partial payment
+ok 89 - invoice shows cents, parties, dates, payment terms and partial payment
+  ---
+  duration_ms: 1.3083
+  type: 'test'
+  ...
+# Subtest: all external text and raw source are escaped; absent amounts are not zero
+ok 90 - all external text and raw source are escaped; absent amounts are not zero
+  ---
+  duration_ms: 3.0999
+  type: 'test'
+  ...
+# Subtest: Early Pay: distinct companies, scoped evidence and signed mock finance lifecycle
+ok 91 - Early Pay: distinct companies, scoped evidence and signed mock finance lifecycle
+  ---
+  duration_ms: 16427.9236
+  type: 'test'
+  ...
+# Subtest: Early Pay: withholding optional cash and withdrawing evidence
+ok 92 - Early Pay: withholding optional cash and withdrawing evidence
+  ---
+  duration_ms: 2793.9388
+  type: 'test'
+  ...
+# Subtest: PBP disclosures: ownership, scope, exact versions, expiry, revocation and module intersection
+ok 93 - PBP disclosures: ownership, scope, exact versions, expiry, revocation and module intersection
+  ---
+  duration_ms: 384.0689
+  type: 'test'
+  ...
+# Subtest: Modular finance: independent profile, lender isolation, commitment guard and discounted settlement
+ok 94 - Modular finance: independent profile, lender isolation, commitment guard and discounted settlement
+  ---
+  duration_ms: 21404.321
+  type: 'test'
+  ...
+# Subtest: Repayment expires safely and partial settlement cannot become another payment
+ok 95 - Repayment expires safely and partial settlement cannot become another payment
+  ---
+  duration_ms: 3935.7612
+  type: 'test'
+  ...
+# Subtest: Pricing and early payoff exact arithmetic and input boundaries
+ok 96 - Pricing and early payoff exact arithmetic and input boundaries
+  ---
+  duration_ms: 0.4094
+  type: 'test'
+  ...
+# Subtest: Lost closure response recovers the exact record after expiry without another settlement
+ok 97 - Lost closure response recovers the exact record after expiry without another settlement
+  ---
+  duration_ms: 4287.9519
+  type: 'test'
+  ...
+# Subtest: Pending repayment rechecks borrower revocation; new profile sharing requires active module
+ok 98 - Pending repayment rechecks borrower revocation; new profile sharing requires active module
+  ---
+  duration_ms: 4176.721
+  type: 'test'
+  ...
+# Subtest: Financial Profile paginates and does not combine unsupported money with USD
+ok 99 - Financial Profile paginates and does not combine unsupported money with USD
+  ---
+  duration_ms: 3560.2253
+  type: 'test'
+  ...
+1..99
+# tests 103
+# suites 0
+# pass 103
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38208.1222
+
+
+

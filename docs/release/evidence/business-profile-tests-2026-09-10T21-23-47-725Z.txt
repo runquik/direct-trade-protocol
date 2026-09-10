@@ -1,0 +1,102 @@
+TAP version 13
+# Subtest: exact decimal arithmetic does not lose values beyond Number.MAX_SAFE_INTEGER
+ok 1 - exact decimal arithmetic does not lose values beyond Number.MAX_SAFE_INTEGER
+  ---
+  duration_ms: 1.4742
+  type: 'test'
+  ...
+# Subtest: decimal parser bounds precision, length, signs and non-decimal encodings
+ok 2 - decimal parser bounds precision, length, signs and non-decimal encodings
+  ---
+  duration_ms: 0.6777
+  type: 'test'
+  ...
+# Subtest: invoice distinguishes valid arithmetic from unresolved, inaccessible and missing references
+ok 3 - invoice distinguishes valid arithmetic from unresolved, inaccessible and missing references
+  ---
+  duration_ms: 1.7447
+  type: 'test'
+  ...
+# Subtest: invoice rejects the stress-test inconsistent arithmetic and cross-party evidence
+ok 4 - invoice rejects the stress-test inconsistent arithmetic and cross-party evidence
+  ---
+  duration_ms: 0.2623
+  type: 'test'
+  ...
+# Subtest: invoice rounds each line to six places before summing and detects overflow
+ok 5 - invoice rounds each line to six places before summing and detects overflow
+  ---
+  duration_ms: 0.2641
+  type: 'test'
+  ...
+# Subtest: invoice fails closed on unsupported currency/unit, negative amounts and excessive arrays
+ok 6 - invoice fails closed on unsupported currency/unit, negative amounts and excessive arrays
+  ---
+  duration_ms: 0.2563
+  type: 'test'
+  ...
+# Subtest: invoice rejects impossible payment states, duplicate references and invalid calendar dates
+ok 7 - invoice rejects impossible payment states, duplicate references and invalid calendar dates
+  ---
+  duration_ms: 0.2972
+  type: 'test'
+  ...
+# Subtest: inventory pins immutable packaging versions without reinterpreting existing stock
+ok 8 - inventory pins immutable packaging versions without reinterpreting existing stock
+  ---
+  duration_ms: 1.3165
+  type: 'test'
+  ...
+# Subtest: inventory exact observation retry is a no-op, conflicting identity fails and namespaces stay distinct
+ok 9 - inventory exact observation retry is a no-op, conflicting identity fails and namespaces stay distinct
+  ---
+  duration_ms: 0.4583
+  type: 'test'
+  ...
+# Subtest: inventory serial CAS prevents stale reservations and cumulative reservations cannot oversell
+ok 10 - inventory serial CAS prevents stale reservations and cumulative reservations cannot oversell
+  ---
+  duration_ms: 0.9256
+  type: 'test'
+  ...
+# Subtest: inventory partial fulfillment, release and correction preserve both balances
+ok 11 - inventory partial fulfillment, release and correction preserve both balances
+  ---
+  duration_ms: 0.8015
+  type: 'test'
+  ...
+# Subtest: inventory late occurrence does not rewind authority; scope, dates, semantics and conversions fail closed
+ok 12 - inventory late occurrence does not rewind authority; scope, dates, semantics and conversions fail closed
+  ---
+  duration_ms: 0.3944
+  type: 'test'
+  ...
+# Subtest: inventory reducers do not mutate their input on acceptance or denial
+ok 13 - inventory reducers do not mutate their input on acceptance or denial
+  ---
+  duration_ms: 0.3618
+  type: 'test'
+  ...
+# Subtest: inventory deterministic mixed-event stress preserves invariants across 1000 attempts
+ok 14 - inventory deterministic mixed-event stress preserves invariants across 1000 attempts
+  ---
+  duration_ms: 217.448
+  type: 'test'
+  ...
+# Subtest: review: final safe inventory revision preserves exact retry but rejects a new effect
+ok 15 - review: final safe inventory revision preserves exact retry but rejects a new effect
+  ---
+  duration_ms: 0.3185
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 341.1359
+
+

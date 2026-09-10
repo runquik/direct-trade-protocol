@@ -50,3 +50,23 @@ Append each real implementation/review cycle below with: source change, exact ch
 - Migration evidence: genuine signed state larger than 1 MiB; missing/corrupt/out-of-order/duplicate chunks; readiness and cutover retries; durable finalize after two hours; untouched source on stale/expired readiness; partner left on source with fresh authority import; no counterfeit local partner; sensitive export requires steward signatures; destination privacy remains enforced; imported installations are disabled.
 - Pending: PostgreSQL tests are authored and type-checked but have not run against a real server locally. Full candidate and independent review gates remain pending. These development results are not automatically inserted as fresh final-candidate evidence.
 - Review handoff: another agent must review the release automation and its acceptance tests; authoring these files does not constitute independent signoff on them.
+
+## Implementation and independent review loops
+
+- The team implemented an isolated v0.4 contract, scoped company/person authority, bounded immutable profiles, exact invoice/inventory semantics, recipient-bound evidence, module admission and staged host migration. Existing v0.2/v0.3 wire domains remain distinct; this is not an automatic deployed upgrade.
+- Reviewers exercised raw HTTP and separately coded native clients, malformed signed snapshots, private/derived data boundaries, profile dependency substitution, transport capacity and retries. Reproduced failures were fixed and added as regressions. Thirteen tracked findings have executable closure checks in `v04-evidence.json`; a closed label alone is insufficient.
+- Independent review found derived-inventory profile leakage, unsupported-profile empty success, evidence/profile dependency weaknesses, migration capacity risks and terminal inventory-revision retry behavior. Different reviewers inspected the profile implementation and the release runner, including a regression preventing a failed runtime preflight from inheriting an earlier pass.
+
+## Native database failure and repair loop
+
+- The initial full CI run on `389bd0f` failed the native PostgreSQL path assertion. Passing memory-store tests did not establish correct PostgreSQL JSONB storage.
+- Already serialized state now binds through `$1::text::jsonb`, avoiding the driver's second JSON encoding. Tests inspect native JSONB object type and paths, multi-connection contention, revocation, and exact retry after rollback. The corrected intermediate run passed, followed by complete final-source CI.
+- Final source commit `8e5a380ab7f96c1df414500602fd861bff1baa4c` passed both jobs in [run 34531146470](https://github.com/runquik/portable-business-protocol/actions/runs/34531146470): 103 default tests, 116 candidate tests, 37 fuzz tests, 23 historical stress regressions, generation/type/runtime checks and 8 real PostgreSQL tests. These overlapping suites are not a count of unique independent scenarios. No required test was skipped.
+- The downloaded PostgreSQL ZIP and exact command log hashes were independently checked against CI provenance. The original CI observation is imported without changing its source fingerprint. See `v04-ci-verification.json` and the preserved CI artifact.
+
+## Final source-bound evidence loop
+
+- A conservative source fingerprint initially differed locally because two preexisting ignored fuzz shrinker scratch files were present only in this worktree. Their exact files were preserved under `output/dtp-preserved-fuzz-scratch/`, outside test inputs and public release scope. The tracked minimized runtime fixtures were untouched.
+- Local and CI G08 inputs now match `b9b514e47776ea255e1d68ac60e888ead1de5f216da217f83ffc150fc08cce0d`. All affected local executable checks were rerun successfully against that source, rather than relabeling stale results. The source-bound evaluator reports G00–G08 passed and zero open blockers; independent G09/G10 artifacts provide the final review decisions.
+- `.gitattributes` preserves exact bytes under `docs/release/` so Git newline conversion cannot invalidate downloaded/generated evidence hashes on another checkout.
+- Delivery is a reviewed release-ready branch only. No merge, deployment, production data processing or financial effect is part of this loop. Future production hardening and workspace/marketplace implementation remain explicitly outside this candidate's certification.
