@@ -1,4 +1,8 @@
-# Portable Business Protocol (PBP)
+# Direct Trade Protocol (DTP)
+
+**Next candidate: v0.4.** The isolated [candidate specification](spec/v0.4/SPEC.md), [builder guide](docs/DTP_V04_BUILDER_GUIDE.md) and [release plan](docs/DTP_V04_RELEASE_PLAN.md) add publisher-owned profiles, resource-scoped data stewardship, exact invoice/inventory semantics, artifact-bound module consent, recipient-bound evidence and staged host replacement. This is a reference implementation, not a deployed upgrade or a production-certified system. See the [release evidence graph](docs/release/v04-gates.json) and run `npm run release:report` from `sdk` for current qualification; missing, stale or skipped evidence cannot count as green. Existing demos remain on v0.3.
+
+**September 10 architecture review:** start with the [current review and verified baseline](docs/DTP_ARCHITECTURE_REVIEW_2026-09-10.md), [business-domain map and protocol boundaries](docs/DTP_BUSINESS_DOMAIN_MAP.md), and [stress-test plan](docs/DTP_PROTOCOL_STRESS_TEST.md). The [first executable stress-test results](docs/DTP_STRESS_TEST_RESULTS_2026-09-10.md) demonstrate 12 controls and reproduce 10 gap observations, including a failed large-company cutover. The expanded architecture is a proposal, not new wire support. Hosting must be replaceable; employee-level HR/payroll requires strict privacy boundaries. The workspace/hosted-module marketplace is later work.
 
 Building against v0.3? See the [shared development backend connection and deployment guide](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is separate from the v0.2 API and is for synthetic data only.
 
@@ -6,7 +10,7 @@ Building against v0.3? See the [shared development backend connection and deploy
 
 *Your company, independent of its software.*
 
-PBP is the working name adopted September 7, 2026; it was previously Direct Trade Protocol (DTP). This is a project-name change, not a wire-format migration. Existing `dtp-*` paths, package/API names, schema identifiers, and signed records remain compatible. See [naming, scope, and the queued build plan](docs/PBP_DIRECTION.md).
+DTP is again the official name; Portable Business Protocol (PBP) was the interim September 7 name. PBP references below and in versioned artifacts reflect that history. This naming clarification does not alter existing `dtp-*` or `pbp-*` paths, package/API names, signing domains, schema identifiers, or signed records. The [September 7 direction note](docs/PBP_DIRECTION.md) is historical context; the September 10 review above describes the next proposed architecture.
 
 ## Current development: v0.2 company records
 
@@ -14,7 +18,7 @@ Start with [SPEC.md](SPEC.md), the [builder quickstart](docs/PROTOCOL_STORE.md),
 The current implementation is the off-chain reference store in `supabase/functions/dtp-store` and the TypeScript `sdk`.
 Trade and finance are the first workflows; a company workspace and module marketplace are proposed products on top, not prerequisites of the protocol.
 
-An **isolated v0.3 reference preview** now implements people/memberships, scoped capabilities, company-specific installations, signed attribution, controller quorum and trusted-store migration. See [the v0.3 specification](spec/v0.3/SPEC.md). It is not deployed or production-qualified; v0.2 still has its original company/module credentials. [Passport core and its local developer demo](modules/passport/README.md) exercise the new authority model; the customizable browser workspace is not built yet.
+An **isolated v0.3 reference preview** implements people/memberships, scoped capabilities, company-specific installations, signed attribution, controller quorum and trusted-store migration. See [the v0.3 specification](spec/v0.3/SPEC.md) and the shared development deployment guide above. It is not production-qualified; v0.2 still has its original company/module credentials. [Passport now includes a local browser demo](modules/passport/README.md) with company entry, scoped dashboards, movable widgets and module/membership revocation. On the prepared Windows workstation, launch `Start-Passport-Demo.cmd`, then open `http://127.0.0.1:8789`. This separate demo uses disposable local data, not the shared development backend.
 
 - [Infrastructure fixes and remaining production gates](docs/INFRA_HARDENING_2026-09-06.md)
 - [Workspace/marketplace foundations and build order](docs/WORKSPACE_FOUNDATIONS.md)

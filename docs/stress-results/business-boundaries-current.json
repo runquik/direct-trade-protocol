@@ -1,0 +1,1684 @@
+{
+  "title": "DTP business-boundary expected-observation stress test",
+  "started": "2026-09-10T21:27:41.863Z",
+  "finished": "2026-09-10T21:27:48.123Z",
+  "runtime": "v22.23.2",
+  "setup_complete": true,
+  "scope": "Synthetic localhost PGlite stores; independent raw HTTP client; no private data; no production changes",
+  "expected_probe_count": 22,
+  "all_observations_matched": true,
+  "controls_observed": 14,
+  "gaps_reproduced": 8,
+  "readiness_certified": false,
+  "implementation_diversity": "Independent client/signatures, same reference store implementation at both hosts",
+  "input_sha256": {
+    "sdk/tests/stress/business-boundaries.test.ts": "873ae337d818d421c692b12836679e1893cfadf8ba8a83e2e9c8d0c68f115c92",
+    "sdk/tests/stress/independent-client.ts": "d778f8126c048137e2280a925e633f1568afa57849b17b1ffc4832b42f86a77c",
+    "sdk/scripts/pbp-dev-server.ts": "98578391face79b843453205d83f4597b129d50b2248a111e7a1f13ee4c83b6b",
+    "sdk/src/v03/engine.ts": "9f66c9f59a5705ea2af25da05a4a8702187c5ca33fbbc6e22c433ce1256f5c18",
+    "sdk/src/v03/wire.ts": "5b8bd8b5f38bc362b705bf3eeb23df2993c3af0038766f0ec1fd850c07c1268e",
+    "sdk/src/v03/permissions.ts": "94bec5543b01296f27e34ff05584285852871e60ad885820801be50bdb804c57",
+    "sdk/src/v03/schema.ts": "38cc8c86ffab736e17256eaa4b206a91cfbd17fcb42e843d9d2bbfdb20c6f22a",
+    "sdk/src/v03/model.ts": "9ed7584c7cca9dba34a5b7fe2ef2d70a62a2eb5daabbbd7bdf5471e45ad04eff",
+    "spec/v0.3/command.schema.json": "0a0dc933414c83063c04b6e20f72a09a57c94a7cd345837fc7bca6f870c3fefa",
+    "spec/v0.3/store.sql": "0b3e3ccf0843e2550f34799e671f9d4a97b6a30394c80220abf52af268ed2304",
+    "spec/schemas/traceability/cte.schema.json": "44854982332fa81e1cd5c611e57a7e3b217d39b1288da606d729f8d52b8f0498",
+    "sdk/src/schemas.ts": "beafdfcab3b5082c074fe4f95b90169b195dcbaeec8c74e7e24910e7a92ff25f",
+    "sdk/src/registry.ts": "a6c29c4d8c6c1b7ffd2f3b89727eca9969d93fefd094935d333807f4a2dc74e1",
+    "sdk/src/canonical.ts": "75d2191842adf00b795b01bc1fe19fef3d5232d90bc621f175bfca09b2c48457",
+    "sdk/src/keys.ts": "bb24250f2c9948ad7acfe550082b5960084a5801c34472c9511f8b47e2cc95a4",
+    "spec/v0.3/signing-vector.json": "aa9dabe44a2ad75839e401c28affa91f0871fdb1c0b34330a9989544d9ca8ddc",
+    "sdk/package-lock.json": "819b319bc7e053d9bc4c7989ee22a9a20945df772eb512ade02d93ebe61b8ca7",
+    "supabase/functions/pbp-store/router.ts": "0e88704117edf82fbd68d4d5dcbde7725cd7e69ea6fb3a49b00e15c6cb45a0ea",
+    "supabase/functions/dtp-store/integrity.ts": "97aa4a4615194817327541ee00237a9fa0bfa0b4efbcba53384f73b3bc57c2c5",
+    "supabase/functions/dtp-store/transitions.ts": "c77bae5df844ff8256c613c8bcf62facffdb2a091fda288c1831972b2f16cd6a"
+  },
+  "probes": [
+    {
+      "id": "S01",
+      "cases": [
+        "T04"
+      ],
+      "classification": "control",
+      "title": "Independent signing matches published vector and verifies proof",
+      "observation_matched": true,
+      "evidence": {
+        "fixed_vector": "spec/v0.3/signing-vector.json",
+        "independent_crypto": "node:crypto Ed25519"
+      }
+    },
+    {
+      "id": "S02",
+      "cases": [
+        "T01",
+        "T12"
+      ],
+      "classification": "gap",
+      "title": "Native inventory, personnel and company-owned type grants are unavailable",
+      "observation_matched": true,
+      "evidence": [
+        {
+          "type": "inventory.stock_movement",
+          "status": 400,
+          "error": {
+            "code": "invalid",
+            "message": "unknown permission; record scopes must name a registered business type"
+          }
+        },
+        {
+          "type": "hr.employee",
+          "status": 400,
+          "error": {
+            "code": "invalid",
+            "message": "unknown permission; record scopes must name a registered business type"
+          }
+        },
+        {
+          "type": "jerky.scan",
+          "status": 400,
+          "error": {
+            "code": "invalid",
+            "message": "unknown permission; record scopes must name a registered business type"
+          }
+        },
+        {
+          "type": "com.jerky.scan",
+          "status": 400,
+          "error": {
+            "code": "invalid",
+            "message": "unknown permission; record scopes must name a registered business type"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "cases": [
+        "T05"
+      ],
+      "classification": "control",
+      "title": "Identical signed retry does not duplicate an accepted record",
+      "observation_matched": true,
+      "evidence": {
+        "exact_retry": "same result, one record",
+        "changed_payload_same_request": 409
+      }
+    },
+    {
+      "id": "S04",
+      "cases": [
+        "T05"
+      ],
+      "classification": "gap",
+      "title": "A fresh record ID duplicates the same physical scan",
+      "observation_matched": true,
+      "evidence": {
+        "same_physical_scan": 2,
+        "naive_cases_sum": 20,
+        "correct_cases": 10,
+        "caveat": "x_inventory is deliberately nonstandard; no native deduplication contract exists"
+      }
+    },
+    {
+      "id": "S05",
+      "cases": [
+        "T05",
+        "T06"
+      ],
+      "classification": "control",
+      "title": "Concurrent corrections to one record cannot both become the head",
+      "observation_matched": true,
+      "evidence": {
+        "statuses": [
+          200,
+          409
+        ],
+        "heads": 1
+      }
+    },
+    {
+      "id": "S06",
+      "cases": [
+        "T06",
+        "T07"
+      ],
+      "classification": "gap",
+      "title": "Independent reservations and contradictory pack conversions are accepted",
+      "observation_matched": true,
+      "evidence": {
+        "accepted_reserved_cases": 16,
+        "stated_available_cases": 10,
+        "same_pack_version_units_per_case": [
+          12,
+          24
+        ],
+        "caveat": "No native reservation/pack profile; accepting extra JSON is not validating inventory"
+      }
+    },
+    {
+      "id": "S07",
+      "cases": [
+        "T05",
+        "T28"
+      ],
+      "classification": "gap",
+      "title": "Arrival order is not physical event order",
+      "observation_matched": true,
+      "evidence": {
+        "arrival_sequence_increases": true,
+        "physical_time_decreases": true,
+        "implication": "Consumers need late-event and correction semantics; seq is not event time"
+      }
+    },
+    {
+      "id": "S08",
+      "cases": [
+        "T09"
+      ],
+      "classification": "control",
+      "title": "Internally inconsistent invoice totals are rejected before storage",
+      "observation_matched": true,
+      "evidence": {
+        "status": 422,
+        "quantity_times_unit_price": "200 USD",
+        "recorded_line": "999 USD",
+        "subtotal": "1 USD",
+        "total": "700 USD",
+        "contract_exists": false,
+        "reference_validation_tested": false
+      }
+    },
+    {
+      "id": "S09",
+      "cases": [
+        "T12",
+        "T13"
+      ],
+      "classification": "gap",
+      "title": "Type permission exposes all same-company private records, including signed payload",
+      "observation_matched": true,
+      "evidence": {
+        "ordinary_type_reader_sees_canary": true,
+        "controller_sees_canary": true,
+        "signed_command_duplicates_data": true,
+        "caveat": "Synthetic canary in a loose CTE, NOT a native employee record or authorization bypass. Current type-level policy is insufficient for HR."
+      }
+    },
+    {
+      "id": "S10",
+      "cases": [
+        "T12"
+      ],
+      "classification": "gap",
+      "title": "Employee-scoped rights and conditional memberships are not expressible",
+      "observation_matched": true,
+      "evidence": {
+        "scoped_permission": 400,
+        "conditions_field": 400
+      }
+    },
+    {
+      "id": "S11",
+      "cases": [
+        "T11",
+        "T13"
+      ],
+      "classification": "control",
+      "title": "Parallel fractional-CFO reads remain company-scoped",
+      "observation_matched": true,
+      "evidence": {
+        "contexts": 3,
+        "parallel_requests": true,
+        "cross_company_canary_leak": false,
+        "browser_cache_tested": false
+      }
+    },
+    {
+      "id": "S12",
+      "cases": [
+        "T14"
+      ],
+      "classification": "control",
+      "title": "Membership revocation blocks both prepared read and exact read replay",
+      "observation_matched": true,
+      "evidence": {
+        "replay_after_revoke": 403,
+        "prepared_read_after_revoke": 403,
+        "previously_downloaded_copy_erased": false
+      }
+    },
+    {
+      "id": "S13",
+      "cases": [
+        "T14",
+        "T25"
+      ],
+      "classification": "control",
+      "title": "Module and human rights intersect; private records remain hidden from module",
+      "observation_matched": true,
+      "evidence": {
+        "private_canary_visible": false,
+        "ungranted_write": 403,
+        "other_org": 403,
+        "missing_human": 403,
+        "human_with_no_read_records": 0
+      }
+    },
+    {
+      "id": "S14",
+      "cases": [
+        "T02",
+        "T22",
+        "T23"
+      ],
+      "classification": "gap",
+      "title": "Manifest pins permission version but has no artifact or publication policy",
+      "observation_matched": true,
+      "evidence": {
+        "immutable_version_control": 409,
+        "artifact_and_visibility_fields": 400,
+        "note": "No executable artifact was uploaded or screened"
+      }
+    },
+    {
+      "id": "S15",
+      "cases": [
+        "T14",
+        "T16"
+      ],
+      "classification": "control",
+      "title": "Disabling a module blocks prepared reads while records remain accessible to owner",
+      "observation_matched": true,
+      "evidence": {
+        "disabled_installation_read": 403,
+        "data_retained": true,
+        "workflow_reconstruction_tested": false
+      }
+    },
+    {
+      "id": "S16",
+      "cases": [
+        "T11"
+      ],
+      "classification": "control",
+      "title": "Filtered pagination returns all authorized records once, despite interleaved tenants",
+      "observation_matched": true,
+      "evidence": {
+        "records": 9,
+        "page_size": 2,
+        "duplicates": 0,
+        "omissions": 0
+      }
+    },
+    {
+      "id": "S17",
+      "cases": [
+        "T18",
+        "T20"
+      ],
+      "classification": "control",
+      "title": "Migration refuses a stale preview then produces a recoverable source receipt",
+      "observation_matched": true,
+      "evidence": {
+        "stale_preview": 409,
+        "receipt_retrievable": true,
+        "source_write_after_commit": 409
+      }
+    },
+    {
+      "id": "S18",
+      "cases": [
+        "T18",
+        "T19"
+      ],
+      "classification": "control",
+      "title": "Tampered transfer and wrong destination cannot be imported",
+      "observation_matched": true,
+      "evidence": {
+        "tampered": 401,
+        "untrusted": 403,
+        "different_destination": 403
+      }
+    },
+    {
+      "id": "S19",
+      "cases": [
+        "T18",
+        "T19",
+        "T21"
+      ],
+      "classification": "control",
+      "title": "Small-company import retains independently verifiable records and disables installations",
+      "observation_matched": true,
+      "evidence": {
+        "imported_records": 11,
+        "preserved_signed_payloads": true,
+        "installed_modules_disabled": true,
+        "duplicate_import": 409,
+        "employee_canary_in_full_company_export": true
+      }
+    },
+    {
+      "id": "S20",
+      "cases": [
+        "T19"
+      ],
+      "classification": "gap",
+      "title": "Moved company cannot continue a trade with partner left on original host",
+      "observation_matched": true,
+      "evidence": {
+        "followup_status": 403,
+        "error": {
+          "code": "forbidden",
+          "message": "all parties must have active local company authority"
+        },
+        "partner_still_reads_old_record": true,
+        "partner_migrated": false
+      }
+    },
+    {
+      "id": "S21",
+      "cases": [
+        "T18",
+        "T20"
+      ],
+      "classification": "control",
+      "title": "Oversized v0.3 migration is refused before the source freezes",
+      "observation_matched": true,
+      "evidence": {
+        "records": 18,
+        "source_commit_status": 413,
+        "destination_company_lookup": 404,
+        "source_write_status": 200,
+        "receipt_created": false,
+        "consequence": "Legacy host stays writable; staged large transfer is an explicit v0.4 capability"
+      }
+    },
+    {
+      "id": "S22",
+      "cases": [
+        "T03",
+        "T24",
+        "T28"
+      ],
+      "classification": "control",
+      "title": "Audience, signatures, bounded request size and native unit validation fail closed",
+      "observation_matched": true,
+      "evidence": {
+        "unexpected_payload": 400,
+        "tampered_signature": 401,
+        "wrong_audience": 400,
+        "unsupported_unit": 422,
+        "caveat": "No agent or MCP prompt-injection execution tested; these are HTTP controls only"
+      }
+    }
+  ],
+  "http_journal": {
+    "source": [
+      {
+        "action": "person.register",
+        "request_id": "c7142b45-eac3-420a-af6a-c43219b15542",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "4dfb70f3983458dfe66650a85e48938a3eda55248617f7fea941c7c86067b2e0",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "person.register",
+        "request_id": "0658f519-0003-4b65-964d-9985e10da263",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "3bf14095c32b5edd7b3720508bcb44ac06031401feee5dc32f2fc2a7d33a7c7a",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "person.register",
+        "request_id": "aaa9bfe7-7e11-41fe-b406-b78cef770d29",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "20829ce34b4abc81d0621b39003efcfe39a288d3ab29ce328a4df79cfe5baba1",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "organization.create",
+        "request_id": "c31df7ed-42e7-4e2d-85c7-42ac285c915a",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "9f6433284b405e3552322618efe6a7b646896f75b2c5f6c4a8afe3d83247fa18",
+        "status": 200,
+        "bytes": 805
+      },
+      {
+        "action": "organization.create",
+        "request_id": "6c71eea3-af12-4211-a96b-71de146e9b0b",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "3451374bac2c39052c15b16dd917c96af820105f8a9e4095bf406d1302b5b5af",
+        "status": 200,
+        "bytes": 805
+      },
+      {
+        "action": "organization.create",
+        "request_id": "821ed26a-19e5-4d60-92e8-e0606dcdc05a",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "71d8dbd4f305fbf95bd271dd26c9931d12948c0935e045b30a3a783b73617ca9",
+        "status": 200,
+        "bytes": 813
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "95c2eb7c-e32e-4dbc-ba7a-de4232bd56bb",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "add0212f226db517ab2441f990b639a195f741968ddd9373706c141f48582030",
+        "status": 200,
+        "bytes": 889
+      },
+      {
+        "action": "membership.accept",
+        "request_id": "56d5f497-8526-41e1-bba8-eb2ae024ff35",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "b282c929998d5d9221b12cb3bef8ed06e8faaaa012de998e6c9a2ce55bc3ac5f",
+        "status": 200,
+        "bytes": 717
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "7d616a5b-28a3-4fc0-b11a-4b22397b86a9",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "57d4b8fdf686531d12cccd2ec189308cc4333142844595cabfd53acab92cb9cc",
+        "status": 200,
+        "bytes": 856
+      },
+      {
+        "action": "membership.accept",
+        "request_id": "cf859f75-b7fb-4f7e-a4bb-2876df5c9411",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "a3f36a1c04d00bde861afa72e895aca69cfa5d143042b8b5ff02b5fcbeeddf57",
+        "status": 200,
+        "bytes": 716
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "b73cbc4c-9481-4c29-8531-258defff817e",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "90a21a57da541c23724ad82a4a6a1ab8b53be6a641a25750b26ca34ab89ca9fe",
+        "status": 200,
+        "bytes": 855
+      },
+      {
+        "action": "membership.accept",
+        "request_id": "dedf010d-c783-44cd-9dfa-be5056475013",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "738bfba3ab91542b5006f31f8b7b4dd2e7da2872998e7a508457dc53823d1edb",
+        "status": 200,
+        "bytes": 717
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "23dc9274-4ae0-4ed0-b45b-ec824a9764c3",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "15898d497397c302c1e093a090fe1d450e782a9cfe986967a0806ef79fe099ca",
+        "status": 200,
+        "bytes": 856
+      },
+      {
+        "action": "membership.accept",
+        "request_id": "2b17b463-e1a0-4f44-95e2-ff3da12f2062",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "d4e398525d10d0cbaca35c6a2f664134bbe2bb15fed2ea60c27b71f379c77a47",
+        "status": 200,
+        "bytes": 717
+      },
+      {
+        "action": "module.publish",
+        "request_id": "2353fb37-4e35-4549-890a-350b92595b8e",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "2efb6bc04ed6ddb9abace22f40acf1c6b31e90d034827f24af749b900b1fa63c",
+        "status": 400,
+        "bytes": 823,
+        "error": {
+          "code": "invalid",
+          "message": "unknown permission; record scopes must name a registered business type"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "b005d68d-050e-4a11-9673-3daf6db60710",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "77ac032799f9b409056d8753e3c41ae94978f0fd324c06312f0af410433057db",
+        "status": 400,
+        "bytes": 1114,
+        "error": {
+          "code": "invalid",
+          "message": "only registered business types are accepted here"
+        }
+      },
+      {
+        "action": "module.publish",
+        "request_id": "bcbc79af-71b0-41e7-b2bb-2241d10dd183",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c414479f92df1dd3c45528ca52c19ba749b613b35708c75379d2f5dd4374e2b2",
+        "status": 400,
+        "bytes": 810,
+        "error": {
+          "code": "invalid",
+          "message": "unknown permission; record scopes must name a registered business type"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "555d1439-7ede-493b-b449-3f7faaf61ca1",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "35a05b1b0fcff15790f88ed30e60014fed2345aeb3378defa40421e140546651",
+        "status": 400,
+        "bytes": 1101,
+        "error": {
+          "code": "invalid",
+          "message": "only registered business types are accepted here"
+        }
+      },
+      {
+        "action": "module.publish",
+        "request_id": "70caf2ee-37a8-456f-943a-be4a8b9cbce5",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "9bde916229957d0217914b32ea4936e47d63e216ad905cbb6008ae94657347ef",
+        "status": 400,
+        "bytes": 809,
+        "error": {
+          "code": "invalid",
+          "message": "unknown permission; record scopes must name a registered business type"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "e246d508-9be6-4fc5-8f08-d0c4ecd68a4a",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c62bff118416dfc5a1346a7d29c46bf7cc206414f7c5f08bf0bcdb0dc8f7ee0d",
+        "status": 400,
+        "bytes": 1100,
+        "error": {
+          "code": "invalid",
+          "message": "only registered business types are accepted here"
+        }
+      },
+      {
+        "action": "module.publish",
+        "request_id": "f0914467-8434-403a-81c8-1ab2112ab9b0",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "1962360d5c7a6e022e1a2b3657ec7ea8249e96759d63fc59d466ca79f16e7289",
+        "status": 400,
+        "bytes": 813,
+        "error": {
+          "code": "invalid",
+          "message": "unknown permission; record scopes must name a registered business type"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "1d1a31b5-1e7e-4fac-89b1-65d7d16d1059",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "0efb4af84c2b98352e56367ef7bb5eb095b87015c9a4df862ce69b2f6c7989e6",
+        "status": 400,
+        "bytes": 1103,
+        "error": {
+          "code": "invalid",
+          "message": "command shape or action payload does not conform to PBP 0.3"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "66ce4957-f7ce-4d2c-b58e-d0cf18754dd0",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c6d53eaea3755f5c21c8d155464d2d7bb81e3a114117edc817ddb728c4c19036",
+        "status": 200,
+        "bytes": 1192
+      },
+      {
+        "action": "record.append",
+        "request_id": "66ce4957-f7ce-4d2c-b58e-d0cf18754dd0",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c6d53eaea3755f5c21c8d155464d2d7bb81e3a114117edc817ddb728c4c19036",
+        "status": 200,
+        "bytes": 1192
+      },
+      {
+        "action": "records.list",
+        "request_id": "cf461376-55fb-4e23-a044-09e5fd2dda85",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c2b5a55482cbbb84ffa9f08a6b2dd6325fb72583d19ad9bf9d1a2b979cf8647d",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "record.append",
+        "request_id": "66ce4957-f7ce-4d2c-b58e-d0cf18754dd0",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "ee29ca3cb7f45ab166f27f1935c7fb11a734cca64d9fbf684acbe57baf3b8e00",
+        "status": 409,
+        "bytes": 1106,
+        "error": {
+          "code": "conflict",
+          "message": "request ID reused with different content"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "33bfa39e-e661-45cf-885f-136df6c065e5",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "eac53ff9ea7e2cedb66cce8b651cecee3b5da2623ad230f1a406f9c2ecbf5438",
+        "status": 200,
+        "bytes": 1191
+      },
+      {
+        "action": "records.list",
+        "request_id": "1da7b135-20b7-400c-b537-6151c5278a8c",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "a7385940abaa671b5c8489184b9e980ece3ccfa2f7b49660bf2818aa30e7b5f8",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "record.append",
+        "request_id": "96a37cf9-0b62-42ed-949e-1386933238f4",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "ef625421ead0db921d44743914e64fc2652a5881b9e64952a62160f0587b1aa9",
+        "status": 200,
+        "bytes": 1106
+      },
+      {
+        "action": "record.append",
+        "request_id": "d35066dc-3e9c-4bec-9f05-06ac9087cc0f",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "db0841ccfba49e3efc6fb99c9566d8a392be59d805c563709f13aaad92952a9f",
+        "status": 200,
+        "bytes": 1140
+      },
+      {
+        "action": "record.append",
+        "request_id": "693c9c5e-32d4-4501-97b8-e6a7bf46a510",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "85421417a7257371c9f64db0be2c3cdf0ea27f62aebccddfd14edf100f8e6187",
+        "status": 409,
+        "bytes": 1139,
+        "error": {
+          "code": "conflict",
+          "message": "supersession continuity failed"
+        }
+      },
+      {
+        "action": "records.list",
+        "request_id": "32d5794d-8b3e-49b7-830f-f3632e5d9332",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "ede9c4bbdc0568e4eb23c2e7e1f9f94dd704e21b1b62d1155d56a46c727aca9c",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "record.append",
+        "request_id": "0514bb92-ccea-48f5-a9e7-8c0deb507596",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "4bb7c9d57f7d0f74d1d7baa135fce5716dd26630b24692c91fbf7b3dbad51589",
+        "status": 200,
+        "bytes": 1259
+      },
+      {
+        "action": "record.append",
+        "request_id": "4cc7d0cf-2ab6-478d-bbf6-4379c30e3521",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "b3b881b9d41bd9c7e2a47137faf706dd5db9dcd5027f9bd83a3e4851432a39a4",
+        "status": 200,
+        "bytes": 1259
+      },
+      {
+        "action": "record.append",
+        "request_id": "89a61812-5b15-4fd4-8c1c-6502bce472fe",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "fa7328babcbeb4923ff0287f1263ec5286cc3b7cf8a724884bff41e6b751b855",
+        "status": 200,
+        "bytes": 1127
+      },
+      {
+        "action": "record.append",
+        "request_id": "98e8c3f5-eba4-411e-ae6e-050533f808c1",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "5456d2dc0c419bd3b27048ff5205b54b521ef06ab4457181607863a02e59bb77",
+        "status": 200,
+        "bytes": 1126
+      },
+      {
+        "action": "records.list",
+        "request_id": "b97cb0c6-e6a9-468a-b15a-2332a073865c",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "3171dc0ddaa079e3510b515f76e48dd9b2cdeabc2f0151a3a67d3b005d611885",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "record.append",
+        "request_id": "536b887b-31d3-4910-a7d2-223db2bdfdb1",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "9d352df5cc6268632ee6fe3ac4deee194cc17648c438c0f001f9c312c2ee2eed",
+        "status": 422,
+        "bytes": 1683,
+        "error": {
+          "code": "invalid_invoice",
+          "message": "invoice arithmetic or declared fields are invalid"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "83c31f93-9bc5-47b8-93ce-ada1168f0232",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "99d0f077006cf22cd12d433e7f4233a112674497cc5686e302558b1c6aa129d3",
+        "status": 200,
+        "bytes": 1213
+      },
+      {
+        "action": "records.list",
+        "request_id": "ff86b96a-d0ea-473b-b87d-778895d69a9d",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "817cc9a4137768eb8c7131d6cb9afc6bcd0e627af813cab22377ed3485a41667",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "51883b60-9674-418a-a88f-c66ed07ac126",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "52cbb055732b61a0c30965a8c714d333ae8750e62a79d287c3b2d5d0f038adee",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "6184b67f-39ba-4ffc-9c14-60c86ce952db",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "d04f77066b57421bd3031ba228724445adfdd61c9942438a92d2025b74cbad5f",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "0632887a-99fc-42ee-afde-977d01ea8aef",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "7fc8e103c73910637ca2509d5a6565624f69250afe918f46acdce6c9abe72c8a",
+        "status": 400,
+        "bytes": 870,
+        "error": {
+          "code": "invalid",
+          "message": "unknown permission; record scopes must name a registered business type"
+        }
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "40c976e0-e7c2-491b-a89e-5cbeee342f9c",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "53529cd0cb40aca8a8b31889e527f97e55ee87f5d6b6464fc4e05bdd30ebaa8b",
+        "status": 400,
+        "bytes": 891,
+        "error": {
+          "code": "invalid",
+          "message": "command shape or action payload does not conform to PBP 0.3"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "75abef45-84b0-49c1-a4e1-ee6f367d5810",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "067a379f240db4cc5fdbe34f160fe1230477b168486979e0cdd2e80005a89e4c",
+        "status": 200,
+        "bytes": 1139
+      },
+      {
+        "action": "record.append",
+        "request_id": "eb654f84-0ca1-45f6-9958-2030587b92ac",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "20f0caa559afaa2fa4fbc17498ceb0d822a79f098ac9bf2700106b02ce10b869",
+        "status": 200,
+        "bytes": 1136
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "fffc3dce-3090-4f72-982b-38a27d7ede1b",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "cb3b7f91c449bf8b04c40a9750c80d06b26a80fd82eda2085230e3de24dfe4df",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "e979f876-9161-48c7-8f11-54d28c434c3d",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "0f563d8d6d007271a2762a7858bb19a24384c8a7070e74162dbcc1de6c9a04d6",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "c487f2f2-6366-40e3-a54d-004627850c06",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "8ab3447cb0ecbf264608196e027a62c29b8d81e462d4cac1c6324ee40dfe5907",
+        "status": 200,
+        "bytes": 659
+      },
+      {
+        "action": "records.list",
+        "request_id": "7e4f4510-5e5c-49a0-bb36-10a0c891db93",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "04bdcc68ac6d1b9c4542cf1fb613c1eddc7b8453e9604fc9fba7e7434e5a614f",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "membership.revoke",
+        "request_id": "15497a25-6c86-4221-8a0f-9a8cd3a7d05a",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "863ce60a1a39b607b86cac397d19a2e95fbb6b23e61c07582fe2fbf3ee2c8596",
+        "status": 200,
+        "bytes": 713
+      },
+      {
+        "action": "records.list",
+        "request_id": "7e4f4510-5e5c-49a0-bb36-10a0c891db93",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "04bdcc68ac6d1b9c4542cf1fb613c1eddc7b8453e9604fc9fba7e7434e5a614f",
+        "status": 403,
+        "bytes": 679,
+        "error": {
+          "code": "forbidden",
+          "message": "no active company membership"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "4f5fee7d-4e61-4b2d-be51-00221d5972cf",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "dfb113c7c5409023a808d7da121d57e8f5d92bc556afaa810c0cfe7b8dd88d12",
+        "status": 403,
+        "bytes": 660,
+        "error": {
+          "code": "forbidden",
+          "message": "no active company membership"
+        }
+      },
+      {
+        "action": "module.publish",
+        "request_id": "7680b468-c588-4478-acd7-a74719ed9a56",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "426be0cfcd8d71c9f1f96faf53ab1b90456acdc332dc2df6ac03092fd7cae6e8",
+        "status": 200,
+        "bytes": 849
+      },
+      {
+        "action": "installation.create",
+        "request_id": "a55d558b-3f5e-4f6c-85e8-b93745c84fe9",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "9aed2b38b513a5f678f9379f8feadeaf55170117f1cca8bddd193ce16616d1d3",
+        "status": 200,
+        "bytes": 1149
+      },
+      {
+        "action": "records.list",
+        "request_id": "a2110828-5d76-4004-a1f8-1f5347bd8bca",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "c11e807b39e26f6f660b3629ad0caa657fa0a771edd7a760c979fe18e5d8b987",
+        "status": 200,
+        "bytes": 862
+      },
+      {
+        "action": "record.append",
+        "request_id": "ca47d1c9-6e4b-4312-99c9-bcd8ba0e9d4b",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "fbf6fcc9bb035a80417e7a7d8f925442185dc5c4c0b470774f3220ae15d88738",
+        "status": 403,
+        "bytes": 1289,
+        "error": {
+          "code": "forbidden",
+          "message": "missing capability: records.write:traceability.cte"
+        }
+      },
+      {
+        "action": "records.list",
+        "request_id": "4e961a9e-4802-4502-9589-0eeeb66c325e",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "installation",
+        "request_hash": "36c44afab4e01387eda9d7fc68c1e06c6de9053efa2285b78167ff35b42c6eb2",
+        "status": 403,
+        "bytes": 861,
+        "error": {
+          "code": "forbidden",
+          "message": "installation does not belong to selected company"
+        }
+      },
+      {
+        "action": "records.list",
+        "request_id": "4f69f8a3-6594-4f77-b271-301409cafa12",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "6bf223aa52f96d36108844c31851be829a24d9d377363ef675cb699a9a41cf4c",
+        "status": 403,
+        "bytes": 651,
+        "error": {
+          "code": "approval_required",
+          "message": "interactive module needs the requesting person's signature"
+        }
+      },
+      {
+        "action": "person.register",
+        "request_id": "2b0ee921-f6b7-4b47-b6f5-50133b5dbd00",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "c5d99115c4cd6943aafb7a5e4fd5b4f27d642d6f1b1aa12ea80a550a724be324",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "membership.invite",
+        "request_id": "430ccbf3-efaa-4544-83ad-44f824d830cd",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "9f7c8dad1b6dc8013a63b5cc0fb05b9b1be1c3f2639f004126858b5280bdb57e",
+        "status": 200,
+        "bytes": 825
+      },
+      {
+        "action": "membership.accept",
+        "request_id": "5a3a2bdf-bb4a-43ea-b757-b8c8f5fe221c",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "990d224f0f4cdcd09957b0706acb94c9a48b7ffab4360600efeaf7cef81a80eb",
+        "status": 200,
+        "bytes": 717
+      },
+      {
+        "action": "records.list",
+        "request_id": "7591a615-6969-45a1-8b5e-ba0fa5126456",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "c3b9840e6cb1f8653f3521bd76c0814093dbdc8db5345cb57f73eefc63313253",
+        "status": 200,
+        "bytes": 862
+      },
+      {
+        "action": "module.publish",
+        "request_id": "3b16bffd-eec6-42aa-aa10-6cd01ed41ba6",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "7b562e25f6ee46314a405a0d541a404474e789fd867d58a8dc4b041767346c8b",
+        "status": 409,
+        "bytes": 847,
+        "error": {
+          "code": "conflict",
+          "message": "publisher mismatch or immutable manifest version"
+        }
+      },
+      {
+        "action": "module.publish",
+        "request_id": "0006e404-9564-4cda-909f-8421d143ec8b",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "28a4360332c8f97a8542f4e0a128b766257465fe41f4333a8ed834e430d39ee7",
+        "status": 400,
+        "bytes": 963,
+        "error": {
+          "code": "invalid",
+          "message": "command shape or action payload does not conform to PBP 0.3"
+        }
+      },
+      {
+        "action": "records.list",
+        "request_id": "5f81d434-3e40-4352-9861-beea5072491d",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "9ac40579ef74560b580cb55f30c92bb3b245b5500e4ebc4e95147091dcb9ea50",
+        "status": 200,
+        "bytes": 862
+      },
+      {
+        "action": "installation.revoke",
+        "request_id": "adcbd0cf-ba05-4f7c-842c-0fac3cffd0c9",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "2ce9fdcad00b82ace0df4dba8bfff42232aaf2fc31be4c259f90fc728dae45f5",
+        "status": 200,
+        "bytes": 721
+      },
+      {
+        "action": "records.list",
+        "request_id": "5f81d434-3e40-4352-9861-beea5072491d",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "9ac40579ef74560b580cb55f30c92bb3b245b5500e4ebc4e95147091dcb9ea50",
+        "status": 403,
+        "bytes": 862,
+        "error": {
+          "code": "forbidden",
+          "message": "installation is revoked or expired"
+        }
+      },
+      {
+        "action": "records.list",
+        "request_id": "ad504007-59aa-4f9a-bdb6-3b5fa2ca47ac",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "0c88beda957341b6511fedc2c714f27e947403865cbb8dd65738b4993d41118f",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "records.list",
+        "request_id": "eb0ef72f-665d-4a8b-8016-ee6125898668",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "598a0b9570ef95a5b9a8e4073a64d818e02af85284faae9f5b090e23246a40b9",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "records.list",
+        "request_id": "ffa8a19b-daa4-4916-9796-af6ff32a23ef",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "48195246b463a9c4cba6187c85dfba0bd5ba369e214718b72ff2ad780a3f4cd0",
+        "status": 200,
+        "bytes": 677
+      },
+      {
+        "action": "records.list",
+        "request_id": "d050d070-4294-4c81-999d-2ed444d93012",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "3a5e32e448edc9d567b568fcfdca77000cbdc52d09db614d48769d58cb32012e",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "records.list",
+        "request_id": "01eeb453-a244-40c0-971e-e57e9b863fd3",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c5c4af563e42a9ade5bdc23f53b0e92b3bfea93efb5fc367343dc5facbb0dd72",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "records.list",
+        "request_id": "7af4a395-37da-4e7b-be75-60adbc80d83b",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "e7952a000e45426b7103554abc3fb8c5e22d600a16f7cd4e723cc745a94c0039",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "records.list",
+        "request_id": "9bb20a01-0405-4218-b4ba-64c1190b7153",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "d4d9d5a11743d5eeb50914f2a3f1d127990fbfa607e432e36c9613014f5dd656",
+        "status": 200,
+        "bytes": 678
+      },
+      {
+        "action": "installation.create",
+        "request_id": "d8fd6af2-a6e6-4f31-9e88-dd97a8770fef",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "c6a816aa72ace97473d3c2b728e4ee29f5beda2456e8c0293ccf3291edc692db",
+        "status": 200,
+        "bytes": 1148
+      },
+      {
+        "action": "record.append",
+        "request_id": "ab729794-1726-4154-b89c-4a2baf83f66b",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "fb72940118ee4621a3144dc597d75e71e891df927b37f534cfefd7a6b4e3d68d",
+        "status": 200,
+        "bytes": 1190
+      },
+      {
+        "action": "migration.preview",
+        "request_id": "4f64e5f7-17af-4011-9003-774858d73673",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "a0cec6fc3ee91f73d6dd4cdb3b3ba2c48089696ed612a54fac86f60bb69ebd87",
+        "status": 200,
+        "bytes": 663
+      },
+      {
+        "action": "record.append",
+        "request_id": "8e2e70cb-b478-4503-9a11-919fbd50caea",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "f7503a53717b9398e4d4fa723e2ad0bbf655ad1b0411aba869be6ec73bf8cea1",
+        "status": 200,
+        "bytes": 1146
+      },
+      {
+        "action": "migration.commit",
+        "request_id": "0b816c7e-f333-453e-8f1b-6a66a67ef8f3",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "66eb4ca54dd855cccacf23ebd41ac33de687dee4c6432b82d91f6b0dd40085df",
+        "status": 409,
+        "bytes": 860,
+        "error": {
+          "code": "conflict",
+          "message": "company changed since migration preview"
+        }
+      },
+      {
+        "action": "migration.preview",
+        "request_id": "69c27cdb-25c1-48db-9d46-ebc484f681c9",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "ef6309f267204b61868620f6dae361e6e95feda168e118dbbbdfb6f2acd33539",
+        "status": 200,
+        "bytes": 663
+      },
+      {
+        "action": "migration.commit",
+        "request_id": "61a53665-21fb-491c-a575-c7e47b7792c6",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "80f23c4e73f715fab92e9cd7def0032effdaf0c392bb3877afa505228394cfe4",
+        "status": 200,
+        "bytes": 860
+      },
+      {
+        "action": "migration.receipt",
+        "request_id": "5b0d18ff-e5cb-4729-8e88-4c75cb8e5b84",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "611177480adc0bca32fa925666cf9f5e84b9ce6c8467897bb9df0cb78427d9df",
+        "status": 200,
+        "bytes": 663
+      },
+      {
+        "action": "record.append",
+        "request_id": "47755592-8118-44f8-bef0-1d573a983285",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "ffc5be429b7cdf3911e20ccf03d1ecb67b3e93d1905ce62fa9152f83670ce5eb",
+        "status": 409,
+        "bytes": 1106,
+        "error": {
+          "code": "migrated",
+          "message": "company authority has moved"
+        }
+      },
+      {
+        "action": "migration.import",
+        "request_id": "af709476-b772-4568-b766-231c0c028e41",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "6972c8b0f4818174f7b5b9db4968bd0e462d0e8efbeb80e0c7e367a34076cb13",
+        "status": 403,
+        "bytes": 52148,
+        "error": {
+          "code": "untrusted_source",
+          "message": "source store key is not explicitly trusted"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "c1c8dd90-c2de-4c91-91ab-118b714c8c46",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "0227475efee6638b0078a5c62d30dbc6df659baf56f41705adafc34f198c3ddc",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "organization.create",
+        "request_id": "37694d76-d2a2-4ac4-8b2e-15235defef01",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "71db52790c8a480bb088d4591f3396bedf94732480d83b077b6495c2227c83ee",
+        "status": 200,
+        "bytes": 813
+      },
+      {
+        "action": "record.append",
+        "request_id": "aa528a0f-a118-41f8-af46-e1877b2ad7be",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "ff22f4f240fee4cbd8dc97b7af3f8290435c8acfa6f2d609a32ecdc7fd8a3518",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "8ad63d64-fdf1-427f-b7c9-070ed140c3ad",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "872248fd1e37fb6134538e59d7c9cbae34078f22d2787dfbca06bdbf9f9096f0",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "b70d9e6e-124b-4458-9903-81bfab527fc8",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "30e729a1afb7661bb28599da7749f536ffc8ab3a6323a966fb0833498ef7b5b8",
+        "status": 200,
+        "bytes": 37128
+      },
+      {
+        "action": "record.append",
+        "request_id": "2d04d5d5-1d9b-40c8-87cb-d22669cc0011",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "5bb9a3bf80facf069ff70621210ac13188e5382b445cf9dea13f95e3b8f751cb",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "40a912fc-e928-4242-90b4-31d7c77b535e",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "4b31480199a2d5e8d1d0df42221b24eb9be91d08bab563e76d5767519bb01f00",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "cbd868b9-0804-4188-8e16-ea121032f34d",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "36970bfbbac7e2fa062baff33454434b8ba2c2bcfefddc831ab899a1db94b482",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "1b5cf3ac-b097-4921-bc2d-3cfd9b1b2533",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "c6c3434df6b291652b041861e56d47de008da9b37a1248b63d7168dd6a79946e",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "a63e9100-17c3-4af6-8233-046b20ecdea4",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "f86c21565a39d01cf552b7898c7a0270178479529113d1d892e4805fe01224ee",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "b3bcdbc9-a584-40a0-9ca9-c2ca84ff02cd",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "553f81c27587b08e481d15e9bb1cd192e1a7b02c06d4c364d83daf28e38fff3e",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "5dbca583-9d13-4719-b55c-8fd49aea03a0",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "fadc7c9bb1cbaa881eef131295c6ebeacd92c25b07979eea232f71dd2a8f4eaf",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "a45e2915-1353-4a69-8a44-3640dfd5ca0a",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "7a0ba0a978f3953485caec3c1c79b61b69edecfa5e5f7c3515fade9766be3869",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "record.append",
+        "request_id": "f38dde75-79c2-426b-9f4f-35cf2e3cacfe",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "d4a8a92bfbaab5835c870a787a863b85b619bfcb40ee5c584c425cded932dd19",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "record.append",
+        "request_id": "c0ef03a8-e51d-4c16-bf7e-e5f9baced968",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "98c594a4f30fe90de2aed58d3fb2ac308a40483b18493d0dfeffe47a6b61bffd",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "record.append",
+        "request_id": "675d7c75-fc94-49d6-a169-fc50cf630021",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "e51c0cb4e3352459bcc72a55885b04a6e6a9839a6e646cbbd908160ee87af091",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "record.append",
+        "request_id": "c0f52dc7-50d9-49a0-91a2-5cc656bb26b9",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "a5343350af79bc200f92c50d7561ee48b75c1d01af11fe7f1aa1c8955deb41ec",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "record.append",
+        "request_id": "06a36c0a-2d91-4016-8863-614002ed5370",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "17e8051e8ad35072c7e8f5ca9f8c55505dbc5fed3cf43533b5c00969bac2a39d",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "75e5c2f9-cdc3-4250-a7b4-6f5d135eefde",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "374be51426800a15345d868ce229f7334afea497c7406229b78975f8a7411ae3",
+        "status": 200,
+        "bytes": 37129
+      },
+      {
+        "action": "record.append",
+        "request_id": "abb5084a-2c9c-4046-8dc8-1f1ad14932a4",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "a31d8e0851286f02087f525f65e161014ccae651896769d415404dc0b0379aa2",
+        "status": 200,
+        "bytes": 37130
+      },
+      {
+        "action": "migration.preview",
+        "request_id": "562f3366-17e9-4e74-a1c4-7621708860da",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "e019e9e17d69518da42fd5bda6bf8726370976447c2b67c40399d8b1dde02cb3",
+        "status": 200,
+        "bytes": 663
+      },
+      {
+        "action": "migration.commit",
+        "request_id": "72ad472f-296a-4f71-a5c2-bd599118c305",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "eebecede32ac3a832f3aef2029c9ad5b1aa0bf89e24a1e0fd6dc58bd68cd7772",
+        "status": 413,
+        "bytes": 860,
+        "error": {
+          "code": "migration_too_large",
+          "message": "transfer exceeds bounded import capacity; source remains active"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "f553157b-0e82-4f31-a260-4db2305bae0e",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "15c9d369329d41264ec161296c3ee8a0cec28d6fa783a60fb4b550af7f70a164",
+        "status": 200,
+        "bytes": 1106
+      },
+      {
+        "action": "migration.receipt",
+        "request_id": "5f0be589-7533-49e2-a12b-b28103418435",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "c4bee8c846f031094872d3b2176924490621a67145d80e124fc28b035238a0ff",
+        "status": 404,
+        "bytes": 663,
+        "error": {
+          "code": "not_found",
+          "message": "no committed handoff"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "c69c35b6-1b51-4d72-ae3f-f04e43cc8398",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "b2fe72998909909d660509ba533b8cc34d5c4bd3e7b4648d3aab724fc2b50a11",
+        "status": 400,
+        "bytes": 691,
+        "error": {
+          "code": "invalid",
+          "message": "command shape or action payload does not conform to PBP 0.3"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "c69c35b6-1b51-4d72-ae3f-f04e43cc8398",
+        "organization_id": "ebb8d2a7-51f5-a95e-0ed8-9cac59cf1b43",
+        "actor_kind": "person",
+        "request_hash": "4b2e44987b74648dbaa2259001cf95743cf69810774fb03d300f10de8cb65d57",
+        "status": 401,
+        "bytes": 660,
+        "error": {
+          "code": "signature_invalid",
+          "message": "command signature does not verify"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "c69c35b6-1b51-4d72-ae3f-f04e43cc8398",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "ad828d8141b76417bbd590251fd79f5f9b05df0c92253038cd07d1081bd6df8e",
+        "status": 400,
+        "bytes": 664,
+        "error": {
+          "code": "wrong_audience",
+          "message": "wrong protocol version or store audience"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "d2a6f575-857e-4617-97e3-7640c403ac94",
+        "organization_id": "71e66d06-56f7-a389-aef9-d585b4acdfbc",
+        "actor_kind": "person",
+        "request_hash": "3af3e2ed639d35980775c3754455461ee1b02aecc2570661228bb5a320cda239",
+        "status": 422,
+        "bytes": 1106,
+        "error": {
+          "code": "invalid",
+          "message": "business body schema or subject binding failed"
+        }
+      }
+    ],
+    "destination": [
+      {
+        "action": "person.register",
+        "request_id": "4b75e59d-883c-4a20-8228-95113c15ec17",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "76dbe6948d1c40937ae112104391d4af1426b62cda1642cf51c509fc1c265b43",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "migration.import",
+        "request_id": "1795ed2a-28b1-47e8-86d1-d64c90425194",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "1fdd9a10154f2e1a93ab512f41cbf670cdf48bbf1beb444e252a533eb90ffc27",
+        "status": 401,
+        "bytes": 52167,
+        "error": {
+          "code": "signature_invalid",
+          "message": "transfer receipt signature invalid"
+        }
+      },
+      {
+        "action": "migration.import",
+        "request_id": "3d7b4151-f934-46b3-98f5-798a44b870bf",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "72ff6c8693900c39ea14023ef21349fa04ad40da5ecd0271b0816819a3c991c6",
+        "status": 200,
+        "bytes": 52148
+      },
+      {
+        "action": "records.list",
+        "request_id": "ca7a935b-23ae-4802-a943-48a87d9a7134",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "974707beeb961c4c3a05ea1a8ee3915b5c659d2e8863069a35ae1499380e545c",
+        "status": 200,
+        "bytes": 679
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "70de8f96-6693-4d01-9dca-dd75e836a3f1",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "e82f4f1c32570d1142a8919ec5a500f5c22dfd8a845e6895c1ec34f171c990c7",
+        "status": 200,
+        "bytes": 660
+      },
+      {
+        "action": "records.list",
+        "request_id": "5c23c11d-b061-4358-a163-96b4e81fa146",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "installation",
+        "request_hash": "a55019bd2f246c8fbec0a9fdd3f70a68981c08cbf1eb1c9cc51fd28ca7d62ae9",
+        "status": 403,
+        "bytes": 651,
+        "error": {
+          "code": "forbidden",
+          "message": "installation is revoked or expired"
+        }
+      },
+      {
+        "action": "migration.import",
+        "request_id": "0988c3c1-d224-44ac-8f8c-cb97f268d5c8",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "ed21f6af47936d50c43c3716ee2f5bfb18c5bbfa49290390eb7f454be750df2d",
+        "status": 409,
+        "bytes": 52148,
+        "error": {
+          "code": "conflict",
+          "message": "company already exists at destination"
+        }
+      },
+      {
+        "action": "record.append",
+        "request_id": "329df9e8-6b5f-4607-a388-a0491d6ee151",
+        "organization_id": "abe67648-7307-329e-3cb8-6a5da27dc9b2",
+        "actor_kind": "person",
+        "request_hash": "3a75a23ac5292a3d8e71ee1d3e262fbd3b15bcfa38a3e29802d05c68f8c80e34",
+        "status": 403,
+        "bytes": 1216,
+        "error": {
+          "code": "forbidden",
+          "message": "all parties must have active local company authority"
+        }
+      },
+      {
+        "action": "workspace.view",
+        "request_id": "b311f2f5-190c-4b6f-8e2a-3d5222cf28f3",
+        "organization_id": "c43ec55e-282e-c7e2-a58a-22e8d99d76a0",
+        "actor_kind": "person",
+        "request_hash": "70d526da832730f0bccdfe11afafbfb736941442d1e60fa83cb3a7e27904cc94",
+        "status": 404,
+        "bytes": 660,
+        "error": {
+          "code": "not_found",
+          "message": "company not found"
+        }
+      }
+    ],
+    "auxiliary_destination": [
+      {
+        "action": "person.register",
+        "request_id": "0480fc4b-6147-4a0d-94ff-654c8b7dd047",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "78968195f27c740ca8d854c7b9549d8c79c906898d2c29a42fb01aec4d5d1bcc",
+        "status": 200,
+        "bytes": 690
+      },
+      {
+        "action": "migration.import",
+        "request_id": "f7f189fe-b8f4-4cf8-ba59-b0fce87fb26c",
+        "organization_id": null,
+        "actor_kind": "person",
+        "request_hash": "d5fab78ca8b3c0e012c66d6881f87cf664cd7d0ab19f542eceb50331894b2869",
+        "status": 403,
+        "bytes": 52148,
+        "error": {
+          "code": "invalid_transfer",
+          "message": "handoff target or snapshot differs"
+        }
+      }
+    ]
+  }
+}

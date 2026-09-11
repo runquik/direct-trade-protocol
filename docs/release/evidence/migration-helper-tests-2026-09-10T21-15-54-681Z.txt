@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: migration: >1MiB snapshots use bounded chunks, out-of-order resume and durable finalization
+ok 1 - migration: >1MiB snapshots use bounded chunks, out-of-order resume and durable finalization
+  ---
+  duration_ms: 375.8757
+  type: 'test'
+  ...
+# Subtest: migration: bad chunks cannot complete or replace content
+ok 2 - migration: bad chunks cannot complete or replace content
+  ---
+  duration_ms: 17.5034
+  type: 'test'
+  ...
+# Subtest: migration: wrong destination, tampering and unpinned sources fail before staging
+ok 3 - migration: wrong destination, tampering and unpinned sources fail before staging
+  ---
+  duration_ms: 2.7892
+  type: 'test'
+  ...
+# Subtest: migration: failed destination validation never produces readiness or freezes source
+ok 4 - migration: failed destination validation never produces readiness or freezes source
+  ---
+  duration_ms: 2.3407
+  type: 'test'
+  ...
+# Subtest: migration: changed source and expired readiness leave source writable
+ok 5 - migration: changed source and expired readiness leave source writable
+  ---
+  duration_ms: 3.2365
+  type: 'test'
+  ...
+# Subtest: migration: exhausted generation rejects preparation while source stays active
+ok 6 - migration: exhausted generation rejects preparation while source stays active
+  ---
+  duration_ms: 2.3158
+  type: 'test'
+  ...
+# Subtest: migration: readiness for another migration or forged destination cannot freeze source
+ok 7 - migration: readiness for another migration or forged destination cannot freeze source
+  ---
+  duration_ms: 4.0929
+  type: 'test'
+  ...
+# Subtest: migration: destination clock ahead cannot produce a stranded early commit
+ok 8 - migration: destination clock ahead cannot produce a stranded early commit
+  ---
+  duration_ms: 3.9474
+  type: 'test'
+  ...
+# Subtest: migration: second company stage conflicts and changed staged bytes fail finalization
+ok 9 - migration: second company stage conflicts and changed staged bytes fail finalization
+  ---
+  duration_ms: 4.6871
+  type: 'test'
+  ...
+# Subtest: migration: historical receipt cannot authorize commit after readiness expiry
+ok 10 - migration: historical receipt cannot authorize commit after readiness expiry
+  ---
+  duration_ms: 5.9118
+  type: 'test'
+  ...
+# Subtest: migration: source-authorized cancellation releases ready reservations without rollback
+ok 11 - migration: source-authorized cancellation releases ready reservations without rollback
+  ---
+  duration_ms: 4.2545
+  type: 'test'
+  ...
+# Subtest: migration: cancellation cannot undo source commit and unrelated cancellation cannot release stage
+ok 12 - migration: cancellation cannot undo source commit and unrelated cancellation cannot release stage
+  ---
+  duration_ms: 3.8999
+  type: 'test'
+  ...
+# Subtest: federation: trusted current authority never creates local company authority
+ok 13 - federation: trusted current authority never creates local company authority
+  ---
+  duration_ms: 2.6411
+  type: 'test'
+  ...
+# Subtest: federation: conflicting host, generation rollback and overlong proof rejected
+ok 14 - federation: conflicting host, generation rollback and overlong proof rejected
+  ---
+  duration_ms: 3.7993
+  type: 'test'
+  ...
+# Subtest: federation: migrated source can authenticate its destination's next generation
+ok 15 - federation: migrated source can authenticate its destination's next generation
+  ---
+  duration_ms: 4.2922
+  type: 'test'
+  ...
+# Subtest: federation: a third pinned host verifies a one-hop relocation without inventing local authority
+ok 16 - federation: a third pinned host verifies a one-hop relocation without inventing local authority
+  ---
+  duration_ms: 7.3919
+  type: 'test'
+  ...
+# Subtest: federation: third-peer relocation rejects forged, mismatched, stale and unpinned proofs
+ok 17 - federation: third-peer relocation rejects forged, mismatched, stale and unpinned proofs
+  ---
+  duration_ms: 8.3467
+  type: 'test'
+  ...
+# Subtest: federation: relocation preserves the destination-readiness temporal boundary
+ok 18 - federation: relocation preserves the destination-readiness temporal boundary
+  ---
+  duration_ms: 8.5962
+  type: 'test'
+  ...
+# Subtest: federation: a former source follows a second verified hop without a fabricated local handoff
+ok 19 - federation: a former source follows a second verified hop without a fabricated local handoff
+  ---
+  duration_ms: 8.9122
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 599.1998
+
+

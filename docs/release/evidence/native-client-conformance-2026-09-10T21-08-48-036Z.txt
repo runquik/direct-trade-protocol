@@ -1,0 +1,36 @@
+TAP version 13
+# Subtest: v0.4 independent native crypto reproduces frozen vector, self-certifying ID and exact signature
+ok 1 - v0.4 independent native crypto reproduces frozen vector, self-certifying ID and exact signature
+  ---
+  duration_ms: 5.9322
+  type: 'test'
+  ...
+# Subtest: v0.4 independent canonicalizer uses UTF16 ordering and fails closed on ambiguous JSON values
+ok 2 - v0.4 independent canonicalizer uses UTF16 ordering and fails closed on ambiguous JSON values
+  ---
+  duration_ms: 0.7287
+  type: 'test'
+  ...
+# Subtest: v0.4 independent HTTP client interoperates bidirectionally with reference client through company, policy, profile and records
+ok 3 - v0.4 independent HTTP client interoperates bidirectionally with reference client through company, policy, profile and records
+  ---
+  duration_ms: 1528.6238
+  type: 'test'
+  ...
+# Subtest: v0.4 native HTTP signatures cannot cross audience/version boundaries or authorize tampered bytes
+ok 4 - v0.4 native HTTP signatures cannot cross audience/version boundaries or authorize tampered bytes
+  ---
+  duration_ms: 1079.8356
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2837.0528
+
+

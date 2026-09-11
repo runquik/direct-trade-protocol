@@ -28,12 +28,18 @@ jobs:
       - run: npm run build:pbp
       - run: npm run build:pbp-vectors
       - run: npm run build:pbp-migration
+      - run: npm run build:dtp-v04
+      - run: git diff --exit-code -- ../spec/v0.4/command.schema.json ../spec/v0.4/signing-vector.json
       - run: git diff --exit-code -- ../supabase/migrations/20260907000000_pbp_v03.sql
       - run: git diff --exit-code -- ../spec/v0.3/command.schema.json ../spec/v0.3/signing-vector.json
       - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json ../supabase/functions/pbp-store/index.ts
       - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/pbp-runtime-probe.ts
+      - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json src/v04/router.ts src/v04/client.ts scripts/dtp-v04-runtime-probe.ts
+      - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/dtp-v04-runtime-probe.ts
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:dtp-v04
+      - run: npm run test:stress-business
       - run: npm run demo:passport
       - run: npm run test:fuzz
   postgres-concurrency:
@@ -61,6 +67,14 @@ jobs:
           cache: npm
           cache-dependency-path: sdk/package-lock.json
       - run: npm ci
-      - run: npm run test:postgres
+      - run: node scripts/release-gates.ts run-check --check real-postgres
         env:
           DTP_TEST_DATABASE_URL: postgres://dtp:test-only@127.0.0.1:5432/dtp_test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dtp-v04-postgres-evidence
+          path: |
+            docs/release/v04-evidence.json
+            docs/release/evidence/
+          if-no-files-found: error

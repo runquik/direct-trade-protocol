@@ -1,0 +1,145 @@
+TAP version 13
+# Subtest: PBP: self-certifying person enrollment and exact request retry
+ok 1 - PBP: self-certifying person enrollment and exact request retry
+  ---
+  duration_ms: 1613.5593
+  type: 'test'
+  ...
+# Subtest: PBP: one fractional CFO has different rights in three isolated companies
+ok 2 - PBP: one fractional CFO has different rights in three isolated companies
+  ---
+  duration_ms: 369.6781
+  type: 'test'
+  ...
+# Subtest: PBP: membership requires acceptance and cannot outlive or exceed its delegator
+ok 3 - PBP: membership requires acceptance and cannot outlive or exceed its delegator
+  ---
+  duration_ms: 134.4906
+  type: 'test'
+  ...
+# Subtest: PBP: invitation is invalid if its authorizer loses authority before acceptance
+ok 4 - PBP: invitation is invalid if its authorizer loses authority before acceptance
+  ---
+  duration_ms: 92.2677
+  type: 'test'
+  ...
+# Subtest: PBP: controller policy and full-company export require distinct-person quorum
+ok 5 - PBP: controller policy and full-company export require distinct-person quorum
+  ---
+  duration_ms: 118.1988
+  type: 'test'
+  ...
+# Subtest: PBP: root proof-of-possession recovery, key rotation and last-key safeguard
+ok 6 - PBP: root proof-of-possession recovery, key rotation and last-key safeguard
+  ---
+  duration_ms: 110.8203
+  type: 'test'
+  ...
+# Subtest: PBP: modules pin immutable manifests and use separate company installation keys
+ok 7 - PBP: modules pin immutable manifests and use separate company installation keys
+  ---
+  duration_ms: 254.1552
+  type: 'test'
+  ...
+# Subtest: PBP: interactive actions require both human and installation authority
+ok 8 - PBP: interactive actions require both human and installation authority
+  ---
+  duration_ms: 240.4045
+  type: 'test'
+  ...
+# Subtest: PBP: writable data access is not authority to accept financing
+ok 9 - PBP: writable data access is not authority to accept financing
+  ---
+  duration_ms: 165.3521
+  type: 'test'
+  ...
+# Subtest: PBP: v0.2 finance integrity guards still reject buyer payment-field changes
+ok 10 - PBP: v0.2 finance integrity guards still reject buyer payment-field changes
+  ---
+  duration_ms: 91.5319
+  type: 'test'
+  ...
+# Subtest: PBP: record read and export scopes are enforced before pagination
+ok 11 - PBP: record read and export scopes are enforced before pagination
+  ---
+  duration_ms: 155.176
+  type: 'test'
+  ...
+# Subtest: PBP: wrong audience, expired commands, duplicate IDs and tampering fail closed
+ok 12 - PBP: wrong audience, expired commands, duplicate IDs and tampering fail closed
+  ---
+  duration_ms: 82.2854
+  type: 'test'
+  ...
+# Subtest: PBP: membership revocation invalidates a previously signed request and cached read
+ok 13 - PBP: membership revocation invalidates a previously signed request and cached read
+  ---
+  duration_ms: 132.8695
+  type: 'test'
+  ...
+# Subtest: PBP: signed company migration freezes source, pins destination and preserves records
+ok 14 - PBP: signed company migration freezes source, pins destination and preserves records
+  ---
+  duration_ms: 1354.7462
+  type: 'test'
+  ...
+# Subtest: PBP: oversized and malformed HTTP bodies do not expose internal errors
+ok 15 - PBP: oversized and malformed HTTP bodies do not expose internal errors
+  ---
+  duration_ms: 20.9619
+  type: 'test'
+  ...
+# Subtest: PBP: fixed 0.3 signing vector round-trips independently of v0.2 envelope signing
+ok 16 - PBP: fixed 0.3 signing vector round-trips independently of v0.2 envelope signing
+  ---
+  duration_ms: 2.9016
+  type: 'test'
+  ...
+# Subtest: PBP: narrowing permissions invalidates cached record and workspace data
+ok 17 - PBP: narrowing permissions invalidates cached record and workspace data
+  ---
+  duration_ms: 329.133
+  type: 'test'
+  ...
+# Subtest: PBP: two keys belonging to one controller do not satisfy two-person quorum
+ok 18 - PBP: two keys belonging to one controller do not satisfy two-person quorum
+  ---
+  duration_ms: 146.3807
+  type: 'test'
+  ...
+# Subtest: PBP: installation creation cannot exceed the installing member's permissions
+ok 19 - PBP: installation creation cannot exceed the installing member's permissions
+  ---
+  duration_ms: 137.7456
+  type: 'test'
+  ...
+# Subtest: PBP: unauthenticated and unknown input fields fail closed
+ok 20 - PBP: unauthenticated and unknown input fields fail closed
+  ---
+  duration_ms: 29.5662
+  type: 'test'
+  ...
+# PBP v0.3 request failed Error
+# Subtest: PBP Edge: path prefix, private access gate and explicit browser origins
+ok 21 - PBP Edge: path prefix, private access gate and explicit browser origins
+  ---
+  duration_ms: 13.2048
+  type: 'test'
+  ...
+# Subtest: PBP Edge: builder access does not replace signatures; state limit rolls back enrollment
+ok 22 - PBP Edge: builder access does not replace signatures; state limit rolls back enrollment
+  ---
+  duration_ms: 1519.5225
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5827.9873
+
+

@@ -1,0 +1,8 @@
+Candidate validation: runtime
+fresh: {"":"","\u0013":false,"-1":5733003319321663,"Á":1,"𐀀":"","😀￿":"","":true}
+again: {"":"","\u0013":false,"-1":5733003319321663,"Á":1,"𐀀":"","😀￿":"","":true}
+
+PASS: DTP v0.4 Ed25519, exact command schema, custom profile, compartment grant, signed record round-trip and tamper rejection
+
+
+

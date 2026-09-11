@@ -1,0 +1,48 @@
+TAP version 13
+# Subtest: snapshot review: genuine signed fixture validates and unrelated company identity is not exported
+ok 1 - snapshot review: genuine signed fixture validates and unrelated company identity is not exported
+  ---
+  duration_ms: 28.4424
+  type: 'test'
+  ...
+# Subtest: snapshot review: a valid signature from a never-associated person cannot become company record authority
+ok 2 - snapshot review: a valid signature from a never-associated person cannot become company record authority
+  ---
+  duration_ms: 14.0847
+  type: 'test'
+  ...
+# Subtest: snapshot review: owned profile publication cannot be attributed to a never-associated signer
+ok 3 - snapshot review: owned profile publication cannot be attributed to a never-associated signer
+  ---
+  duration_ms: 10.411
+  type: 'test'
+  ...
+# Subtest: snapshot review: a grant cannot invent membership for a person never associated with this company
+ok 4 - snapshot review: a grant cannot invent membership for a person never associated with this company
+  ---
+  duration_ms: 11.7015
+  type: 'test'
+  ...
+# Subtest: snapshot review: losing migration preparations can be cancelled after a different destination wins
+ok 5 - snapshot review: losing migration preparations can be cancelled after a different destination wins
+  ---
+  duration_ms: 17.8755
+  type: 'test'
+  ...
+# Subtest: snapshot review: independently allocated installation IDs cannot alias at migration destination
+ok 6 - snapshot review: independently allocated installation IDs cannot alias at migration destination
+  ---
+  duration_ms: 25.9022
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.7954
+
+

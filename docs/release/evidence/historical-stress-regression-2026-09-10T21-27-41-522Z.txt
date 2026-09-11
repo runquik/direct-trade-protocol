@@ -1,0 +1,155 @@
+Candidate validation: stress
+Historical stress is regression evidence only; expected legacy GAP observations do not certify v0.4 capabilities.
+TAP version 13
+# Subtest: DTP business boundary stress: expected observations, NOT readiness certification
+    # Subtest: S01 [CONTROL] Independent signing matches published vector and verifies proof
+    ok 1 - S01 [CONTROL] Independent signing matches published vector and verifies proof
+      ---
+      duration_ms: 3.0313
+      type: 'test'
+      ...
+    # Subtest: S02 [GAP] Native inventory, personnel and company-owned type grants are unavailable
+    ok 2 - S02 [GAP] Native inventory, personnel and company-owned type grants are unavailable
+      ---
+      duration_ms: 112.0781
+      type: 'test'
+      ...
+    # Subtest: S03 [CONTROL] Identical signed retry does not duplicate an accepted record
+    ok 3 - S03 [CONTROL] Identical signed retry does not duplicate an accepted record
+      ---
+      duration_ms: 60.0469
+      type: 'test'
+      ...
+    # Subtest: S04 [GAP] A fresh record ID duplicates the same physical scan
+    ok 4 - S04 [GAP] A fresh record ID duplicates the same physical scan
+      ---
+      duration_ms: 27.104
+      type: 'test'
+      ...
+    # Subtest: S05 [CONTROL] Concurrent corrections to one record cannot both become the head
+    ok 5 - S05 [CONTROL] Concurrent corrections to one record cannot both become the head
+      ---
+      duration_ms: 44.5278
+      type: 'test'
+      ...
+    # Subtest: S06 [GAP] Independent reservations and contradictory pack conversions are accepted
+    ok 6 - S06 [GAP] Independent reservations and contradictory pack conversions are accepted
+      ---
+      duration_ms: 25.267
+      type: 'test'
+      ...
+    # Subtest: S07 [GAP] Arrival order is not physical event order
+    ok 7 - S07 [GAP] Arrival order is not physical event order
+      ---
+      duration_ms: 40.8302
+      type: 'test'
+      ...
+    # Subtest: S08 [CONTROL] Internally inconsistent invoice totals are rejected before storage
+    ok 8 - S08 [CONTROL] Internally inconsistent invoice totals are rejected before storage
+      ---
+      duration_ms: 9.4719
+      type: 'test'
+      ...
+    # Subtest: S09 [GAP] Type permission exposes all same-company private records, including signed payload
+    ok 9 - S09 [GAP] Type permission exposes all same-company private records, including signed payload
+      ---
+      duration_ms: 81.1259
+      type: 'test'
+      ...
+    # Subtest: S10 [GAP] Employee-scoped rights and conditional memberships are not expressible
+    ok 10 - S10 [GAP] Employee-scoped rights and conditional memberships are not expressible
+      ---
+      duration_ms: 26.5375
+      type: 'test'
+      ...
+    # Subtest: S11 [CONTROL] Parallel fractional-CFO reads remain company-scoped
+    ok 11 - S11 [CONTROL] Parallel fractional-CFO reads remain company-scoped
+      ---
+      duration_ms: 60.5236
+      type: 'test'
+      ...
+    # Subtest: S12 [CONTROL] Membership revocation blocks both prepared read and exact read replay
+    ok 12 - S12 [CONTROL] Membership revocation blocks both prepared read and exact read replay
+      ---
+      duration_ms: 63.8915
+      type: 'test'
+      ...
+    # Subtest: S13 [CONTROL] Module and human rights intersect; private records remain hidden from module
+    ok 13 - S13 [CONTROL] Module and human rights intersect; private records remain hidden from module
+      ---
+      duration_ms: 122.042
+      type: 'test'
+      ...
+    # Subtest: S14 [GAP] Manifest pins permission version but has no artifact or publication policy
+    ok 14 - S14 [GAP] Manifest pins permission version but has no artifact or publication policy
+      ---
+      duration_ms: 13.8015
+      type: 'test'
+      ...
+    # Subtest: S15 [CONTROL] Disabling a module blocks prepared reads while records remain accessible to owner
+    ok 15 - S15 [CONTROL] Disabling a module blocks prepared reads while records remain accessible to owner
+      ---
+      duration_ms: 63.4216
+      type: 'test'
+      ...
+    # Subtest: S16 [CONTROL] Filtered pagination returns all authorized records once, despite interleaved tenants
+    ok 16 - S16 [CONTROL] Filtered pagination returns all authorized records once, despite interleaved tenants
+      ---
+      duration_ms: 119.5735
+      type: 'test'
+      ...
+    # Subtest: S17 [CONTROL] Migration refuses a stale preview then produces a recoverable source receipt
+    ok 17 - S17 [CONTROL] Migration refuses a stale preview then produces a recoverable source receipt
+      ---
+      duration_ms: 165.7832
+      type: 'test'
+      ...
+    # Subtest: S18 [CONTROL] Tampered transfer and wrong destination cannot be imported
+    ok 18 - S18 [CONTROL] Tampered transfer and wrong destination cannot be imported
+      ---
+      duration_ms: 939.9416
+      type: 'test'
+      ...
+    # Subtest: S19 [CONTROL] Small-company import retains independently verifiable records and disables installations
+    ok 19 - S19 [CONTROL] Small-company import retains independently verifiable records and disables installations
+      ---
+      duration_ms: 104.8079
+      type: 'test'
+      ...
+    # Subtest: S20 [GAP] Moved company cannot continue a trade with partner left on original host
+    ok 20 - S20 [GAP] Moved company cannot continue a trade with partner left on original host
+      ---
+      duration_ms: 49.08
+      type: 'test'
+      ...
+    # Subtest: S21 [CONTROL] Oversized v0.3 migration is refused before the source freezes
+    ok 21 - S21 [CONTROL] Oversized v0.3 migration is refused before the source freezes
+      ---
+      duration_ms: 1344.4719
+      type: 'test'
+      ...
+    # Subtest: S22 [CONTROL] Audience, signatures, bounded request size and native unit validation fail closed
+# Evidence: C:\\Users\\runqu\\dev\\direct-trade-protocol\\docs\\stress-results\\business-boundaries-current.json
+    ok 22 - S22 [CONTROL] Audience, signatures, bounded request size and native unit validation fail closed
+      ---
+      duration_ms: 157.248
+      type: 'test'
+      ...
+    1..22
+ok 1 - DTP business boundary stress: expected observations, NOT readiness certification
+  ---
+  duration_ms: 6262.5837
+  type: 'test'
+  ...
+1..1
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6472.3636
+
+
+

@@ -1,0 +1,3 @@
+PASS: DTP v0.4 Ed25519, exact command schema, custom profile, compartment grant, signed record round-trip and tamper rejection
+
+

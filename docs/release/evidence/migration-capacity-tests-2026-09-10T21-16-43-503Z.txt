@@ -1,0 +1,18 @@
+TAP version 13
+# Subtest: v0.4 readiness reserves capacity and activation compacts atomically under intervening storage pressure
+ok 1 - v0.4 readiness reserves capacity and activation compacts atomically under intervening storage pressure
+  ---
+  duration_ms: 3377.9355
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3586.0474
+
+

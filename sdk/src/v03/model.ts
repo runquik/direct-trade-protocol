@@ -8,7 +8,9 @@ export interface Installation { id: string; organization_id: string; module_id: 
   permissions: string[]; mode: "interactive" | "automation"; expires_at: string; active: boolean }
 export interface Organization { id: string; name: string; controllers: string[]; threshold: number; generation: number;
   status: "active" | "migrated"; members: Record<string, Membership>; invitations: Record<string, Invitation>;
-  installations: Record<string, Installation>; audit: Audit[]; imported_from: string | null }
+  installations: Record<string, Installation>; audit: Audit[]; imported_from: string | null; disclosures?: Record<string, Disclosure> }
+export interface Disclosure { id: string; recipient: string; record_ids: string[]; purpose: string; summary: string;
+  expires_at: string; active: boolean; command: Command }
 export interface BusinessRecord { record_id: string; root_id: string; supersedes: string | null; type: string;
   subject_company_id: string; counterparty_ids: string[]; visibility: "public" | "counterparties" | "granted" | "private";
   body: Record<string, any>; command: Command; seq: number; is_head: boolean; accepted_at: string }

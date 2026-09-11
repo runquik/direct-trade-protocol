@@ -5,13 +5,14 @@ import { decodeKeyId, encodeSignature, signBytes, verifyBytes, decodeSignature, 
 import { typeInfo, validateBody } from "../registry.ts";
 import { checkTransition, checkRoleContinuity, rolesOf } from "../../../supabase/functions/dtp-store/transitions.ts";
 import { checkIntegrity } from "../../../supabase/functions/dtp-store/integrity.ts";
+import { validateInvoice } from "../profiles/invoice.ts";
 import type { Envelope } from "../envelope.ts";
 import { demand, exact, uuid, instant, digest, same, personId, organizationId, signaturesOf, validateCommand, type Command } from "./wire.ts";
 import { active, permissions, permits, personPermissions, installationRights, requireRight, subset, quorum } from "./permissions.ts";
 import type { State, Organization, BusinessRecord, Snapshot, Transfer, Person } from "./model.ts";
 
 export interface EngineOptions { audience: string; storeKey: KeyPair; trustedSources: string[]; now: number }
-const READ_ACTIONS = new Set(["organizations.list", "workspace.view", "records.list", "records.export", "organization.export", "migration.preview", "migration.receipt"]);
+const READ_ACTIONS = new Set(["organizations.list", "workspace.view", "records.list", "records.export", "organization.export", "migration.preview", "migration.receipt", "disclosure.read"]);
 function validId(id: unknown) { demand(uuid(id), "invalid", "expected UUID", 400); }
 function text(value: unknown, max = 120): asserts value is string {
   demand(typeof value === "string" && value.trim().length > 0 && value.length <= max, "invalid", "invalid text", 400);
@@ -141,7 +142,7 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
       const installed = org?.installations[c.actor.id];
       demand(installed && installed.key_id === c.actor.key_id, "forbidden", "installation does not belong to selected company");
       rights = installationRights(installed, now);
-      demand(["record.append", "records.list"].includes(c.action), "forbidden", "installation cannot administer company authority");
+      demand(["record.append", "records.list", "disclosure.read"].includes(c.action), "forbidden", "installation cannot administer company authority");
       if (c.requested_by !== null) {
         personSigned(s, c.requested_by, signed);
         const userRights = personPermissions(s, org!, c.requested_by, now);
@@ -156,6 +157,16 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
     demand(previous.hash === requestHash, "conflict", "request ID reused with different content", 409);
     // Reads are recomputed with current scopes, not served from a stale authorization cache.
     if (!READ_ACTIONS.has(c.action)) {
+      if (c.action === "disclosure.create" || c.action === "disclosure.revoke") {
+        requireRight(rights, "records.share");
+        demand(org?.status === "active", "forbidden", "source is not active");
+        if (c.action === "disclosure.create") {
+          const d = org.disclosures?.[p.disclosure_id];
+          demand(d?.active && active(d.expires_at, now), "forbidden", "disclosure is no longer active");
+          for (const id of d.record_ids) requireRight(rights, `records.read:${s.records[id].type}`);
+        }
+        if (c.action === "disclosure.revoke") for (const id of org.disclosures?.[p.disclosure_id]?.record_ids ?? []) requireRight(rights, `records.read:${s.records[id].type}`);
+      }
       if (c.action.startsWith("membership.") && c.action !== "membership.accept") requireRight(rights, "members.manage");
       if (c.action === "membership.invite") subset(rights, permissions(p.permissions));
       if (c.action === "membership.accept") personPermissions(s, org!, c.actor.id, now);
@@ -285,6 +296,36 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
       const installed = o.installations[p.installation_id]; demand(installed, "not_found", "installation not found", 404);
       subset(rights, installed.permissions); installed.active = false; audit = true; result = { revoked: true }; break;
     }
+    case "disclosure.create": {
+      const o = needOrg(); requireRight(rights, "records.share");
+      exact(p, ["disclosure_id", "recipient", "record_ids", "purpose", "summary", "expires_at"]);
+      validId(p.disclosure_id); validId(p.recipient); future(p.expires_at, now); text(p.purpose, 200); text(p.summary, 12000);
+      demand(p.recipient !== o.id && s.organizations[p.recipient]?.status === "active", "invalid", "recipient must be another active company", 400);
+      demand(Array.isArray(p.record_ids) && p.record_ids.length > 0 && p.record_ids.length <= 20 && new Set(p.record_ids).size === p.record_ids.length, "invalid", "select 1-20 distinct record versions", 400);
+      for (const id of p.record_ids) {
+        validId(id); const r = s.records[id];
+        demand(r && r.is_head && r.subject_company_id === o.id && readVisible(r, o, c.actor.kind, rights), "forbidden", "only current, readable company-owned records may be disclosed");
+      }
+      if (!o.controllers.includes(c.actor.id)) demand(instant(p.expires_at) <= instant(o.members[c.actor.id].expires_at), "forbidden", "disclosure outlives authorizer membership");
+      o.disclosures ??= {}; demand(!o.disclosures[p.disclosure_id], "conflict", "disclosure ID already used", 409);
+      o.disclosures[p.disclosure_id] = { id: p.disclosure_id, recipient: p.recipient, record_ids: [...p.record_ids], purpose: p.purpose, summary: p.summary, expires_at: p.expires_at, active: true, command: c };
+      audit = true; result = { disclosure_id: p.disclosure_id }; break;
+    }
+    case "disclosure.read": {
+      const o = needOrg(); exact(p, ["source", "disclosure_id"]); validId(p.source); validId(p.disclosure_id);
+      const source = s.organizations[p.source], d = source?.disclosures?.[p.disclosure_id];
+      demand(source?.status === "active" && d?.active && active(d.expires_at, now) && (d.recipient === o.id || source.id === o.id), "forbidden", "no live disclosure for this company");
+      // All-or-nothing: partial evidence is never presented as a complete package.
+      const records = d.record_ids.map(id => { const r = s.records[id]; demand(r, "not_found", "disclosed record unavailable", 404); requireRight(rights, `records.read:${r.type}`); return recordView(r); });
+      result = { ...structuredClone(d), records, stale: records.some(r => !r.is_head) }; break;
+    }
+    case "disclosure.revoke": {
+      const o = needOrg(); exact(p, ["disclosure_id"]); requireRight(rights, "records.share"); validId(p.disclosure_id);
+      const d = o.disclosures?.[p.disclosure_id]; demand(d, "not_found", "disclosure not found", 404);
+      // A delegated administrator must also be authorized for every affected record type.
+      for (const id of d.record_ids) requireRight(rights, `records.read:${s.records[id].type}`);
+      d.active = false; audit = true; result = { revoked: true }; break;
+    }
     case "workspace.view": {
       const o = needOrg(); exact(p, []);
       if (o.status === "migrated") { result = { organization: { id: o.id, name: o.name, status: o.status }, permissions: [], installations: [], records: [] }; break; }
@@ -313,6 +354,7 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
       } else demand(p.root_id === p.record_id, "invalid", "genesis root must equal record ID", 400);
       demand([p.subject_company_id, ...p.counterparty_ids].every(id => s.organizations[id]?.status === "active"), "forbidden", "all parties must have active local company authority");
       demand(validateBody(p.type, p.body).ok && (info.subject === "self" || p.body[info.subject] === p.subject_company_id), "invalid", "business body schema or subject binding failed", 422);
+      if (p.type === "finance.invoice") demand(validateInvoice(p.body).valid, "invalid_invoice", "invoice arithmetic or declared fields are invalid", 422);
       if (p.type === "finance.advance_offer" && p.body.status === "accepted") requireRight(rights, "finance.accept_offer");
       if (p.type === "finance.advance" || (p.type === "finance.settlement_event" && p.body.kind === "advance_funding")) requireRight(rights, "finance.fund");
       if ((p.type === "finance.advance_offer" && p.body.status === "accepted") || p.type === "finance.advance" || (p.type === "finance.settlement_event" && p.body.kind === "advance_funding")) {
@@ -348,6 +390,11 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
       demand(p.snapshot_hash === await digest(snap), "conflict", "company changed since migration preview", 409);
       const transfer: Transfer = { snapshot: snap, handoff: c, source_key_id: options.storeKey.keyId, signature: "" };
       transfer.signature = encodeSignature(await signBytes(options.storeKey.secretKey, transferBytes(transfer)));
+      // v0.3 has no resumable import. Reserve ample space for the destination's
+      // signed command envelope and fail BEFORE freezing a company it cannot import.
+      // v0.4's staged/ready migration is the large-transfer path, not a larger limit.
+      demand(new TextEncoder().encode(JSON.stringify({ transfer })).length + 16384 <= 1024 * 1024,
+        "migration_too_large", "transfer exceeds bounded import capacity; source remains active", 413);
       s.transfers[o.id] = transfer;
       o.status = "migrated"; audit = true; result = transfer; break;
     }
@@ -381,6 +428,7 @@ export async function execute(s: State, input: unknown, options: EngineOptions):
       org = structuredClone(snap.organization); org.status = "active"; org.generation++; org.imported_from = await digest(transfer);
       // Vendor credentials are not transferred. Old installations remain inspectable but disabled.
       for (const i of Object.values(org.installations)) i.active = false;
+      for (const d of Object.values(org.disclosures ?? {})) d.active = false;
       s.organizations[org.id] = org;
       for (const record of snap.records) {
         demand(!s.records[record.record_id], "conflict", "record already exists at destination", 409);

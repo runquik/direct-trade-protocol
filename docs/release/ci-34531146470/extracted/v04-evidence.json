@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "release": "DTP-0.4",
+  "observations": [
+    {
+      "check_id": "real-postgres",
+      "status": "passed",
+      "source_hash": "b9b514e47776ea255e1d68ac60e888ead1de5f216da217f83ffc150fc08cce0d",
+      "recorded_at": "2026-09-10T21:15:53.210Z",
+      "actor": "release-runner",
+      "summary": "Real multi-connection PostgreSQL legacy and v0.4 contention, revocation and rollback: passed",
+      "artifacts": {
+        "docs/release/evidence/real-postgres-2026-09-10T21-15-52-083Z.txt": "67a178e9854c7afaf2ec5a4d01a276612c5b6ac16cdaabdbc2c667e3843899eb"
+      },
+      "command": [
+        "/opt/hostedtoolcache/node/22.23.2/x64/bin/node",
+        "--test",
+        "tests/postgres/concurrency.test.ts",
+        "tests/postgres/pbp.test.ts",
+        "tests/postgres/dtp-v04.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    }
+  ],
+  "findings": []
+}

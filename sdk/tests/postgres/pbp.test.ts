@@ -31,6 +31,7 @@ before(async () => {
   const first = await generateKeyPair(), second = await generateKeyPair();
   owner = { id: await personId(first.keyId), key: first }; member = { id: await personId(second.keyId), key: second };
   for (const p of [owner, member]) assert.equal((await send(await cmd(p, "person.register", null, { keys: [p.key.keyId] }))).status, 200);
+  assert.equal((await db.query<{ shape: string }>("select jsonb_typeof(body) as shape from pbp_v03.state where singleton=true"))[0].shape,"object","driver must persist a JSON object, not a double-encoded string");
 });
 after(async () => { await sql?.end({ timeout: 5 }); });
 test("PBP PostgreSQL: concurrent identical bootstrap commits only one authority event", { timeout: 20000 }, async () => {

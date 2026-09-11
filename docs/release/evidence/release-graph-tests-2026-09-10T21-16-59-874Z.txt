@@ -1,0 +1,385 @@
+TAP version 13
+# Runtime preflight failed: expected pinned node
+# Error: spawnSync C:\\Users\\runqu\\AppData\\Local\\Temp\\dtp-independent-release-review-VJcgF5\\unavailable-node.exe ENOENT
+# Subtest: independent release review: an unavailable runtime rerun supersedes previously green evidence
+ok 1 - independent release review: an unavailable runtime rerun supersedes previously green evidence
+  ---
+  duration_ms: 93.1093
+  type: 'test'
+  ...
+# Subtest: independent release review: executable passes require a pinned runtime and explicit zero skipped tests
+ok 2 - independent release review: executable passes require a pinned runtime and explicit zero skipped tests
+  ---
+  duration_ms: 78.5377
+  type: 'test'
+  ...
+# {
+#   "valid_structure": true,
+#   "ready": false,
+#   "message": "Structure only; no release readiness claim",
+#   "order": [
+#     "G00",
+#     "G01",
+#     "G02",
+#     "G03",
+#     "G04",
+#     "G05",
+#     "G06",
+#     "G07",
+#     "G08",
+#     "G09",
+#     "G10"
+#   ]
+# }
+# {
+#   "ready": false,
+#   "gates": [
+#     {
+#       "id": "G00",
+#       "status": "pending",
+#       "reasons": [
+#         "g00-review: no evidence"
+#       ],
+#       "source_hash": "f13e1d2473031b264e2921d77cd56237b5d7af20169dc4da4c2039b33adab01c"
+#     },
+#     {
+#       "id": "G01",
+#       "status": "blocked",
+#       "reasons": [
+#         "g01-review: no evidence",
+#         "G00: dependency not green"
+#       ],
+#       "source_hash": "9e0725962564c7d3c9a4f9c0eab33b3186c7ec9e351aca6a531c63767d15db58"
+#     },
+#     {
+#       "id": "G02",
+#       "status": "blocked",
+#       "reasons": [
+#         "g02-review: no evidence",
+#         "G01: dependency not green"
+#       ],
+#       "source_hash": "25ee1efcddcf1e86c5efb23a692c140f76fb7804db6c34dafd356c145c87d05e"
+#     },
+#     {
+#       "id": "G03",
+#       "status": "blocked",
+#       "reasons": [
+#         "g03-review: no evidence",
+#         "G02: dependency not green"
+#       ],
+#       "source_hash": "94bdbd8a341271c6492af3caa119fa020d8b7fba93a8e863a9182b8d6c82d288"
+#     },
+#     {
+#       "id": "G04",
+#       "status": "blocked",
+#       "reasons": [
+#         "g04-review: no evidence",
+#         "G02: dependency not green"
+#       ],
+#       "source_hash": "5a1d83bf57145cbf2df23faa3fe12f734dcb6e424a5e2a988f180a5c360d37a2"
+#     },
+#     {
+#       "id": "G05",
+#       "status": "blocked",
+#       "reasons": [
+#         "g05-review: no evidence",
+#         "G01: dependency not green"
+#       ],
+#       "source_hash": "add7533a08dc1683a948012617f61ef11dbed8dd70ddc256acc5ec6d95cb1d5e"
+#     },
+#     {
+#       "id": "G06",
+#       "status": "blocked",
+#       "reasons": [
+#         "g06-review: no evidence",
+#         "G05: dependency not green"
+#       ],
+#       "source_hash": "7423c009e952a2e91aed638b00f8e955a695a0b300278697fdfd638814ac6cd4"
+#     },
+#     {
+#       "id": "G07",
+#       "status": "blocked",
+#       "reasons": [
+#         "g07-review: no evidence",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green"
+#       ],
+#       "source_hash": "a1c8bc7508363e08b8f2b9b5d2de98e1af24638676b4ebd087d15d6c5a1533bd"
+#     },
+#     {
+#       "id": "G08",
+#       "status": "blocked",
+#       "reasons": [
+#         "g08-review: no evidence",
+#         "G00: dependency not green",
+#         "G07: dependency not green"
+#       ],
+#       "source_hash": "8e3ab8d339480109f287d4d4b913949ff1bb6d6c63fa31647383940529618b0e"
+#     },
+#     {
+#       "id": "G09",
+#       "status": "blocked",
+#       "reasons": [
+#         "g09-review: no evidence",
+#         "G01: dependency not green",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green",
+#         "G07: dependency not green",
+#         "G08: dependency not green"
+#       ],
+#       "source_hash": "b66ae750a983755b17b7a7646112d0ff93477bcee82243cce6e68918be454cf7"
+#     },
+#     {
+#       "id": "G10",
+#       "status": "blocked",
+#       "reasons": [
+#         "g10-review: no evidence",
+#         "G00: dependency not green",
+#         "G01: dependency not green",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green",
+#         "G07: dependency not green",
+#         "G08: dependency not green",
+#         "G09: dependency not green"
+#       ],
+#       "source_hash": "3fae23922c6242af58c7f5437e5b2a063b6b3bd692101610e0573f97fb4c9088"
+#     }
+#   ],
+#   "open_blockers": []
+# }
+# Running G08/g08-review
+# {
+#   "ready": false,
+#   "gates": [
+#     {
+#       "id": "G00",
+#       "status": "pending",
+#       "reasons": [
+#         "g00-review: no evidence"
+#       ],
+#       "source_hash": "f13e1d2473031b264e2921d77cd56237b5d7af20169dc4da4c2039b33adab01c"
+#     },
+#     {
+#       "id": "G01",
+#       "status": "blocked",
+#       "reasons": [
+#         "g01-review: no evidence",
+#         "G00: dependency not green"
+#       ],
+#       "source_hash": "9e0725962564c7d3c9a4f9c0eab33b3186c7ec9e351aca6a531c63767d15db58"
+#     },
+#     {
+#       "id": "G02",
+#       "status": "blocked",
+#       "reasons": [
+#         "g02-review: no evidence",
+#         "G01: dependency not green"
+#       ],
+#       "source_hash": "25ee1efcddcf1e86c5efb23a692c140f76fb7804db6c34dafd356c145c87d05e"
+#     },
+#     {
+#       "id": "G03",
+#       "status": "blocked",
+#       "reasons": [
+#         "g03-review: no evidence",
+#         "G02: dependency not green"
+#       ],
+#       "source_hash": "94bdbd8a341271c6492af3caa119fa020d8b7fba93a8e863a9182b8d6c82d288"
+#     },
+#     {
+#       "id": "G04",
+#       "status": "blocked",
+#       "reasons": [
+#         "g04-review: no evidence",
+#         "G02: dependency not green"
+#       ],
+#       "source_hash": "5a1d83bf57145cbf2df23faa3fe12f734dcb6e424a5e2a988f180a5c360d37a2"
+#     },
+#     {
+#       "id": "G05",
+#       "status": "blocked",
+#       "reasons": [
+#         "g05-review: no evidence",
+#         "G01: dependency not green"
+#       ],
+#       "source_hash": "add7533a08dc1683a948012617f61ef11dbed8dd70ddc256acc5ec6d95cb1d5e"
+#     },
+#     {
+#       "id": "G06",
+#       "status": "blocked",
+#       "reasons": [
+#         "g06-review: no evidence",
+#         "G05: dependency not green"
+#       ],
+#       "source_hash": "7423c009e952a2e91aed638b00f8e955a695a0b300278697fdfd638814ac6cd4"
+#     },
+#     {
+#       "id": "G07",
+#       "status": "blocked",
+#       "reasons": [
+#         "g07-review: no evidence",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green"
+#       ],
+#       "source_hash": "a1c8bc7508363e08b8f2b9b5d2de98e1af24638676b4ebd087d15d6c5a1533bd"
+#     },
+#     {
+#       "id": "G08",
+#       "status": "blocked",
+#       "reasons": [
+#         "G00: dependency not green",
+#         "G07: dependency not green"
+#       ],
+#       "source_hash": "ae69d4f0a6d46199f6ee3d10d044c1982fe550d9c70e8251e53d577239bb7518"
+#     },
+#     {
+#       "id": "G09",
+#       "status": "blocked",
+#       "reasons": [
+#         "g09-review: no evidence",
+#         "G01: dependency not green",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green",
+#         "G07: dependency not green",
+#         "G08: dependency not green"
+#       ],
+#       "source_hash": "e87c8d049639ead6e7739d89581d8e4a270fd6c06efd462651284b59352b27e3"
+#     },
+#     {
+#       "id": "G10",
+#       "status": "blocked",
+#       "reasons": [
+#         "g10-review: no evidence",
+#         "G00: dependency not green",
+#         "G01: dependency not green",
+#         "G02: dependency not green",
+#         "G03: dependency not green",
+#         "G04: dependency not green",
+#         "G05: dependency not green",
+#         "G06: dependency not green",
+#         "G07: dependency not green",
+#         "G08: dependency not green",
+#         "G09: dependency not green"
+#       ],
+#       "source_hash": "48ac69ab32a577cd89829243adad6b5d41e1292495f77aeb2f93b98230c41275"
+#     }
+#   ],
+#   "open_blockers": []
+# }
+# Single-check execution result only; overall release readiness is reported above and is not bypassed.
+# Subtest: release graph: exact G00-G10 order and pending evidence never imply readiness
+ok 3 - release graph: exact G00-G10 order and pending evidence never imply readiness
+  ---
+  duration_ms: 49.2902
+  type: 'test'
+  ...
+# Subtest: release graph: cycles, missing dependencies and contract weakening rejected
+ok 4 - release graph: cycles, missing dependencies and contract weakening rejected
+  ---
+  duration_ms: 4.9464
+  type: 'test'
+  ...
+# Subtest: release graph: dangling files, checks, executable references and orphan tests rejected
+ok 5 - release graph: dangling files, checks, executable references and orphan tests rejected
+  ---
+  duration_ms: 7.0364
+  type: 'test'
+  ...
+# Subtest: release graph: skipped, failed, blocked and newer failures cannot turn green
+ok 6 - release graph: skipped, failed, blocked and newer failures cannot turn green
+  ---
+  duration_ms: 57.767
+  type: 'test'
+  ...
+# Subtest: release graph: source and dependency changes invalidate downstream evidence
+ok 7 - release graph: source and dependency changes invalidate downstream evidence
+  ---
+  duration_ms: 20.6128
+  type: 'test'
+  ...
+# Subtest: release graph: check definition changes invalidate evidence
+ok 8 - release graph: check definition changes invalidate evidence
+  ---
+  duration_ms: 20.0127
+  type: 'test'
+  ...
+# Subtest: release graph: checkout CRLF conversion preserves CI fingerprint but binary changes do not
+ok 9 - release graph: checkout CRLF conversion preserves CI fingerprint but binary changes do not
+  ---
+  duration_ms: 23.9321
+  type: 'test'
+  ...
+# Subtest: release graph: artifact mutation invalidates passed observations
+ok 10 - release graph: artifact mutation invalidates passed observations
+  ---
+  duration_ms: 18.7643
+  type: 'test'
+  ...
+# Subtest: release graph: blocking findings require fresh closure checks
+ok 11 - release graph: blocking findings require fresh closure checks
+  ---
+  duration_ms: 39.5346
+  type: 'test'
+  ...
+# Subtest: release graph: implementer cannot supply their independent review
+ok 12 - release graph: implementer cannot supply their independent review
+  ---
+  duration_ms: 19.5166
+  type: 'test'
+  ...
+# Subtest: release graph: executable success requires exact command, runtime, zero exit and no skips
+ok 13 - release graph: executable success requires exact command, runtime, zero exit and no skips
+  ---
+  duration_ms: 58.4959
+  type: 'test'
+  ...
+# Subtest: release graph: skipped and cancelled TAP tests detected
+ok 14 - release graph: skipped and cancelled TAP tests detected
+  ---
+  duration_ms: 0.8811
+  type: 'test'
+  ...
+# Subtest: release graph: unsafe relative paths rejected
+ok 15 - release graph: unsafe relative paths rejected
+  ---
+  duration_ms: 1.8564
+  type: 'test'
+  ...
+# Subtest: release graph: CLI structure check succeeds without a readiness claim; report fails
+ok 16 - release graph: CLI structure check succeeds without a readiness claim; report fails
+  ---
+  duration_ms: 30.5871
+  type: 'test'
+  ...
+# Subtest: release graph: CI run-check records an actual check without bypassing blocked release dependencies
+ok 17 - release graph: CI run-check records an actual check without bypassing blocked release dependencies
+  ---
+  duration_ms: 124.0456
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 601.7
+
+
