@@ -1,4 +1,39 @@
-# PBP — save point (updated 2026-09-07)
+# DTP — save point (reviewed 2026-09-18)
+
+## September 18: pre-commit review
+
+The foundation and portable-onboarding work is being preserved as an unreleased development checkpoint, not approved for production. The review corrected malformed HTTP request handling, added onboarding tests to CI, and preserved exact bytes for source-bound evidence artifacts. Private correspondence, local tool settings, scratch output and the separate nested vision-site repository are excluded from this protocol commit. See [the review record](docs/foundation/COMMIT_REVIEW_2026-09-18.md).
+
+## September 10 executable stress test
+
+- Ran the recommended A/C/D first boundary slice using independently written Node-crypto signing and raw HTTP against disposable local v0.3 stores. See [results and every planned case's disposition](docs/DTP_STRESS_TEST_RESULTS_2026-09-10.md), [test source](sdk/tests/stress/business-boundaries.test.ts), and [generated evidence](docs/stress-results/business-boundaries.json).
+- 22 probes matched expectations: 12 controls held and 10 gap observations reproduced. Node counts 23 including the parent. Green GAP assertions are evidence of missing capabilities, not product-readiness passes. Existing 103 default tests, 37 auxiliary tests and TypeScript also passed on Node 22.23.2.
+- Concrete findings: an approximately 2 MB migration freezes source writes but cannot fit the 1 MiB destination request limit; a migrated company cannot continue a shared record while its partner stays behind; employee-level restrictions cannot be expressed; native company extensions/HR/inventory types are unavailable; extra inventory JSON does not enforce duplicates/reservations/pack semantics; an inconsistent invoice with a missing contract was accepted.
+- Recommended first safety fix is migration preflight before cutover. Next contract work: governed extensions, sensitive compartments, cross-host authority/continuity, and explicit inventory/invoice profiles. Do not silently relax authority or inflate body limits as a substitute.
+- No application fixes, wire changes, commits or deployments. Two independent builders/hosts, full workflow fixtures, UI/AI privacy, real PostgreSQL/Deno, load and disaster recovery remain unqualified. A separate client is not two independently authored business consumers.
+
+## September 10 architecture audit
+
+- User confirmed replaceable hosting and support for restricted employee-level HR/payroll as well as company summaries. Future workspace/marketplace and company-built apps must access DTP through common contracts; building that platform is not this pass.
+- Read [the architecture review](docs/DTP_ARCHITECTURE_REVIEW_2026-09-10.md), [whole-business map](docs/DTP_BUSINESS_DOMAIN_MAP.md), and [proposed stress test](docs/DTP_PROTOCOL_STRESS_TEST.md). The proposed direction is a small core, versioned shared profiles and governed publisher-owned extensions. This is not a new released protocol version or agreed Boris sprint.
+- Live GitHub main matched local HEAD `e5deb7f` at review time. Local browser/finance/disclosure changes remain uncommitted and are distinct from remote/deployed state.
+- Verified locally: 103 default tests, 37 auxiliary tests, TypeScript, 33 embedded-schema parity checks plus v0.3 command schema parity. SDK npm audit returned zero reported advisories. No real PostgreSQL, hosted runtime or browser qualification was performed in this pass.
+- Key blockers: closed type registry, insufficient employee/resource privacy, cooperative bounded migration rather than federation, missing profile/version negotiation and module artifact/assessment contracts, and essential demo workflow state outside portable records. Existing signing/permissions invariants are retained.
+- Added read-only `sdk/scripts/audit-business-scope.ts`. No application logic, wire formats, credentials, dependencies, deployments, licenses, or public website changed. Review findings are not silently implemented fixes.
+
+---
+
+## September 17: approved portable onboarding slice
+
+George approved implementation after the NetSuite-shadow planning conversation. The new [onboarding preview](docs/foundation/ONBOARDING_PREVIEW.md) connects the existing foundation person identity registry and authority engine to a persistent local reference host, client-held encrypted identity/recovery files, company creation, accepted memberships, viewer/editor permissions and revocation. Private client UIs live in their own repositories, outside this one. The public DTP repository contains only generic reference/client code, tests and documentation for this slice.
+
+Pinned Node 22.23.2 validation: 280 foundation tests, 103 default SDK tests and 9 new onboarding tests pass, including real HTTP process restart. Browser verification demonstrated an identity exported by one client opening the same company and notes in the separate DTP reference client. This is client portability, not host migration. Typechecking passed during implementation. No release gates, independent reviews, deployments or real NetSuite connections are claimed. See the linked handoff for exact launch instructions, custody assumptions and remaining production blockers. Existing uncommitted foundation work was preserved.
+
+## Naming and collaboration boundary
+
+**Direct Trade Protocol (DTP)** is the current name. PBP naming in older save points is historical; technical identifiers are unchanged. Private correspondence remains outside the versioned protocol source. Exploratory discussions are not release approval or a jointly accepted implementation scope.
+
+---
 
 ## Latest: Portable Business Protocol and v0.3 authority preview
 

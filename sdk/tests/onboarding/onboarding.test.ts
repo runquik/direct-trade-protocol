@@ -1,0 +1,169 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {PGlite} from '@electric-sql/pglite';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {request as httpRequest} from 'node:http';
+import {pgliteDb} from '../../../supabase/functions/dtp-store/db.ts';
+import {IDENTITY_REGISTRY_SCHEMA} from '../../src/foundation/identity-registry.ts';
+import {createOnboardingHost,ONBOARDING_SCHEMA} from '../../src/onboarding/host.ts';
+import {PassportClient,prepareIdentity,encryptWallet,decryptWallet,signCommand} from '../../src/onboarding/client.ts';
+import type {Transport} from '../../src/onboarding/client.ts';
+import {generateKeyPair,keyPairFromSecret} from '../../src/keys.ts';
+import {onboardingServer} from '../../src/onboarding/http.ts';
+
+async function fixture(directory?:string){
+  let pg=new PGlite(directory);await pg.exec(IDENTITY_REGISTRY_SCHEMA);await pg.exec(ONBOARDING_SCHEMA);
+  const key=await generateKeyPair();let now=Date.now();
+  const config={id:crypto.randomUUID(),key,audience:'http://127.0.0.1:8790',now:()=>now};
+  let host=createOnboardingHost(pgliteDb(pg),config);
+  const transport:Transport=async(path,value)=>{
+    const input=value as any;
+    if(path==='challenge')return host.challenge(input.person_id,input.command);
+    if(path==='execute')return host.execute(input);
+    if(path==='resolve')return host.registry.resolve(input);
+    if(path==='transition')return host.registry.transition(input.person_id,input.command);
+    throw new Error('Unexpected test route');
+  };
+  async function enroll(){const bundle=await prepareIdentity(host.metadata(),now);await host.registry.enroll(bundle.genesis,bundle.enrollment);return {...bundle,client:new PassportClient(bundle.operational,transport)};}
+  const alice=await enroll(),bob=await enroll(),eve=await enroll();
+  const company=async(name='Juniper Foods')=>alice.client.run('company.create',null,{nonce:crypto.randomUUID(),name});
+  return {get pg(){return pg;},get host(){return host;},get now(){return now;},alice,bob,eve,company,transport,advance:(ms:number)=>now+=ms,
+    async restart(){await pg.close();pg=new PGlite(directory);host=createOnboardingHost(pgliteDb(pg),config);},close:()=>pg.close()};
+}
+async function accept(client:PassportClient,org:string){const invitation=(await client.run('invitations.list')).find((i:any)=>i.organization_id===org);assert.ok(invitation);return client.run('membership.accept',org,{grant_id:invitation.grant_id});}
+test('two companies, accepted limited membership, data isolation, revocation and no controller data bypass',async()=>{
+  const f=await fixture();try{
+    const a=await f.company(),b=await f.company('Bluebird Supply');
+    await f.alice.client.run('note.create',a.organization_id,{note_id:crypto.randomUUID(),body:'Juniper only'});
+    await f.alice.client.run('note.create',b.organization_id,{note_id:crypto.randomUUID(),body:'Bluebird only'});
+    assert.equal((await f.alice.client.run('companies.list')).length,2);
+    await f.alice.client.run('membership.invite',a.organization_id,{person_id:f.bob.operational.person_id,role:'viewer'});
+    assert.equal((await f.bob.client.run('invitations.list')).length,1);
+    assert.deepEqual(await f.bob.client.run('companies.list'),[]);
+    await assert.rejects(f.bob.client.run('company.read',a.organization_id),/Company unavailable/);
+    await accept(f.bob.client,a.organization_id);
+    const visible=await f.bob.client.run('company.read',a.organization_id);assert.equal(visible.notes[0].body,'Juniper only');assert.deepEqual(visible.members,[]);
+    assert.equal((await f.bob.client.run('companies.list')).length,1);
+    await assert.rejects(f.bob.client.run('company.read',b.organization_id),/Company unavailable/);
+    await assert.rejects(f.eve.client.run('company.read',a.organization_id),/Company unavailable/);
+    await assert.rejects(f.bob.client.run('note.create',a.organization_id,{note_id:crypto.randomUUID(),body:'Forbidden'}),/scope widens/);
+    await assert.rejects(f.bob.client.run('membership.invite',a.organization_id,{person_id:f.eve.operational.person_id,role:'editor'}),/Controller required/);
+    await assert.rejects(f.bob.client.run('audit.read',a.organization_id),/Controller required/);
+    await f.alice.client.run('membership.revoke',a.organization_id,{person_id:f.bob.operational.person_id});
+    await assert.rejects(f.bob.client.run('company.read',a.organization_id),/Company unavailable/);assert.deepEqual(await f.bob.client.run('companies.list'),[]);
+    await assert.rejects(f.alice.client.run('membership.revoke',a.organization_id,{person_id:f.alice.operational.person_id}),/sole controller/);
+  }finally{await f.close();}
+});
+test('an invitation revoked before acceptance stays inaccessible; re-invitation requires fresh acceptance',async()=>{
+  const f=await fixture();try{
+    const a=await f.company();
+    await f.alice.client.run('membership.invite',a.organization_id,{person_id:f.bob.operational.person_id,role:'editor'});
+    const oldInvitation=(await f.bob.client.run('invitations.list'))[0];
+    await f.alice.client.run('membership.revoke',a.organization_id,{person_id:f.bob.operational.person_id});
+    await assert.rejects(f.bob.client.run('membership.accept',a.organization_id,{grant_id:oldInvitation.grant_id}),/Invitation unavailable/);
+    await f.alice.client.run('membership.invite',a.organization_id,{person_id:f.bob.operational.person_id,role:'editor'});
+    await assert.rejects(f.bob.client.run('membership.accept',a.organization_id,{grant_id:oldInvitation.grant_id}),/Invitation unavailable/);
+    await accept(f.bob.client,a.organization_id);
+    await f.bob.client.run('note.create',a.organization_id,{note_id:crypto.randomUUID(),body:'Allowed editor note'});
+    assert.equal((await f.alice.client.run('company.read',a.organization_id)).notes.length,1);
+  }finally{await f.close();}
+});
+test('exact retries are idempotent but tampering, replay, cross-person signatures and revocation fail closed',async()=>{
+  const f=await fixture();try{
+    const a=await f.company();
+    const c={request_id:crypto.randomUUID(),action:'note.create',organization_id:a.organization_id,parameters:{note_id:crypto.randomUUID(),body:'Only once'}};
+    const request=await f.alice.client.request(c),tampered=structuredClone(request);tampered.command.parameters.body='Changed';
+    await assert.rejects(f.host.execute(tampered),/Challenge unavailable/);
+    const fake=await signCommand(c,request.challenge,[await keyPairFromSecret(f.eve.operational.secret_key)]);
+    await assert.rejects(f.host.execute(fake),/current operational/);
+    const first=await f.host.execute(request);await assert.rejects(f.host.execute(request),/Challenge unavailable/);
+    assert.deepEqual(await f.host.execute(await f.alice.client.request(c)),first);
+    assert.equal((await f.alice.client.run('company.read',a.organization_id)).notes.length,1);
+    await assert.rejects(f.host.execute(await f.alice.client.request({...c,parameters:{...c.parameters,body:'different'}})),/operation ID conflict|Request ID conflict/);
+    await f.alice.client.run('membership.invite',a.organization_id,{person_id:f.bob.operational.person_id,role:'editor'});await accept(f.bob.client,a.organization_id);
+    const bobCommand={...c,request_id:crypto.randomUUID(),parameters:{note_id:crypto.randomUUID(),body:'Before revocation'}};
+    await f.host.execute(await f.bob.client.request(bobCommand));const stale=await f.bob.client.request(bobCommand);
+    await f.alice.client.run('membership.revoke',a.organization_id,{person_id:f.bob.operational.person_id});
+    await assert.rejects(f.host.execute(stale),/Company unavailable/);
+    await assert.rejects(f.host.execute(await f.bob.client.request(bobCommand)),/Company unavailable/);
+  }finally{await f.close();}
+});
+test('rotation and offline recovery preserve identity and membership, reject old credentials and honor the safety barrier',async()=>{
+  const f=await fixture();try{
+    const a=await f.company(),c={request_id:crypto.randomUUID(),action:'company.read',organization_id:a.organization_id,parameters:{}};
+    const oldRequest=await f.alice.client.request(c),rotation=await f.alice.client.prepareTransition(f.now);
+    const accepted=await f.alice.client.applyTransition(rotation.command);
+    await assert.rejects(f.host.execute(oldRequest),/transition pending/);
+    const newer=new PassportClient(rotation.next,f.transport);
+    await assert.rejects(newer.run('companies.list'),/transition pending/);
+    f.advance(accepted.effective_at-f.now);
+    await assert.rejects(f.alice.client.run('companies.list'),/current operational/);
+    assert.equal((await newer.run('companies.list'))[0].organization_id,a.organization_id);
+    const recovery=new PassportClient(f.alice.recovery,f.transport);
+    await assert.rejects(recovery.run('companies.list'),/Recovery keys cannot/);
+    const plan=await recovery.prepareTransition(f.now),result=await recovery.applyTransition(plan.command);
+    f.advance(result.effective_at-f.now);
+    const recovered=new PassportClient(plan.next,f.transport);assert.equal(recovered.wallet.person_id,f.alice.operational.person_id);
+    assert.equal((await recovered.run('company.read',a.organization_id)).role,'controller');
+    await assert.rejects(newer.run('companies.list'),/current operational/);
+    assert.deepEqual(await recovery.applyTransition(plan.command),result);
+  }finally{await f.close();}
+});
+test('encrypted bundle crosses clients, rejects wrong passwords and corruption; host stores no person secret',async()=>{
+  const f=await fixture();try{
+    const a=await f.company(),pass='synthetic passphrase only 2026';
+    const encrypted=await encryptWallet(f.alice.operational,pass);
+    assert.ok(!JSON.stringify(encrypted).includes(f.alice.operational.secret_key));
+    const wallet=await decryptWallet(encrypted,pass),otherClient=new PassportClient(wallet,f.transport);
+    assert.equal((await otherClient.run('companies.list'))[0].organization_id,a.organization_id);
+    await assert.rejects(decryptWallet(encrypted,'wrong password long enough'),/Wrong passphrase/);
+    await assert.rejects(decryptWallet({...encrypted,ciphertext:'00'+encrypted.ciphertext.slice(2)},pass),/damaged|Wrong/);
+    await assert.rejects(decryptWallet({...encrypted,iterations:1} as any,pass),/Unsupported/);
+    await assert.rejects(encryptWallet(wallet,'short'),/14 characters/);
+    const persisted=JSON.stringify((await f.pg.query('select body from dtp_foundation.identities')).rows);
+    assert.ok(!persisted.includes(f.alice.operational.secret_key));assert.ok(!persisted.includes(f.alice.recovery.secret_key));
+  }finally{await f.close();}
+});
+test('disk reopen preserves companies, notes, authority, revoked membership and spent challenges',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'dtp-onboarding-test-'));const f=await fixture(join(dir,'database'));try{
+    const a=await f.company();await f.alice.client.run('note.create',a.organization_id,{note_id:crypto.randomUUID(),body:'Survives restart'});
+    await f.alice.client.run('membership.invite',a.organization_id,{person_id:f.bob.operational.person_id,role:'viewer'});await accept(f.bob.client,a.organization_id);
+    await f.alice.client.run('membership.revoke',a.organization_id,{person_id:f.bob.operational.person_id});
+    const request=await f.alice.client.request({request_id:crypto.randomUUID(),action:'companies.list',organization_id:null,parameters:{}});await f.host.execute(request);
+    await f.restart();assert.equal((await f.alice.client.run('company.read',a.organization_id)).notes[0].body,'Survives restart');
+    await assert.rejects(f.bob.client.run('company.read',a.organization_id),/Company unavailable/);await assert.rejects(f.host.execute(request),/Challenge unavailable/);
+  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
+});
+test('expired challenges, malformed commands and failed writes cannot consume authority or bypass validation',async()=>{
+  const f=await fixture();try{
+    const a=await f.company(),c={request_id:crypto.randomUUID(),action:'company.read',organization_id:a.organization_id,parameters:{}};
+    const request=await f.alice.client.request(c);f.advance(60001);await assert.rejects(f.host.execute(request),/expired/);
+    await assert.rejects(f.alice.client.request({...c,parameters:{unexpected:true}}),/Exact/);
+    await assert.rejects(f.alice.client.request({...c,organization_id:'not-an-id'}),/UUID/);
+    await assert.rejects(f.host.execute(JSON.parse('{"__proto__":1}')),/invalid identity field/);
+    const body={note_id:crypto.randomUUID(),body:'Original'};await f.alice.client.run('note.create',a.organization_id,body);
+    const duplicate=await f.alice.client.request({...c,request_id:crypto.randomUUID(),action:'note.create',parameters:body});
+    await assert.rejects(f.host.execute(duplicate),/duplicate key/);
+    const row=(await f.pg.query<{consumed:boolean}>('select consumed from dtp_onboarding.challenges where nonce=$1',[duplicate.challenge.nonce])).rows[0];assert.equal(row.consumed,false);
+  }finally{await f.close();}
+});
+test('HTTP denies foreign origins, DNS rebinding, non-JSON and unknown paths without leaking internals',async()=>{
+  const f=await fixture();const server=onboardingServer(f.host,{origin:'http://127.0.0.1:8790',allowedOrigins:['http://127.0.0.1:8791']});
+  await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));const port=(server.address() as any).port,url=`http://127.0.0.1:${port}`;
+  const headers={Host:'127.0.0.1:8790'};
+  async function raw(path:string,extra:Record<string,string>={}){return new Promise<{status:number;headers:any;body:string}>((resolve,reject)=>{const req=httpRequest(url,{path,headers:{...headers,...extra}},res=>{let body='';res.on('data',chunk=>body+=chunk);res.on('end',()=>resolve({status:res.statusCode!,headers:res.headers,body}));});req.on('error',reject);req.end();});}
+  try{
+    assert.equal((await fetch(url+'/api/meta')).status,403);
+    assert.equal((await raw('/api/meta',{Origin:'https://evil.example'})).status,403);
+    const meta=await raw('/api/meta',{Origin:'http://127.0.0.1:8791'});assert.equal(meta.status,200);assert.equal(meta.headers['access-control-allow-origin'],'http://127.0.0.1:8791');
+    assert.equal((await raw('/missing')).status,404);
+    const malformed=await raw('//[');assert.equal(malformed.status,400);
+    assert.deepEqual(JSON.parse(malformed.body),{error:'Request rejected; check identity, permission, and input'});
+    assert.equal((await raw('/api/meta')).status,200,'malformed target must not stop the server');
+    async function post(type:string){return new Promise<{status:number;body:string}>(resolve=>{const req=httpRequest(url+'/api/execute',{method:'POST',headers:{...headers,'Content-Type':type}},res=>{let body='';res.on('data',c=>body+=c);res.on('end',()=>resolve({status:res.statusCode!,body}));});req.end('{}');});}
+    assert.equal((await post('text/plain')).status,415);
+    const bad=await post('application/json');assert.equal(bad.status,400);assert.deepEqual(JSON.parse(bad.body),{error:'Request rejected; check identity, permission, and input'});
+  }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await f.close();}
+});

@@ -6,6 +6,7 @@
  * TRANSPORT=stdio (default) → Stdio for Claude Code local dev
  */
 
+import "./archive-disabled.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerOrgTools } from "./tools/org.js";

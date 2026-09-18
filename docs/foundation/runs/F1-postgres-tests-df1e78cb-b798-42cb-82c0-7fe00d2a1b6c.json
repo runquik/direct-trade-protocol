@@ -1,0 +1,21 @@
+{
+  "started": "2026-09-12T20:53:50.680Z",
+  "finished": "2026-09-12T20:53:51.170Z",
+  "fingerprint": "3ba01dd4d47984c7216bb8ae6b1c703c8ac403a53cf7a7f4e650fc9b90002bc5",
+  "source_unchanged": true,
+  "command": [
+    "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+    "--test",
+    "sdk/tests/foundation-postgres/identity-registry.test.ts"
+  ],
+  "runtime": "v22.23.2",
+  "code": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# {\n#   severity_local: 'NOTICE',\n#   severity: 'NOTICE',\n#   code: '42P06',\n#   message: 'schema \"dtp_foundation\" already exists, skipping',\n#   file: 'schemacmds.c',\n#   line: '132',\n#   routine: 'CreateSchemaCommand'\n# }\n# {\n#   severity_local: 'NOTICE',\n#   severity: 'NOTICE',\n#   code: '42P07',\n#   message: 'relation \"identities\" already exists, skipping',\n#   file: 'parse_utilcmd.c',\n#   line: '207',\n#   routine: 'transformCreateStmt'\n# }\n# {\n#   severity_local: 'NOTICE',\n#   severity: 'NOTICE',\n#   code: '42P07',\n#   message: 'relation \"identity_history\" already exists, skipping',\n#   file: 'parse_utilcmd.c',\n#   line: '207',\n#   routine: 'transformCreateStmt'\n# }\n# {\n#   severity_local: 'NOTICE',\n#   severity: 'NOTICE',\n#   code: '42701',\n#   message: 'column \"result\" of relation \"identity_history\" already exists, skipping',\n#   file: 'tablecmds.c',\n#   line: '7480',\n#   routine: 'check_for_column_name_collision'\n# }\n# Subtest: foundation PostgreSQL: eight concurrent exact enrollments commit one identity/history\nok 1 - foundation PostgreSQL: eight concurrent exact enrollments commit one identity/history\n  ---\n  duration_ms: 94.277\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: competing operational rotation and recovery have one CAS winner\nok 2 - foundation PostgreSQL: competing operational rotation and recovery have one CAS winner\n  ---\n  duration_ms: 26.2056\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: lease issuance ahead of queued transition persists its full drain barrier\nok 3 - foundation PostgreSQL: lease issuance ahead of queued transition persists its full drain barrier\n  ---\n  duration_ms: 31.5192\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: transition ahead of queued resolution cannot issue another old-head lease\nok 4 - foundation PostgreSQL: transition ahead of queued resolution cannot issue another old-head lease\n  ---\n  duration_ms: 22.4953\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: a genuinely blocked identity does not serialize an unrelated identity\nok 5 - foundation PostgreSQL: a genuinely blocked identity does not serialize an unrelated identity\n  ---\n  duration_ms: 28.0492\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: SQL failure after history insertion rolls back both accepted head and history\nok 6 - foundation PostgreSQL: SQL failure after history insertion rolls back both accepted head and history\n  ---\n  duration_ms: 36.4766\n  type: 'test'\n  ...\n# Subtest: foundation PostgreSQL: exact expired transition retry returns original durable receipt without state or history mutation\nok 7 - foundation PostgreSQL: exact expired transition retry returns original durable receipt without state or history mutation\n  ---\n  duration_ms: 38.0833\n  type: 'test'\n  ...\n1..7\n# tests 7\n# suites 0\n# pass 7\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 404.6802\n",
+  "stderr": "",
+  "tests": 7,
+  "skipped": 0,
+  "fail": 0,
+  "cancelled": 0,
+  "todo": 0
+}

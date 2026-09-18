@@ -1,0 +1,606 @@
+{
+  "format": 1,
+  "release_target": "0.1.0",
+  "participants": [
+    {
+      "id": "ci",
+      "kind": "runner"
+    },
+    {
+      "id": "root",
+      "kind": "agent"
+    },
+    {
+      "id": "profile_contracts",
+      "kind": "agent"
+    },
+    {
+      "id": "capability_audit",
+      "kind": "agent"
+    },
+    {
+      "id": "release_architect",
+      "kind": "agent"
+    }
+  ],
+  "gates": [
+    {
+      "id": "F0",
+      "required": true,
+      "authors": [
+        "root",
+        "capability_audit",
+        "release_architect"
+      ],
+      "depends_on": [],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "docs/DTP_FOUNDATION_UPDATE_PLAN_2026-09-12.md",
+        "docs/foundation/execution-contract.md",
+        "docs/foundation/baseline-audit.md",
+        "sdk/package.json",
+        "sdk/package-lock.json",
+        "sdk/tsconfig.json",
+        ".node-version",
+        ".github/workflows/protocol.yml",
+        "sdk/src/canonical.ts",
+        "sdk/src/keys.ts",
+        "sdk/src/base58.ts",
+        "sdk/src/sign.ts",
+        "sdk/src/envelope.ts",
+        "sdk/src/v03",
+        "sdk/src/foundation/identity.ts",
+        "spec/vectors/signatures.json",
+        "spec/v0.3/signing-vector.json",
+        "sdk/src/profiles",
+        "sdk/src/v04",
+        "spec/v0.4",
+        "supabase/functions/dtp-store/db.ts",
+        "sdk/tests/foundation/gates.test.ts",
+        "sdk/tests/foundation/gates-review.test.ts",
+        "sdk/scripts/foundation-run.ts",
+        "sdk/tests/foundation/runner.test.ts",
+        "sdk/tests/foundation/runner-review.test.ts",
+        "docs/foundation/runner.md",
+        ".gitattributes",
+        "mcp-server/README.md",
+        "mcp-server/package.json",
+        "mcp-server/package-lock.json",
+        "mcp-server/src/index.ts",
+        "mcp-server/src/archive-disabled.ts",
+        "mcp-server/archive-disabled.cjs",
+        "remote-mcp-server/README.md",
+        "remote-mcp-server/package.json",
+        "remote-mcp-server/package-lock.json",
+        "remote-mcp-server/src/index.ts",
+        "remote-mcp-server/src/archive-disabled.ts",
+        "remote-mcp-server/archive-disabled.cjs",
+        "remote-mcp-server/Dockerfile",
+        "remote-mcp-server/Dockerfile.reference",
+        "remote-mcp-server/railway.toml",
+        "remote-mcp-server/railway.toml.reference",
+        "docs/foundation/legacy-adapter-boundary.md",
+        "sdk/tests/foundation/legacy-exclusion.test.ts",
+        "sdk/tests/foundation/archive-review.test.ts",
+        "sdk/tests/foundation/ci-wiring-review.test.ts",
+        "sdk/tests/foundation/foundation-ci-review.test.ts",
+        "sdk/tests/foundation/release-policy.test.ts",
+        "sdk/tests/foundation/release-policy-review.test.ts",
+        "docs/foundation/release-policy.md"
+      ],
+      "checks": [
+        {
+          "id": "F0-tests",
+          "title": "Baseline and release contract: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F0-review",
+          "title": "Baseline and release contract: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F0-graph-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/gates.test.ts",
+            "sdk/tests/foundation/gates-review.test.ts",
+            "sdk/tests/foundation/runner.test.ts",
+            "sdk/tests/foundation/runner-review.test.ts",
+            "sdk/tests/foundation/foundation-ci-review.test.ts"
+          ]
+        },
+        {
+          "id": "F0-archive-tests",
+          "kind": "test",
+          "title": "Bounded regression slice; full package acceptance remains mandatory",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/legacy-exclusion.test.ts",
+            "sdk/tests/foundation/archive-review.test.ts",
+            "sdk/tests/foundation/ci-wiring-review.test.ts"
+          ]
+        },
+        {
+          "id": "F0-compatibility-tests",
+          "kind": "test",
+          "title": "Preserved historical signing bytes and release policy; not full public package acceptance",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/release-policy.test.ts",
+            "sdk/tests/foundation/release-policy-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "required": true,
+      "authors": [
+        "root"
+      ],
+      "depends_on": [
+        "F0"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/identity.ts",
+        "sdk/tests/foundation/identity.test.ts",
+        "docs/foundation/identity-contract.md",
+        "sdk/src/foundation/identity-registry.ts",
+        "sdk/tests/foundation/identity-review.test.ts",
+        "sdk/tests/foundation/identity-registry.test.ts",
+        "sdk/tests/foundation/identity-registry-review.test.ts",
+        "sdk/tests/foundation-postgres/identity-registry.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F1-tests",
+          "title": "Identity continuity and recovery: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F1-review",
+          "title": "Identity continuity and recovery: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F1-helper-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/identity.test.ts",
+            "sdk/tests/foundation/identity-review.test.ts",
+            "sdk/tests/foundation/identity-registry.test.ts",
+            "sdk/tests/foundation/identity-registry-review.test.ts"
+          ]
+        },
+        {
+          "id": "F1-postgres-tests",
+          "kind": "test",
+          "title": "Bounded regression slice; full package acceptance remains mandatory",
+          "command": [
+            "--test",
+            "sdk/tests/foundation-postgres/identity-registry.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "required": true,
+      "authors": [
+        "root"
+      ],
+      "depends_on": [
+        "F1",
+        "F3"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/authority.ts",
+        "sdk/tests/foundation/authority.test.ts",
+        "docs/foundation/authority.md",
+        "sdk/tests/foundation/authority-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F2-tests",
+          "title": "Operation authority and agency: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F2-review",
+          "title": "Operation authority and agency: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F2-helper-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/authority.test.ts",
+            "sdk/tests/foundation/authority-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "required": true,
+      "authors": [
+        "profile_contracts",
+        "root"
+      ],
+      "depends_on": [
+        "F0"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/datatypes.ts",
+        "sdk/tests/foundation/datatypes.test.ts",
+        "sdk/tests/foundation/record-integration.test.ts",
+        "docs/foundation/datatypes.md",
+        "sdk/tests/foundation/datatypes-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F3-tests",
+          "title": "Shared datatypes and record integration: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F3-review",
+          "title": "Shared datatypes and record integration: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F3-helper-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/datatypes.test.ts",
+            "sdk/tests/foundation/datatypes-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "required": true,
+      "authors": [
+        "profile_contracts",
+        "root"
+      ],
+      "depends_on": [
+        "F2",
+        "F3"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/semantics.ts",
+        "sdk/tests/foundation/semantics.test.ts",
+        "docs/foundation/semantics.md",
+        "sdk/tests/foundation/semantics-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F4-tests",
+          "title": "Semantic-handler admission: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F4-review",
+          "title": "Semantic-handler admission: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F4-helper-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/semantics.test.ts",
+            "sdk/tests/foundation/semantics-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F5",
+      "required": true,
+      "authors": [
+        "root",
+        "release_architect"
+      ],
+      "depends_on": [
+        "F4"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/changes.ts",
+        "sdk/tests/foundation/changes.test.ts",
+        "docs/foundation/changes.md",
+        "sdk/tests/foundation/changes-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F5-tests",
+          "title": "Changes and reconstruction: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F5-review",
+          "title": "Changes and reconstruction: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F5-helper-tests",
+          "kind": "test",
+          "title": "Bounded regression slice; full package acceptance remains mandatory",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/changes.test.ts",
+            "sdk/tests/foundation/changes-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F6",
+      "required": true,
+      "authors": [
+        "profile_contracts",
+        "root"
+      ],
+      "depends_on": [
+        "F5"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/discovery.ts",
+        "sdk/tests/foundation/discovery.test.ts",
+        "docs/foundation/discovery.md",
+        "sdk/tests/foundation/discovery-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F6-tests",
+          "title": "Goods demand and service discovery: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F6-review",
+          "title": "Goods demand and service discovery: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F6-helper-tests",
+          "title": "Bounded helper regression tests only; does not replace package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/discovery.test.ts",
+            "sdk/tests/foundation/discovery-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F7",
+      "required": true,
+      "authors": [
+        "profile_contracts",
+        "root"
+      ],
+      "depends_on": [
+        "F6"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/commitments.ts",
+        "sdk/tests/foundation/commitments.test.ts",
+        "docs/foundation/commitments.md",
+        "sdk/tests/foundation/commitments-review.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F7-tests",
+          "title": "Linked provider commitments: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F7-review",
+          "title": "Linked provider commitments: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F7-helper-tests",
+          "kind": "test",
+          "title": "Bounded regression slice; full package acceptance remains mandatory",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/commitments.test.ts",
+            "sdk/tests/foundation/commitments-review.test.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F8",
+      "required": true,
+      "authors": [
+        "profile_contracts",
+        "root"
+      ],
+      "depends_on": [
+        "F7"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/tests/foundation/cross-domain.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F8-tests",
+          "title": "Cross-company services and finance: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F8-review",
+          "title": "Cross-company services and finance: independent review",
+          "kind": "review"
+        }
+      ]
+    },
+    {
+      "id": "F9",
+      "required": true,
+      "authors": [
+        "root",
+        "profile_contracts"
+      ],
+      "depends_on": [
+        "F1",
+        "F2",
+        "F5"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "sdk/src/foundation/persistence.ts",
+        "sdk/tests/foundation/persistence.test.ts",
+        "sdk/tests/foundation/persistence-fixture.ts",
+        "sdk/tests/foundation/persistence-review.test.ts",
+        "sdk/tests/foundation/persistence-finalization.test.ts",
+        "sdk/tests/foundation/persistence-finalization-review.test.ts",
+        "sdk/tests/foundation-postgres/persistence.test.ts",
+        "sdk/src/foundation/person-authentication.ts",
+        "sdk/tests/foundation/person-authentication.test.ts",
+        "sdk/tests/foundation/person-authentication-fixture.ts",
+        "sdk/tests/foundation/person-authentication-review.test.ts",
+        "sdk/tests/foundation/person-authentication-review-fixture.ts",
+        "sdk/tests/foundation-postgres/person-authentication-review.test.ts",
+        "docs/foundation/person-authentication.md",
+        "docs/foundation/persistence.md",
+        "sdk/tests/foundation/migration.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F9-tests",
+          "title": "Persistence operations and migration: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F9-review",
+          "title": "Persistence operations and migration: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F9-helper-tests",
+          "title": "Bounded persistence library checks with synthetic authorization hooks; not full package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/persistence.test.ts",
+            "sdk/tests/foundation/persistence-review.test.ts",
+            "sdk/tests/foundation/persistence-finalization.test.ts",
+            "sdk/tests/foundation/persistence-finalization-review.test.ts"
+          ]
+        },
+        {
+          "id": "F9-postgres-tests",
+          "title": "Bounded real PostgreSQL persistence checks with synthetic authorization hooks; not full package acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation-postgres/persistence.test.ts"
+          ]
+        },
+        {
+          "id": "F9-person-auth-tests",
+          "title": "Real person signatures with synthetic remaining policy hooks; not full authenticated host acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation/person-authentication.test.ts",
+            "sdk/tests/foundation/person-authentication-review.test.ts"
+          ]
+        },
+        {
+          "id": "F9-person-auth-postgres-tests",
+          "title": "Independent real PostgreSQL identity deadline and replay probes; not full host acceptance",
+          "kind": "test",
+          "command": [
+            "--test",
+            "sdk/tests/foundation-postgres/person-authentication-review.test.ts"
+          ]
+        },
+        {
+          "id": "F9-person-auth-review",
+          "title": "Independent person authentication and commit deadline review only; not full F9 acceptance",
+          "kind": "review"
+        }
+      ]
+    },
+    {
+      "id": "F10",
+      "required": true,
+      "authors": [
+        "root",
+        "profile_contracts",
+        "capability_audit",
+        "release_architect"
+      ],
+      "depends_on": [
+        "F0",
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "inputs": [
+        "docs/foundation/gates.json",
+        "sdk/scripts/foundation-gates.ts",
+        "docs/foundation/execution-contract.md",
+        "sdk/tests/foundation/end-to-end.test.ts"
+      ],
+      "checks": [
+        {
+          "id": "F10-tests",
+          "title": "Independent builder and full qualification: acceptance tests",
+          "kind": "test"
+        },
+        {
+          "id": "F10-review",
+          "title": "Independent builder and full qualification: independent review",
+          "kind": "review"
+        },
+        {
+          "id": "F10-external",
+          "title": "Unfamiliar external builder cold integration",
+          "kind": "external"
+        }
+      ]
+    }
+  ]
+}

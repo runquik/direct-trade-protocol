@@ -1,0 +1,21 @@
+{
+  "started": "2026-09-12T20:54:11.576Z",
+  "finished": "2026-09-12T20:54:12.970Z",
+  "fingerprint": "810914e68681be0d7f36ad6c5179435eca1ae1914812d9af6de079eaccf36a40",
+  "source_unchanged": true,
+  "command": [
+    "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+    "--test",
+    "sdk/tests/foundation-postgres/persistence.test.ts"
+  ],
+  "runtime": "v22.23.2",
+  "code": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: persistence PostgreSQL: concurrent sibling grants cannot split a shared cumulative parent budget\nok 1 - persistence PostgreSQL: concurrent sibling grants cannot split a shared cumulative parent budget\n  ---\n  duration_ms: 141.1314\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: eight same-operation attempts and later fresh-instance retry commit once\nok 2 - persistence PostgreSQL: eight same-operation attempts and later fresh-instance retry commit once\n  ---\n  duration_ms: 173.159\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: SQL failure after update dtp_foundation.organization_authority rolls back every exact row\nok 3 - persistence PostgreSQL: SQL failure after update dtp_foundation.organization_authority rolls back every exact row\n  ---\n  duration_ms: 94.6337\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: SQL failure after insert into dtp_foundation.entity_revisions rolls back every exact row\nok 4 - persistence PostgreSQL: SQL failure after insert into dtp_foundation.entity_revisions rolls back every exact row\n  ---\n  duration_ms: 88.344\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: SQL failure after update dtp_foundation.resource_heads rolls back every exact row\nok 5 - persistence PostgreSQL: SQL failure after update dtp_foundation.resource_heads rolls back every exact row\n  ---\n  duration_ms: 91.628\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: SQL failure after insert into dtp_foundation.transactional_outbox rolls back every exact row\nok 6 - persistence PostgreSQL: SQL failure after insert into dtp_foundation.transactional_outbox rolls back every exact row\n  ---\n  duration_ms: 89.8049\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: SQL failure after insert into dtp_foundation.business_receipts rolls back every exact row\nok 7 - persistence PostgreSQL: SQL failure after insert into dtp_foundation.business_receipts rolls back every exact row\n  ---\n  duration_ms: 95.6256\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: locked organization permits unrelated organization to complete\nok 8 - persistence PostgreSQL: locked organization permits unrelated organization to complete\n  ---\n  duration_ms: 122.7891\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: foreign inputs retain exact source identity/provenance and do not mutate source rows\nok 9 - persistence PostgreSQL: foreign inputs retain exact source identity/provenance and do not mutate source rows\n  ---\n  duration_ms: 115.4898\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: failed governance outbox does not revoke or advance any durable row\nok 10 - persistence PostgreSQL: failed governance outbox does not revoke or advance any durable row\n  ---\n  duration_ms: 66.0872\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: revoke holding authority lock orders queued competing action\nok 11 - persistence PostgreSQL: revoke holding authority lock orders queued competing action\n  ---\n  duration_ms: 39.1066\n  type: 'test'\n  ...\n# Subtest: persistence PostgreSQL: execute holding authority lock orders queued competing action\nok 12 - persistence PostgreSQL: execute holding authority lock orders queued competing action\n  ---\n  duration_ms: 59.5973\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1307.5151\n",
+  "stderr": "",
+  "tests": 12,
+  "skipped": 0,
+  "fail": 0,
+  "cancelled": 0,
+  "todo": 0
+}

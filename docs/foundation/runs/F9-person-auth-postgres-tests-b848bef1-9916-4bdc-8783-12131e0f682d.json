@@ -1,0 +1,21 @@
+{
+  "started": "2026-09-12T20:54:26.353Z",
+  "finished": "2026-09-12T20:54:34.848Z",
+  "fingerprint": "810914e68681be0d7f36ad6c5179435eca1ae1914812d9af6de079eaccf36a40",
+  "source_unchanged": true,
+  "command": [
+    "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+    "--test",
+    "sdk/tests/foundation-postgres/person-authentication-review.test.ts"
+  ],
+  "runtime": "v22.23.2",
+  "code": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: person PostgreSQL independent: deferred SQL guard rejects COMMIT after JS tail returns past actual deadline\nok 1 - person PostgreSQL independent: deferred SQL guard rejects COMMIT after JS tail returns past actual deadline\n  ---\n  duration_ms: 6703.6185\n  type: 'test'\n  ...\n# Subtest: person PostgreSQL independent: two identical signed requests consume one challenge and commit one business effect\nok 2 - person PostgreSQL independent: two identical signed requests consume one challenge and commit one business effect\n  ---\n  duration_ms: 116.8488\n  type: 'test'\n  ...\n# Subtest: person PostgreSQL independent: one durable person checkpoint serializes authentication across different organizations\nok 3 - person PostgreSQL independent: one durable person checkpoint serializes authentication across different organizations\n  ---\n  duration_ms: 1447.6664\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 8402.9295\n",
+  "stderr": "",
+  "tests": 3,
+  "skipped": 0,
+  "fail": 0,
+  "cancelled": 0,
+  "todo": 0
+}

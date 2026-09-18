@@ -1,13 +1,15 @@
 {
   "name": "dtp-mcp-server",
   "version": "0.1.0",
+  "private": true,
   "description": "MCP tool server for the Direct Trade Protocol — headless B2B trade via Claude",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "archive-disabled.cjs",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "build": "node archive-disabled.cjs",
+    "dev": "node archive-disabled.cjs",
+    "start": "node archive-disabled.cjs",
+    "prepack": "node archive-disabled.cjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
