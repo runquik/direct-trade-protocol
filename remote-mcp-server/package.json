@@ -2,6 +2,7 @@
   "name": "dtp-remote-mcp-server",
   "version": "0.2.0",
   "private": true,
+  "license": "Apache-2.0",
   "description": "Remote MCP plugin for DTP — org-based B2B trade via Claude Cowork",
   "type": "module",
   "main": "archive-disabled.cjs",

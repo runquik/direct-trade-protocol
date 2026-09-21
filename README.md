@@ -222,6 +222,10 @@ Reference chain: [NEAR Protocol](https://near.org) — key and signature encodin
 
 ---
 
+## License
+
+Copyright 2026 George Milton. Licensed under the [Apache License, Version 2.0](LICENSE): the specification, schemas, test vectors, reference SDK and reference modules. You may implement, host, extend and build commercial or proprietary products on the protocol; the licence includes a patent grant. It does not grant rights to the project's name. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+
 ## Built By
 
 [George Milton](https://github.com/runquik).

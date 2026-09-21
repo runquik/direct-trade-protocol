@@ -7,3 +7,4 @@ docs/foundation/person-authentication-review.md -text
 # Historical deployment recipes are preserved byte-for-byte, including CRLF.
 remote-mcp-server/Dockerfile.reference -text whitespace=cr-at-eol
 remote-mcp-server/railway.toml.reference -text whitespace=cr-at-eol
+LICENSE -text

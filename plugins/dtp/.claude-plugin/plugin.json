@@ -8,7 +8,7 @@
     "url": "https://github.com/runquik"
   },
   "repository": "https://github.com/runquik/direct-trade-protocol",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["marketplace", "trade", "wholesale", "b2b"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
