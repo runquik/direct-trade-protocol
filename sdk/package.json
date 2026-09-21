@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Direct Trade Protocol reference SDK: legacy v0.2/v0.3 and isolated v0.4 interoperability candidate",
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./preview": "./src/preview.ts",
+    "./preview/host": "./src/preview-host.ts"
+  },
   "scripts": {
     "dev:onboarding": "node scripts/onboarding-server.ts",
     "test:onboarding": "node --test \"tests/onboarding/*.test.ts\"",

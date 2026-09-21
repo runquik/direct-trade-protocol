@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { canonicalize } from '../canonical.ts';
+import { sha256HexSync } from '../sha256.ts';
 import { formatDecimal, parseDecimal } from './decimal.ts';
 
 export type PackagingRevision = {
@@ -30,7 +30,8 @@ export type InventoryResult =
 const UNITS = new Set(['lb', 'kg', 'oz', 'ton', 'case', 'pallet', 'unit']);
 const identity = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 200;
 const key = (...parts: string[]) => JSON.stringify(parts);
-const hash = (value: unknown) => createHash('sha256').update(canonicalize(value)).digest('hex');
+// Synchronous and platform-free: this reducer must run inside a storage transaction on any runtime.
+const hash = (value: unknown) => sha256HexSync(canonicalize(value));
 export const packagingDigest = (packaging: PackagingRevision): string => hash({ profile: 'dtp.packaging/1', packaging });
 
 export function createInventoryState(company_id: string, pool_id: string, product_id: string, base_unit: string): InventoryState {
