@@ -6,6 +6,14 @@
 // This entry is portable: nothing it reaches may import a platform module, so it loads in
 // browsers and edge runtimes as well as Node and Deno. Pieces that need a database or a
 // server live in preview-host.ts. Namespaces keep the layers' overlapping names apart.
+//
+// KEYS. The one exception to "unreleased" is `keys`: it is the stable key module from
+// index.ts, re-exported unchanged (the same function objects), so that whoever signs or
+// countersigns through this entry, a wallet or a host holding its own resolver key, needs no
+// second import and never an internal file path. The stable entry is equally portable;
+// tests/profiles/entrypoints.test.ts holds both entries to that.
+
+export * as keys from "./keys.ts";
 
 export * as decimal from "./profiles/decimal.ts";
 export * as inventory from "./profiles/inventory.ts";

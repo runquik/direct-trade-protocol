@@ -20,7 +20,7 @@ test('the package declares a stable entry and clearly separated preview entries'
   for (const leaked of ['applyInventoryEvent', 'validateInvoice', 'inventory', 'v04Engine']) assert.equal(leaked in stable, false, leaked);
 });
 
-test('nothing reachable from the portable preview entry imports a platform module', () => {
+function platformImports(entry: string) {
   const seen = new Set<string>(), offenders: string[] = [];
   const visit = (file: string) => {
     if (seen.has(file)) return; seen.add(file);
@@ -30,7 +30,51 @@ test('nothing reachable from the portable preview entry imports a platform modul
       else if (/^node:|^(fs|crypto|path|os|buffer|http|net|child_process)$/.test(spec)) offenders.push(`${file} -> ${spec}`);
     }
   };
-  visit(resolve(root, 'src/preview.ts'));
+  visit(resolve(root, entry));
+  return { seen, offenders };
+}
+
+test('nothing reachable from the portable preview entry imports a platform module', () => {
+  const { seen, offenders } = platformImports('src/preview.ts');
   assert.ok(seen.size > 10, 'walk reached the preview modules');
   assert.deepEqual(offenders, []);
+});
+
+test('the stable entry is portable too, so key helpers never need a platform module', () => {
+  const { seen, offenders } = platformImports('src/index.ts');
+  assert.ok(seen.has(resolve(root, 'src/keys.ts')), 'walk reached the key module');
+  assert.deepEqual(offenders, []);
+});
+
+test('key helpers are reachable through the preview entry and are the stable ones', async () => {
+  const stable: Record<string, unknown> = await import('../../src/index.ts');
+  const preview = await import('../../src/preview.ts');
+  const names = ['generateKeyPair', 'keyPairFromSecret', 'signBytes', 'verifyBytes', 'encodeKeyId', 'decodeKeyId',
+    'encodeSignature', 'decodeSignature', 'encodeSecretKey', 'decodeSecretKey'];
+  for (const name of names) {
+    assert.equal(typeof (preview.keys as Record<string, unknown>)[name], 'function', name);
+    assert.equal((preview.keys as Record<string, unknown>)[name], stable[name], `${name} is one function, not a copy`);
+  }
+});
+
+test('a host holding its own key can sign and verify identity material through the preview entry alone', async () => {
+  const { keys, identity } = await import('../../src/preview.ts');
+  const now = 1_800_000_000_000;
+  const [operational, recovery, next] = await Promise.all([keys.generateKeyPair(), keys.generateKeyPair(), keys.generateKeyPair()]);
+  // The host keeps only an encoded secret; it rebuilds its signing key without an internal import.
+  const resolver = await keys.keyPairFromSecret((await keys.generateKeyPair()).secretKey);
+  const genesis = await identity.signIdentity('DTP-PERSON-GENESIS-1',
+    { nonce: crypto.randomUUID(), operational: { keys: [operational.keyId], threshold: 1 }, recovery: { keys: [recovery.keyId], threshold: 1 } }, [operational, recovery]);
+  const state = await identity.createIdentity(genesis, { id: crypto.randomUUID(), key_id: resolver.keyId }, now);
+  const moved = await identity.transitionIdentity(state, await identity.signIdentity('DTP-IDENTITY-TRANSITION-1',
+    { identity_id: state.head.identity_id, expected_digest: state.head_digest, sequence: 1, kind: 'rotate' as const,
+      operational: { keys: [next.keyId], threshold: 1 }, recovery: state.head.recovery, issued_at: now, expires_at: now + 300_000 }, [operational, next]), now);
+  const request = { identity_id: state.head.identity_id, audience: 'https://relying.example', challenge: 'a'.repeat(64) };
+  const { proof } = await identity.issueResolution(moved, request, resolver, moved.head.effective_at);
+  const head = await identity.verifyResolution(proof, { ...request, resolver_id: moved.resolver_id, resolver_key: resolver.keyId,
+    resolver_epoch: 0, minimum_sequence: 1, minimum_digest: moved.head_digest }, moved.head.effective_at);
+  assert.equal(head.sequence, 1);
+  // Raw countersignature over bytes of the host's choosing, again through the same door.
+  const bytes = new TextEncoder().encode(moved.head_digest);
+  assert.equal(await keys.verifyBytes(resolver.keyId, bytes, await keys.signBytes(resolver.secretKey, bytes)), true);
 });
