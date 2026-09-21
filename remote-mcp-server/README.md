@@ -1,3 +1,5 @@
 # remote-mcp-server/ — DTP v0.1 hosted MCP client (frozen)
 
 > **Status: v0.1, frozen.** Express + Postgres + auto-approve OAuth stub, deployable to Railway, driving the v0.1 NEAR contract with an organization/membership model. Its `organizations` / `users` / `memberships` tables are the pre-v0.2 sketch of what became `core.company` and `core.grant`. Superseded by the v0.2 store ([`supabase/functions/dtp-store`](../supabase/functions/dtp-store)). Kept for reference; not maintained.
+
+**Reference only, not deployable support.** The deployment description above is historical. Normal build/dev/start/pack/db:migrate and direct compiled entry now refuse execution. The automatic Docker recipe has no build stages, and Railway startup refuses. Original deployment recipes remain byte-for-byte in `Dockerfile.reference` and `railway.toml.reference`. Known vulnerable dependencies, the OAuth stub and historical custody model remain unpatched. See [the archive boundary and revival requirements](../docs/foundation/legacy-adapter-boundary.md). No live service, existing image, database or installed copy was changed.

@@ -1,14 +1,17 @@
 {
   "name": "dtp-remote-mcp-server",
   "version": "0.2.0",
+  "private": true,
+  "license": "Apache-2.0",
   "description": "Remote MCP plugin for DTP — org-based B2B trade via Claude Cowork",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "archive-disabled.cjs",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/index.ts",
-    "start": "node dist/index.js",
-    "db:migrate": "drizzle-kit migrate"
+    "build": "node archive-disabled.cjs",
+    "dev": "node archive-disabled.cjs",
+    "start": "node archive-disabled.cjs",
+    "db:migrate": "node archive-disabled.cjs",
+    "prepack": "node archive-disabled.cjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

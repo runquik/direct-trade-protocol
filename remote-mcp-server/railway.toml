@@ -1,7 +1,8 @@
+# DTP_ARCHIVE_REFERENCE_ONLY: fail the ordinary local build/start surface.
+# Historical recipe preserved verbatim in railway.toml.reference.
+# The selected Dockerfile deliberately has no build stages.
 [build]
 builder = "dockerfile"
 
 [deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 10
-restartPolicyType = "on_failure"
+startCommand = "node archive-disabled.cjs"

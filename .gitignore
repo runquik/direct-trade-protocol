@@ -13,3 +13,6 @@ supabase/.env.local
 supabase/.branches
 sdk/.pbp-data/
 sdk/.pbp-keys.json
+sdk/.onboarding-data/
+*.identity.json
+*.recovery.json

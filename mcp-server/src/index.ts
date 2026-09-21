@@ -8,6 +8,7 @@
  * Transport: stdio (spawned by Claude Code as a child process)
  */
 
+import "./archive-disabled.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadAccounts, loadKeysIntoKeyStore } from "./account-manager.js";

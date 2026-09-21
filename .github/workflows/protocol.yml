@@ -35,10 +35,13 @@ jobs:
       - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json ../supabase/functions/pbp-store/index.ts
       - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/pbp-runtime-probe.ts
       - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json src/v04/router.ts src/v04/client.ts scripts/dtp-v04-runtime-probe.ts
+      - run: npx --yes deno@2.9.6 check --config ../supabase/functions/pbp-store/deno.json src/foundation/*.ts
       - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/dtp-v04-runtime-probe.ts
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:dtp-v04
+      - run: npm run test:foundation
+      - run: npm run test:onboarding
       - run: npm run test:stress-business
       - run: npm run demo:passport
       - run: npm run test:fuzz
@@ -77,4 +80,37 @@ jobs:
           path: |
             docs/release/v04-evidence.json
             docs/release/evidence/
+          if-no-files-found: error
+  foundation-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+        env:
+          POSTGRES_USER: dtp_test
+          POSTGRES_PASSWORD: synthetic-dtp-local-only
+          POSTGRES_DB: dtp_foundation_tests
+        ports:
+          - 15439:5432
+        options: >-
+          --health-cmd "pg_isready -U dtp_test -d dtp_foundation_tests"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - run: npm ci --prefix sdk
+      - run: node sdk/scripts/foundation-run.ts "$GITHUB_WORKSPACE" F1-postgres-tests ci
+      - run: node sdk/scripts/foundation-run.ts "$GITHUB_WORKSPACE" F9-postgres-tests ci
+      - run: node sdk/scripts/foundation-run.ts "$GITHUB_WORKSPACE" F9-person-auth-postgres-tests ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dtp-foundation-postgres-evidence
+          path: |
+            docs/foundation/evidence.json
+            docs/foundation/runs/
           if-no-files-found: error
