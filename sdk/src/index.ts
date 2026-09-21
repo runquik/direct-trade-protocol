@@ -5,3 +5,4 @@ export * from "./envelope.ts";
 export * from "./sign.ts";
 export * from "./scopes.ts";
 export * from "./sha256.ts";
+export * from "./safe-json.ts";

@@ -12,6 +12,7 @@ The prose specification is [`/SPEC.md`](../SPEC.md). This directory holds what *
 | `schemas/common/*.schema.json` | Shared sub-objects: ids, `Money`, `Quantity`, `Address`, `Key`, `Attestation`, `CertificationRef`, `KybRef` | yes |
 | `vectors/keys.json` | A fixed Ed25519 key (published on purpose; never use it for anything real) | yes |
 | `vectors/canonicalization.json` | Inputs → canonical JSON → SHA-256 | yes |
+| `vectors/unsafe-json.json` | JSON texts a receiver must refuse before parsing, and texts it must accept; regenerate with `node sdk/scripts/build-unsafe-json-vectors.mjs` | yes |
 | `vectors/signatures.json` | A raw-message signature and two fully signed records for the fixed key | yes |
 | `generated/ts/types.d.ts` | TypeScript body types, generated from the schemas | derived |
 | `generated/accountability.md` | Who may create / transition each type, rendered from `x-dtp-transitions` | derived |

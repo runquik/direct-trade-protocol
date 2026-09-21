@@ -4,6 +4,7 @@ import { execute, type EngineOptions } from "../../../sdk/src/v03/engine.ts";
 import { PbpError } from "../../../sdk/src/v03/wire.ts";
 import type { State } from "../../../sdk/src/v03/model.ts";
 import { FloatNotAllowedError, CanonicalizationError } from "../../../sdk/src/canonical.ts";
+import { UnsafeJsonError, parseUntrustedJsonBytes } from "../../../sdk/src/safe-json.ts";
 
 export const MAX_BYTES = 1024 * 1024;
 export interface Deps extends Omit<EngineOptions, "now"> { db: Db; now?: () => number; maxStateBytes?: number }
@@ -25,7 +26,7 @@ async function body(req: Request) {
   const bytes = new Uint8Array(size); let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   try {
-    const parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+    const parsed = parseUntrustedJsonBytes(bytes);
     const queue = [{ value: parsed, depth: 0 }];
     while (queue.length) {
       const { value, depth } = queue.pop()!;
@@ -33,7 +34,10 @@ async function body(req: Request) {
       if (value && typeof value === "object") for (const child of Object.values(value)) queue.push({ value: child, depth: depth + 1 });
     }
     return parsed;
-  } catch { throw new PbpError("invalid", "invalid UTF-8 JSON or excessive nesting", 400); }
+  } catch (error) {
+    if (error instanceof UnsafeJsonError) throw new PbpError("invalid", "object member names must not use escape sequences", 400);
+    throw new PbpError("invalid", "invalid UTF-8 JSON or excessive nesting", 400);
+  }
 }
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   try {

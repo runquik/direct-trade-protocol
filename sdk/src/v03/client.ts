@@ -1,5 +1,6 @@
 import { draftCommand, signCommand, PbpError, type Command } from "./wire.ts";
 import type { KeyPair } from "../keys.ts";
+import { parseUntrustedResponse } from "../safe-json.ts";
 export class PbpClient {
   audience: string;
   accessToken?: string;
@@ -8,7 +9,7 @@ export class PbpClient {
     const headers: Record<string, string> = { "content-type": "application/json" };
     if (this.accessToken) headers["x-pbp-dev-token"] = this.accessToken;
     const response = await fetch(this.audience + "/pbp-store/commands", { method: "POST", headers, body: JSON.stringify(command) });
-    const value = await response.json() as any;
+    const value = await parseUntrustedResponse(response) as any;
     if (!response.ok) throw new PbpError(value.error?.code ?? "request_failed", value.error?.message ?? "request failed", response.status);
     return value.result;
   }

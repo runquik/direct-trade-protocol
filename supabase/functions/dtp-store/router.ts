@@ -5,6 +5,7 @@ import type { Db } from "./db.ts";
 import { isStoreError, StoreError } from "./errors.ts";
 import { MAX_BODY_BYTES } from "./validate.ts";
 import { PROTOCOL_VERSION } from "../../../sdk/src/schemas.ts";
+import { UnsafeJsonError, parseUntrustedJson } from "../../../sdk/src/safe-json.ts";
 import { createCompany, getCompany, listCompanyGrants } from "./handlers/companies.ts";
 import { createModule, getModule } from "./handlers/modules.ts";
 import { listEvents } from "./handlers/events.ts";
@@ -57,7 +58,7 @@ async function readJson(req: Request): Promise<unknown> {
   catch { throw new StoreError("bad_request", "body is not valid UTF-8"); }
   if (!text.trim()) throw new StoreError("bad_request", "empty body");
   try {
-    const parsed = JSON.parse(text);
+    const parsed = parseUntrustedJson(text);
     const pending: { value: unknown; depth: number }[] = [{ value: parsed, depth: 0 }];
     while (pending.length) {
       const { value, depth } = pending.pop()!;
@@ -69,6 +70,7 @@ async function readJson(req: Request): Promise<unknown> {
     return parsed;
   } catch (e) {
     if (isStoreError(e)) throw e;
+    if (e instanceof UnsafeJsonError) throw new StoreError("bad_request", "object member names must not use escape sequences");
     throw new StoreError("bad_request", "body is not valid JSON");
   }
 }

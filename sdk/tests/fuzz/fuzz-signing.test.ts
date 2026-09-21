@@ -8,6 +8,7 @@ import { canonicalize, FloatNotAllowedError } from "../../src/canonical.ts";
 import { SIGNED_FIELDS, type Envelope, type UnsignedEnvelope } from "../../src/envelope.ts";
 import { keyPairFromSecret } from "../../src/keys.ts";
 import { payloadHash, signingInput, signingObject, signRecord, verifyRecord } from "../../src/sign.ts";
+import { UnsafeJsonError, assertSafeMemberNames } from "../../src/safe-json.ts";
 import { validateEnvelope } from "../../src/registry.ts";
 import { randomJson, randomKey, Rng, shuffleKeys, type Json } from "./rng.ts";
 
@@ -127,9 +128,16 @@ test("__proto__ injection changes the signing input and invalidates the original
 test("signRecord: output contains exactly SIGNED_FIELDS + signature, drops unknown fields, refuses floats, is deterministic", async () => {
   const kp = await keyPairFromSecret(keys.secret_key);
   const r = new Rng(SEED + 3);
+  let refused = 0, signedCount = 0;
   for (let i = 0; i < 100; i++) {
     const env = baseEnvelope(r) as unknown as Record<string, unknown>;
     env.junk = 1;
+    // Random bodies include member names that need an escape sequence. A receiver refuses those
+    // unparsed (docs/security/json-member-names.md), so signing must refuse them too.
+    let namesAreSafe = true;
+    try { assertSafeMemberNames(signingObject(env as unknown as UnsignedEnvelope)); } catch { namesAreSafe = false; }
+    if (!namesAreSafe) { refused++; await assert.rejects(signRecord(env as unknown as UnsignedEnvelope, kp.secretKey), UnsafeJsonError); continue; }
+    signedCount++;
     const signed = (await signRecord(env as unknown as UnsignedEnvelope, kp.secretKey)) as unknown as Record<string, unknown>;
     assert.deepEqual(Object.keys(signed).sort(), [...SIGNED_FIELDS, "signature"].sort());
     assert.equal(signed.junk, undefined);
@@ -140,6 +148,7 @@ test("signRecord: output contains exactly SIGNED_FIELDS + signature, drops unkno
     const other = { ...signed, issuer: { ...(signed.issuer as object), key_id: "ed25519:11111111111111111111111111111111111111111111" } } as unknown as Envelope;
     assert.equal((await verifyRecord(other)).ok, false);
   }
+  assert.ok(signedCount >= 20 && refused >= 1, `fuzzer exercised both outcomes (${signedCount} signed, ${refused} refused)`);
   const withFloat = { ...baseEnvelope(r), body: { amount: 1.5 } };
   await assert.rejects(signRecord(withFloat, kp.secretKey), FloatNotAllowedError);
 });

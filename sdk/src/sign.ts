@@ -1,4 +1,5 @@
 import { canonicalBytes, sha256Hex } from "./canonical.ts";
+import { assertSafeMemberNames } from "./safe-json.ts";
 import { decodeSignature, encodeSignature, signBytes, verifyBytes } from "./keys.ts";
 import { SIGNED_FIELDS, type Envelope, type UnsignedEnvelope } from "./envelope.ts";
 
@@ -22,6 +23,7 @@ export async function payloadHash(env: UnsignedEnvelope | Envelope): Promise<str
 
 export async function signRecord<T>(env: UnsignedEnvelope<T>, secretKey: string): Promise<Envelope<T>> {
   const base = signingObject(env as unknown as UnsignedEnvelope) as unknown as UnsignedEnvelope<T>;
+  assertSafeMemberNames(base); // a conforming receiver refuses such a record unparsed
   const sig = await signBytes(secretKey, canonicalBytes(base));
   return { ...base, signature: encodeSignature(sig) };
 }

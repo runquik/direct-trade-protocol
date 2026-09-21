@@ -1,5 +1,6 @@
 /** Replaceable bounded index over caller-authenticated publications. No transport or authority. */
 import { canonicalize, sha256Hex } from '../canonical.ts';
+import { parseUntrustedJson } from '../safe-json.ts';
 import { parseDecimal, formatDecimal } from '../profiles/decimal.ts';
 import { parseEntityReference, parseRevisionReference, parseExternalIdentifier, externalIdentifierKey,
   parseKnowledge, parseInstant, parseInstantInterval, parseTimeZone, entityReferenceKey } from './datatypes.ts';
@@ -199,7 +200,7 @@ export function createDiscoveryIndex(configuration: unknown): DiscoveryIndex {
       let after: string | null = null;
       if (q.cursor !== null) {
         let cursor: Record<string, any>;
-        try { cursor = exact(data(JSON.parse(q.cursor)), ['query_digest', 'visible_digest', 'after']); }
+        try { cursor = exact(data(parseUntrustedJson(q.cursor)), ['query_digest', 'visible_digest', 'after']); }
         catch { throw new DiscoveryError('cursor invalid; restart query', 'restart_required'); }
         demand(cursor.query_digest === query_digest && cursor.visible_digest === visible_digest && typeof cursor.after === 'string' && offers.some(p => entityReferenceKey(p.publication.revision.entity) === cursor.after), 'cursor invalid; restart query', 'restart_required');
         after = cursor.after;

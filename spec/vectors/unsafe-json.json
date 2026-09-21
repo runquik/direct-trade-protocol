@@ -1,0 +1,100 @@
+{
+  "description": "JSON member-name safety. A receiver MUST refuse every text under \"reject\" BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\". Each text is carried here as a string value; none appears as a member name.",
+  "rule": "An object member name must not be written with an escape sequence.",
+  "reject": [
+    {
+      "why": "a member named with one reverse solidus",
+      "text": "{\"\\\\\":1}"
+    },
+    {
+      "why": "an escaped newline as a name",
+      "text": "{\"\\n\":1}"
+    },
+    {
+      "why": "an escaped tab as a name",
+      "text": "{\"\\t\":1}"
+    },
+    {
+      "why": "an escaped quotation mark as a name",
+      "text": "{\"\\\"\":1}"
+    },
+    {
+      "why": "an escaped solidus as a name",
+      "text": "{\"\\/\":1}"
+    },
+    {
+      "why": "a control character written as a unicode escape",
+      "text": "{\"\\u0013\":1}"
+    },
+    {
+      "why": "an ordinary letter written as a unicode escape",
+      "text": "{\"\\u0041\":1}"
+    },
+    {
+      "why": "an escape inside a longer name",
+      "text": "{\"x\\\\y\":1}"
+    },
+    {
+      "why": "a second member, after a comma",
+      "text": "{\"a\":1,\"\\\\\":2}"
+    },
+    {
+      "why": "a nested object",
+      "text": "{\"a\":{\"\\n\":1}}"
+    },
+    {
+      "why": "an object inside an array",
+      "text": "[1,{\"\\\"\":1}]"
+    },
+    {
+      "why": "a name after a nested array closes",
+      "text": "{\"a\":[1,2],\"\\\\\":3}"
+    },
+    {
+      "why": "a name after a nested object closes",
+      "text": "{\"a\":{\"b\":1},\"\\\\\":2}"
+    },
+    {
+      "why": "insignificant whitespace around tokens",
+      "text": "{ \"a\" : 1 ,\n\t\"\\\\\" : 2 }"
+    },
+    {
+      "why": "text that is malformed after the unsafe name",
+      "text": "{\"\\\\\":1"
+    }
+  ],
+  "accept": [
+    {
+      "why": "escapes in a value",
+      "text": "{\"a\":\"\\\\\",\"b\":\"\\n\\t\\\"\"}"
+    },
+    {
+      "why": "escaped strings as array elements",
+      "text": "[\"\\\\\",\"\\u0013\"]"
+    },
+    {
+      "why": "an array of escaped strings as a member value",
+      "text": "{\"a\":[\"\\\\\"]}"
+    },
+    {
+      "why": "a value that looks like an unsafe object",
+      "text": "{\"a\":\"},{\\\"\\\\\\\\\\\":1}\"}"
+    },
+    {
+      "why": "a value ending in an escaped reverse solidus",
+      "text": "{\"a\":\"path\\\\\",\"b\":2}"
+    },
+    {
+      "why": "non-ASCII names, which need no escape",
+      "text": "{\"ünï\":1,\"日本\":2}"
+    },
+    {
+      "why": "a top-level string",
+      "text": "\"\\\\\""
+    },
+    {
+      "why": "empty containers and literals",
+      "text": "[{},[],null,true,false,0,-1,\"\",{\"a\":{}}]"
+    }
+  ]
+}
