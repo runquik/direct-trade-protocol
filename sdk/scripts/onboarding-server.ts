@@ -22,7 +22,9 @@ const host=createOnboardingHost(pgliteDb(pg),{id:config.id,audience:origin,key:a
 // Explicit allowlist, never expose the repository or private files via a generic file server.
 const modules=new Set(['src/onboarding/client.ts','src/keys.ts','src/base58.ts','src/canonical.ts','src/foundation/identity.ts']);
 const cache=new Map<string,string>();
-const server=onboardingServer(host,{origin,allowedOrigins:[origin,'http://127.0.0.1:8791'],asset:async path=>{
+// Other local clients under test. Browser origins are an explicit allowlist, never a wildcard.
+const extraOrigins=(process.env.DTP_ONBOARDING_ALLOWED_ORIGINS??'http://127.0.0.1:8791').split(',').map(value=>value.trim()).filter(value=>/^https?:\/\/[a-z0-9.\-]+(:\d+)?$/i.test(value));
+const server=onboardingServer(host,{origin,allowedOrigins:[origin,...extraOrigins],asset:async path=>{
   if(path==='/'||path==='/reference.js'||path==='/reference.css'){
     const file=path==='/'?'index.html':path.slice(1);return {body:await readFile(resolve(sdk,'../modules/passport/reference',file),'utf8'),type:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'text/javascript'};
   }
