@@ -14,6 +14,7 @@ The prose specification is [`/SPEC.md`](../SPEC.md). This directory holds what *
 | `vectors/canonicalization.json` | Inputs → canonical JSON → SHA-256 | yes |
 | `vectors/unsafe-json.json` | JSON texts a receiver must refuse before parsing, and texts it must accept; regenerate with `node sdk/scripts/build-unsafe-json-vectors.mjs` | yes |
 | `vectors/organization-identity.json` | Unreleased foundation layer: organization genesis → preimage → digest → id, and genesis objects a receiver must refuse; rules in [`docs/foundation/organization-identity.md`](../docs/foundation/organization-identity.md); regenerate with `node sdk/scripts/build-organization-vectors.ts` | yes, for the foundation layer only |
+| `vectors/identity-log.json` | Unreleased foundation layer: portable identity logs a verifier must accept, with the heads it must derive, and tampered, reordered, truncated and spliced logs it must refuse; rules in [`docs/foundation/identity-log.md`](../docs/foundation/identity-log.md); regenerate with `node sdk/scripts/build-identity-log-vectors.ts` | yes, for the foundation layer only |
 | `vectors/signatures.json` | A raw-message signature and two fully signed records for the fixed key | yes |
 | `generated/ts/types.d.ts` | TypeScript body types, generated from the schemas | derived |
 | `generated/accountability.md` | Who may create / transition each type, rendered from `x-dtp-transitions` | derived |

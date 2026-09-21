@@ -22,6 +22,7 @@ export * as invoice from "./profiles/invoice.ts";
 export * as datatypes from "./foundation/datatypes.ts";
 export * as semantics from "./foundation/semantics.ts";
 export * as identity from "./foundation/identity.ts";
+export * as identityLog from "./foundation/identity-log.ts";
 export * as organization from "./foundation/organization.ts";
 export * as authority from "./foundation/authority.ts";
 export * as changes from "./foundation/changes.ts";
