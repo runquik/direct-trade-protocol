@@ -3,6 +3,8 @@ import { canonicalBytes } from '../canonical.ts';
 import { generateKeyPair, keyPairFromSecret, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import { createIdentity, signIdentity, verifyResolution } from '../foundation/identity.ts';
 import type { Genesis, Signed, Transition } from '../foundation/identity.ts';
+import { verifyIdentityLog } from '../foundation/identity-log.ts';
+import type { IdentityLog } from '../foundation/identity-log.ts';
 import type { KeyPair } from '../keys.ts';
 import type { Command, Challenge, Request } from './host.ts';
 import { parseUntrustedJson, parseUntrustedResponse } from '../safe-json.ts';
@@ -75,4 +77,10 @@ export class PassportClient {
     return {next:{...this.wallet,kind:'operational',secret_key:key.secretKey},command};
   }
   async applyTransition(command:Signed<Transition>) { return this.transport('transition',{person_id:this.wallet.person_id,command}); }
+  /** The portable control history, to keep somewhere the host cannot reach. Verified against this wallet's pinned resolver before it is returned. */
+  async exportLog():Promise<IdentityLog> {
+    const log:IdentityLog=await this.transport('log',{person_id:this.wallet.person_id}),checked=await verifyIdentityLog(log,{require_attestation:true}),pinned=this.wallet.resolver;
+    if(checked.identity_id!==this.wallet.person_id||checked.resolver.id!==pinned.resolver_id||checked.resolver.key_id!==pinned.resolver_key||checked.resolver.audience!==pinned.audience)throw new Error('Identity log binding mismatch');
+    return log;
+  }
 }

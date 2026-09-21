@@ -24,6 +24,7 @@ async function fixture(directory?:string){
     if(path==='execute')return host.execute(input);
     if(path==='resolve')return host.registry.resolve(input);
     if(path==='transition')return host.registry.transition(input.person_id,input.command);
+    if(path==='log')return host.registry.exportLog(input.person_id);
     throw new Error('Unexpected test route');
   };
   async function enroll(){const bundle=await prepareIdentity(host.metadata(),now);await host.registry.enroll(bundle.genesis,bundle.enrollment);return {...bundle,client:new PassportClient(bundle.operational,transport)};}
@@ -179,5 +180,21 @@ test('a company id is the portable foundation derivation, computable by a client
     const other=await f.bob.client.run('company.create',null,{nonce,name:'Juniper Foods'});
     assert.notEqual(other.organization_id,created.organization_id);
     assert.equal('organizationId' in await import('../../src/onboarding/host.ts'),false,'the host defines no derivation of its own');
+  }finally{await f.close();}
+});
+test('a wallet exports its verified control history after rotation and recovery, and refuses one bound elsewhere',async()=>{
+  const {identityLog}=await import('../../src/preview.ts');
+  const f=await fixture();try{
+    const rotation=await f.alice.client.prepareTransition(f.now),accepted=await f.alice.client.applyTransition(rotation.command);f.advance(accepted.effective_at-f.now);
+    const recovery=new PassportClient(f.alice.recovery,f.transport),plan=await recovery.prepareTransition(f.now),result=await recovery.applyTransition(plan.command);f.advance(result.effective_at-f.now);
+    const log=await new PassportClient(plan.next,f.transport).exportLog(),verified=await identityLog.verifyIdentityLog(log,{require_attestation:true});
+    assert.equal(verified.identity_id,f.alice.operational.person_id);assert.equal(verified.head_digest,result.head_digest);assert.equal(verified.heads.length,3);
+    assert.deepEqual(verified.head.operational.keys,[(await keyPairFromSecret(plan.next.secret_key)).keyId]);
+    // A recovery-only wallet, the one most likely to need the log, can fetch it too.
+    assert.deepEqual(await recovery.exportLog(),log);
+    const repinned=new PassportClient({...plan.next,resolver:{...plan.next.resolver,resolver_key:(await generateKeyPair()).keyId}},f.transport);
+    await assert.rejects(repinned.exportLog(),/binding mismatch/);
+    const swapped=new PassportClient(plan.next,async(path,body)=>f.transport(path,path==='log'?{person_id:f.bob.operational.person_id}:body));
+    await assert.rejects(swapped.exportLog(),/binding mismatch/);
   }finally{await f.close();}
 });

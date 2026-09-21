@@ -4,6 +4,8 @@ import type { KeyPair } from '../keys.ts';
 import { canonicalBytes, canonicalize, sha256Hex } from '../canonical.ts';
 import { createIdentity, copyIdentityData, issueResolution, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
 import type { Genesis, IdentityState, ResolutionRequest, ResolverEnrollment, Signed, Transition } from './identity.ts';
+import { buildIdentityLog, recoverGenesisInstant } from './identity-log.ts';
+import type { IdentityLog } from './identity-log.ts';
 
 export interface ResolverConfig { id:string; audience:string; key:KeyPair; now:()=>number }
 export const IDENTITY_REGISTRY_SCHEMA = `
@@ -26,6 +28,8 @@ create table if not exists dtp_foundation.identity_history (
  primary key(identity_id, sequence), unique(identity_id, command_digest)
 );
 alter table dtp_foundation.identity_history add column if not exists result jsonb;
+-- When head 0 took effect. It is in no signed document, and the first transition overwrites the only other copy.
+alter table dtp_foundation.identities add column if not exists genesis_effective_at bigint check (genesis_effective_at >= 0);
 `;
 interface Row { body:IdentityState; genesis_digest:string; enrollment_digest:string; resolver_audience:string; status:string; revision:string|number }
 function need(ok:unknown,why:string):asserts ok{if(!ok)throw new Error(why);}
@@ -52,7 +56,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
       await verifyResolverEnrollment(candidate,enrollment,audience,now);
       const enrollment_digest=await digest(enrollment.body),genesis_digest=candidate.genesis_digest;
       return db.transaction(async tx=>{
-        await tx.query('insert into dtp_foundation.identities(identity_id,genesis_digest,enrollment_digest,resolver_audience,body) values($1,$2,$3,$4,$5::text::jsonb) on conflict(identity_id) do nothing',[candidate.head.identity_id,genesis_digest,enrollment_digest,audience,JSON.stringify(candidate)]);
+        await tx.query('insert into dtp_foundation.identities(identity_id,genesis_digest,enrollment_digest,resolver_audience,body,genesis_effective_at) values($1,$2,$3,$4,$5::text::jsonb,$6) on conflict(identity_id) do nothing',[candidate.head.identity_id,genesis_digest,enrollment_digest,audience,JSON.stringify(candidate),candidate.head.effective_at]);
         const row=await locked(tx,candidate.head.identity_id);
         need(row.genesis_digest===genesis_digest&&row.enrollment_digest===enrollment_digest,'identity enrollment conflict');
         await tx.query('insert into dtp_foundation.identity_history(identity_id,sequence,command_digest,body) values($1,0,$2,$3::text::jsonb) on conflict(identity_id,sequence) do nothing',[candidate.head.identity_id,enrollment_digest,JSON.stringify({genesis,enrollment})]);
@@ -90,6 +94,27 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
         // The transaction promise must commit before this signed proof reaches the caller.
         return issued.proof;
       });
+    },
+    /** The portable, resolver-attested control history. Public keys and signatures only. A frozen or
+     *  transferred identity stays exportable: leaving must not depend on remaining in good standing. */
+    async exportLog(identity:string):Promise<IdentityLog>{
+      id(identity);
+      const parts=await db.transaction(async tx=>{
+        const rows=await tx.query<{body:IdentityState;resolver_audience:string;genesis_effective_at:string|number|null}>('select body,resolver_audience,genesis_effective_at from dtp_foundation.identities where identity_id=$1 for update',[identity]);
+        need(rows.length===1,'identity unavailable');const row=rows[0];
+        need(row.body.resolver_id===resolver.id&&row.body.resolver_key===resolver.key_id&&row.resolver_audience===audience,'identity belongs to another resolver');
+        const history=await tx.query<{body:any;result:{effective_at:number}|null}>('select body,result from dtp_foundation.identity_history where identity_id=$1 order by sequence',[identity]);
+        need(history.length>=1&&history.length===row.body.head.sequence+1,'identity history incomplete');
+        const {genesis,enrollment}=history[0].body as {genesis:Signed<Genesis>;enrollment:Signed<ResolverEnrollment>};
+        const transitions=history.slice(1).map(h=>{need(h.result!==null,'identity history incomplete');return {command:h.body as Signed<Transition>,effective_at:h.result.effective_at};});
+        const recorded=row.genesis_effective_at!==null?Number(row.genesis_effective_at):transitions.length===0?row.body.head.effective_at:null;
+        return {genesis,enrollment,recorded,transitions};
+      });
+      // Rows enrolled before the instant was recorded: recover it from the first owner-signed transition, outside the row lock.
+      const genesis_effective_at=parts.recorded??await recoverGenesisInstant(parts.genesis,parts.enrollment,parts.transitions[0].command.body.expected_digest);
+      need(genesis_effective_at!==null,'identity history incomplete');
+      // buildIdentityLog verifies what it emits, so a damaged store fails here rather than at a verifier.
+      return buildIdentityLog({genesis:parts.genesis,enrollment:parts.enrollment,genesis_effective_at,transitions:parts.transitions},key);
     },
   };
 }
