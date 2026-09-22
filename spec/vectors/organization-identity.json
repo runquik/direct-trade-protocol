@@ -1,0 +1,235 @@
+{
+  "description": "Organization identity. For every \"accept\" entry an implementation MUST derive exactly this preimage, genesis_digest and organization_id from the genesis. It MUST refuse every \"reject\" genesis. Person ids here are fixed synthetic values, not registered identities.",
+  "domain": "DTP-ORGANIZATION-GENESIS-1",
+  "rule": "genesis_digest = SHA-256(UTF-8(canonical JSON of {\"domain\":domain,\"body\":genesis})) as lowercase hex; organization_id = its first 32 hex characters formatted 8-4-4-4-12.",
+  "accept": [
+    {
+      "why": "a sole founder-controller",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1
+      },
+      "preimage": "{\"body\":{\"controllers\":[\"11111111-1111-4111-8111-111111111111\"],\"founder\":\"11111111-1111-4111-8111-111111111111\",\"nonce\":\"0f0e0d0c-0b0a-4908-8706-050403020100\",\"threshold\":1},\"domain\":\"DTP-ORGANIZATION-GENESIS-1\"}",
+      "genesis_digest": "664bdfec5632d404f37a5a3853fa2d78297d279e6c9b8e22ae1e52e79612b145",
+      "organization_id": "664bdfec-5632-d404-f37a-5a3853fa2d78"
+    },
+    {
+      "why": "two of three controllers, founder first",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "threshold": 2
+      },
+      "preimage": "{\"body\":{\"controllers\":[\"11111111-1111-4111-8111-111111111111\",\"22222222-2222-4222-8222-222222222222\",\"33333333-3333-4333-8333-333333333333\"],\"founder\":\"11111111-1111-4111-8111-111111111111\",\"nonce\":\"0f0e0d0c-0b0a-4908-8706-050403020100\",\"threshold\":2},\"domain\":\"DTP-ORGANIZATION-GENESIS-1\"}",
+      "genesis_digest": "ea5555ec3f45a354cd98614f77fdb022240ab2a1548acb8c8167e4adda824092",
+      "organization_id": "ea5555ec-3f45-a354-cd98-614f77fdb022"
+    },
+    {
+      "why": "the same controllers with a different founder is a different organization",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "22222222-2222-4222-8222-222222222222",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "threshold": 2
+      },
+      "preimage": "{\"body\":{\"controllers\":[\"11111111-1111-4111-8111-111111111111\",\"22222222-2222-4222-8222-222222222222\",\"33333333-3333-4333-8333-333333333333\"],\"founder\":\"22222222-2222-4222-8222-222222222222\",\"nonce\":\"0f0e0d0c-0b0a-4908-8706-050403020100\",\"threshold\":2},\"domain\":\"DTP-ORGANIZATION-GENESIS-1\"}",
+      "genesis_digest": "070f32d9899e2e59116b61a24a27834c48e1ad2da7b3784a3d8ae5f7d027e6f8",
+      "organization_id": "070f32d9-899e-2e59-116b-61a24a27834c"
+    },
+    {
+      "why": "the same controllers with a different threshold is a different organization",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "threshold": 3
+      },
+      "preimage": "{\"body\":{\"controllers\":[\"11111111-1111-4111-8111-111111111111\",\"22222222-2222-4222-8222-222222222222\",\"33333333-3333-4333-8333-333333333333\"],\"founder\":\"11111111-1111-4111-8111-111111111111\",\"nonce\":\"0f0e0d0c-0b0a-4908-8706-050403020100\",\"threshold\":3},\"domain\":\"DTP-ORGANIZATION-GENESIS-1\"}",
+      "genesis_digest": "a71bed4b5712d96ef0a181e91a81f54f70db555309b05a3056c8da2caaa2ea22",
+      "organization_id": "a71bed4b-5712-d96e-f0a1-81e91a81f54f"
+    },
+    {
+      "why": "a different nonce is a different organization",
+      "genesis": {
+        "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1
+      },
+      "preimage": "{\"body\":{\"controllers\":[\"11111111-1111-4111-8111-111111111111\"],\"founder\":\"11111111-1111-4111-8111-111111111111\",\"nonce\":\"00010203-0405-4607-8809-0a0b0c0d0e0f\",\"threshold\":1},\"domain\":\"DTP-ORGANIZATION-GENESIS-1\"}",
+      "genesis_digest": "3cf1dd2b0757eba09f5a69739252a7f8420361410305269aa7962da833d88f3b",
+      "organization_id": "3cf1dd2b-0757-eba0-9f5a-69739252a7f8"
+    }
+  ],
+  "reject": [
+    {
+      "why": "controllers not in ascending order",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "22222222-2222-4222-8222-222222222222",
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "a repeated controller",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "a founder who is not an initial controller",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "33333333-3333-4333-8333-333333333333",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "a threshold of zero",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 0
+      }
+    },
+    {
+      "why": "a threshold above the number of controllers",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222"
+        ],
+        "threshold": 3
+      }
+    },
+    {
+      "why": "a non-integer threshold",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": "1"
+      }
+    },
+    {
+      "why": "no controllers",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "more than sixteen controllers",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "00000000-0000-4000-8000-000000000000",
+        "controllers": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010",
+          "00000000-0000-4000-8000-000000000011",
+          "00000000-0000-4000-8000-000000000012",
+          "00000000-0000-4000-8000-000000000013",
+          "00000000-0000-4000-8000-000000000014",
+          "00000000-0000-4000-8000-000000000015",
+          "00000000-0000-4000-8000-000000000016"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "an uppercase identifier",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8AAA-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8AAA-111111111111"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "a nonce that is not UUID-format",
+      "genesis": {
+        "nonce": "not-a-nonce",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1
+      }
+    },
+    {
+      "why": "an extra member",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "threshold": 1,
+        "name": "Example Foods"
+      }
+    },
+    {
+      "why": "a missing member",
+      "genesis": {
+        "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "founder": "11111111-1111-4111-8111-111111111111",
+        "controllers": [
+          "11111111-1111-4111-8111-111111111111"
+        ]
+      }
+    }
+  ]
+}

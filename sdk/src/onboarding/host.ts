@@ -8,6 +8,8 @@ import { createIdentityRegistry } from '../foundation/identity-registry.ts';
 import type { ResolverConfig } from '../foundation/identity-registry.ts';
 import { createAuthorityState, issueGrant, revokeGrant, authorizeAndCharge } from '../foundation/authority.ts';
 import type { AuthorityState, CapabilityGrant } from '../foundation/authority.ts';
+import { organizationGenesisDigest, organizationGovernance } from '../foundation/organization.ts';
+import type { OrganizationGenesis } from '../foundation/organization.ts';
 
 export const COMMAND_DOMAIN = 'DTP-ONBOARDING-PREVIEW-COMMAND-1';
 export const PROFILE = '1'.repeat(64); // Reserved synthetic profile; not an admitted accounting profile.
@@ -25,6 +27,9 @@ create index if not exists onboarding_challenge_person on dtp_onboarding.challen
 create table if not exists dtp_onboarding.companies (
  organization_id uuid primary key, name text not null, controller_id uuid not null, authority jsonb not null
 );
+-- The full genesis is retained so the organization can be re-presented elsewhere. Rows created before these columns have none.
+alter table dtp_onboarding.companies add column if not exists genesis jsonb;
+alter table dtp_onboarding.companies add column if not exists genesis_digest text check (genesis_digest ~ '^[0-9a-f]{64}$');
 create table if not exists dtp_onboarding.memberships (
  organization_id uuid not null references dtp_onboarding.companies(organization_id), person_id uuid not null,
  grant_id uuid not null, status text not null check(status in ('pending','active','revoked')), role text not null,
@@ -61,10 +66,6 @@ function validate(c:Command) {
   else if(c.action==='membership.accept'){exact(p,['grant_id']);uuid(p.grant_id);}
   else if(c.action==='note.create'){exact(p,['note_id','body']);uuid(p.note_id);text(p.body,2000);}
   else exact(p,[]);
-}
-export async function organizationId(founder:string,nonce:string) {
-  uuid(founder);uuid(nonce);const h=await digest({domain:'DTP-ONBOARDING-PREVIEW-ORGANIZATION-1',founder,nonce});
-  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20,32)}`;
 }
 export function createOnboardingHost(db:Db, config:ResolverConfig) {
   const registry=createIdentityRegistry(db,config);
@@ -128,9 +129,11 @@ export function createOnboardingHost(db:Db, config:ResolverConfig) {
         // Reads are always fresh; never replay a stale company list or data snapshot.
         if(prior&&!['company.read','companies.list','invitations.list','audit.read'].includes(c.action)) result=prior.result;
         else if(c.action==='company.create') {
-          const org=await organizationId(id,c.parameters.nonce),grant=makeGrant(org,id,'controller',config.now());
-          const authority=issueGrant(createAuthorityState([{organization_id:org,controllers:[person(id)],threshold:1}]),grant,[{principal:person(id)}],config.now());
-          await tx.query('insert into dtp_onboarding.companies values($1,$2,$3,$4::jsonb)',[org,c.parameters.name,id,JSON.stringify(authority)]);
+          // This preview creates one controller. The signed command is that sole controller's consent to the genesis.
+          const genesis:OrganizationGenesis={nonce:c.parameters.nonce,founder:id,controllers:[id],threshold:1};
+          const governance=await organizationGovernance(genesis),org=governance.organization_id,grant=makeGrant(org,id,'controller',config.now());
+          const authority=issueGrant(createAuthorityState([governance]),grant,[{principal:person(id)}],config.now());
+          await tx.query('insert into dtp_onboarding.companies(organization_id,name,controller_id,authority,genesis,genesis_digest) values($1,$2,$3,$4::jsonb,$5::jsonb,$6)',[org,c.parameters.name,id,JSON.stringify(authority),JSON.stringify(genesis),await organizationGenesisDigest(genesis)]);
           await tx.query("insert into dtp_onboarding.memberships values($1,$2,$3,'active','controller',$2)",[org,id,grant.id]);
           result={organization_id:org,name:c.parameters.name,role:'controller'};
         } else if(c.action==='companies.list') {

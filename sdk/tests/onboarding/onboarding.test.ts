@@ -167,3 +167,17 @@ test('HTTP denies foreign origins, DNS rebinding, non-JSON and unknown paths wit
     const bad=await post('application/json');assert.equal(bad.status,400);assert.deepEqual(JSON.parse(bad.body),{error:'Request rejected; check identity, permission, and input'});
   }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await f.close();}
 });
+test('a company id is the portable foundation derivation, computable by a client before it asks, and its genesis is retained',async()=>{
+  const {organization}=await import('../../src/preview.ts');
+  const f=await fixture();try{
+    const nonce=crypto.randomUUID(),founder=f.alice.operational.person_id,genesis={nonce,founder,controllers:[founder],threshold:1};
+    const created=await f.alice.client.run('company.create',null,{nonce,name:'Juniper Foods'});
+    assert.equal(created.organization_id,await organization.organizationId(genesis));
+    const row=(await f.pg.query<{genesis:unknown;genesis_digest:string}>('select genesis,genesis_digest from dtp_onboarding.companies where organization_id=$1',[created.organization_id])).rows[0];
+    assert.deepEqual(row.genesis,genesis);assert.equal(row.genesis_digest,await organization.organizationGenesisDigest(genesis));
+    // The same nonce from another founder is another organization, never a claim on this one.
+    const other=await f.bob.client.run('company.create',null,{nonce,name:'Juniper Foods'});
+    assert.notEqual(other.organization_id,created.organization_id);
+    assert.equal('organizationId' in await import('../../src/onboarding/host.ts'),false,'the host defines no derivation of its own');
+  }finally{await f.close();}
+});

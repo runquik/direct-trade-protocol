@@ -44,7 +44,7 @@ Reference state is durable under `sdk/.onboarding-data/`, ignored by Git. It inc
 
 ## Company authority and persistence
 
-- Companies use a preview, host-independent founder-plus-nonce identifier with an explicit experimental signing contract; it is not advertised as the final company genesis standard.
+- A company is a keyless derived identifier controlled by people, per the [organization identity decision](organization-identity.md). The host derives the id through the portable foundation function under `DTP-ORGANIZATION-GENESIS-1`, from a genesis that commits to the founder, a nonce and the initial controllers and threshold, and retains that genesis. It defines no derivation of its own. Companies created by an earlier run of this preview keep the id they were given; it is not re-derived.
 - Each company has one controller. Viewer/editor invitations are addressed to a registered person and require that person's signed acceptance of the exact grant ID. A revoked/replaced invitation cannot be accepted by replaying an old acceptance.
 - Viewers may read company notes; editors may also create notes. Only the controller invites/revokes or reads the access log. The sole controller cannot be revoked. Multi-controller governance and controller transfer are not exposed in this slice.
 - The foundation grant engine rechecks current grants, expiry, scope and controller authority. Revocation blocks subsequent commands and receipt replay; it cannot recall data already downloaded or displayed.
