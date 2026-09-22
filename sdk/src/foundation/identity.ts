@@ -20,6 +20,13 @@ export interface Transition {
   identity_id: string; expected_digest: string; sequence: number; kind: 'rotate' | 'recover' | 'recovery-policy';
   operational: KeySet; recovery: KeySet; issued_at: number; expires_at: number;
 }
+/** Owner consent to a new resolver, or a new resolver key, signed by the recovery quorum alone. */
+export interface Rehome {
+  identity_id: string; expected_digest: string; sequence: number;
+  from: { resolver_id: string; resolver_epoch: number };
+  to: { resolver_id: string; resolver_key: string; audience: string; resolver_epoch: number };
+  issued_at: number; expires_at: number;
+}
 export interface ResolutionRequest { identity_id: string; audience: string; challenge: string }
 export interface Resolution extends ResolutionRequest {
   resolver_id: string; resolver_epoch: number; head: Control; head_digest: string; issued_at: number; expires_at: number;
@@ -90,7 +97,7 @@ async function verified<T>(signed: Signed<T>, domain: string) {
   return result;
 }
 function quorum(keys: KeySet, signers: Set<string>) { need(keys.keys.filter(k => signers.has(k)).length >= keys.threshold, 'quorum required'); }
-export async function signIdentity<T>(domain: 'DTP-PERSON-GENESIS-1' | 'DTP-IDENTITY-TRANSITION-1' | 'DTP-IDENTITY-RESOLUTION-1' | 'DTP-IDENTITY-ENROLLMENT-1', body: T, keys: KeyPair[]): Promise<Signed<T>> {
+export async function signIdentity<T>(domain: 'DTP-PERSON-GENESIS-1' | 'DTP-IDENTITY-TRANSITION-1' | 'DTP-IDENTITY-RESOLUTION-1' | 'DTP-IDENTITY-ENROLLMENT-1' | 'DTP-IDENTITY-REHOME-1', body: T, keys: KeyPair[]): Promise<Signed<T>> {
   const copied = structuredClone(body), bytes = canonicalBytes({domain, body:copied});
   return {body:copied, signatures:await Promise.all(keys.map(async k => ({key_id:k.keyId,signature:encodeSignature(await signBytes(k.secretKey,bytes))})))};
 }
@@ -141,11 +148,38 @@ export async function transitionIdentity(current: IdentityState, signed: Signed<
   result.head={identity_id:p.identity_id,sequence:p.sequence,previous_digest:p.expected_digest,operational:structuredClone(p.operational),recovery:structuredClone(p.recovery),effective_at:Math.max(now,current.last_lease_expiry+CLOCK_MARGIN_MS)};
   result.head_digest=await digest(result.head);result.retired_keys=retired;result.last_update=now;return result;
 }
+function origin(audience:unknown) {
+  need(typeof audience==='string' && audience.length<=2048,'invalid audience');
+  const url=new URL(audience); need(url.origin===audience && ['http:','https:'].includes(url.protocol),'exact audience origin required');
+}
 function request(value:ResolutionRequest) {
   need(uuid(value.identity_id),'invalid identity');
   need(typeof value.challenge==='string' && /^[0-9a-f]{64}$/.test(value.challenge),'256-bit verifier challenge required');
-  need(typeof value.audience==='string' && value.audience.length<=2048,'invalid audience');
-  const url=new URL(value.audience); need(url.origin===value.audience && ['http:','https:'].includes(url.protocol),'exact audience origin required');
+  origin(value.audience);
+}
+/** Moves the identity to another resolver, or rotates the resolver key, without changing control. Recovery quorum only.
+ * No lease drain: the key sets are unchanged, so old and new resolver vouch for identical control. The former resolver
+ * may hold a lease this one never saw, so the state starts as if one were issued now; the first KEY change here waits
+ * a full lease plus the margin. The head commits to the rehome document through previous_digest. */
+export async function rehomeIdentity(current: IdentityState, signed: Signed<Rehome>, now: number): Promise<IdentityState> {
+  current=copyIdentityData(current);signed=copyIdentityData(signed);
+  clock(now); need(now>=current.last_update && now>=current.head.effective_at,'control transition barrier pending or clock regressed');
+  object(signed, ['body','signatures']);
+  const p=signed.body; object(p,['identity_id','expected_digest','sequence','from','to','issued_at','expires_at']);
+  object(p.from,['resolver_id','resolver_epoch']); object(p.to,['resolver_id','resolver_key','audience','resolver_epoch']);
+  need(p.identity_id===current.head.identity_id && p.expected_digest===current.head_digest && p.sequence===current.head.sequence+1 && Number.isSafeInteger(p.sequence),'stale control head');
+  need(p.from.resolver_id===current.resolver_id && p.from.resolver_epoch===current.resolver_epoch,'rehome does not leave the current resolver');
+  need(uuid(p.to.resolver_id) && Number.isSafeInteger(p.to.resolver_epoch) && p.to.resolver_epoch===current.resolver_epoch+1,'resolver epoch must advance by one');
+  key(p.to.resolver_key); origin(p.to.audience);
+  timestamp(p.issued_at); timestamp(p.expires_at);
+  need(p.issued_at<=now && p.expires_at>now && p.expires_at>p.issued_at && p.expires_at-p.issued_at<=300_000,'rehome expired or outside window');
+  need(![...current.head.operational.keys,...current.head.recovery.keys,...current.retired_keys].includes(p.to.resolver_key),'a key that controls the person cannot resolve it');
+  const signers=await verified(signed,'DTP-IDENTITY-REHOME-1'); quorum(current.head.recovery,signers);
+  const result=structuredClone(current);
+  result.head={identity_id:p.identity_id,sequence:p.sequence,previous_digest:await digest({domain:'DTP-IDENTITY-REHOME-1',body:p}),operational:structuredClone(current.head.operational),recovery:structuredClone(current.head.recovery),effective_at:now};
+  result.head_digest=await digest(result.head);
+  result.resolver_id=p.to.resolver_id;result.resolver_key=p.to.resolver_key;result.resolver_epoch=p.to.resolver_epoch;
+  result.last_lease_expiry=now+LEASE_MS;result.last_update=now;return result;
 }
 export async function issueResolution(current:IdentityState, input:ResolutionRequest, resolverKey:KeyPair, now:number):Promise<{state:IdentityState;proof:Signed<Resolution>}> {
   current=copyIdentityData(current);input=copyIdentityData(input);

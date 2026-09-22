@@ -22,7 +22,9 @@ export function onboardingServer(host:Host,options:{origin:string;allowedOrigins
       if(req.method!=='POST'||!path.startsWith('/api/'))return send(404,{error:'Not found'});
       if(req.headers['content-type']!=='application/json')return send(415,{error:'JSON required'});
       const chunks:Buffer[]=[];let size=0;
-      for await(const chunk of req){size+=chunk.length;if(size>32768){send(413,{error:'Request too large'});return;}chunks.push(chunk);}
+      // A full identity log is larger than a command; it is still bounded by the log verifier's own limits.
+      const limit=['/api/adopt','/api/transfer'].includes(path)?1048576:32768;
+      for await(const chunk of req){size+=chunk.length;if(size>limit){send(413,{error:'Request too large'});return;}chunks.push(chunk);}
       const input=parseUntrustedJson(Buffer.concat(chunks).toString('utf8')) as any;
       if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Object required');
       let result:unknown;
@@ -30,6 +32,8 @@ export function onboardingServer(host:Host,options:{origin:string;allowedOrigins
       else if(path==='/api/resolve')result=await host.registry.resolve(input);
       else if(path==='/api/transition')result=await host.registry.transition(input.person_id,input.command);
       else if(path==='/api/log')result=await host.registry.exportLog(input.person_id);
+      else if(path==='/api/adopt')result=await host.registry.adopt(input.log,input.rehome);
+      else if(path==='/api/transfer')result=await host.registry.transfer(input.log);
       else if(path==='/api/challenge')result=await host.challenge(input.person_id,input.command);
       else if(path==='/api/execute')result=await host.execute(input);
       else return send(404,{error:'Not found'});

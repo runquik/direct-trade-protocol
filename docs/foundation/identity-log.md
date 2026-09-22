@@ -11,12 +11,14 @@ A control head is `{identity_id, sequence, previous_digest, operational, recover
 The log carries the signed documents plus the one host-asserted value per head, the instant itself. Lease history and acceptance times are not needed: they only ever mattered through the instant they produced, and the rules below bound that instant without them.
 
 ```
-IdentityLog      { format: "dtp-identity-log-1", genesis: Signed<Genesis>, enrollment: Signed<ResolverEnrollment>, entries: [Entry, ...] }
-Entry            { effective_at: integer ms, transition: Signed<Transition> | null, attestation: Signed<HeadAttestation> | null }
+IdentityLog      { format: "dtp-identity-log-2", genesis: Signed<Genesis>, enrollment: Signed<ResolverEnrollment>, entries: [Entry, ...] }
+Entry            { effective_at: integer ms, transition: Signed<Transition> | null, rehome: Signed<Rehome> | null, attestation: Signed<HeadAttestation> | null }
 HeadAttestation  { identity_id, resolver_id, resolver_epoch, sequence, head_digest, effective_at }
 ```
 
-`entries[n]` describes head `n`. `entries[0].transition` is `null`; every later entry carries the owner-signed transition that produced its head. All objects are closed. There are between 1 and 4096 entries. The log holds public keys and signatures only.
+`entries[n]` describes head `n`. Entry 0 carries neither a transition nor a rehome; every later entry carries exactly one of them: the owner-signed transition or the owner-signed [rehome](identity-rehoming-proposal.md) that produced its head. All objects are closed. There are between 1 and 4096 entries. The log holds public keys and signatures only.
+
+Format 1 (`dtp-identity-log-1`) is the same log without the `rehome` member. It remains valid, is verified by the same rules, and cannot express a move.
 
 ## Normative: verification
 
@@ -77,4 +79,16 @@ Host side: the reference registry gains `exportLog(identity)`, which assembles t
 
 The registry previously kept head 0's instant only inside the current-state row, which the first transition overwrites, so an identity that had ever rotated could not have exported a verifiable log. It now records the instant at enrollment (additive column `genesis_effective_at`). For rows enrolled earlier, `recoverGenesisInstant` finds it: it lies in the enrollment window of at most 300,000 ms, and the first transition's owner-signed `expected_digest` identifies it.
 
-Not provided: a transparency log or witnesses, gossip of attestations between relying parties, any entry type for a change of resolver (reserved for the re-homing design, which will extend this format under a new format string if an entry kind is needed), and an equivalent log for organization governance.
+Not provided: a transparency log or witnesses, gossip of attestations between relying parties, and an equivalent log for organization governance.
+
+## Moves between resolvers (format 2)
+
+A rehome entry is verified by `rehomeIdentity` under the identity contract: recovery quorum of the previous head, exact `expected_digest` and `sequence`, `from` equal to the binding in force, `to.resolver_epoch` one higher, `to.resolver_key` never a control key of this identity. Its instant `E[n]` satisfies `E[n] >= issued_at`, `E[n] >= E[n-1]`, `E[n-1] < expires_at` and `E[n] < expires_at`: a move has no lease barrier, so the upper bound is the window itself. The resulting head keeps both key sets and has `previous_digest = digest({domain:"DTP-IDENTITY-REHOME-1", body: rehome})`.
+
+The resolver binding is per epoch. Entry 0's enrollment fixes epoch 0; each rehome fixes the next. An attestation must be signed by the resolver key of the epoch its entry belongs to, and the rehome entry belongs to the **new** epoch. A verified log reports every binding it passed through (`resolvers`) and each head's epoch.
+
+**Epoch precedence** (`precedence`): between two valid histories of one identity that diverge, the one whose current binding has the higher epoch supersedes, wherever they fork. Forks at one epoch are a conflict. One history being a prefix of the other is not a fork.
+
+**Admission** (`admitIdentityLog`): a relying party holding a pin `(resolver_id, resolver_key, resolver_epoch, minimum_sequence, minimum_digest)` admits a log only if the log's binding **at the pinned epoch** equals the pin, the log reaches at least the pinned sequence, and the pinned digest is either consistent with the log or superseded by a higher epoch. It then stores the log's current binding and head as its new pin, atomically, and refuses the former resolver from then on. A same-epoch conflict is refused.
+
+Vectors for moves, both formats, and precedence pairs are in the same file.
