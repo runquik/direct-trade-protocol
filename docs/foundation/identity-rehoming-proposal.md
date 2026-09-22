@@ -1,6 +1,6 @@
 # Moving an identity to another host: design proposal
 
-September 21, 2026. Status: **proposal for owner review. Nothing here is implemented.** It depends on the [portable identity log](identity-log.md). It asks for one previously ratified decision to be reversed (D1 below), so it should not be implemented on the strength of this document alone.
+September 21, 2026. Status: **approved by the owner the same day, D1 to D9 as recommended, and implemented in the reference SDK; see section 9.** Sections 4 and 7 are the normative text pending independent review. It depends on the [portable identity log](identity-log.md). It reverses one previously ratified decision (D1).
 
 ## 1. The gap
 
@@ -185,3 +185,25 @@ To be written as a real test, against two registries on separate databases with 
 7. The RP is shown the log, admits the move, accepts a resolution from B, and from then on **refuses a freshly issued, correctly signed resolution from A**.
 8. An operational-key thief's rival branch, vouched for by A, loses to the owner's log by epoch precedence. A rehome signed by the operational quorum is refused by B and by the RP.
 9. The identity id is identical at every step.
+
+## 9. Implementation record
+
+Implemented September 21, 2026, on the decisions above. Implementer-tested on Node 22.23.2; not independently reviewed.
+
+| Piece | Where | Normative or reference |
+|---|---|---|
+| `Rehome` document, `DTP-IDENTITY-REHOME-1`, `rehomeIdentity` | `sdk/src/foundation/identity.ts` | Normative rules, reference code |
+| Log format 2, per-epoch bindings, `precedence`, `admitIdentityLog` | `sdk/src/foundation/identity-log.ts`, [identity-log.md](identity-log.md) | Normative |
+| Vectors: moves, both formats, precedence pairs, 47 refusals | `spec/vectors/identity-log.json` | Normative |
+| Registry `adopt`, `transfer`, general `exportLog`; `attestation` column | `sdk/src/foundation/identity-registry.ts` | Reference |
+| `POST /api/adopt`, `POST /api/transfer`; wallet `prepareRehome`, `adopt`, `release`, `rehomeWallet`; `resolver_epoch` in the wallet's pinned resolver | `sdk/src/onboarding/{http,client}.ts` | Reference |
+| Exit test (section 8), cooperative and round-trip moves, adoption refusals | `sdk/tests/foundation/identity-rehoming.test.ts`, `sdk/tests/onboarding/onboarding.test.ts` | Acceptance |
+
+Departures from the proposal text, all within the approved decisions:
+
+- The destination accepts unattested heads when adopting (`require_attestation: false`), since a hostile former host may have attested nothing; the rehome's `expected_digest` pins the last head regardless. The reference wallet still requires attestation when it exports for its own records.
+- A former host's `transfer` accepts any verified log containing the rehome that leaves it, not only one ending there, because the destination may already have moved on.
+- Returning to a former host extends the history that host already holds rather than starting over; the stored rows must be a prefix of the presented log.
+- D7 (abandoned rehome) is not implemented: a rehome under which no head was ever adopted is a dangling signed document, and a second rehome from the same head would be a same-epoch conflict for any verifier that saw both.
+
+Not implemented: admission of a move into the person-authentication adapter's durable pins (its pins are static configuration; making them mutable state is a separate change to that reviewed adapter), automatic log export by the wallet after every change, owner push of the log to relying parties, and the witness or transparency layer.

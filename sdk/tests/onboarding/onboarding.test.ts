@@ -8,9 +8,10 @@ import {request as httpRequest} from 'node:http';
 import {pgliteDb} from '../../../supabase/functions/dtp-store/db.ts';
 import {IDENTITY_REGISTRY_SCHEMA} from '../../src/foundation/identity-registry.ts';
 import {createOnboardingHost,ONBOARDING_SCHEMA} from '../../src/onboarding/host.ts';
-import {PassportClient,prepareIdentity,encryptWallet,decryptWallet,signCommand} from '../../src/onboarding/client.ts';
+import {PassportClient,prepareIdentity,encryptWallet,decryptWallet,signCommand,rehomeWallet} from '../../src/onboarding/client.ts';
 import type {Transport} from '../../src/onboarding/client.ts';
 import {generateKeyPair,keyPairFromSecret} from '../../src/keys.ts';
+import {LEASE_MS,CLOCK_MARGIN_MS} from '../../src/foundation/identity.ts';
 import {onboardingServer} from '../../src/onboarding/http.ts';
 
 async function fixture(directory?:string){
@@ -25,6 +26,8 @@ async function fixture(directory?:string){
     if(path==='resolve')return host.registry.resolve(input);
     if(path==='transition')return host.registry.transition(input.person_id,input.command);
     if(path==='log')return host.registry.exportLog(input.person_id);
+    if(path==='adopt')return host.registry.adopt(input.log,input.rehome);
+    if(path==='transfer')return host.registry.transfer(input.log);
     throw new Error('Unexpected test route');
   };
   async function enroll(){const bundle=await prepareIdentity(host.metadata(),now);await host.registry.enroll(bundle.genesis,bundle.enrollment);return {...bundle,client:new PassportClient(bundle.operational,transport)};}
@@ -197,4 +200,31 @@ test('a wallet exports its verified control history after rotation and recovery,
     const swapped=new PassportClient(plan.next,async(path,body)=>f.transport(path,path==='log'?{person_id:f.bob.operational.person_id}:body));
     await assert.rejects(swapped.exportLog(),/binding mismatch/);
   }finally{await f.close();}
+});
+test('a person moves their identity to a second host with the recovery file and the exported log; the first host learns of it only if told',async()=>{
+  const {identityLog}=await import('../../src/preview.ts');
+  const a=await fixture();const b=await fixture();try{
+    b.advance(a.now-b.now+1000);
+    const company=await a.company(),rotation=await a.alice.client.prepareTransition(a.now),accepted=await a.alice.client.applyTransition(rotation.command);a.advance(accepted.effective_at-a.now);b.advance(a.now-b.now);
+    const atA=new PassportClient(rotation.next,a.transport),log=await atA.exportLog();
+    // Only the recovery file and the log. Host A is not consulted.
+    const recovery=new PassportClient(a.alice.recovery,a.transport),{rehome,next}=await recovery.prepareRehome(log,b.host.metadata(),b.now);
+    assert.equal(next.resolver.resolver_epoch,1);
+    const adopted=await new PassportClient(next,b.transport).adopt(log,rehome);assert.deepEqual([adopted.sequence,adopted.resolver_epoch],[2,1]);
+    const atB=new PassportClient(rehomeWallet(rotation.next,b.host.metadata()),b.transport);
+    const moved=await identityLog.verifyIdentityLog(await atB.exportLog(),{require_attestation:true});
+    assert.equal(moved.resolver.id,b.host.metadata().resolver_id);assert.equal(moved.identity_id,a.alice.operational.person_id);
+    // Ordinary life continues at B, including key rotation under B's conservative barrier; A still serves the stale identity until told.
+    assert.deepEqual(await atB.run('companies.list'),[],'companies stay where they were created');
+    const again=await atB.prepareTransition(b.now),second=await atB.applyTransition(again.command);assert.equal(second.effective_at,adopted.effective_at+LEASE_MS+CLOCK_MARGIN_MS);
+    assert.equal((await atA.run('companies.list'))[0].organization_id,company.organization_id,'host A, not yet told, still vouches for the old binding');
+    // Cooperative release: A stops serving the identity and answers with the forwarding log.
+    await recovery.release(await atB.exportLog());
+    await assert.rejects(atA.run('companies.list'),/Identity unavailable/);
+    const forwarded=await identityLog.verifyIdentityLog(await a.host.registry.exportLog(a.alice.operational.person_id),{require_attestation:true});
+    assert.equal(forwarded.resolver.id,b.host.metadata().resolver_id);
+    // The operational file cannot move the identity; a wallet pinned to the wrong epoch cannot read the log.
+    await assert.rejects(atB.prepareRehome(log,a.host.metadata()),/recovery authority/);
+    await assert.rejects(new PassportClient(rotation.next,b.transport).exportLog(),/binding mismatch/);
+  }finally{await a.close();await b.close();}
 });

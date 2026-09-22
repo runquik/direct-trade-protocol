@@ -73,6 +73,7 @@ export function createOnboardingHost(db:Db, config:ResolverConfig) {
     const rows=await tx.query<{body:IdentityState;status:string;resolver_audience:string}>('select body,status,resolver_audience from dtp_foundation.identities where identity_id=$1 for update',[id]);
     need(rows.length===1 && rows[0].status==='active','Identity unavailable'); const s=rows[0].body;
     need(s.resolver_id===config.id && s.resolver_key===config.key.keyId && rows[0].resolver_audience===config.audience,'Resolver binding mismatch');
+    // An adopted identity is served here from its rehome onward; its companies stay where they were created.
     need(config.now()>=s.head.effective_at && config.now()>=s.last_update,'Identity transition pending'); return s;
   }
   async function saveCompany(tx:Db,c:Company) { await tx.query('update dtp_onboarding.companies set authority=$1::jsonb where organization_id=$2',[JSON.stringify(c.authority),c.organization_id]); }

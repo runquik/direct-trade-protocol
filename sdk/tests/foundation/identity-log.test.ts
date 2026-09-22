@@ -10,7 +10,7 @@ import { generateKeyPair } from '../../src/keys.ts';
 import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
 import type { IdentityState, Transition, Signed } from '../../src/foundation/identity.ts';
-import { attestHead, buildIdentityLog, compareCheckpoint, recoverGenesisInstant, verifyIdentityLog, IDENTITY_LOG_FORMAT } from '../../src/foundation/identity-log.ts';
+import { attestHead, buildIdentityLog, compareCheckpoint, precedence, recoverGenesisInstant, verifyIdentityLog, IDENTITY_LOG_FORMAT, LEGACY_IDENTITY_LOG_FORMAT } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts } from '../../src/foundation/identity-log.ts';
 
 const start = 1_800_000_000_000, audience = 'https://resolver.example';
@@ -23,7 +23,7 @@ async function live() {
   let state = await createIdentity(genesis, { id: resolverId, key_id: resolver.keyId }, start);
   const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: state.head.identity_id, genesis_digest: state.genesis_digest, resolver_id: resolverId,
     resolver_key: resolver.keyId, audience, nonce: 'e'.repeat(64), issued_at: start - 1000, expires_at: start + 299_000 }, [op0, rec0]);
-  const parts: IdentityLogParts = { genesis, enrollment, genesis_effective_at: start, transitions: [] }, states: IdentityState[] = [state];
+  const parts: IdentityLogParts = { genesis, enrollment, entries: [{ effective_at: start, transition: null, rehome: null, attestation: null }] }, states: IdentityState[] = [state];
   let now = start;
   async function step(kind: Transition['kind'], operational: string[], recovery: string[], signers: KeyPair[], leaseFirst: boolean) {
     now = Math.max(now + 7_000, state.head.effective_at);
@@ -32,7 +32,7 @@ async function live() {
       operational: { keys: operational, threshold: 1 }, recovery: { keys: recovery, threshold: 1 }, issued_at: now - 500, expires_at: now + 200_000 };
     const command = await signIdentity('DTP-IDENTITY-TRANSITION-1', body, signers);
     state = await transitionIdentity(state, command, now); states.push(state);
-    parts.transitions.push({ command, effective_at: state.head.effective_at });
+    parts.entries.push({ effective_at: state.head.effective_at, transition: command, rehome: null, attestation: null });
   }
   await step('rotate', [op1.keyId], [rec0.keyId], [op0, op1], true);        // a lease pushes effective_at past acceptance
   await step('recover', [op2.keyId], [rec0.keyId], [rec0, op2], false);      // no outstanding lease
@@ -44,7 +44,7 @@ const clone = <T>(v: T): T => structuredClone(v);
 test('identity log: a verifier holding only the log reproduces every head digest the live host computed', async () => {
   const f = await live(), log = await buildIdentityLog(f.parts, f.resolver);
   assert.equal(log.format, IDENTITY_LOG_FORMAT);
-  assert.ok(f.states[1].head.effective_at > f.parts.transitions[0].command.body.issued_at + LEASE_MS, 'fixture exercises the lease barrier');
+  assert.ok(f.states[1].head.effective_at > f.parts.entries[1].transition!.body.issued_at + LEASE_MS, 'fixture exercises the lease barrier');
   const verified = await verifyIdentityLog(clone(log), strict);
   assert.deepEqual(verified.heads.map(h => h.head_digest), f.states.map(s => s.head_digest));
   assert.deepEqual(verified.head, f.state.head); assert.equal(verified.head_digest, f.state.head_digest);
@@ -68,10 +68,13 @@ test('identity log: tampered, reordered, truncated-in-the-middle and spliced log
     ['another identity\'s genesis', l => { l.genesis = clone(foreign.genesis); }],
     ['another identity\'s enrollment', l => { l.enrollment = clone(foreign.enrollment); }],
     ['a genesis instant outside the enrollment window', l => { l.entries[0].effective_at = start + 299_000; l.entries[0].attestation = null; }],
-    ['an unknown format', l => { (l as any).format = 'dtp-identity-log-2'; }],
+    ['an unknown format', l => { (l as any).format = 'dtp-identity-log-3'; }],
+    ['a format 1 log carrying a rehome member', l => { (l as any).format = 'dtp-identity-log-1'; }],
+    ['an entry carrying both a transition and a rehome', l => { l.entries[1].rehome = { body: { identity_id: 'x' }, signatures: [] } as any; }],
     ['an extra member', l => { (l as any).note = 'x'; }],
     ['an extra entry member', l => { (l.entries[1] as any).accepted_at = start; }],
     ['a transition on the genesis entry', l => { l.entries[0].transition = clone(l.entries[1].transition); }],
+    ['a rehome on the genesis entry', l => { l.entries[0].rehome = { body: { identity_id: 'x' }, signatures: [] } as any; }],
     ['no entries', l => { l.entries = []; }],
   ];
   for (const [why, damage] of cases) { const l = clone(log); damage(l); await assert.rejects(verifyIdentityLog(l, lenient), why); }
@@ -79,7 +82,7 @@ test('identity log: tampered, reordered, truncated-in-the-middle and spliced log
 });
 
 test('identity log: instants are bounded by what the owner signed', async () => {
-  const f = await live(), log = await buildIdentityLog({ ...f.parts, transitions: f.parts.transitions.slice(0, 1) }, null);
+  const f = await live(), log = await buildIdentityLog({ ...f.parts, entries: f.parts.entries.slice(0, 2) }, null);
   const t = log.entries[1].transition!.body, check = async (at: number) => { const l = clone(log); l.entries[1].effective_at = at; return verifyIdentityLog(l, lenient); };
   await assert.rejects(check(t.issued_at - 1), /precedes/);
   await assert.rejects(check(t.expires_at + LEASE_MS + CLOCK_MARGIN_MS), /beyond/);
@@ -130,26 +133,30 @@ test('identity log: a verified log and a fresh resolution together prove current
 });
 
 test('identity log: a host that never recorded the genesis instant can recover it from the first transition', async () => {
-  const f = await live(), first = f.parts.transitions[0].command;
+  const f = await live(), first = f.parts.entries[1].transition!;
   assert.equal(await recoverGenesisInstant(f.parts.genesis, f.parts.enrollment, first.body.expected_digest), start);
   assert.equal(await recoverGenesisInstant(f.parts.genesis, f.parts.enrollment, 'f'.repeat(64)), null);
 });
 
 test('identity log conformance vectors: accepted logs yield exactly the published heads; every rejected log is refused', async () => {
   const file = fileURLToPath(new URL('../../../spec/vectors/identity-log.json', import.meta.url));
-  const vectors = parseUntrustedJson(readFileSync(file, 'utf8')) as { format: string; lease_ms: number; clock_margin_ms: number;
-    accept: { why: string; require_attestation: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; require_attestation: boolean; log: IdentityLog }[] };
-  assert.equal(vectors.format, IDENTITY_LOG_FORMAT); assert.equal(vectors.lease_ms, LEASE_MS); assert.equal(vectors.clock_margin_ms, CLOCK_MARGIN_MS);
-  assert.ok(vectors.accept.length >= 4 && vectors.reject.length >= 31);
+  const vectors = parseUntrustedJson(readFileSync(file, 'utf8')) as { format: string; legacy_format: string; rehome_domain: string; lease_ms: number; clock_margin_ms: number;
+    accept: { why: string; require_attestation: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; require_attestation: boolean; log: IdentityLog }[];
+    precedence: { why: string; a: IdentityLog; b: IdentityLog; expect: ReturnType<typeof precedence> }[] };
+  assert.equal(vectors.format, IDENTITY_LOG_FORMAT); assert.equal(vectors.legacy_format, LEGACY_IDENTITY_LOG_FORMAT); assert.equal(vectors.rehome_domain, 'DTP-IDENTITY-REHOME-1');
+  assert.equal(vectors.lease_ms, LEASE_MS); assert.equal(vectors.clock_margin_ms, CLOCK_MARGIN_MS);
+  assert.ok(vectors.accept.length >= 8 && vectors.reject.length >= 47 && vectors.precedence.length >= 5);
+  assert.ok(vectors.accept.some(v => v.log.format === LEGACY_IDENTITY_LOG_FORMAT) && vectors.accept.some(v => v.log.entries.some(e => e.rehome !== null)), 'both formats and a move are covered');
   for (const v of vectors.accept) {
     const r = await verifyIdentityLog(v.log, { require_attestation: v.require_attestation });
-    assert.deepEqual({ identity_id: r.identity_id, genesis_digest: r.genesis_digest, resolver: r.resolver,
-      heads: r.heads.map(h => ({ sequence: h.head.sequence, head_digest: h.head_digest, effective_at: h.head.effective_at, attested: h.attested })),
+    assert.deepEqual({ identity_id: r.identity_id, genesis_digest: r.genesis_digest, resolver: r.resolver, resolvers: r.resolvers,
+      heads: r.heads.map(h => ({ sequence: h.head.sequence, head_digest: h.head_digest, effective_at: h.head.effective_at, epoch: h.epoch, attested: h.attested })),
       operational: r.head.operational, recovery: r.head.recovery, retired_keys: r.retired_keys, unattested: r.unattested }, v.expect, v.why);
     // Each head digest is recomputed here from first principles with a second SHA-256 implementation.
     for (const h of r.heads) assert.equal(createHash('sha256').update(canonicalize(h.head), 'utf8').digest('hex'), h.head_digest, v.why);
   }
   for (const v of vectors.reject) await assert.rejects(verifyIdentityLog(v.log, { require_attestation: v.require_attestation }), v.why);
+  for (const v of vectors.precedence) assert.equal(precedence(await verifyIdentityLog(v.a, { require_attestation: false }), await verifyIdentityLog(v.b, { require_attestation: false })), v.expect, v.why);
   const run = spawnSync(process.execPath, [fileURLToPath(new URL('../../scripts/build-identity-log-vectors.ts', import.meta.url)), '--check'], { encoding: 'utf8', timeout: 120_000 });
   assert.equal(run.status, 0, run.stderr);
 });

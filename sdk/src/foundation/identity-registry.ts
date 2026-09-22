@@ -2,10 +2,10 @@
 import type { Db } from '../../../supabase/functions/dtp-store/db.ts';
 import type { KeyPair } from '../keys.ts';
 import { canonicalBytes, canonicalize, sha256Hex } from '../canonical.ts';
-import { createIdentity, copyIdentityData, issueResolution, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
-import type { Genesis, IdentityState, ResolutionRequest, ResolverEnrollment, Signed, Transition } from './identity.ts';
-import { buildIdentityLog, recoverGenesisInstant } from './identity-log.ts';
-import type { IdentityLog } from './identity-log.ts';
+import { createIdentity, copyIdentityData, issueResolution, rehomeIdentity, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
+import type { Genesis, IdentityState, Rehome, ResolutionRequest, ResolverEnrollment, Signed, Transition } from './identity.ts';
+import { attestHead, buildIdentityLog, recoverGenesisInstant, verifyIdentityLog } from './identity-log.ts';
+import type { IdentityLog, IdentityLogEntry } from './identity-log.ts';
 
 export interface ResolverConfig { id:string; audience:string; key:KeyPair; now:()=>number }
 export const IDENTITY_REGISTRY_SCHEMA = `
@@ -30,8 +30,13 @@ create table if not exists dtp_foundation.identity_history (
 alter table dtp_foundation.identity_history add column if not exists result jsonb;
 -- When head 0 took effect. It is in no signed document, and the first transition overwrites the only other copy.
 alter table dtp_foundation.identities add column if not exists genesis_effective_at bigint check (genesis_effective_at >= 0);
+-- Resolver head attestations, including those of former resolvers, which this host cannot re-issue.
+alter table dtp_foundation.identity_history add column if not exists attestation jsonb;
 `;
-interface Row { body:IdentityState; genesis_digest:string; enrollment_digest:string; resolver_audience:string; status:string; revision:string|number }
+interface Row { body:IdentityState; genesis_digest:string; enrollment_digest:string; resolver_audience:string; status:string; revision:string|number; genesis_effective_at:string|number|null }
+interface HistoryRow { sequence:string|number; body:unknown; result:{effective_at:number}|null; attestation:IdentityLogEntry['attestation'] }
+const isRehome=(body:unknown):body is {rehome:Signed<Rehome>}=>typeof body==='object'&&body!==null&&'rehome' in body;
+function entry(h:HistoryRow):IdentityLogEntry{ return {effective_at:h.result!.effective_at,transition:isRehome(h.body)?null:h.body as Signed<Transition>,rehome:isRehome(h.body)?h.body.rehome:null,attestation:h.attestation??null}; }
 function need(ok:unknown,why:string):asserts ok{if(!ok)throw new Error(why);}
 function id(value:string){need(typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value),'invalid identity id');}
 const digest=(v:unknown)=>sha256Hex(canonicalBytes(v));
@@ -39,9 +44,12 @@ const digest=(v:unknown)=>sha256Hex(canonicalBytes(v));
 export function createIdentityRegistry(db:Db,config:ResolverConfig){
   id(config.id);const parsed=new URL(config.audience);need(parsed.origin===config.audience&&['http:','https:'].includes(parsed.protocol),'exact resolver audience required');
   const resolver={id:config.id,key_id:config.key.keyId},audience=config.audience,key={...config.key,seed:new Uint8Array(config.key.seed),publicKey:new Uint8Array(config.key.publicKey)};
+  async function anyRow(tx:Db,identity:string):Promise<Row>{
+    id(identity);const rows=await tx.query<Row>('select body,genesis_digest,enrollment_digest,resolver_audience,status,revision,genesis_effective_at from dtp_foundation.identities where identity_id=$1 for update',[identity]);
+    need(rows.length===1,'identity unavailable');return rows[0];
+  }
   async function locked(tx:Db,identity:string):Promise<Row>{
-    id(identity);const rows=await tx.query<Row>('select body,genesis_digest,enrollment_digest,resolver_audience,status,revision from dtp_foundation.identities where identity_id=$1 for update',[identity]);
-    need(rows.length===1,'identity unavailable');const row=rows[0];need(row.status==='active','identity resolver frozen or transferred');
+    const row=await anyRow(tx,identity);need(row.status==='active','identity resolver frozen or transferred');
     need(row.body.resolver_id===resolver.id&&row.body.resolver_key===resolver.key_id&&row.resolver_audience===audience,'identity belongs to another resolver');return row;
   }
   async function save(tx:Db,row:Row,state:IdentityState){
@@ -100,21 +108,83 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
     async exportLog(identity:string):Promise<IdentityLog>{
       id(identity);
       const parts=await db.transaction(async tx=>{
-        const rows=await tx.query<{body:IdentityState;resolver_audience:string;genesis_effective_at:string|number|null}>('select body,resolver_audience,genesis_effective_at from dtp_foundation.identities where identity_id=$1 for update',[identity]);
-        need(rows.length===1,'identity unavailable');const row=rows[0];
-        need(row.body.resolver_id===resolver.id&&row.body.resolver_key===resolver.key_id&&row.resolver_audience===audience,'identity belongs to another resolver');
-        const history=await tx.query<{body:any;result:{effective_at:number}|null}>('select body,result from dtp_foundation.identity_history where identity_id=$1 order by sequence',[identity]);
-        need(history.length>=1&&history.length===row.body.head.sequence+1,'identity history incomplete');
+        const row=await anyRow(tx,identity);
+        const history=await tx.query<HistoryRow>('select sequence,body,result,attestation from dtp_foundation.identity_history where identity_id=$1 order by sequence',[identity]);
+        need(history.length>=1&&history.length===row.body.head.sequence+1&&history.every((h,i)=>Number(h.sequence)===i),'identity history incomplete');
         const {genesis,enrollment}=history[0].body as {genesis:Signed<Genesis>;enrollment:Signed<ResolverEnrollment>};
-        const transitions=history.slice(1).map(h=>{need(h.result!==null,'identity history incomplete');return {command:h.body as Signed<Transition>,effective_at:h.result.effective_at};});
-        const recorded=row.genesis_effective_at!==null?Number(row.genesis_effective_at):transitions.length===0?row.body.head.effective_at:null;
-        return {genesis,enrollment,recorded,transitions};
+        // Our binding, or a history that leaves us: a transferred identity is served up to and including its rehome.
+        const tail=history[history.length-1].body;
+        const leaving=row.status==='transferred'&&isRehome(tail)&&tail.rehome.body.from.resolver_id===resolver.id;
+        need(leaving||(row.body.resolver_id===resolver.id&&row.body.resolver_key===resolver.key_id&&row.resolver_audience===audience),'identity belongs to another resolver');
+        const later=history.slice(1).map(h=>{need(h.result!==null,'identity history incomplete');return entry(h);});
+        const recorded=row.genesis_effective_at!==null?Number(row.genesis_effective_at):later.length===0?row.body.head.effective_at:null;
+        return {genesis,enrollment,recorded,first:history[0].attestation??null,later};
       });
       // Rows enrolled before the instant was recorded: recover it from the first owner-signed transition, outside the row lock.
-      const genesis_effective_at=parts.recorded??await recoverGenesisInstant(parts.genesis,parts.enrollment,parts.transitions[0].command.body.expected_digest);
+      const genesis_effective_at=parts.recorded??(parts.later[0].transition!==null?await recoverGenesisInstant(parts.genesis,parts.enrollment,parts.later[0].transition.body.expected_digest):null);
       need(genesis_effective_at!==null,'identity history incomplete');
       // buildIdentityLog verifies what it emits, so a damaged store fails here rather than at a verifier.
-      return buildIdentityLog({genesis:parts.genesis,enrollment:parts.enrollment,genesis_effective_at,transitions:parts.transitions},key);
+      return buildIdentityLog({genesis:parts.genesis,enrollment:parts.enrollment,entries:[{effective_at:genesis_effective_at,transition:null,rehome:null,attestation:parts.first},...parts.later]},key);
+    },
+    /** Destination side of a move. Verifies the whole log from genesis and the owner-signed rehome naming this
+     *  resolver, stores the entire history so this host can export a complete log later, and continues from the
+     *  new head. Unattested heads are accepted: the former host may be gone or hostile, and the rehome's
+     *  expected_digest pins the last head anyway. Returning to a former host extends the stored prefix. */
+    async adopt(log:IdentityLog,rehome:Signed<Rehome>){
+      log=copyIdentityData(log);rehome=copyIdentityData(rehome);
+      const now=config.now(),verified=await verifyIdentityLog(log,{require_attestation:false}),identity=verified.identity_id;
+      const next=await rehomeIdentity(verified.state,rehome,now);
+      need(next.resolver_id===resolver.id&&next.resolver_key===resolver.key_id&&rehome.body.to.audience===audience,'rehome names another resolver');
+      const result={identity_id:identity,head_digest:next.head_digest,sequence:next.head.sequence,effective_at:next.head.effective_at,resolver_epoch:next.resolver_epoch};
+      const rows:{sequence:number;command_digest:string;body:unknown;result:unknown|null;attestation:unknown|null}[]=[];
+      for(let n=0;n<log.entries.length;n++){
+        const e=log.entries[n],body=n===0?{genesis:log.genesis,enrollment:log.enrollment}:e.transition!==null?e.transition:{rehome:e.rehome!};
+        const signed=n===0?log.enrollment.body:e.transition!==null?e.transition.body:e.rehome!.body;
+        rows.push({sequence:n,command_digest:await digest(signed),body,result:n===0?null:{identity_id:identity,head_digest:verified.heads[n].head_digest,sequence:n,effective_at:e.effective_at},attestation:e.attestation});
+      }
+      rows.push({sequence:rows.length,command_digest:await digest(rehome.body),body:{rehome},result,attestation:await attestHead(next.head,{id:resolver.id,epoch:next.resolver_epoch},key)});
+      return db.transaction(async tx=>{
+        await tx.query('insert into dtp_foundation.identities(identity_id,genesis_digest,enrollment_digest,resolver_audience,body,genesis_effective_at) values($1,$2,$3,$4,$5::text::jsonb,$6) on conflict(identity_id) do nothing',[identity,verified.genesis_digest,rows[0].command_digest,audience,JSON.stringify(next),log.entries[0].effective_at]);
+        const row=await anyRow(tx,identity);
+        need(row.genesis_digest===verified.genesis_digest,'identity enrollment conflict');
+        const stored=await tx.query<HistoryRow>('select sequence,body,result,attestation from dtp_foundation.identity_history where identity_id=$1 order by sequence',[identity]);
+        // Whatever this host already holds must be a prefix of the presented history; an exact replay acknowledges.
+        need(stored.length<=rows.length&&stored.every((h,i)=>Number(h.sequence)===i),'identity history incomplete');
+        for(let i=0;i<stored.length;i++)need(canonicalize(stored[i].body)===canonicalize(rows[i].body)&&(i===0||stored[i].result?.effective_at===(rows[i].result as {effective_at:number}).effective_at),'identity already held with a different history');
+        if(stored.length===rows.length){need(row.body.head_digest===next.head_digest,'identity already held with a different history');return copyIdentityData(stored[rows.length-1].result) as typeof result;}
+        need(row.status!=='frozen','identity resolver frozen');
+        for(const r of rows.slice(stored.length))await tx.query('insert into dtp_foundation.identity_history(identity_id,sequence,command_digest,body,result,attestation) values($1,$2,$3,$4::text::jsonb,$5::text::jsonb,$6::text::jsonb)',[identity,r.sequence,r.command_digest,JSON.stringify(r.body),r.result===null?null:JSON.stringify(r.result),r.attestation===null?null:JSON.stringify(r.attestation)]);
+        const changed=await tx.query("update dtp_foundation.identities set body=$1::text::jsonb,resolver_audience=$2,status='active',revision=revision+1 where identity_id=$3 and revision=$4 returning identity_id",[JSON.stringify(next),audience,identity,row.revision]);
+        need(changed.length===1,'identity concurrent update');
+        return result;
+      });
+    },
+    /** Former-host side of a cooperative move. Verifies a log that leaves this resolver, records the rehome and stops
+     *  serving the identity. From then on this host answers with the log ending in the rehome: a forwarding address
+     *  that needs no trust in this host. Optional courtesy; the move is valid without it. */
+    async transfer(log:IdentityLog){
+      log=copyIdentityData(log);
+      const verified=await verifyIdentityLog(log,{require_attestation:false}),identity=verified.identity_id;
+      return db.transaction(async tx=>{
+        const row=await anyRow(tx,identity),held=row.body;
+        // The rehome that leaves the binding this host holds, or held until it transferred, wherever it sits in the verified log.
+        const epoch=row.status==='transferred'?held.resolver_epoch-1:held.resolver_epoch;
+        const n=log.entries.findIndex(e=>e.rehome!==null&&e.rehome.body.from.resolver_id===resolver.id&&e.rehome.body.from.resolver_epoch===epoch);
+        need(n>0&&row.resolver_audience===audience,'log does not leave this resolver');
+        const move=log.entries[n],rehome_digest=await digest(move.rehome!.body);
+        const existing=await tx.query<HistoryRow>('select sequence,body,result,attestation from dtp_foundation.identity_history where identity_id=$1 and command_digest=$2',[identity,rehome_digest]);
+        if(existing.length){need(row.status==='transferred'&&canonicalize((existing[0].body as {rehome:unknown}).rehome)===canonicalize(move.rehome),'transfer replay envelope conflict');return copyIdentityData(existing[0].result) as {identity_id:string;head_digest:string;sequence:number;effective_at:number;resolver_epoch:number};}
+        need(row.status==='active'&&held.resolver_id===resolver.id&&held.resolver_key===resolver.key_id,'identity resolver frozen or transferred');
+        need(n===held.head.sequence+1&&move.rehome!.body.expected_digest===held.head_digest,'stale control head');
+        // Recompute the head after the rehome from what this host holds; it must be the head the log proves.
+        const next=await rehomeIdentity({...held,last_update:held.head.effective_at},move.rehome!,move.effective_at);
+        need(next.head_digest===verified.heads[n].head_digest,'stale control head');
+        const result={identity_id:identity,head_digest:next.head_digest,sequence:n,effective_at:move.effective_at,resolver_epoch:next.resolver_epoch};
+        await tx.query('insert into dtp_foundation.identity_history(identity_id,sequence,command_digest,body,result,attestation) values($1,$2,$3,$4::text::jsonb,$5::text::jsonb,$6::text::jsonb)',[identity,n,rehome_digest,JSON.stringify({rehome:move.rehome}),JSON.stringify(result),move.attestation===null?null:JSON.stringify(move.attestation)]);
+        const changed=await tx.query("update dtp_foundation.identities set body=$1::text::jsonb,status='transferred',revision=revision+1 where identity_id=$2 and revision=$3 and status='active' returning identity_id",[JSON.stringify(next),identity,row.revision]);
+        need(changed.length===1,'identity concurrent update');
+        return result;
+      });
     },
   };
 }

@@ -7,8 +7,8 @@ import { sha256Sync } from '../src/sha256.ts';
 import { encodeKeyId, encodeSecretKey } from '../src/keys.ts';
 import type { KeyPair } from '../src/keys.ts';
 import { createIdentity, signIdentity, CLOCK_MARGIN_MS, LEASE_MS } from '../src/foundation/identity.ts';
-import type { Transition } from '../src/foundation/identity.ts';
-import { attestHead, buildIdentityLog, verifyIdentityLog, HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT } from '../src/foundation/identity-log.ts';
+import type { Rehome, Transition } from '../src/foundation/identity.ts';
+import { attestHead, buildIdentityLog, precedence, verifyIdentityLog, HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT, LEGACY_IDENTITY_LOG_FORMAT } from '../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts } from '../src/foundation/identity-log.ts';
 
 const PKCS8 = [0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20];
@@ -18,7 +18,7 @@ async function fixedKey(label: string): Promise<KeyPair> {
   const publicKey = new Uint8Array(Buffer.from((await crypto.subtle.exportKey('jwk', key)).x!, 'base64url'));
   return { keyId: encodeKeyId(publicKey), secretKey: encodeSecretKey(seed, publicKey), publicKey, seed };
 }
-const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger'] as const;
+const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger', 'resolver-b', 'operational-3'] as const;
 const k = Object.fromEntries(await Promise.all(labels.map(async l => [l, await fixedKey(l)]))) as Record<typeof labels[number], KeyPair>;
 
 const T = 1_800_000_000_000, resolverId = '5e5e5e5e-0000-4000-8000-00000000000a', audience = 'https://resolver.example';
@@ -29,7 +29,7 @@ const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id
   resolver_key: k.resolver.keyId, audience, nonce: 'e'.repeat(64), issued_at: T, expires_at: T + 300_000 }, [k['operational-0'], k['recovery-0']]);
 
 /** Builds the chain one verified step at a time, so each expected_digest is the real previous head. */
-const parts: IdentityLogParts = { genesis, enrollment, genesis_effective_at: at0, transitions: [] };
+const parts: IdentityLogParts = { genesis, enrollment, entries: [{ effective_at: at0, transition: null, rehome: null, attestation: null }] };
 async function headDigest() { return (await verifyIdentityLog(await buildIdentityLog(parts, null), { require_attestation: false })); }
 async function transition(kind: Transition['kind'], operational: string[], recovery: string[], signers: KeyPair[], issued_at: number, overrides: Partial<Transition> = {}) {
   const current = await headDigest();
@@ -38,13 +38,13 @@ async function transition(kind: Transition['kind'], operational: string[], recov
 }
 const op = (n: 0 | 1 | 2) => k[`operational-${n}`], rec = (n: 0 | 1) => k[`recovery-${n}`];
 // Head 1: a lease issued at T+60,000 was outstanding, so control took effect at the barrier, after acceptance.
-parts.transitions.push({ command: await transition('rotate', [op(1).keyId], [rec(0).keyId], [op(0), op(1)], T + 61_000), effective_at: T + 60_000 + LEASE_MS + CLOCK_MARGIN_MS });
+parts.entries.push({ effective_at: T + 60_000 + LEASE_MS + CLOCK_MARGIN_MS, transition: await transition('rotate', [op(1).keyId], [rec(0).keyId], [op(0), op(1)], T + 61_000), rehome: null, attestation: null });
 // Head 2: no outstanding lease; effective at acceptance.
-parts.transitions.push({ command: await transition('recover', [op(2).keyId], [rec(0).keyId], [rec(0), op(2)], T + 200_000), effective_at: T + 200_750 });
-parts.transitions.push({ command: await transition('recovery-policy', [op(2).keyId], [rec(1).keyId], [rec(0), rec(1)], T + 400_000), effective_at: T + 400_000 + LEASE_MS + CLOCK_MARGIN_MS });
+parts.entries.push({ effective_at: T + 200_750, transition: await transition('recover', [op(2).keyId], [rec(0).keyId], [rec(0), op(2)], T + 200_000), rehome: null, attestation: null });
+parts.entries.push({ effective_at: T + 400_000 + LEASE_MS + CLOCK_MARGIN_MS, transition: await transition('recovery-policy', [op(2).keyId], [rec(1).keyId], [rec(0), rec(1)], T + 400_000), rehome: null, attestation: null });
 
 const attested = await buildIdentityLog(parts, k.resolver), bare = await buildIdentityLog(parts, null);
-const genesisOnly = await buildIdentityLog({ ...parts, transitions: [] }, k.resolver);
+const genesisOnly = await buildIdentityLog({ ...parts, entries: parts.entries.slice(0, 1) }, k.resolver);
 const clone = <V>(v: V): V => structuredClone(v);
 function damaged(base: IdentityLog, change: (log: IdentityLog) => void | Promise<void>) { const log = clone(base); return Promise.resolve(change(log)).then(() => log); }
 const last = attested.entries.length - 1;
@@ -52,7 +52,29 @@ const shifted = await damaged(bare, l => { l.entries[last].effective_at += 1; })
 // Signed material that is individually genuine but breaks a control rule.
 const current = await headDigest();
 const bad = async (kind: Transition['kind'], operational: string[], recovery: string[], signers: KeyPair[], overrides: Partial<Transition> = {}): Promise<IdentityLog> =>
-  ({ ...clone(bare), entries: [...clone(bare.entries), { effective_at: T + 700_000, attestation: null, transition: await transition(kind, operational, recovery, signers, T + 700_000, overrides) }] });
+  ({ ...clone(bare), entries: [...clone(bare.entries), { effective_at: T + 700_000, attestation: null, rehome: null, transition: await transition(kind, operational, recovery, signers, T + 700_000, overrides) }] });
+
+// A move to a second resolver, then a recovery there. Heads 0-3 are attested by the first resolver, 4-5 by the second.
+const resolverB = '5e5e5e5e-0000-4000-8000-00000000000b', audienceB = 'https://host-b.example', moveAt = T + 900_000;
+const rehomeBody: Rehome = { identity_id: id, expected_digest: current.head_digest, sequence: current.head.sequence + 1, from: { resolver_id: resolverId, resolver_epoch: 0 },
+  to: { resolver_id: resolverB, resolver_key: k['resolver-b'].keyId, audience: audienceB, resolver_epoch: 1 }, issued_at: moveAt - 1_000, expires_at: moveAt + 299_000 };
+const signRehome = (body: Rehome, signers: KeyPair[] = [rec(1)]) => signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', body, signers);
+const withMove = async (body: Rehome, signers?: KeyPair[], at = moveAt): Promise<IdentityLogParts> =>
+  ({ ...parts, entries: [...clone(attested.entries), { effective_at: at, transition: null, rehome: await signRehome(body, signers), attestation: null }] });
+const movedParts = await withMove(rehomeBody), movedHead = await verifyIdentityLog(await buildIdentityLog(movedParts, null), { require_attestation: false });
+const afterMove = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: movedHead.head_digest, sequence: 5, kind: 'recover',
+  operational: { keys: [k['operational-3'].keyId], threshold: 1 }, recovery: { keys: [rec(1).keyId], threshold: 1 }, issued_at: moveAt + 100, expires_at: moveAt + 300_000 }, [rec(1), k['operational-3']]);
+// The second resolver never saw the first one's leases, so its first key change waits a full lease plus the margin after adoption.
+movedParts.entries.push({ effective_at: moveAt + LEASE_MS + CLOCK_MARGIN_MS, transition: afterMove, rehome: null, attestation: null });
+const moved = await buildIdentityLog(movedParts, k['resolver-b']), movedBare = await buildIdentityLog(movedParts, null);
+const sameResolverNewKey = await buildIdentityLog(await withMove({ ...rehomeBody, to: { ...rehomeBody.to, resolver_id: resolverId, audience } }), k['resolver-b']);
+const legacy = (log: IdentityLog): IdentityLog => ({ ...clone(log), format: LEGACY_IDENTITY_LOG_FORMAT, entries: log.entries.map(({ rehome: _, ...rest }) => rest as never) });
+// A log whose move is signed material the rules refuse: assembled without verification, since building would refuse it.
+const movedBad = async (body: Rehome, signers?: KeyPair[], at = moveAt): Promise<IdentityLog> =>
+  ({ ...clone(movedBare), entries: [...clone(attested.entries), { effective_at: at, transition: null, rehome: await signRehome(body, signers), attestation: null }] });
+// Forks of one identity, for epoch precedence.
+const thiefRotate = async (operational: KeyPair): Promise<IdentityLog> => ({ ...clone(bare), entries: [...clone(bare.entries), { effective_at: T + 950_000, attestation: null, rehome: null, transition: await transition('rotate', [operational.keyId], [rec(1).keyId], [op(2), operational], T + 950_000) }] });
+const thiefBranch = await thiefRotate(k.stranger), rivalBranch = await thiefRotate(k['operational-3']);
 
 type Accept = [string, IdentityLog, boolean];
 const accept: Accept[] = [
@@ -60,6 +82,10 @@ const accept: Accept[] = [
   ['rotation, recovery and a recovery-policy change, every head attested; heads 1 and 3 took effect at the lease barrier, after acceptance', attested, true],
   ['the same history with no attestations, for a verifier that accepts unattested heads', bare, false],
   ['the same history with its FINAL instant moved one millisecond and no attestation: the log alone cannot detect this, the head digest differs, and only an attestation or a pinned checkpoint exposes it', shifted, false],
+  ['a move to a second resolver, signed by the recovery quorum alone, then a recovery there; heads before the move are attested by the first resolver, the move and what follows by the second', moved, true],
+  ['the same move with no attestations', movedBare, false],
+  ['a resolver key rotation: a move to the same resolver id under a new key', sameResolverNewKey, true],
+  ['the format 1 encoding of a history without moves', legacy(attested), true],
 ];
 const reject: Accept[] = [
   ['unattested heads where the verifier requires attestation', bare, true],
@@ -88,25 +114,54 @@ const reject: Accept[] = [
   ['a skipped sequence number', await bad('recover', [k.stranger.keyId], [rec(1).keyId], [rec(1), k.stranger], { sequence: current.head.sequence + 2 }), false],
   ['a transition naming a predecessor that is not the previous head', await bad('recover', [k.stranger.keyId], [rec(1).keyId], [rec(1), k.stranger], { expected_digest: current.heads[1].head_digest }), false],
   ['a signed window longer than 300,000 ms', await bad('recover', [k.stranger.keyId], [rec(1).keyId], [rec(1), k.stranger], { expires_at: T + 700_000 + 300_001 }), false],
-  ['an unknown format', await damaged(bare, l => { (l as { format: string }).format = 'dtp-identity-log-2'; }), false],
+  ['an unknown format', await damaged(bare, l => { (l as { format: string }).format = 'dtp-identity-log-3'; }), false],
   ['an extra top-level member', await damaged(bare, l => { (l as unknown as Record<string, unknown>).note = 'x'; }), false],
   ['an extra entry member', await damaged(bare, l => { (l.entries[1] as unknown as Record<string, unknown>).accepted_at = T; }), false],
   ['a transition on the genesis entry', await damaged(bare, l => { l.entries[0].transition = clone(l.entries[1].transition); }), false],
   ['no entries', await damaged(bare, l => { l.entries = []; }), false],
+  ['a move signed by the operational quorum', await movedBad(rehomeBody, [op(2)]), false],
+  ['a move signed by a retired recovery key', await movedBad(rehomeBody, [rec(0)]), false],
+  ['a move whose epoch does not advance', await movedBad({ ...rehomeBody, to: { ...rehomeBody.to, resolver_epoch: 0 } }), false],
+  ['a move whose epoch skips', await movedBad({ ...rehomeBody, to: { ...rehomeBody.to, resolver_epoch: 2 } }), false],
+  ['a move that does not leave the current resolver', await movedBad({ ...rehomeBody, from: { resolver_id: resolverB, resolver_epoch: 0 } }), false],
+  ['a move from a head that is not the current head', await movedBad({ ...rehomeBody, expected_digest: current.heads[1].head_digest, sequence: 2 }), false],
+  ['a move naming a current control key as the resolver key', await movedBad({ ...rehomeBody, to: { ...rehomeBody.to, resolver_key: op(2).keyId } }), false],
+  ['a move naming a retired control key as the resolver key', await movedBad({ ...rehomeBody, to: { ...rehomeBody.to, resolver_key: op(0).keyId } }), false],
+  ['a move whose audience is not an exact origin', await movedBad({ ...rehomeBody, to: { ...rehomeBody.to, audience: audienceB + '/path' } }), false],
+  ['a move taking effect before its signed window', await movedBad(rehomeBody, undefined, rehomeBody.issued_at - 1), false],
+  ['a move taking effect at the end of its signed window: a move has no lease barrier to reproduce', await movedBad(rehomeBody, undefined, rehomeBody.expires_at), false],
+  ['the move attested by the first resolver, which it leaves', await damaged(moved, async l => { l.entries[4].attestation = await attestHead(movedHead.head, { id: resolverId, epoch: 0 }, k.resolver); }), false],
+  ['a head after the move attested by the first resolver', await damaged(moved, async l => { l.entries[5].attestation = await attestHead((await verifyIdentityLog(clone(moved), { require_attestation: true })).heads[5].head, { id: resolverB, epoch: 1 }, k.resolver); }), false],
+  ['an entry carrying both a transition and a move', await damaged(moved, l => { l.entries[4].transition = clone(l.entries[5].transition); }), false],
+  ['a format 1 log carrying a move', await damaged(moved, l => { (l as { format: string }).format = LEGACY_IDENTITY_LOG_FORMAT; }), false],
+  ['after a move, a rotation signed with keys retired before it', await damaged(movedBare, async l => { l.entries.push({ effective_at: moveAt + 400_000, rehome: null, attestation: null, transition: await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: (await verifyIdentityLog(clone(movedBare), { require_attestation: false })).head_digest, sequence: 6, kind: 'rotate', operational: { keys: [k.stranger.keyId], threshold: 1 }, recovery: { keys: [rec(1).keyId], threshold: 1 }, issued_at: moveAt + 400_000, expires_at: moveAt + 700_000 }, [op(1), k.stranger]) }); }), false],
+];
+type Pair = [string, IdentityLog, IdentityLog, ReturnType<typeof precedence>];
+const pairs: Pair[] = [
+  ['the owner moved to a second resolver; a thief with the old operational key forked at the first resolver: the higher epoch supersedes wherever the fork is', movedBare, thiefBranch, 'a-supersedes-b'],
+  ['the same pair the other way round', thiefBranch, movedBare, 'b-supersedes-a'],
+  ['two forks at one epoch: a conflict, never resolved by choosing', thiefBranch, rivalBranch, 'conflict'],
+  ['one history is a prefix of the other', bare, movedBare, 'b-extends-a'],
+  ['identical histories', bare, bare, 'equal'],
 ];
 
 const out = {
   description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". Refusal reasons are not normative. All keys here are published test keys.',
-  format: IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
+  format: IDENTITY_LOG_FORMAT, legacy_format: LEGACY_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
   accept: await Promise.all(accept.map(async ([why, log, require_attestation]) => {
     const v = await verifyIdentityLog(clone(log), { require_attestation });
-    return { why, require_attestation, log, expect: { identity_id: v.identity_id, genesis_digest: v.genesis_digest, resolver: v.resolver,
-      heads: v.heads.map(h => ({ sequence: h.head.sequence, head_digest: h.head_digest, effective_at: h.head.effective_at, attested: h.attested })),
+    return { why, require_attestation, log, expect: { identity_id: v.identity_id, genesis_digest: v.genesis_digest, resolver: v.resolver, resolvers: v.resolvers,
+      heads: v.heads.map(h => ({ sequence: h.head.sequence, head_digest: h.head_digest, effective_at: h.head.effective_at, epoch: h.epoch, attested: h.attested })),
       operational: v.head.operational, recovery: v.head.recovery, retired_keys: v.retired_keys, unattested: v.unattested } };
   })),
   reject: reject.map(([why, log, require_attestation]) => ({ why, require_attestation, log })),
+  precedence: pairs.map(([why, a, b, expect]) => ({ why, a, b, expect })),
 };
+for (const [why, a, b, expect] of pairs) {
+  const got = precedence(await verifyIdentityLog(clone(a), { require_attestation: false }), await verifyIdentityLog(clone(b), { require_attestation: false }));
+  if (got !== expect) throw new Error('generator: precedence "' + why + '" gave ' + got);
+}
 for (const [why, log, require_attestation] of reject) {
   const refused = await verifyIdentityLog(clone(log), { require_attestation }).then(() => false, () => true);
   if (!refused) throw new Error(`generator: the reference verifier accepted "${why}"`);
@@ -115,4 +170,4 @@ const target = new URL('../../spec/vectors/identity-log.json', import.meta.url),
 if (!process.argv.includes('--check')) writeFileSync(target, text);
 // A checkout may have converted line endings; the content is what must not drift.
 else if (readFileSync(target, 'utf8').replaceAll('\r\n', '\n') !== text) { console.error('spec/vectors/identity-log.json is stale; rerun this script without --check'); process.exit(1); }
-console.log('vectors:', out.accept.length, 'accept,', out.reject.length, 'reject');
+console.log('vectors:', out.accept.length, 'accept,', out.reject.length, 'reject,', out.precedence.length, 'precedence pairs');
