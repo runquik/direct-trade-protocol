@@ -61,7 +61,7 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
     const exported = await w.a.registry.exportLog(w.identity);
     assert.deepEqual((await verifyIdentityLog(exported, strict)).unattested, []);
     // 3. A relying party pins (A, epoch 0) and accepts a resolution from A.
-    const rp = relyingParty({ resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: null });
+    const rp = relyingParty({ identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: null });
     assert.equal((await rp.accept(await w.resolve(w.a), w.clock.now())).sequence, 1);
     // 4. A turns hostile: no transitions, no exports, but it keeps vouching for the identity it has.
     const hostile = { resolve: (r: any) => w.a.registry.resolve(r), transition: async () => { throw new Error('unavailable'); }, exportLog: async () => { throw new Error('unavailable'); } };
@@ -186,7 +186,8 @@ test('the log verifier binds each head attestation to the resolver of its epoch 
     const early = structuredClone(log); early.entries[1].effective_at = rehome.body.issued_at - 1; early.entries[1].attestation = null;
     await assert.rejects(verifyIdentityLog(early, lenient), /precedes/);
     // A verifier that pinned nothing yet, with a stale pin, or with a same-epoch conflict.
-    const pinA: ResolverPin = { resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
+    const pinA: ResolverPin = { identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
+    await assert.rejects(admitIdentityLog({ ...pinA, identity_id: crypto.randomUUID() }, log, strict), /another identity/);
     assert.equal((await admitIdentityLog(pinA, log, strict)).outcome, 'advanced');
     assert.equal((await admitIdentityLog(pinA, exported, strict)).outcome, 'unchanged');
     await assert.rejects(admitIdentityLog({ ...pinA, resolver_key: w.b.key.keyId }, log, strict), /pinned lineage/);
