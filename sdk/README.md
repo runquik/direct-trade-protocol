@@ -50,6 +50,24 @@ await me.sign(draft({ type: "finance.invoice", subject_company_id, counterparty_
 
 `tests/helpers.ts` has ready-made builders (`makeCompany`, `makeModule`, `grant`, `makeContract`, `makeFulfillment`, `buyerAttest`) that double as worked examples of every flow.
 
+## Entry points
+
+Import through the package entries, never an internal file path:
+
+| Entry | File | What it is |
+|---|---|---|
+| `@dtp/sdk` | `src/index.ts` | Stable: encodings, canonicalization, keys, envelope signing, scopes. Portable. |
+| `@dtp/sdk/preview` | `src/preview.ts` | Unreleased foundation, onboarding client, profiles and v0.4, no compatibility promise. Portable. |
+| `@dtp/sdk/preview/host` | `src/preview-host.ts` | Unreleased pieces that need a database, a listener or host keys. |
+
+"Portable" means nothing reachable imports a platform module, so the entry loads in browsers and edge runtimes as well as Node and Deno; a test enforces it for both portable entries. The key helpers (`generateKeyPair`, `keyPairFromSecret`, `signBytes`, `verifyBytes` and the `encode*`/`decode*` functions) belong to the stable entry and are also re-exported unchanged as `keys` from the preview entry, so a wallet or a host that signs identity material with a key it holds needs only one import:
+
+```ts
+import { keys, identity } from "@dtp/sdk/preview";
+const resolverKey = await keys.keyPairFromSecret(secretFromCustody);
+const { state, proof } = await identity.issueResolution(current, request, resolverKey, now);
+```
+
 ## Type-check
 
 ```bash
