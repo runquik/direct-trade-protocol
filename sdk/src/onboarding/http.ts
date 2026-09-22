@@ -29,6 +29,7 @@ export function onboardingServer(host:Host,options:{origin:string;allowedOrigins
       if(path==='/api/enroll')result=await host.registry.enroll(input.genesis,input.enrollment);
       else if(path==='/api/resolve')result=await host.registry.resolve(input);
       else if(path==='/api/transition')result=await host.registry.transition(input.person_id,input.command);
+      else if(path==='/api/log')result=await host.registry.exportLog(input.person_id);
       else if(path==='/api/challenge')result=await host.challenge(input.person_id,input.command);
       else if(path==='/api/execute')result=await host.execute(input);
       else return send(404,{error:'Not found'});
