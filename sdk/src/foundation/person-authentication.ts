@@ -5,8 +5,8 @@ import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes }
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
 import type { Signed, Resolution, Signature } from './identity.ts';
-import { admitIdentityLog } from './identity-log.ts';
-import type { IdentityLog, ResolverPin } from './identity-log.ts';
+import { admitIdentityLog, receiveIdentityLogPush } from './identity-log.ts';
+import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
 import type { JsonObject, OperationIntent } from './semantics.ts';
@@ -224,6 +224,27 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
         need(rows.length === 1, 'checkpoint update conflict');
       }
       return { outcome: admitted.outcome, superseded: admitted.superseded, binding: { resolver_id: next.resolver_id, resolver_key: next.resolver_key, resolver_epoch: next.resolver_epoch, sequence: next.minimum_sequence, digest: next.minimum_digest } };
+    },
+    /** Owner push, inside the caller's transaction: the relying-party answer to a wallet that sends this host a log
+     *  after a move. An identity this host never enrolled is refused as unknown; otherwise the log is judged against
+     *  the durable checkpoint exactly as admitIdentityMove would, and an admission is stored the same way. The
+     *  answer is a function of the checkpoint and the message, so repeating a push is idempotent. */
+    async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush; require_attestation: boolean }): Promise<IdentityLogPushAck> {
+      const v = bounded(input); exact(v, ['message', 'require_attestation']); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
+      let admitted: PersonResolverPin | null = null;
+      const lookup = async (identity_id: string): Promise<ResolverPin | null> => {
+        const p = pins.get(identity_id); if (!p) return null;
+        const row = await checkpoint(tx, p); admitted = p;
+        return { identity_id: p.person_id, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest };
+      };
+      const { ack, admission } = await receiveIdentityLogPush(v.message, lookup, { require_attestation: v.require_attestation });
+      if (admission !== null && admission.outcome !== 'unchanged') {
+        need(admitted !== null, 'admission without a checkpoint'); const next = admission.pin;
+        const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
+          [config.host_id, (admitted as PersonResolverPin).person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
+        need(rows.length === 1, 'checkpoint update conflict');
+      }
+      return ack;
     },
     /** Must be the mandatory transaction-tail hook, including historical business retries. */
     async beforeCommit(tx: Db, input: { organization_id: string; now: number; verified: VerifiedOperation; request: JsonObject; valid_until: number }): Promise<void> {

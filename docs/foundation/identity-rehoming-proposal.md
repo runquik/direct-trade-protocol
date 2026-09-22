@@ -162,7 +162,7 @@ The honest limit: **a hostile former host answers with a truncated log, and a co
 | D4 | How the head commits to the move. | `previous_digest` = digest of the rehome document. `Control` shape unchanged (4.1). |
 | D5 | Ordering. | B-first single path. A's release is optional courtesy (4.4). |
 | D6 | Rehome signed window. | Keep 300,000 ms for uniformity. If offline recovery ceremonies prove to need longer, widen it for rehomes only; it bounds nothing but B's asserted instant. |
-| D7 | Abandoned rehome. | Allow B to issue a signed refusal, and let verifiers disregard a rehome under which no head was ever attested. Defer unless review finds it necessary. |
+| D7 | Abandoned rehome. | Allow B to issue a signed refusal, and let verifiers disregard a rehome under which no head was ever attested. Defer unless review finds it necessary. **Resolved September 22, 2026**, as recommended: a relying party admits a move only when the destination attested the head it created; a destination may sign a refusal, which is permanent; see [identity-log.md](identity-log.md), "Adoption evidence, refusals and owner push". |
 | D8 | Same-host resolver key rotation through the same document. | Yes. It costs nothing and closes a second gap. |
 | D9 | Witnesses and transparency. | Later, additive (4.6). Accept and document the 4.8 limit meanwhile. |
 
@@ -204,8 +204,8 @@ Departures from the proposal text, all within the approved decisions:
 - The destination accepts unattested heads when adopting (`require_attestation: false`), since a hostile former host may have attested nothing; the rehome's `expected_digest` pins the last head regardless. The reference wallet still requires attestation when it exports for its own records.
 - A former host's `transfer` accepts any verified log containing the rehome that leaves it, not only one ending there, because the destination may already have moved on.
 - Returning to a former host extends the history that host already holds rather than starting over; the stored rows must be a prefix of the presented log.
-- D7 (abandoned rehome) is not implemented: a rehome under which no head was ever adopted is a dangling signed document, and a second rehome from the same head would be a same-epoch conflict for any verifier that saw both.
+- D7 (abandoned rehome) was left open here and closed on September 22, 2026: a rehome under which no head was adopted is a dangling consent that no relying party admits (`unadopted-move`), a destination may sign a permanent refusal under `DTP-IDENTITY-REHOME-REFUSAL-1`, and two adopted rehomes from one head remain a same-epoch conflict for any verifier that sees both. Implemented in `identity-log.ts` (`judgeIdentityLog`, `refuseRehome`, `verifyRehomeRefusal`, `compareRehomeRefusal`), the registry's `refuse`, and vectors; normative text in [identity-log.md](identity-log.md).
 
 Also implemented since: the person-authentication adapter admits a move into its durable checkpoint through `admitIdentityMove` (see [person-authentication.md](person-authentication.md)), and the client library returns the verified log with every change (`enroll`, `applyTransition`, `adopt`); saving it with the recovery kit is the client's job.
 
-Not implemented: owner push of the log to relying parties, and the witness or transparency layer.
+Owner push is specified and implemented since September 22, 2026: the message (`dtp-identity-log-push-1`, the log and nothing else), the relying party's acknowledgment with normative refusal reasons, idempotency, vectors, the wallet's `pushIdentityLog` and the authentication adapter's `receiveIdentityLogPush`; see [identity-log.md](identity-log.md). Not implemented: the witness or transparency layer.
