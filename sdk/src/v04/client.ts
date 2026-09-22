@@ -1,6 +1,7 @@
 import type { Command } from "./model.ts";
 import type { KeyPair } from "../keys.ts";
 import { draftCommand, signCommand } from "./wire.ts";
+import { parseUntrustedResponse } from "../safe-json.ts";
 
 /** A transport helper, not a credential vault or a replacement for server authorization. */
 export class DtpClient {
@@ -21,7 +22,7 @@ export class DtpClient {
     const response = await this.fetcher(`${this.audience}/dtp/v0.4/commands`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command), signal,
     });
-    const data = await response.json() as { result?: T; error?: { code?: string; message?: string } };
+    const data = await parseUntrustedResponse(response) as { result?: T; error?: { code?: string; message?: string } };
     if (!response.ok || data.error) throw new DtpResponseError(response.status, data.error?.code ?? "transport_error", data.error?.message ?? "DTP request failed");
     return data.result as T;
   }

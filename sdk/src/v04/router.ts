@@ -3,6 +3,7 @@ import type { Context, State } from "./model.ts";
 import { DtpError } from "./wire.ts";
 import { execute } from "./engine.ts";
 import { CanonicalizationError, FloatNotAllowedError } from "../canonical.ts";
+import { UnsafeJsonError, parseUntrustedJsonBytes } from "../safe-json.ts";
 export const MAX_REQUEST_BYTES=1024*1024;
 export interface Dependencies extends Omit<Context,"now"> { db: Db; now?:()=>number; maxStateBytes?:number }
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{"content-type":"application/json","cache-control":"no-store","x-content-type-options":"nosniff"}});
@@ -16,7 +17,7 @@ export async function handle(req:Request,deps:Dependencies):Promise<Response>{
     const chunks:Uint8Array[]=[];let total=0;
     try{for(;;){const r=await reader.read();if(r.done)break;total+=r.value.length;if(total>MAX_REQUEST_BYTES){void reader.cancel().catch(()=>{});throw new DtpError("payload_too_large","request exceeds 1 MiB",413);}chunks.push(r.value);}}finally{reader.releaseLock();}
     const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-    let input:any;try{input=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));}catch{throw new DtpError("invalid","invalid UTF-8 JSON",400);}
+    let input:any;try{input=parseUntrustedJsonBytes(bytes);}catch(error){if(error instanceof UnsafeJsonError)throw new DtpError("unsafe_member_name","object member names must not use escape sequences",400);throw new DtpError("invalid","invalid UTF-8 JSON",400);}
     const queue=[{value:input,depth:0}];let nodes=0;
     while(queue.length){const {value,depth}=queue.pop()!;if(depth>48||++nodes>100000)throw new DtpError("invalid","request complexity exceeded",400);if(value&&typeof value==="object")for(const child of Object.values(value))queue.push({value:child,depth:depth+1});}
     const result=await deps.db.transaction(async tx=>{

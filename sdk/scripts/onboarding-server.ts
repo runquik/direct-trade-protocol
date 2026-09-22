@@ -20,7 +20,7 @@ if(config.audience!==origin)throw new Error('Existing resolver is bound to a dif
 const pg=new PGlite(resolve(data,'database'));await pg.exec(IDENTITY_REGISTRY_SCHEMA);await pg.exec(ONBOARDING_SCHEMA);
 const host=createOnboardingHost(pgliteDb(pg),{id:config.id,audience:origin,key:await keyPairFromSecret(config.secret_key),now:Date.now});
 // Explicit allowlist, never expose the repository or private files via a generic file server.
-const modules=new Set(['src/onboarding/client.ts','src/keys.ts','src/base58.ts','src/canonical.ts','src/foundation/identity.ts']);
+const modules=new Set(['src/onboarding/client.ts','src/keys.ts','src/base58.ts','src/canonical.ts','src/safe-json.ts','src/foundation/identity.ts']);
 const cache=new Map<string,string>();
 // Other local clients under test. Browser origins are an explicit allowlist, never a wildcard.
 const extraOrigins=(process.env.DTP_ONBOARDING_ALLOWED_ORIGINS??'http://127.0.0.1:8791').split(',').map(value=>value.trim()).filter(value=>/^https?:\/\/[a-z0-9.\-]+(:\d+)?$/i.test(value));

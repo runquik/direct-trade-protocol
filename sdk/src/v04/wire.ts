@@ -3,6 +3,7 @@ import { canonicalBytes, canonicalize, sha256Hex, assertNoFloats } from "../cano
 import { signBytes, verifyBytes, encodeSignature, decodeSignature, decodeKeyId } from "../keys.ts";
 import type { KeyPair } from "../keys.ts";
 import type { Command, Context, SignedToken } from "./model.ts";
+import { assertSafeMemberNames } from "../safe-json.ts";
 import { Validator } from "@cfworker/json-schema";
 import { COMMAND_SCHEMA } from "./schema.ts";
 const commandValidator=new Validator(COMMAND_SCHEMA,"2020-12",false);
@@ -58,6 +59,7 @@ export async function verifyCommand(c: Command): Promise<Set<string>> {
   demand(result.has(c.actor.key_id), "signature_invalid", "actor signature required", 401); return result;
 }
 export async function signCommand(c: Command, keys: KeyPair[]): Promise<Command> {
+  assertSafeMemberNames(c); // a conforming receiver refuses such a command unparsed
   const result = structuredClone(c); result.signatures = [];
   for (const key of keys) result.signatures.push({ key_id: key.keyId, signature: encodeSignature(await signBytes(key.secretKey, commandBytes(result))) });
   return result;
@@ -69,6 +71,7 @@ export function draftCommand(audience: string, person: { id: string; key: KeyPai
 function tokenBytes(body: Record<string, any>) { return canonicalBytes({ domain: "DTP-TOKEN-0.4", body }); }
 export async function signToken(body: Record<string, any>, ctx: Context): Promise<SignedToken> {
   demand(body.issuer === ctx.audience, "invalid", "token issuer must be this host", 400);
+  assertSafeMemberNames(body);
   return { body: structuredClone(body), key_id: ctx.storeKey.keyId, signature: encodeSignature(await signBytes(ctx.storeKey.secretKey, tokenBytes(body))) };
 }
 export async function verifyToken(token: SignedToken, ctx: Context, expectedKind: string): Promise<Record<string, any>> {

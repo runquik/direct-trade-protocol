@@ -2,6 +2,7 @@
 import type { Envelope, StoredRecord, UnsignedEnvelope, Visibility } from "./envelope.ts";
 import { namespaceOf, newRecordId, nowIso } from "./envelope.ts";
 import { signRecord } from "./sign.ts";
+import { parseUntrustedJson } from "./safe-json.ts";
 
 export interface StoreErrorBody {
   error: { code: string; message: string; details: unknown };
@@ -77,7 +78,7 @@ export class DtpStoreClient {
     if (token) headers["authorization"] = `Bearer ${token}`;
     const res = await fetch(this.baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
     const text = await res.text();
-    const data = text ? JSON.parse(text) : null;
+    const data = text ? parseUntrustedJson(text) : null;
     if (!res.ok) throw new StoreRequestError(res.status, data as StoreErrorBody);
     return { status: res.status, data: data as T };
   }

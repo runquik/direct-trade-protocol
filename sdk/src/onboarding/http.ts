@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { createOnboardingHost } from './host.ts';
+import { parseUntrustedJson } from '../safe-json.ts';
 export type Host=ReturnType<typeof createOnboardingHost>;
 export type Asset={body:string;type:string};
 export function onboardingServer(host:Host,options:{origin:string;allowedOrigins:string[];asset?:(path:string)=>Promise<Asset|null>}) {
@@ -22,7 +23,7 @@ export function onboardingServer(host:Host,options:{origin:string;allowedOrigins
       if(req.headers['content-type']!=='application/json')return send(415,{error:'JSON required'});
       const chunks:Buffer[]=[];let size=0;
       for await(const chunk of req){size+=chunk.length;if(size>32768){send(413,{error:'Request too large'});return;}chunks.push(chunk);}
-      const input=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      const input=parseUntrustedJson(Buffer.concat(chunks).toString('utf8')) as any;
       if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Object required');
       let result:unknown;
       if(path==='/api/enroll')result=await host.registry.enroll(input.genesis,input.enrollment);

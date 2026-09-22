@@ -5,6 +5,7 @@ import { createIdentity, signIdentity, verifyResolution } from '../foundation/id
 import type { Genesis, Signed, Transition } from '../foundation/identity.ts';
 import type { KeyPair } from '../keys.ts';
 import type { Command, Challenge, Request } from './host.ts';
+import { parseUntrustedJson, parseUntrustedResponse } from '../safe-json.ts';
 export interface ResolverMetadata { audience:string;resolver_id:string;resolver_key:string }
 export interface Wallet { format:'dtp-passport-preview-1'; kind:'operational'|'recovery'; person_id:string; secret_key:string; resolver:ResolverMetadata }
 export interface EncryptedWallet { format:'dtp-encrypted-passport-1'; kdf:'PBKDF2-SHA256';iterations:600000;salt:string;iv:string;ciphertext:string }
@@ -13,7 +14,7 @@ const hex=(b:Uint8Array)=>Array.from(b,n=>n.toString(16).padStart(2,'0')).join('
 function bytes(s:string,max:number) { if(typeof s!=='string'||s.length>max*2||s.length%2||!/^[0-9a-f]+$/.test(s))throw new Error('Invalid encrypted bundle');return new Uint8Array(s.match(/../g)!.map(x=>parseInt(x,16))); }
 export function httpTransport(audience:string):Transport {
   const url=new URL(audience);if(url.origin!==audience||!['http:','https:'].includes(url.protocol))throw new Error('Exact host origin required');
-  return async(path,body)=>{const response=await fetch(`${audience}/api/${path}`,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const value=await response.json();if(!response.ok)throw new Error(value.error||'Host request failed');return value;};
+  return async(path,body)=>{const response=await fetch(`${audience}/api/${path}`,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const value=await parseUntrustedResponse(response) as any;if(!response.ok)throw new Error(value.error||'Host request failed');return value;};
 }
 export async function prepareIdentity(resolver:ResolverMetadata,now=Date.now()) {
   const [operational,recovery]=await Promise.all([generateKeyPair(),generateKeyPair()]);
@@ -39,7 +40,7 @@ export async function decryptWallet(bundle:EncryptedWallet,passphrase:string):Pr
   const salt=bytes(bundle.salt,16),iv=bytes(bundle.iv,12),ciphertext=bytes(bundle.ciphertext,16384);
   if(salt.length!==16||iv.length!==12)throw new Error('Invalid encrypted bundle');
   let wallet:Wallet;
-  try { wallet=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:iv as BufferSource,additionalData:new TextEncoder().encode('dtp-encrypted-passport-1')},await encryptionKey(passphrase,salt),ciphertext as BufferSource))); }
+  try { wallet=parseUntrustedJson(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:iv as BufferSource,additionalData:new TextEncoder().encode('dtp-encrypted-passport-1')},await encryptionKey(passphrase,salt),ciphertext as BufferSource))) as Wallet; }
   catch {throw new Error('Wrong passphrase or damaged identity file');}
   if(wallet.format!=='dtp-passport-preview-1'||!['operational','recovery'].includes(wallet.kind)||typeof wallet.person_id!=='string'||!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(wallet.person_id))throw new Error('Invalid identity file');
   const key=await keyPairFromSecret(wallet.secret_key),probe=crypto.getRandomValues(new Uint8Array(32));
