@@ -30,5 +30,5 @@ export async function personAuthenticationFixture(db: Db, threshold = 1) {
     return signPersonOperation({ intent: i, actor: person, grant_id: grant.id, challenge, resolution }, keys);
   };
   const run = async (value: Awaited<ReturnType<typeof request>>) => store.execute(f.organization_id, value as unknown as JsonObject);
-  return { ...f, adapter, config, store, options, identity, person, ordinary, second, recovery, resolver, next, resolverId, personGrant: grant, intent, issue, proof, personRequest: request, run };
+  return { ...f, adapter, config, store, options, genesis, identity, person, ordinary, second, recovery, resolver, next, resolverId, personGrant: grant, intent, issue, proof, personRequest: request, run };
 }

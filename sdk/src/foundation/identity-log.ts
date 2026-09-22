@@ -36,7 +36,7 @@ export interface VerifiedIdentityLog {
 }
 export interface IdentityLogParts { genesis: Signed<Genesis>; enrollment: Signed<ResolverEnrollment>; entries: IdentityLogEntry[] }
 /** What a relying party durably keeps for an identity: the resolver it trusts and its last verified head. */
-export interface ResolverPin { resolver_id: string; resolver_key: string; resolver_epoch: number; minimum_sequence: number; minimum_digest: string | null }
+export interface ResolverPin { identity_id: string; resolver_id: string; resolver_key: string; resolver_epoch: number; minimum_sequence: number; minimum_digest: string | null }
 function need(ok: unknown, reason: string): asserts ok { if (!ok) throw new Error(reason); }
 function fields(value: unknown, names: string[]): asserts value is Record<string, any> {
   need(value && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value)), 'plain closed log object required');
@@ -156,9 +156,11 @@ export function precedence(a: VerifiedIdentityLog, b: VerifiedIdentityLog): 'equ
  *  checkpoint is admitted only when the log has reached a higher epoch; it is then reported, never hidden.
  *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
 export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<{ outcome: 'unchanged' | 'advanced' | 'superseded'; pin: ResolverPin; superseded: { sequence: number; head_digest: string } | null }> {
-  pin = copyIdentityData(pin); fields(pin, ['resolver_id', 'resolver_key', 'resolver_epoch', 'minimum_sequence', 'minimum_digest']);
-  need(Number.isSafeInteger(pin.resolver_epoch) && pin.resolver_epoch >= 0 && Number.isSafeInteger(pin.minimum_sequence) && pin.minimum_sequence >= 0 && (pin.minimum_digest === null || hex64(pin.minimum_digest)), 'invalid resolver pin');
+  pin = copyIdentityData(pin); fields(pin, ['identity_id', 'resolver_id', 'resolver_key', 'resolver_epoch', 'minimum_sequence', 'minimum_digest']);
+  need(typeof pin.identity_id === 'string' && Number.isSafeInteger(pin.resolver_epoch) && pin.resolver_epoch >= 0 && Number.isSafeInteger(pin.minimum_sequence) && pin.minimum_sequence >= 0 && (pin.minimum_digest === null || hex64(pin.minimum_digest)), 'invalid resolver pin');
   const v = await verifyIdentityLog(log, policy);
+  // Two identities enrolled at one resolver share its binding; the pin is for exactly one of them.
+  need(v.identity_id === pin.identity_id, 'log is for another identity');
   const known = v.resolvers.find(r => r.epoch === pin.resolver_epoch);
   need(known && known.id === pin.resolver_id && known.key_id === pin.resolver_key, 'log does not continue the pinned lineage');
   need(v.head.sequence >= pin.minimum_sequence, 'log is behind the pinned checkpoint');
@@ -167,7 +169,7 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, polic
     need(v.resolver.epoch > pin.resolver_epoch, 'conflicting control history at the same resolver epoch');
     outcome = 'superseded'; superseded = { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest };
   }
-  return { outcome, superseded, pin: { resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
+  return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
 }
 /** Host side: assemble a log from stored signed material and recorded instants, verify it, and attest
  *  every head of the resolver key's own epochs that lacks an attestation. Heads of other epochs keep

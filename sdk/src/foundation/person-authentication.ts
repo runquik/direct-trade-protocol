@@ -5,6 +5,8 @@ import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes }
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
 import type { Signed, Resolution, Signature } from './identity.ts';
+import { admitIdentityLog } from './identity-log.ts';
+import type { IdentityLog, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
 import type { JsonObject, OperationIntent } from './semantics.ts';
@@ -47,6 +49,8 @@ drop trigger if exists person_auth_deadline_at_commit on dtp_foundation.person_a
 create constraint trigger person_auth_deadline_at_commit after insert or update on dtp_foundation.person_auth_challenges
  deferrable initially deferred for each row execute function dtp_foundation.enforce_person_auth_deadline();
 `;
+/** The binding the host ENROLLED the person with. The effective binding is the durable checkpoint, which only
+ *  admitIdentityMove advances past this epoch; configuration alone can never move a person to another resolver. */
 export interface PersonResolverPin {
   person_id: string; resolver_id: string; resolver_key: string; resolver_epoch: number;
   minimum_sequence: number; minimum_digest: string;
@@ -144,9 +148,12 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
   const checkpoint = async (tx: Db, p: PersonResolverPin) => {
     await tx.query('insert into dtp_foundation.person_auth_checkpoints (host_id,person_id,resolver_id,resolver_key,resolver_epoch,sequence,digest) values ($1,$2,$3,$4,$5,$6,$7) on conflict (host_id,person_id) do nothing', [config.host_id, p.person_id, p.resolver_id, p.resolver_key, p.resolver_epoch, p.minimum_sequence, p.minimum_digest]);
     const row = (await tx.query<Checkpoint>('select resolver_id,resolver_key,resolver_epoch,sequence,digest from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2 for update', [config.host_id, p.person_id]))[0];
-    need(row.resolver_id === p.resolver_id && row.resolver_key === p.resolver_key && Number(row.resolver_epoch) === p.resolver_epoch, 'durable resolver pin conflict');
-    need(Number(row.sequence) >= p.minimum_sequence, 'configured checkpoint advance requires explicit admission');
-    if (Number(row.sequence) === p.minimum_sequence) need(row.digest === p.minimum_digest, 'durable control pin conflict');
+    integer(Number(row.resolver_epoch)); need(Number(row.resolver_epoch) >= p.resolver_epoch, 'durable resolver pin conflict');
+    if (Number(row.resolver_epoch) === p.resolver_epoch) {
+      need(row.resolver_id === p.resolver_id && row.resolver_key === p.resolver_key, 'durable resolver pin conflict');
+      need(Number(row.sequence) >= p.minimum_sequence, 'configured checkpoint advance requires explicit admission');
+      if (Number(row.sequence) === p.minimum_sequence) need(row.digest === p.minimum_digest, 'durable control pin conflict');
+    } else { uuid(row.resolver_id); decodeKeyId(row.resolver_key); } // A later epoch was admitted from a verified log; the row is the binding now.
     integer(Number(row.sequence)); hash(row.digest); return row;
   };
   const lockedChallenge = async (tx: Db, c: PersonChallenge): Promise<ChallengeRow> => {
@@ -183,7 +190,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       const now = await dbNow(tx, hostClock); need(hostClock() >= enteredAt, 'host clock regressed after authentication admission');
       need(c.issued_at <= now && c.expires_at > now + PERSON_COMMIT_RESERVE_MS, 'challenge expired');
       const control = await verifyResolution(r.authentication.resolution, { identity_id: r.actor.id, audience: config.audience, challenge: c.nonce,
-        resolver_id: p.resolver_id, resolver_key: p.resolver_key, resolver_epoch: p.resolver_epoch, minimum_sequence: Number(head.sequence), minimum_digest: head.digest }, now);
+        resolver_id: head.resolver_id, resolver_key: head.resolver_key, resolver_epoch: Number(head.resolver_epoch), minimum_sequence: Number(head.sequence), minimum_digest: head.digest }, now);
       const bytes = await signedBytes(r), signers = new Set<string>();
       for (const signature of r.authentication.signatures) {
         exact(signature, ['key_id', 'signature']);
@@ -200,6 +207,23 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       const rows = await tx.query('update dtp_foundation.person_auth_challenges set consumed_at=$3,consumed_transaction=txid_current()::text,consumed_request_digest=$4,deadline_ms=$5 where host_id=$1 and nonce=$2 and consumed_at is null returning nonce', [config.host_id, c.nonce, fresh, digest, deadline]);
       need(rows.length === 1, 'challenge consumption conflict');
       return { intent: bounded(r.intent), actor: bounded(r.actor), grant_id: r.grant_id };
+    },
+    /** Admits a person's move to another resolver from their portable identity log, inside the caller's transaction.
+     *  The log must continue the lineage this host enrolled, at the epoch it currently holds; a conflict with the durable
+     *  checkpoint is admitted only when the log has reached a higher epoch, and is reported. The durable row becomes the
+     *  effective binding, so resolutions from the former resolver are refused from this commit on, across restarts and
+     *  regardless of the static configuration. Whether unattested heads are acceptable is the caller's explicit policy. */
+    async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog; require_attestation: boolean }) {
+      const v = bounded(input); exact(v, ['person_id', 'log', 'require_attestation']); uuid(v.person_id); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
+      const p = pinFor(v.person_id), head = await checkpoint(tx, p);
+      const pin: ResolverPin = { identity_id: p.person_id, resolver_id: head.resolver_id, resolver_key: head.resolver_key, resolver_epoch: Number(head.resolver_epoch), minimum_sequence: Number(head.sequence), minimum_digest: head.digest };
+      const admitted = await admitIdentityLog(pin, v.log, { require_attestation: v.require_attestation }), next = admitted.pin;
+      if (admitted.outcome !== 'unchanged') {
+        const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
+          [config.host_id, p.person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
+        need(rows.length === 1, 'checkpoint update conflict');
+      }
+      return { outcome: admitted.outcome, superseded: admitted.superseded, binding: { resolver_id: next.resolver_id, resolver_key: next.resolver_key, resolver_epoch: next.resolver_epoch, sequence: next.minimum_sequence, digest: next.minimum_digest } };
     },
     /** Must be the mandatory transaction-tail hook, including historical business retries. */
     async beforeCommit(tx: Db, input: { organization_id: string; now: number; verified: VerifiedOperation; request: JsonObject; valid_until: number }): Promise<void> {
