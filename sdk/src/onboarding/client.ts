@@ -2,7 +2,7 @@
 import { canonicalBytes } from '../canonical.ts';
 import { generateKeyPair, keyPairFromSecret, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import { createIdentity, signIdentity, verifyResolution } from '../foundation/identity.ts';
-import type { Genesis, Rehome, Signed, Transition } from '../foundation/identity.ts';
+import type { Genesis, Rehome, ResolverEnrollment, Signed, Transition } from '../foundation/identity.ts';
 import { verifyIdentityLog } from '../foundation/identity-log.ts';
 import type { IdentityLog } from '../foundation/identity-log.ts';
 import type { KeyPair } from '../keys.ts';
@@ -14,6 +14,10 @@ const epochOf=(r:ResolverMetadata)=>r.resolver_epoch??0;
 export interface Wallet { format:'dtp-passport-preview-1'; kind:'operational'|'recovery'; person_id:string; secret_key:string; resolver:ResolverMetadata }
 export interface EncryptedWallet { format:'dtp-encrypted-passport-1'; kdf:'PBKDF2-SHA256';iterations:600000;salt:string;iv:string;ciphertext:string }
 export type Transport = (path:string,body?:unknown)=>Promise<any>;
+/** Every change to an identity returns the host's acknowledgment AND the fresh control history, already verified
+ *  against the wallet's pinned resolver. Save the log with the recovery kit every time: an owner whose only copy
+ *  is on a host that later disappears keeps their keys and loses their identity. */
+export interface Changed<A> { ack:A; log:IdentityLog }
 const hex=(b:Uint8Array)=>Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');
 function bytes(s:string,max:number) { if(typeof s!=='string'||s.length>max*2||s.length%2||!/^[0-9a-f]+$/.test(s))throw new Error('Invalid encrypted bundle');return new Uint8Array(s.match(/../g)!.map(x=>parseInt(x,16))); }
 /** The same keys, pinned to another resolver. Valid only once that resolver has adopted the identity. */
@@ -80,7 +84,10 @@ export class PassportClient {
     const command=await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1',{identity_id:this.wallet.person_id,expected_digest:proof.body.head_digest,sequence:head.sequence+1,kind:this.wallet.kind==='recovery'?'recover':'rotate',operational:{keys:[key.keyId],threshold:1},recovery:head.recovery,issued_at:verifiedAt,expires_at:verifiedAt+300000},[old,key]);
     return {next:{...this.wallet,kind:'operational',secret_key:key.secretKey},command};
   }
-  async applyTransition(command:Signed<Transition>) { return this.transport('transition',{person_id:this.wallet.person_id,command}); }
+  /** First registration at the pinned resolver. */
+  async enroll(genesis:Signed<Genesis>,enrollment:Signed<ResolverEnrollment>):Promise<Changed<any>> { return this.changed(this.transport('enroll',{genesis,enrollment})); }
+  async applyTransition(command:Signed<Transition>):Promise<Changed<{identity_id:string;head_digest:string;sequence:number;effective_at:number}>> { return this.changed(this.transport('transition',{person_id:this.wallet.person_id,command})); }
+  private async changed<A>(pending:Promise<A>):Promise<Changed<A>> { const ack=await pending;return {ack,log:await this.exportLog()}; }
   /** Signs a move of this identity to another resolver with the recovery key, from the current head of a verified log.
    *  Needs nothing from the current host. Returns the rehome and this wallet re-pinned to the destination. */
   async prepareRehome(log:IdentityLog,to:ResolverMetadata,now=Date.now()):Promise<{rehome:Signed<Rehome>;next:Wallet}> {
@@ -92,7 +99,7 @@ export class PassportClient {
     return {rehome,next:rehomeWallet(this.wallet,to)};
   }
   /** Destination side: this client must already be pinned to the destination. */
-  async adopt(log:IdentityLog,rehome:Signed<Rehome>) { return this.transport('adopt',{log,rehome}); }
+  async adopt(log:IdentityLog,rehome:Signed<Rehome>):Promise<Changed<{identity_id:string;head_digest:string;sequence:number;effective_at:number;resolver_epoch:number}>> { return this.changed(this.transport('adopt',{log,rehome})); }
   /** Former-host side, cooperative case: hand the old host the log that leaves it. */
   async release(log:IdentityLog) { return this.transport('transfer',{log}); }
   /** The portable control history, to keep somewhere the host cannot reach. Verified against this wallet's pinned resolver before it is returned. */

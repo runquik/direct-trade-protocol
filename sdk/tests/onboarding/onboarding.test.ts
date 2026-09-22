@@ -25,12 +25,13 @@ async function fixture(directory?:string){
     if(path==='execute')return host.execute(input);
     if(path==='resolve')return host.registry.resolve(input);
     if(path==='transition')return host.registry.transition(input.person_id,input.command);
+    if(path==='enroll')return host.registry.enroll(input.genesis,input.enrollment);
     if(path==='log')return host.registry.exportLog(input.person_id);
     if(path==='adopt')return host.registry.adopt(input.log,input.rehome);
     if(path==='transfer')return host.registry.transfer(input.log);
     throw new Error('Unexpected test route');
   };
-  async function enroll(){const bundle=await prepareIdentity(host.metadata(),now);await host.registry.enroll(bundle.genesis,bundle.enrollment);return {...bundle,client:new PassportClient(bundle.operational,transport)};}
+  async function enroll(){const bundle=await prepareIdentity(host.metadata(),now),client=new PassportClient(bundle.operational,transport),{log}=await client.enroll(bundle.genesis,bundle.enrollment);return {...bundle,client,log};}
   const alice=await enroll(),bob=await enroll(),eve=await enroll();
   const company=async(name='Juniper Foods')=>alice.client.run('company.create',null,{nonce:crypto.randomUUID(),name});
   return {get pg(){return pg;},get host(){return host;},get now(){return now;},alice,bob,eve,company,transport,advance:(ms:number)=>now+=ms,
@@ -95,10 +96,12 @@ test('exact retries are idempotent but tampering, replay, cross-person signature
   }finally{await f.close();}
 });
 test('rotation and offline recovery preserve identity and membership, reject old credentials and honor the safety barrier',async()=>{
+  const {identityLog}=await import('../../src/preview.ts');
   const f=await fixture();try{
     const a=await f.company(),c={request_id:crypto.randomUUID(),action:'company.read',organization_id:a.organization_id,parameters:{}};
     const oldRequest=await f.alice.client.request(c),rotation=await f.alice.client.prepareTransition(f.now);
-    const accepted=await f.alice.client.applyTransition(rotation.command);
+    const {ack:accepted,log:afterRotation}=await f.alice.client.applyTransition(rotation.command);
+    assert.equal((await identityLog.verifyIdentityLog(afterRotation,{require_attestation:true})).head_digest,accepted.head_digest,'the change comes back with its verified history');
     await assert.rejects(f.host.execute(oldRequest),/transition pending/);
     const newer=new PassportClient(rotation.next,f.transport);
     await assert.rejects(newer.run('companies.list'),/transition pending/);
@@ -108,11 +111,11 @@ test('rotation and offline recovery preserve identity and membership, reject old
     const recovery=new PassportClient(f.alice.recovery,f.transport);
     await assert.rejects(recovery.run('companies.list'),/Recovery keys cannot/);
     const plan=await recovery.prepareTransition(f.now),result=await recovery.applyTransition(plan.command);
-    f.advance(result.effective_at-f.now);
+    f.advance(result.ack.effective_at-f.now);
     const recovered=new PassportClient(plan.next,f.transport);assert.equal(recovered.wallet.person_id,f.alice.operational.person_id);
     assert.equal((await recovered.run('company.read',a.organization_id)).role,'controller');
     await assert.rejects(newer.run('companies.list'),/current operational/);
-    assert.deepEqual(await recovery.applyTransition(plan.command),result);
+    assert.deepEqual(await recovery.applyTransition(plan.command),result,'an exact retry returns the same acknowledgment and history');
   }finally{await f.close();}
 });
 test('encrypted bundle crosses clients, rejects wrong passwords and corruption; host stores no person secret',async()=>{
@@ -188,11 +191,12 @@ test('a company id is the portable foundation derivation, computable by a client
 test('a wallet exports its verified control history after rotation and recovery, and refuses one bound elsewhere',async()=>{
   const {identityLog}=await import('../../src/preview.ts');
   const f=await fixture();try{
-    const rotation=await f.alice.client.prepareTransition(f.now),accepted=await f.alice.client.applyTransition(rotation.command);f.advance(accepted.effective_at-f.now);
-    const recovery=new PassportClient(f.alice.recovery,f.transport),plan=await recovery.prepareTransition(f.now),result=await recovery.applyTransition(plan.command);f.advance(result.effective_at-f.now);
+    const rotation=await f.alice.client.prepareTransition(f.now),{ack:accepted}=await f.alice.client.applyTransition(rotation.command);f.advance(accepted.effective_at-f.now);
+    const recovery=new PassportClient(f.alice.recovery,f.transport),plan=await recovery.prepareTransition(f.now),{ack:result}=await recovery.applyTransition(plan.command);f.advance(result.effective_at-f.now);
     const log=await new PassportClient(plan.next,f.transport).exportLog(),verified=await identityLog.verifyIdentityLog(log,{require_attestation:true});
     assert.equal(verified.identity_id,f.alice.operational.person_id);assert.equal(verified.head_digest,result.head_digest);assert.equal(verified.heads.length,3);
     assert.deepEqual(verified.head.operational.keys,[(await keyPairFromSecret(plan.next.secret_key)).keyId]);
+    assert.equal((await identityLog.verifyIdentityLog(f.alice.log,{require_attestation:true})).heads.length,1,'enrollment already returned a genesis-only history to keep');
     // A recovery-only wallet, the one most likely to need the log, can fetch it too.
     assert.deepEqual(await recovery.exportLog(),log);
     const repinned=new PassportClient({...plan.next,resolver:{...plan.next.resolver,resolver_key:(await generateKeyPair()).keyId}},f.transport);
@@ -205,18 +209,19 @@ test('a person moves their identity to a second host with the recovery file and 
   const {identityLog}=await import('../../src/preview.ts');
   const a=await fixture();const b=await fixture();try{
     b.advance(a.now-b.now+1000);
-    const company=await a.company(),rotation=await a.alice.client.prepareTransition(a.now),accepted=await a.alice.client.applyTransition(rotation.command);a.advance(accepted.effective_at-a.now);b.advance(a.now-b.now);
-    const atA=new PassportClient(rotation.next,a.transport),log=await atA.exportLog();
+    const company=await a.company(),rotation=await a.alice.client.prepareTransition(a.now),{ack:accepted,log}=await a.alice.client.applyTransition(rotation.command);a.advance(accepted.effective_at-a.now);b.advance(a.now-b.now);
+    const atA=new PassportClient(rotation.next,a.transport);assert.deepEqual(await atA.exportLog(),log,'the log returned with the change is the one the host serves');
     // Only the recovery file and the log. Host A is not consulted.
     const recovery=new PassportClient(a.alice.recovery,a.transport),{rehome,next}=await recovery.prepareRehome(log,b.host.metadata(),b.now);
     assert.equal(next.resolver.resolver_epoch,1);
-    const adopted=await new PassportClient(next,b.transport).adopt(log,rehome);assert.deepEqual([adopted.sequence,adopted.resolver_epoch],[2,1]);
+    const {ack:adopted,log:afterMove}=await new PassportClient(next,b.transport).adopt(log,rehome);assert.deepEqual([adopted.sequence,adopted.resolver_epoch],[2,1]);
+    assert.equal((await identityLog.verifyIdentityLog(afterMove,{require_attestation:true})).resolver.id,b.host.metadata().resolver_id,'the move comes back with the history the new host now serves');
     const atB=new PassportClient(rehomeWallet(rotation.next,b.host.metadata()),b.transport);
     const moved=await identityLog.verifyIdentityLog(await atB.exportLog(),{require_attestation:true});
     assert.equal(moved.resolver.id,b.host.metadata().resolver_id);assert.equal(moved.identity_id,a.alice.operational.person_id);
     // Ordinary life continues at B, including key rotation under B's conservative barrier; A still serves the stale identity until told.
     assert.deepEqual(await atB.run('companies.list'),[],'companies stay where they were created');
-    const again=await atB.prepareTransition(b.now),second=await atB.applyTransition(again.command);assert.equal(second.effective_at,adopted.effective_at+LEASE_MS+CLOCK_MARGIN_MS);
+    const again=await atB.prepareTransition(b.now),{ack:second}=await atB.applyTransition(again.command);assert.equal(second.effective_at,adopted.effective_at+LEASE_MS+CLOCK_MARGIN_MS);
     assert.equal((await atA.run('companies.list'))[0].organization_id,company.organization_id,'host A, not yet told, still vouches for the old binding');
     // Cooperative release: A stops serving the identity and answers with the forwarding log.
     await recovery.release(await atB.exportLog());
