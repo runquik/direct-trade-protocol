@@ -5,6 +5,7 @@ import { checkPermissions } from "./permissions.ts";
 import { applyInventoryEvent, createInventoryState } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
+import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -193,8 +194,19 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
   }
   const sourceInventory = snap.inventory[snap.organization.id];
   const rebuiltInventory: any = {pools:{},observations:{},creations:{}};
+  const ledgers = !!sourceInventory && Object.hasOwn(sourceInventory,"ledgers");
+  if (ledgers) { rebuiltInventory.ledgers = {}; rebuiltInventory.openings = {}; rebuiltInventory.facts = {}; }
   if (sourceInventory) {
-    exact(sourceInventory,["pools","observations","creations"]);
+    exact(sourceInventory,ledgers ? ["pools","observations","creations","ledgers","openings","facts"] : ["pools","observations","creations"]);
+    for (const [productId,opening] of Object.entries(ledgers ? sourceInventory.openings : {}) as [string,Command][]) {
+      await historicalPerson(opening,snap.organization.id); exact(opening.payload,["policy_id","product_id"]); const p = opening.payload;
+      demand(associated.has(opening.actor.id) && opening.action === "inventory.open" && p.product_id === productId && uuid(productId) && policyIds.has(p.policy_id), "invalid_snapshot", "invalid signed ledger opening");
+      // The product's base unit and tracking are immutable, so any head of it anchors the same ledger.
+      const product = snap.records.find(r => r.root_id === productId && r.is_head && candidate.profiles[r.profile_digest]?.semantics === "product-v1");
+      demand(product, "invalid_snapshot", "ledger opened for a product the snapshot does not carry");
+      try { rebuiltInventory.ledgers[productId] = {...openInventoryLedger(snap.organization.id,productId,product.body as any),policy_id:p.policy_id}; } catch { demand(false,"invalid_snapshot","product cannot anchor a ledger"); }
+      rebuiltInventory.openings[productId] = structuredClone(opening);
+    }
     for (const [poolId,creation] of Object.entries(sourceInventory.creations) as [string,Command][]) {
       await historicalPerson(creation,snap.organization.id); exact(creation.payload,["policy_id","pool_id","product_id","base_unit"]); const p = creation.payload;
       demand(associated.has(creation.actor.id) && creation.action === "inventory.create" && p.pool_id === poolId && uuid(poolId) && uuid(p.product_id) && policyIds.has(p.policy_id), "invalid_snapshot", "invalid signed stock pool creation");
@@ -224,6 +236,14 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(validateProduct(r.body).length === 0, "invalid_snapshot", "product violates profile");
       if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkProductContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "product continuity violated"); }
       expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
+    }
+    if (semantics === "inventory-v2") {
+      const fact = r.body, ledger = ledgers ? rebuiltInventory.ledgers[fact.product_id] : undefined;
+      demand(r.supersedes === null && fact.product_id === r.resource_id && ledger?.policy_id === r.policy_id, "invalid_snapshot", "inventory fact scope differs");
+      const observation = JSON.stringify([fact.product_id,fact.observation?.source_id,fact.observation?.sequence]); demand(!rebuiltInventory.facts[observation], "invalid_snapshot", "duplicate inventory fact");
+      const changed = applyInventoryFact(ledger,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "inventory facts violate profile");
+      rebuiltInventory.ledgers[fact.product_id] = {...changed.state,policy_id:ledger.policy_id}; rebuiltInventory.facts[observation] = {hash:await digest(fact),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
+      expectedValidation = {profile:INVENTORY2_PROFILE,revision:changed.state.revision,physical_stock_verified:false};
     }
     if (semantics === "inventory-v1") {
       const event = r.body, pool = rebuiltInventory.pools[event.pool_id];
