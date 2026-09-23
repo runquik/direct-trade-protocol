@@ -14,12 +14,13 @@ const page = (kinds: string[]) => ({ after: 0, limit: 100, profile_digests: [], 
 
 test("protocol profiles: a host loads the registry and the registered contracts, a company admits them, and protocol kinds then select records written under them", async () => {
   const protocol = await loadProtocolProfiles();
-  assert.deepEqual(Object.keys(protocol.kinds).sort(), ["dtp/inventory@2", "dtp/product@1"]);
-  assert.deepEqual(Object.keys(protocol.protocolProfiles).sort(), [productFixtures.contract_digest, inventoryFixtures.contract_digest].sort(), "every registered digest has its contract beside the document");
+  assert.deepEqual(Object.keys(protocol.kinds).sort(), ["dtp/inventory@2", "dtp/party@1", "dtp/product@1"]);
+  assert.ok(Object.keys(protocol.protocolProfiles).includes(productFixtures.contract_digest) && Object.keys(protocol.protocolProfiles).includes(inventoryFixtures.contract_digest), "every registered digest has its contract beside the document");
+  assert.deepEqual(Object.keys(protocol.protocolProfiles).sort(), Object.values(protocol.kinds).flat().sort());
   const store = await createDtpStore(); try {
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     const health = await (await fetch(store.audience + "/dtp/v0.4/health")).json();
-    assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/inventory@2", "dtp/product@1"], "the repository registry is the default");
+    assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/inventory@2", "dtp/party@1", "dtp/product@1"], "the repository registry is the default");
     // Registered but not yet admitted at this host: the kind selects nothing.
     assert.equal((await client.act(owner, "records.list", org, page(["dtp/product@1"]))).error.code, "unsupported_profile");
     const admitted = await client.ok(owner, "profile.admit", org, { digest: productFixtures.contract_digest });

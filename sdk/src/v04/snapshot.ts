@@ -6,6 +6,7 @@ import { applyInventoryEvent, createInventoryState } from "../profiles/inventory
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
+import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -244,6 +245,12 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(validateProduct(r.body).length === 0, "invalid_snapshot", "product violates profile");
       if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkProductContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "product continuity violated"); }
       expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
+    }
+    if (semantics === "party-v1") {
+      demand(validateParty(r.body).length === 0, "invalid_snapshot", "party violates profile");
+      demand(r.body.kind !== "person" || snap.policies.find(p => p.id === r.policy_id)?.classification === "personnel", "invalid_snapshot", "person party outside a personnel policy");
+      if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkPartyContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "party continuity violated"); }
+      expectedValidation = {profile:PARTY_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "inventory-v2") {
       const fact = r.body, ledger = ledgers ? rebuiltInventory.ledgers[fact.product_id] : undefined;

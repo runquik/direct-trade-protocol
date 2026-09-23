@@ -7,6 +7,7 @@
   },
   "kinds": {
     "dtp/product@1": { "digests": ["864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986"] },
-    "dtp/inventory@2": { "digests": ["01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"] }
+    "dtp/inventory@2": { "digests": ["01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"] },
+    "dtp/party@1": { "digests": ["e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e"] }
   }
 }
