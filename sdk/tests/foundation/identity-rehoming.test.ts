@@ -7,8 +7,10 @@ import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, rehomeIdentity, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Signed, Transition } from '../../src/foundation/identity.ts';
 import { createIdentityRegistry, IDENTITY_REGISTRY_SCHEMA } from '../../src/foundation/identity-registry.ts';
-import { admitIdentityLog, attestHead, buildIdentityLog, precedence, verifyIdentityLog } from '../../src/foundation/identity-log.ts';
-import type { IdentityLog, ResolverPin } from '../../src/foundation/identity-log.ts';
+import { admitIdentityLog, attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT } from '../../src/foundation/identity-log.ts';
+import type { IdentityLog, IdentityLogPush, ResolverPin } from '../../src/foundation/identity-log.ts';
+import { pushIdentityLog } from '../../src/onboarding/client.ts';
+import type { Transport } from '../../src/onboarding/client.ts';
 
 const strict = { require_attestation: true }, lenient = { require_attestation: false };
 const hex = (n = 32) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, '0')).join('');
@@ -140,6 +142,63 @@ test('adoption refuses a log that names another resolver, a rehome from the wron
     // The same identity presented again with a different history at the same sequence is refused, not merged.
     const other = { ...w.b.meta, resolver_key: (await generateKeyPair()).keyId };
     await assert.rejects(w.b.registry.adopt(exported, await sign({ ...body, to: { ...other, resolver_epoch: 1 } })), /another resolver|different history/);
+  } finally { await w.close(); }
+});
+
+test('a destination that will not adopt signs a refusal: it never adopts that rehome afterwards, a verifier can tell a refused consent from an adopted move, and an attestation of the refused head is equivocation', async () => {
+  const w = await world(); try {
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const body: Rehome = { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 };
+    const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', body, [w.rec0]);
+    // B declines. The refusal is the destination's own signed statement about exactly this document.
+    const refusal = await w.b.registry.refuse(rehome);
+    assert.deepEqual(await verifyRehomeRefusal(refusal, rehome), { identity_id: w.identity, rehome_digest: await rehomeDigest(rehome), resolver_id: w.b.config.id, resolver_epoch: 1, refused_at: at });
+    assert.deepEqual(await w.b.registry.refuse(rehome), refusal, 'a replayed refusal is the stored one');
+    await assert.rejects(w.a.registry.refuse(rehome), /another resolver/, 'only the destination the rehome names can refuse it');
+    await assert.rejects(w.b.registry.adopt(exported, rehome), /refused/, 'the refusal says never, and the host keeps its word');
+    // A log someone assembles from the owner's consent alone: valid as a history, but no destination adopted the move.
+    const dangling: IdentityLog = { ...structuredClone(exported), entries: [...structuredClone(exported.entries), { effective_at: at + 1, transition: null, rehome, attestation: null }] };
+    await verifyIdentityLog(dangling, lenient);
+    const pin: ResolverPin = { identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
+    assert.deepEqual(await judgeIdentityLog(pin, dangling, lenient), { outcome: 'refused', reason: 'unadopted-move', error: null });
+    await assert.rejects(admitIdentityLog(pin, dangling, lenient), /destination's attestation/);
+    assert.equal(await compareRehomeRefusal(refusal, dangling), 'consistent');
+    assert.equal(await compareRehomeRefusal(refusal, exported), 'unrelated');
+    // If B nevertheless attested that head, its refusal and its attestation together prove it equivocated.
+    const attested = structuredClone(dangling), head = (await verifyIdentityLog(dangling, lenient)).heads[1].head;
+    attested.entries[1].attestation = await attestHead(head, { id: w.b.config.id, epoch: 1 }, w.b.key);
+    assert.equal(await compareRehomeRefusal(refusal, attested), 'equivocation');
+    assert.equal((await judgeIdentityLog(pin, attested, lenient)).outcome, 'advanced', 'admission alone cannot see the refusal; a relying party holding one refuses the branch itself');
+    // The owner signs a fresh rehome to B, which B adopts; the earlier refusal is about the earlier document only.
+    const later = w.clock.advance(1_000), again = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { ...body, issued_at: later, expires_at: later + 300_000 }, [w.rec0]);
+    const adopted = await w.b.registry.adopt(exported, again); assert.equal(adopted.resolver_epoch, 1);
+    assert.equal(await compareRehomeRefusal(refusal, await w.b.registry.exportLog(w.identity)), 'unrelated');
+    await assert.rejects(w.b.registry.refuse(again), /already adopted/, 'a host cannot refuse what it adopted');
+  } finally { await w.close(); }
+});
+
+test('owner push: a wallet hands a relying party the log after a move; the answer is idempotent and classifies every refusal', async () => {
+  const w = await world(); try {
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 }, [w.rec0]);
+    await w.b.registry.adopt(exported, rehome); const moved = await w.b.registry.exportLog(w.identity);
+    // A relying party: one durable pin, and the push route in front of the procedure.
+    let pin: ResolverPin | null = { identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
+    const received: unknown[] = [];
+    const party: Transport = async (path, message) => {
+      assert.equal(path, 'identity-log'); received.push(message);
+      const { ack, admission } = await receiveIdentityLogPush(message as IdentityLogPush, async identity => pin !== null && pin.identity_id === identity ? pin : null, strict);
+      if (admission !== null) pin = admission.pin; return ack;
+    };
+    const first = await pushIdentityLog(party, moved);
+    assert.deepEqual(received, [{ format: IDENTITY_LOG_PUSH_FORMAT, log: moved }], 'the message is the log and nothing else');
+    assert.deepEqual([first.outcome, first.reason, first.identity_id, first.binding], ['advanced', null, w.identity, { resolver_id: w.b.config.id, resolver_epoch: 1, sequence: 1, head_digest: (await verifyIdentityLog(moved, strict)).head_digest }]);
+    assert.equal((await pushIdentityLog(party, moved)).outcome, 'unchanged', 'repeating the push changes nothing');
+    // A stale log that never reaches the party's epoch cannot be tied to the lineage it now holds: foreign-lineage, not behind.
+    assert.deepEqual([(await pushIdentityLog(party, exported)).outcome, (await pushIdentityLog(party, exported)).reason], ['refused', 'foreign-lineage']);
+    pin = null; assert.equal((await pushIdentityLog(party, moved)).reason, 'unknown-identity');
+    const broken: Transport = async () => ({ format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id: w.identity, outcome: 'advanced', reason: null, binding: null });
+    await assert.rejects(pushIdentityLog(broken, moved), /disagree/, 'the wallet checks the shape of what it is told');
   } finally { await w.close(); }
 });
 

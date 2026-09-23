@@ -89,6 +89,43 @@ The resolver binding is per epoch. Entry 0's enrollment fixes epoch 0; each reho
 
 **Epoch precedence** (`precedence`): between two valid histories of one identity that diverge, the one whose current binding has the higher epoch supersedes, wherever they fork. Forks at one epoch are a conflict. One history being a prefix of the other is not a fork.
 
-**Admission** (`admitIdentityLog`): a relying party holding a pin `(resolver_id, resolver_key, resolver_epoch, minimum_sequence, minimum_digest)` admits a log only if the log's binding **at the pinned epoch** equals the pin, the log reaches at least the pinned sequence, and the pinned digest is either consistent with the log or superseded by a higher epoch. It then stores the log's current binding and head as its new pin, atomically, and refuses the former resolver from then on. A same-epoch conflict is refused.
+**Admission** (`admitIdentityLog`): a relying party holding a pin `(resolver_id, resolver_key, resolver_epoch, minimum_sequence, minimum_digest)` admits a log only if the log's binding **at the pinned epoch** equals the pin, the log reaches at least the pinned sequence, every move past the pinned epoch is adopted (below), and the pinned digest is either consistent with the log or superseded by a higher epoch. It then stores the log's current binding and head as its new pin, atomically, and refuses the former resolver from then on. A same-epoch conflict is refused. `judgeIdentityLog` is the same procedure as a judgement that never throws for an expected refusal; its reasons are normative: `invalid-log`, `another-identity`, `unknown-identity`, `foreign-lineage`, `behind`, `conflict`, `unadopted-move`.
 
-Vectors for moves, both formats, and precedence pairs are in the same file.
+Vectors for moves, both formats, precedence pairs, admissions, pushes and refusals are in the same file.
+
+### Adoption evidence, refusals and owner push (draft 2)
+
+September 22, 2026. Additive: no identifier, signing domain, signed document or existing log changes. It closes decision D7 of the [re-homing design](identity-rehoming-proposal.md) and specifies the owner push that design named.
+
+**Adoption evidence.** A rehome entry is *adopted* when it carries an attestation, which rule 8 and the per-epoch binding rule require to be signed by the key the rehome names as `to.resolver_key`. A rehome entry without one is *unadopted*: the log still verifies and proves that the owner consented to the move; it does not prove that any destination created the head. A relying party therefore refuses, as `unadopted-move`, a log in which any rehome entry past its pinned epoch is unadopted, **whatever its attestation policy for the other entries**. That policy exists because a former resolver may be gone or hostile and its attestations cannot be required; the destination adopted, so its attestation of the one head it created always can be.
+
+Consequences. An owner whose destination failed, refused or never answered may sign a second rehome from the same head: the first is a dangling consent that no relying party admits, and the two documents are distinct consents to distinct moves. If both destinations adopt, two attested branches exist at one epoch and every fork rule applies: a verifier that sees both fails closed and escalates. **What remains undetectable without witnesses:** a relying party or cold verifier shown only one adopted branch cannot know that the other exists. Nothing here changes that; the transparency layer remains the answer, and this rule is designed so that it can be added without touching any of this.
+
+**Refusal.** A destination that will not adopt MAY sign, under `DTP-IDENTITY-REHOME-REFUSAL-1`,
+
+```
+RehomeRefusal { identity_id, rehome_digest, resolver_id, resolver_epoch, refused_at }
+```
+
+where `rehome_digest` is the digest of `{domain:"DTP-IDENTITY-REHOME-1", body: rehome}`, the value the head after that rehome commits to, and `resolver_id` and `resolver_epoch` are the rehome's `to` values. A verifier MUST refuse a refusal unless it carries exactly one signature, by `to.resolver_key`, and its body names that rehome. A refusal means *never*: a destination MUST persist what it refused and MUST NOT adopt it later. A refusal and an attestation of the head that rehome produces, from one key, are portable proof that the destination equivocated; `compareRehomeRefusal` answers `unrelated` (the log has no head from that rehome), `consistent` (it has one and nobody attested it) or `equivocation`. A relying party that holds a refusal for a rehome MUST refuse any log whose entry is that rehome and keep both artifacts. Refusals are optional and advisory: no verifier needs one, and a rehome that could never have been adopted may be refused harmlessly.
+
+**Owner push.** After a move a wallet SHOULD send each relying party it knows
+
+```
+IdentityLogPush { format: "dtp-identity-log-push-1", log: IdentityLog }
+```
+
+and nothing else. The log is self-verifying, so the message carries no signature and the sender is not authenticated. The relying party runs the admission procedure against the pin it holds for the log's identity, stores the resulting pin atomically, and answers
+
+```
+IdentityLogPushAck {
+  format: "dtp-identity-log-push-ack-1", identity_id: string | null,
+  outcome: "unchanged" | "advanced" | "superseded" | "refused",
+  reason: null | "invalid-log" | "another-identity" | "unknown-identity" | "foreign-lineage" | "behind" | "conflict" | "unadopted-move",
+  binding: { resolver_id, resolver_epoch, sequence, head_digest } | null
+}
+```
+
+`identity_id` is null only when the log did not verify. `binding` is the pin the party now holds and is null exactly when it refused. The answer is a function of the party's durable pin and the message, so a wallet MAY repeat a push at any time: once admitted, the same log answers `unchanged`; an older log at the party's epoch answers `behind`, and one that ends before the party's epoch answers `foreign-lineage`, because a pin records only its current binding and such a log cannot be tied to it. `conflict` MUST be reported as such, since a same-epoch fork is what the owner and the resolver have to act on. The ack is unsigned; the transport authenticates the party. An ack tells whoever holds a valid log that this party enrolled the identity; a party that treats that relationship as confidential SHOULD accept pushes only over an authenticated channel. The reference HTTP binding is `POST <origin>/api/identity-log` with the message as the body and the ack as the response body.
+
+Reference: `judgeIdentityLog`, `receiveIdentityLogPush`, `parseIdentityLogPushAck`, `refuseRehome`, `verifyRehomeRefusal`, `compareRehomeRefusal` and `rehomeDigest` in `identity-log.ts`; the registry's `refuse`, which persists the refusal and makes `adopt` honor it; the authentication adapter's `receiveIdentityLogPush`, which judges against its durable checkpoint inside the caller's transaction; the wallet's `pushIdentityLog`. The repository's only relying party is that adapter, a library, so no server route is provided.
