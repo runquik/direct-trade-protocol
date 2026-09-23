@@ -3,8 +3,8 @@ import { canonicalBytes } from '../canonical.ts';
 import { generateKeyPair, keyPairFromSecret, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import { createIdentity, signIdentity, verifyResolution } from '../foundation/identity.ts';
 import type { Genesis, Rehome, ResolverEnrollment, Signed, Transition } from '../foundation/identity.ts';
-import { verifyIdentityLog } from '../foundation/identity-log.ts';
-import type { IdentityLog } from '../foundation/identity-log.ts';
+import { IDENTITY_LOG_PUSH_FORMAT, parseIdentityLogPushAck, verifyIdentityLog } from '../foundation/identity-log.ts';
+import type { IdentityLog, IdentityLogPushAck } from '../foundation/identity-log.ts';
 import type { KeyPair } from '../keys.ts';
 import type { Command, Challenge, Request } from './host.ts';
 import { parseUntrustedJson, parseUntrustedResponse } from '../safe-json.ts';
@@ -25,6 +25,12 @@ export function rehomeWallet(wallet:Wallet,resolver:ResolverMetadata):Wallet { h
 export function httpTransport(audience:string):Transport {
   const url=new URL(audience);if(url.origin!==audience||!['http:','https:'].includes(url.protocol))throw new Error('Exact host origin required');
   return async(path,body)=>{const response=await fetch(`${audience}/api/${path}`,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const value=await parseUntrustedResponse(response) as any;if(!response.ok)throw new Error(value.error||'Host request failed');return value;};
+}
+/** Owner push: hand a relying party the log after a move, so that it stops trusting the former resolver now rather
+ *  than at the next sign-in. The message is the log and nothing else; the relying party's transport is the caller's
+ *  (an origin's `POST /api/identity-log` with httpTransport). Safe to repeat: an admitted log answers `unchanged`. */
+export async function pushIdentityLog(relyingParty:Transport,log:IdentityLog):Promise<IdentityLogPushAck> {
+  return parseIdentityLogPushAck(await relyingParty('identity-log',{format:IDENTITY_LOG_PUSH_FORMAT,log}));
 }
 export async function prepareIdentity(resolver:ResolverMetadata,now=Date.now()) {
   const [operational,recovery]=await Promise.all([generateKeyPair(),generateKeyPair()]);

@@ -37,6 +37,25 @@ export interface VerifiedIdentityLog {
 export interface IdentityLogParts { genesis: Signed<Genesis>; enrollment: Signed<ResolverEnrollment>; entries: IdentityLogEntry[] }
 /** What a relying party durably keeps for an identity: the resolver it trusts and its last verified head. */
 export interface ResolverPin { identity_id: string; resolver_id: string; resolver_key: string; resolver_epoch: number; minimum_sequence: number; minimum_digest: string | null }
+export const REHOME_REFUSAL_DOMAIN = 'DTP-IDENTITY-REHOME-REFUSAL-1';
+/** A destination's signed statement that it did not adopt one rehome and never will. Signed by the key the
+ *  rehome names as `to.resolver_key`. A refusal and an attestation of the head that rehome produces, from one
+ *  key, are portable proof that the destination equivocated. */
+export interface RehomeRefusal { identity_id: string; rehome_digest: string; resolver_id: string; resolver_epoch: number; refused_at: number }
+/** Why a relying party refused a log. `invalid-log` carries the verifier's error; the rest are admission rules. */
+export type AdmissionRefusal = 'invalid-log' | 'another-identity' | 'unknown-identity' | 'foreign-lineage' | 'behind' | 'conflict' | 'unadopted-move';
+export interface IdentityLogAdmission { outcome: 'unchanged' | 'advanced' | 'superseded'; pin: ResolverPin; superseded: { sequence: number; head_digest: string } | null }
+export type IdentityLogJudgement = IdentityLogAdmission | { outcome: 'refused'; reason: AdmissionRefusal; error: Error | null };
+export const IDENTITY_LOG_PUSH_FORMAT = 'dtp-identity-log-push-1';
+export const IDENTITY_LOG_PUSH_ACK_FORMAT = 'dtp-identity-log-push-ack-1';
+/** What a wallet sends a relying party after a move: the log, and nothing else. */
+export interface IdentityLogPush { format: typeof IDENTITY_LOG_PUSH_FORMAT; log: IdentityLog }
+/** The relying party's answer. `binding` is the pin it now holds, or null when it refused. Unsigned. */
+export interface IdentityLogPushAck {
+  format: typeof IDENTITY_LOG_PUSH_ACK_FORMAT; identity_id: string | null;
+  outcome: 'unchanged' | 'advanced' | 'superseded' | 'refused'; reason: AdmissionRefusal | null;
+  binding: { resolver_id: string; resolver_epoch: number; sequence: number; head_digest: string } | null;
+}
 function need(ok: unknown, reason: string): asserts ok { if (!ok) throw new Error(reason); }
 function fields(value: unknown, names: string[]): asserts value is Record<string, any> {
   need(value && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value)), 'plain closed log object required');
@@ -151,25 +170,84 @@ export function precedence(a: VerifiedIdentityLog, b: VerifiedIdentityLog): 'equ
   if (a.heads.length === b.heads.length) return 'equal';
   return a.heads.length > b.heads.length ? 'a-extends-b' : 'b-extends-a';
 }
-/** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place.
- *  The log must continue the lineage the pin was enrolled with, at the pinned epoch. A conflict with the pinned
- *  checkpoint is admitted only when the log has reached a higher epoch; it is then reported, never hidden.
- *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
-export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<{ outcome: 'unchanged' | 'advanced' | 'superseded'; pin: ResolverPin; superseded: { sequence: number; head_digest: string } | null }> {
+function checkPin(pin: ResolverPin): ResolverPin {
   pin = copyIdentityData(pin); fields(pin, ['identity_id', 'resolver_id', 'resolver_key', 'resolver_epoch', 'minimum_sequence', 'minimum_digest']);
   need(typeof pin.identity_id === 'string' && Number.isSafeInteger(pin.resolver_epoch) && pin.resolver_epoch >= 0 && Number.isSafeInteger(pin.minimum_sequence) && pin.minimum_sequence >= 0 && (pin.minimum_digest === null || hex64(pin.minimum_digest)), 'invalid resolver pin');
-  const v = await verifyIdentityLog(log, policy);
+  return pin;
+}
+/** The relying-party procedure over an already verified log; see judgeIdentityLog. */
+function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog): IdentityLogJudgement {
   // Two identities enrolled at one resolver share its binding; the pin is for exactly one of them.
-  need(v.identity_id === pin.identity_id, 'log is for another identity');
+  if (v.identity_id !== pin.identity_id) return { outcome: 'refused', reason: 'another-identity', error: null };
   const known = v.resolvers.find(r => r.epoch === pin.resolver_epoch);
-  need(known && known.id === pin.resolver_id && known.key_id === pin.resolver_key, 'log does not continue the pinned lineage');
-  need(v.head.sequence >= pin.minimum_sequence, 'log is behind the pinned checkpoint');
+  if (!known || known.id !== pin.resolver_id || known.key_id !== pin.resolver_key) return { outcome: 'refused', reason: 'foreign-lineage', error: null };
+  if (v.head.sequence < pin.minimum_sequence) return { outcome: 'refused', reason: 'behind', error: null };
+  // Adoption evidence: a move past the pinned epoch counts only when the destination attested the head it created.
+  // The former resolver may be gone or hostile, so its attestations cannot be required; the destination adopted, so
+  // its attestation always can be. A rehome without one proves the owner's consent, not that the move happened.
+  for (let n = 1; n < v.heads.length; n++) {
+    const moved = v.heads[n].epoch !== v.heads[n - 1].epoch;
+    if (moved && v.heads[n].epoch > pin.resolver_epoch && !v.heads[n].attested) return { outcome: 'refused', reason: 'unadopted-move', error: null };
+  }
   let outcome: 'unchanged' | 'advanced' | 'superseded' = v.head.sequence === pin.minimum_sequence && v.resolver.epoch === pin.resolver_epoch ? 'unchanged' : 'advanced', superseded = null;
   if (pin.minimum_digest !== null && compareCheckpoint(v, { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest }) === 'conflict') {
-    need(v.resolver.epoch > pin.resolver_epoch, 'conflicting control history at the same resolver epoch');
+    if (v.resolver.epoch <= pin.resolver_epoch) return { outcome: 'refused', reason: 'conflict', error: null };
     outcome = 'superseded'; superseded = { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest };
   }
   return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
+}
+/** The relying-party procedure as a judgement that never throws for an expected refusal: verify the log; require
+ *  that it continues the lineage the pin was enrolled with, at the pinned epoch; require adoption evidence for every
+ *  move past the pinned epoch; admit a conflict with the pinned checkpoint only when the log has reached a higher
+ *  epoch, and then report it, never hide it. An invalid pin is the caller's bug and still throws. */
+export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<IdentityLogJudgement> {
+  pin = checkPin(pin);
+  let v: VerifiedIdentityLog;
+  try { v = await verifyIdentityLog(log, policy); } catch (error) { return { outcome: 'refused', reason: 'invalid-log', error: error instanceof Error ? error : new Error(String(error)) }; }
+  return judgeVerified(pin, v);
+}
+const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string> = {
+  'another-identity': 'log is for another identity', 'unknown-identity': 'identity is not enrolled here',
+  'foreign-lineage': 'log does not continue the pinned lineage', 'behind': 'log is behind the pinned checkpoint',
+  'conflict': 'conflicting control history at the same resolver epoch', 'unadopted-move': 'move without the destination\'s attestation',
+};
+/** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place, or throw.
+ *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
+export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<IdentityLogAdmission> {
+  const judged = await judgeIdentityLog(pin, log, policy);
+  if (judged.outcome !== 'refused') return judged;
+  if (judged.reason === 'invalid-log') throw judged.error;
+  throw new Error(REFUSAL_MESSAGES[judged.reason]);
+}
+/** Owner push, relying-party side. The message carries the log and nothing else; the answer is a function of the
+ *  message and the pin the relying party holds, so a repeated push is answered identically once admitted
+ *  (`unchanged`). `lookup` returns the durable pin for an identity, or null when this relying party never enrolled
+ *  it; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
+export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
+  const refused = (identity_id: string | null, reason: AdmissionRefusal): { ack: IdentityLogPushAck; admission: null } => ({ ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id, outcome: 'refused', reason, binding: null }, admission: null });
+  let v: VerifiedIdentityLog;
+  try {
+    const m = copyIdentityData(message); fields(m, ['format', 'log']); need(m.format === IDENTITY_LOG_PUSH_FORMAT, 'unsupported identity log push format');
+    v = await verifyIdentityLog(m.log, policy);
+  } catch { return refused(null, 'invalid-log'); }
+  const pin = await lookup(v.identity_id);
+  if (pin === null) return refused(v.identity_id, 'unknown-identity');
+  const judged = judgeVerified(checkPin(pin), v);
+  if (judged.outcome === 'refused') return refused(v.identity_id, judged.reason);
+  const p = judged.pin;
+  return { ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id: v.identity_id, outcome: judged.outcome, reason: null,
+    binding: { resolver_id: p.resolver_id, resolver_epoch: p.resolver_epoch, sequence: p.minimum_sequence, head_digest: p.minimum_digest! } }, admission: judged };
+}
+/** Wallet side: checks the shape of what a relying party answered. The ack is unsigned; transport authenticates the party. */
+export function parseIdentityLogPushAck(value: unknown): IdentityLogPushAck {
+  const a = copyIdentityData(value as IdentityLogPushAck); fields(a, ['format', 'identity_id', 'outcome', 'reason', 'binding']);
+  need(a.format === IDENTITY_LOG_PUSH_ACK_FORMAT, 'unsupported identity log push ack format');
+  need(a.identity_id === null || typeof a.identity_id === 'string', 'invalid push ack identity');
+  need(['unchanged', 'advanced', 'superseded', 'refused'].includes(a.outcome), 'invalid push ack outcome');
+  need(a.reason === null || ['invalid-log', 'another-identity', 'unknown-identity', 'foreign-lineage', 'behind', 'conflict', 'unadopted-move'].includes(a.reason), 'invalid push ack reason');
+  need((a.outcome === 'refused') === (a.reason !== null) && (a.outcome === 'refused') === (a.binding === null), 'push ack outcome, reason and binding disagree');
+  if (a.binding !== null) { fields(a.binding, ['resolver_id', 'resolver_epoch', 'sequence', 'head_digest']); need(typeof a.binding.resolver_id === 'string' && instant(a.binding.resolver_epoch) && instant(a.binding.sequence) && hex64(a.binding.head_digest), 'invalid push ack binding'); }
+  return a;
 }
 /** Host side: assemble a log from stored signed material and recorded instants, verify it, and attest
  *  every head of the resolver key's own epochs that lacks an attestation. Heads of other epochs keep
@@ -190,6 +268,50 @@ export async function buildIdentityLog(parts: IdentityLogParts, resolverKey: Key
 }
 function copyLog(log: IdentityLog): IdentityLog {
   return { format: log.format, genesis: copyIdentityData(log.genesis), enrollment: copyIdentityData(log.enrollment), entries: log.entries.map(e => copyIdentityData(e)) };
+}
+/** The digest a head commits to when a rehome produces it: `previous_digest` of that head. */
+export async function rehomeDigest(rehome: Signed<Rehome>): Promise<string> {
+  const r = copyIdentityData(rehome); fields(r, ['body', 'signatures']); fields(r.body, ['identity_id', 'expected_digest', 'sequence', 'from', 'to', 'issued_at', 'expires_at']);
+  return sha256Hex(canonicalBytes({ domain: 'DTP-IDENTITY-REHOME-1', body: r.body }));
+}
+const refusalBytes = (body: RehomeRefusal) => canonicalBytes({ domain: REHOME_REFUSAL_DOMAIN, body });
+function rehomeTarget(rehome: Signed<Rehome>) {
+  const to = rehome.body.to; fields(to, ['resolver_id', 'resolver_key', 'audience', 'resolver_epoch']);
+  need(typeof to.resolver_id === 'string' && typeof to.resolver_key === 'string' && instant(to.resolver_epoch) && typeof rehome.body.identity_id === 'string', 'invalid rehome target');
+  return to as { resolver_id: string; resolver_key: string; audience: string; resolver_epoch: number };
+}
+/** Destination side: a signed statement that this rehome was not adopted here and never will be. The signer must
+ *  hold the key the rehome names. Whether the rehome itself is valid is not this function's concern; a refusal of a
+ *  rehome that could never have been adopted is harmless. A destination MUST persist what it refused, so that it
+ *  never adopts it later: a refusal and an attestation for one rehome from one key is proof of equivocation. */
+export async function refuseRehome(rehome: Signed<Rehome>, key: KeyPair, now: number): Promise<Signed<RehomeRefusal>> {
+  const r = copyIdentityData(rehome), digest = await rehomeDigest(r), to = rehomeTarget(r);
+  need(instant(now), 'invalid refusal instant'); need(key.keyId === to.resolver_key, 'only the destination the rehome names can refuse it');
+  const body: RehomeRefusal = { identity_id: r.body.identity_id, rehome_digest: digest, resolver_id: to.resolver_id, resolver_epoch: to.resolver_epoch, refused_at: now };
+  return { body, signatures: [{ key_id: key.keyId, signature: encodeSignature(await signBytes(key.secretKey, refusalBytes(body))) }] };
+}
+/** Throws unless the refusal is the named destination's statement about exactly this rehome. */
+export async function verifyRehomeRefusal(refusal: Signed<RehomeRefusal>, rehome: Signed<Rehome>): Promise<RehomeRefusal> {
+  const s = copyIdentityData(refusal), r = copyIdentityData(rehome), to = rehomeTarget(r);
+  fields(s, ['body', 'signatures']); list(s.signatures, 1, 1); const b = s.body; fields(b, ['identity_id', 'rehome_digest', 'resolver_id', 'resolver_epoch', 'refused_at']);
+  need(b.identity_id === r.body.identity_id && b.rehome_digest === await rehomeDigest(r) && b.resolver_id === to.resolver_id && b.resolver_epoch === to.resolver_epoch && instant(b.refused_at), 'refusal does not describe this rehome');
+  const sig = s.signatures[0]; fields(sig, ['key_id', 'signature']);
+  need(sig.key_id === to.resolver_key && typeof sig.signature === 'string' && sig.signature.length <= 128, 'refusal must be signed by the destination the rehome names');
+  need(await verifyBytes(to.resolver_key, refusalBytes(b), decodeSignature(sig.signature)), 'invalid refusal signature');
+  return b;
+}
+/** What a refusal says about a log. `unrelated`: the log contains no head produced by that rehome. `consistent`: it
+ *  does, but nobody attested that head, so the log is a dangling consent and the refusal stands. `equivocation`: the
+ *  destination attested the head it said it never created; keep both artifacts, they prove it. */
+export async function compareRehomeRefusal(refusal: Signed<RehomeRefusal>, log: IdentityLog): Promise<'unrelated' | 'consistent' | 'equivocation'> {
+  const v = await verifyIdentityLog(log, { require_attestation: false }), copy = copyLog(log);
+  for (let n = 1; n < copy.entries.length; n++) {
+    const move = copy.entries[n].rehome; if (move === null) continue;
+    let body: RehomeRefusal; try { body = await verifyRehomeRefusal(refusal, move); } catch { continue; }
+    need(v.heads[n].head.previous_digest === body.rehome_digest, 'verified head does not commit to its rehome');
+    return v.heads[n].attested ? 'equivocation' : 'consistent';
+  }
+  return 'unrelated';
 }
 /** For a host that did not record when head 0 took effect. The instant lies in the enrollment
  *  window (at most 300,000 candidates) and the first transition's owner-signed expected_digest

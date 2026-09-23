@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./preview": "./src/preview.ts",
+    "./preview/foundation": "./src/preview-foundation.ts",
     "./preview/host": "./src/preview-host.ts"
   },
   "scripts": {

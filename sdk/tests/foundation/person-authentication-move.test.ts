@@ -8,7 +8,7 @@ import { generateKeyPair } from '../../src/keys.ts';
 import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, rehomeIdentity, signIdentity, transitionIdentity } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Transition } from '../../src/foundation/identity.ts';
-import { attestHead, buildIdentityLog } from '../../src/foundation/identity-log.ts';
+import { attestHead, buildIdentityLog, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogEntry, IdentityLogParts } from '../../src/foundation/identity-log.ts';
 import type { JsonObject } from '../../src/foundation/semantics.ts';
 import { personAuthenticationFixture } from './person-authentication-fixture.ts';
@@ -66,6 +66,34 @@ test('a move admitted from the owner\'s log becomes the durable binding: the new
     // Once the former resolver's attestation turns up, the strict policy admits the same history too.
     const attested = structuredClone(log); attested.entries[0].attestation = await attestHead(f.identity.head, { id: f.resolverId, epoch: 0 }, f.resolver);
     assert.equal((await f.admit(attested, true)).outcome, 'unchanged');
+  } finally { await f.pg.close(); }
+});
+
+test('owner push into the adapter: the pushed log is judged against the durable checkpoint, an admission is stored, repeats are idempotent, and an unknown identity is refused', async () => {
+  const f = await setup(); try {
+    await f.authenticate(f.identity, f.resolver);
+    const moved = await f.move(f.identity, Date.now()), log = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, moved.entry] }, f.resolverB);
+    const push = (l: IdentityLog, require_attestation = false) => f.db.transaction(tx => f.adapter.receiveIdentityLogPush(tx, { message: { format: IDENTITY_LOG_PUSH_FORMAT, log: l }, require_attestation }));
+    const strict = await push(log, true);
+    assert.deepEqual([strict.outcome, strict.reason, strict.binding], ['refused', 'invalid-log', null], 'the former resolver attested nothing; a strict policy refuses, and the answer says only that the log did not verify under it');
+    assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 0, digest: f.identity.head_digest });
+    // The move with no attestation at all is the owner's consent, not a move: refused as unadopted, by reason, while the host is still at epoch 0.
+    const dangling = structuredClone(log); dangling.entries[1].attestation = null;
+    assert.deepEqual([(await push(dangling)).outcome, (await push(dangling)).reason], ['refused', 'unadopted-move']);
+    const ack = await push(log);
+    assert.deepEqual(ack, { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id: f.person.id, outcome: 'advanced', reason: null, binding: { resolver_id: f.b.resolver_id, resolver_epoch: 1, sequence: 1, head_digest: moved.state.head_digest } });
+    assert.deepEqual(await f.row(), { resolver_id: f.b.resolver_id, epoch: 1, sequence: 1, digest: moved.state.head_digest });
+    assert.equal((await push(log)).outcome, 'unchanged');
+    await f.authenticate(moved.state, f.resolverB);
+    await assert.rejects(f.authenticate(f.identity, f.resolver), /resolver authority mismatch/, 'from the push on, the former resolver is refused');
+    assert.equal((await push(dangling)).outcome, 'unchanged', 'once the move is admitted, the evidence rule no longer applies to it: the host already holds that epoch');
+    // A person this host never enrolled: refused as unknown, with the identity named so the wallet knows which push failed.
+    const [op, rec] = await Promise.all([generateKeyPair(), generateKeyPair()]);
+    const genesis = await signIdentity('DTP-PERSON-GENESIS-1', { nonce: crypto.randomUUID(), operational: { keys: [op.keyId], threshold: 1 }, recovery: { keys: [rec.keyId], threshold: 1 } }, [op, rec]);
+    const other = await createIdentity(genesis, { id: f.resolverId, key_id: f.resolver.keyId }, f.identity.head.effective_at);
+    const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { ...f.parts.enrollment.body, identity_id: other.head.identity_id, genesis_digest: other.genesis_digest }, [op, rec]);
+    const stranger = await push(await buildIdentityLog({ genesis, enrollment, entries: f.parts.entries }, null));
+    assert.deepEqual([stranger.outcome, stranger.reason, stranger.identity_id], ['refused', 'unknown-identity', other.head.identity_id]);
   } finally { await f.pg.close(); }
 });
 

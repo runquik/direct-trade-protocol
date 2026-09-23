@@ -4,8 +4,8 @@ import type { KeyPair } from '../keys.ts';
 import { canonicalBytes, canonicalize, sha256Hex } from '../canonical.ts';
 import { createIdentity, copyIdentityData, issueResolution, rehomeIdentity, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
 import type { Genesis, IdentityState, Rehome, ResolutionRequest, ResolverEnrollment, Signed, Transition } from './identity.ts';
-import { attestHead, buildIdentityLog, recoverGenesisInstant, verifyIdentityLog } from './identity-log.ts';
-import type { IdentityLog, IdentityLogEntry } from './identity-log.ts';
+import { attestHead, buildIdentityLog, recoverGenesisInstant, refuseRehome, rehomeDigest, verifyIdentityLog } from './identity-log.ts';
+import type { IdentityLog, IdentityLogEntry, RehomeRefusal } from './identity-log.ts';
 
 export interface ResolverConfig { id:string; audience:string; key:KeyPair; now:()=>number }
 export const IDENTITY_REGISTRY_SCHEMA = `
@@ -32,6 +32,11 @@ alter table dtp_foundation.identity_history add column if not exists result json
 alter table dtp_foundation.identities add column if not exists genesis_effective_at bigint check (genesis_effective_at >= 0);
 -- Resolver head attestations, including those of former resolvers, which this host cannot re-issue.
 alter table dtp_foundation.identity_history add column if not exists attestation jsonb;
+-- Rehomes this resolver signed a refusal for. A refused rehome is never adopted here: the refusal says never.
+create table if not exists dtp_foundation.identity_refusals (
+ rehome_digest text primary key check (rehome_digest ~ '^[0-9a-f]{64}$'),
+ identity_id uuid not null, body jsonb not null
+);
 `;
 interface Row { body:IdentityState; genesis_digest:string; enrollment_digest:string; resolver_audience:string; status:string; revision:string|number; genesis_effective_at:string|number|null }
 interface HistoryRow { sequence:string|number; body:unknown; result:{effective_at:number}|null; attestation:IdentityLogEntry['attestation'] }
@@ -135,6 +140,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
       const now=config.now(),verified=await verifyIdentityLog(log,{require_attestation:false}),identity=verified.identity_id;
       const next=await rehomeIdentity(verified.state,rehome,now);
       need(next.resolver_id===resolver.id&&next.resolver_key===resolver.key_id&&rehome.body.to.audience===audience,'rehome names another resolver');
+      const refused=await rehomeDigest(rehome);
       const result={identity_id:identity,head_digest:next.head_digest,sequence:next.head.sequence,effective_at:next.head.effective_at,resolver_epoch:next.resolver_epoch};
       const rows:{sequence:number;command_digest:string;body:unknown;result:unknown|null;attestation:unknown|null}[]=[];
       for(let n=0;n<log.entries.length;n++){
@@ -144,6 +150,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
       }
       rows.push({sequence:rows.length,command_digest:await digest(rehome.body),body:{rehome},result,attestation:await attestHead(next.head,{id:resolver.id,epoch:next.resolver_epoch},key)});
       return db.transaction(async tx=>{
+        need((await tx.query('select 1 from dtp_foundation.identity_refusals where rehome_digest=$1',[refused])).length===0,'rehome refused by this resolver');
         await tx.query('insert into dtp_foundation.identities(identity_id,genesis_digest,enrollment_digest,resolver_audience,body,genesis_effective_at) values($1,$2,$3,$4,$5::text::jsonb,$6) on conflict(identity_id) do nothing',[identity,verified.genesis_digest,rows[0].command_digest,audience,JSON.stringify(next),log.entries[0].effective_at]);
         const row=await anyRow(tx,identity);
         need(row.genesis_digest===verified.genesis_digest,'identity enrollment conflict');
@@ -157,6 +164,22 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
         const changed=await tx.query("update dtp_foundation.identities set body=$1::text::jsonb,resolver_audience=$2,status='active',revision=revision+1 where identity_id=$3 and revision=$4 returning identity_id",[JSON.stringify(next),audience,identity,row.revision]);
         need(changed.length===1,'identity concurrent update');
         return result;
+      });
+    },
+    /** Destination side, declining: a signed statement that this rehome, which names this resolver, was not and will
+     *  never be adopted here. Durable: a later adoption of the same rehome is refused, so the refusal cannot become
+     *  an equivocation. A rehome already adopted here cannot be refused. Replaying a refusal returns the stored one. */
+    async refuse(rehome:Signed<Rehome>):Promise<Signed<RehomeRefusal>>{
+      rehome=copyIdentityData(rehome);
+      const to=rehome.body?.to;need(to&&to.resolver_id===resolver.id&&to.resolver_key===resolver.key_id&&to.audience===audience,'rehome names another resolver');
+      const identity=rehome.body.identity_id;id(identity);const rehome_digest=await rehomeDigest(rehome);
+      return db.transaction(async tx=>{
+        const stored=await tx.query<{body:Signed<RehomeRefusal>}>('select body from dtp_foundation.identity_refusals where rehome_digest=$1',[rehome_digest]);
+        if(stored.length)return copyIdentityData(stored[0].body);
+        need((await tx.query('select 1 from dtp_foundation.identity_history where identity_id=$1 and command_digest=$2',[identity,await digest(rehome.body)])).length===0,'rehome already adopted');
+        const refusal=await refuseRehome(rehome,key,config.now());
+        await tx.query('insert into dtp_foundation.identity_refusals(rehome_digest,identity_id,body) values($1,$2,$3::text::jsonb)',[rehome_digest,identity,JSON.stringify(refusal)]);
+        return refusal;
       });
     },
     /** Former-host side of a cooperative move. Verifies a log that leaves this resolver, records the rehome and stops
