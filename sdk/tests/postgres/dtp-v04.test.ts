@@ -66,7 +66,7 @@ test("v0.4 PostgreSQL: concurrent last-stock reservations serialize without over
   assert.deepEqual(Object.values(balance.reservations), ["1"]);
   const retryWithCurrentRevision = await client.act(owner, "record.append", org, record(org, pol, pool, profileDigest, event("reserve", 2, "1", { reservation_id: "buyer-c" })));
   assert.equal(retryWithCurrentRevision.status, 409); assert.equal(retryWithCurrentRevision.error.code, "insufficient_stock");
-  const rows = await client.ok(owner, "records.list", org, { after: 0, limit: 100, profile_digests: [profileDigest] });
+  const rows = await client.ok(owner, "records.list", org, { after: 0, limit: 100, profile_digests:[profileDigest],kinds:[]});
   assert.equal(rows.records.length, 2, "only receive and winning reservation persist");
   assert.equal((await client.ok(owner, "inventory.get", org, { policy_id: pol, pool_id: pool })).revision, 2, "rejected reservation did not mutate balance revision");
 });
@@ -77,7 +77,7 @@ test("v0.4 PostgreSQL: concurrent supersession produces exactly one new head", {
   const candidates = ["a", "b"].map(note => ({ ...original, id: crypto.randomUUID(), supersedes: original.id, body: { note } }));
   const results = await Promise.all(candidates.map(payload => client.act(owner, "record.append", org, payload)));
   assert.deepEqual(results.map(r => r.status).sort(), [200, 409]);
-  const rows = await client.ok(owner, "records.list", org, { after: 0, limit: 100, profile_digests: [schema] });
+  const rows = await client.ok(owner, "records.list", org, { after: 0, limit: 100, profile_digests:[schema],kinds:[]});
   assert.equal(rows.records.length, 2); assert.equal(rows.records.filter((r: any) => r.is_head).length, 1);
   assert.equal(rows.records.find((r: any) => r.id === original.id).is_head, false);
 });

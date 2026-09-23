@@ -12,7 +12,7 @@ test('product review: list, export and workspace reject unknown consumer profile
   try {
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     for (const action of ['records.list', 'records.export', 'workspace.view']) {
-      const response = await client.act(owner, action, org, { after: 0, limit: 10, profile_digests: ['f'.repeat(64)] });
+      const response = await client.act(owner, action, org, { after: 0, limit: 10, profile_digests:['f'.repeat(64)],kinds:[]});
       assert.equal(response.status, 422, `${action}: unsupported profile must not masquerade as an empty business dataset`);
       assert.equal(response.error.code, 'unsupported_profile');
     }

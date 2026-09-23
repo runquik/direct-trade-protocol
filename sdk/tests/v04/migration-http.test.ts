@@ -77,7 +77,7 @@ test("v0.4 HTTP migration: genuine >1MiB state survives adversarial chunks, cuto
     const finalRequest = await signed(h.b, h.owner, "migration.finalize", null, { migration_id, commit: committed.result });
     assert.equal((await h.b.send(finalRequest)).status, 200);
     const finalAgain = await h.b.send(finalRequest); assert.equal(finalAgain.status, 200); assert.equal(finalAgain.result.generation, 2);
-    const migrated = await h.b.ok(h.owner, "records.list", org, { after: 0, limit: 100, profile_digests: [schema] });
+    const migrated = await h.b.ok(h.owner, "records.list", org, { after: 0, limit: 100, profile_digests:[schema],kinds:[]});
     assert.equal(migrated.records.length, originals.length);
     for (let i = 0; i < originals.length; i++) {
       assert.equal(migrated.records[i].id, originals[i].id);
@@ -144,7 +144,7 @@ test("v0.4 HTTP migration: personnel export requires current stewards for manife
     const visible = await h.b.ok(employee, "record.get", org, { id: sensitive.id, profile_digest: schema });
     assert.equal(visible.body.note, sensitive.body.note);
     assert.deepEqual(visible.command.payload, sensitive);
-    const ownerView = await h.b.ok(h.owner, "workspace.view", org, { after: 0, limit: 100, profile_digests: [schema] });
+    const ownerView = await h.b.ok(h.owner, "workspace.view", org, { after: 0, limit: 100, profile_digests:[schema],kinds:[]});
     assert.equal(ownerView.records.length, 0); assert.ok(!JSON.stringify(ownerView).includes("CANARY"));
   } finally { await h.close(); }
 });

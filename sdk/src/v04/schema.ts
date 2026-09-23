@@ -13,7 +13,8 @@ const token=object({body:{type:"object"},key_id:key,signature:str(110)});
 const dataActions=array({enum:["read","write","export"]},3,1);
 const grant=object({person_id:id,actions:dataActions,resource_ids:{anyOf:[{const:"*"},array(id,128,1)]},expires_at:time});
 const policy=object({policy_id:id,expected_revision:integer(),classification:{enum:["business","personnel"]},stewards:array(id,8,1),threshold:integer(8,1),grants:array(grant,256)});
-const page=object({after:integer(),limit:integer(100,1),profile_digests:array(hash,32)});
+const kind:Schema={type:"string",maxLength:160,pattern:"^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$"};
+const page=object({after:integer(),limit:integer(100,1),profile_digests:array(hash,32),kinds:array(kind,32)});
 const migrationId={migration_id:id};
 export const PAYLOADS:Record<string,Schema>={
   "person.register":object({keys:array(key,8,1)}),"person.rotate":object({add:array(key,8),revoke:array(key,8)}),

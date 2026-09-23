@@ -49,4 +49,6 @@ export const emptyState = (): State => ({ persons: {}, organizations: {}, polici
   remote_authorities: {}, outgoing: {}, incoming: {}, receipts: {}, next_seq: 1 });
 export interface Context { audience: string; storeKey: KeyPair; pins: Record<string, string>; now: number;
   assessmentPins?: Record<string,string>; revokedAssessments?: string[];
-  referenceProfiles?: Record<string,string[]> }
+  referenceProfiles?: Record<string,string[]>;
+  /** Protocol kind registry (spec/profiles/index.json): kind -> admitted profile digests. Operator configuration. */
+  kinds?: Record<string,string[]> }

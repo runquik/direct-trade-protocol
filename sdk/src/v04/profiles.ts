@@ -36,6 +36,47 @@ export function validateShape(schema: any, value: any): boolean {
     default: return false;
   }
 }
+/** A kind is what a subscriber selects on: publisher namespace, name and major version. `dtp` is reserved for
+ *  protocol kinds, registered in spec/profiles/index.json; every other namespace is a publisher organization id. */
+export const PROTOCOL_KIND_NAMESPACE = "dtp";
+export const KIND_REGISTRY_FORMAT = "dtp-profile-kinds-1";
+export const KIND_PATTERN = "^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$";
+const kindRegex = new RegExp(KIND_PATTERN);
+export function profileMajor(version: string): number {
+  demand(typeof version === "string" && /^\d+\.\d+\.\d+$/.test(version), "invalid_profile", "invalid profile version", 400);
+  return Number(version.split(".")[0]);
+}
+export function profileKind(p: Pick<Profile, "publisher_id" | "name" | "version">): string { return `${p.publisher_id}/${p.name}@${profileMajor(p.version)}`; }
+export function isKind(value: unknown): value is string { return typeof value === "string" && value.length <= 160 && kindRegex.test(value); }
+/** Operator configuration: the protocol kind registry, loaded from spec/profiles/index.json or an operator's copy of it.
+ *  Returns kind -> admitted profile digests. Only the reserved namespace may appear; a private kind needs no registration. */
+export function parseKindRegistry(value: unknown): Record<string, string[]> {
+  demand(value && typeof value === "object" && !Array.isArray(value) && (value as any).format === KIND_REGISTRY_FORMAT, "invalid_registry", "unsupported kind registry format", 400);
+  const kinds = (value as any).kinds;
+  demand(kinds && typeof kinds === "object" && !Array.isArray(kinds) && Object.keys(kinds).length <= 256, "invalid_registry", "bounded kinds object required", 400);
+  const result: Record<string, string[]> = {};
+  for (const [kind, entry] of Object.entries(kinds)) {
+    demand(isKind(kind) && kind.startsWith(PROTOCOL_KIND_NAMESPACE + "/"), "invalid_registry", "only protocol kinds are registered", 400);
+    const digests = (entry as any)?.digests;
+    demand(entry && typeof entry === "object" && Array.isArray(digests) && digests.length >= 1 && digests.length <= 64 && new Set(digests).size === digests.length && digests.every((d: unknown) => typeof d === "string" && /^[0-9a-f]{64}$/.test(d)), "invalid_registry", "kind needs 1-64 distinct profile digests", 400);
+    result[kind] = [...digests];
+  }
+  return result;
+}
+/** Expands kinds to the admitted, accessible profile digests they select. A kind that selects nothing is an explicit
+ *  error, like an unknown digest, never an empty page: a subscriber must learn that a host does not carry a kind. */
+export function expandKinds(state: State, kinds: string[], accessible: (p: Profile) => boolean, registry: Record<string, string[]> | undefined): string[] {
+  const selected = new Set<string>();
+  for (const kind of kinds) {
+    demand(isKind(kind), "invalid", "invalid kind", 400);
+    const digests = kind.startsWith(PROTOCOL_KIND_NAMESPACE + "/")
+      ? (registry?.[kind] ?? []).filter(d => Object.hasOwn(state.profiles, d) && accessible(state.profiles[d]))
+      : Object.values(state.profiles).filter(p => accessible(p) && profileKind(p) === kind).map(p => p.digest);
+    demand(digests.length > 0, "unsupported_profile", `no admitted profile for kind ${kind}`, 422);
+    for (const d of digests) selected.add(d);
+  }
+  return [...selected].sort();
+}
 export function profileContract(p: Pick<Profile, "publisher_id" | "name" | "version" | "schema" | "semantics" | "dependencies">) {
   return { publisher_id: p.publisher_id, name: p.name, version: p.version, schema: p.schema, semantics: p.semantics, dependencies: p.dependencies };
 }

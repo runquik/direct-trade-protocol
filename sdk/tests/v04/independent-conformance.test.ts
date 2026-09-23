@@ -62,9 +62,9 @@ test("v0.4 independent HTTP client interoperates bidirectionally with reference 
     const nativeRead = await native.ok(owner, "record.get", org, { id: correction.id, profile_digest: profileDigest });
     assert.deepEqual(nativeRead.body, correction.body); assert.equal(verifyCommand(nativeRead.command), true);
     assert.equal(nativeRead.command.actor.id, staff.id);
-    const page = await native.ok(owner, "records.list", org, { after: 0, limit: 1, profile_digests: [profileDigest] });
+    const page = await native.ok(owner, "records.list", org, { after: 0, limit: 1, profile_digests:[profileDigest],kinds:[]});
     assert.equal(page.records.length, 1); assert.ok(page.next_cursor > 0);
-    const final = await reference.ok(staff, "records.list", org, { after: page.next_cursor, limit: 1, profile_digests: [profileDigest] });
+    const final = await reference.ok(staff, "records.list", org, { after: page.next_cursor, limit: 1, profile_digests:[profileDigest],kinds:[]});
     assert.equal(final.records[0].id, correction.id); assert.equal(final.next_cursor, null);
   } finally { await store.close(); }
 });
