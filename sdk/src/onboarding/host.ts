@@ -13,9 +13,8 @@ import type { OrganizationGenesis } from '../foundation/organization.ts';
 
 export const COMMAND_DOMAIN = 'DTP-ONBOARDING-PREVIEW-COMMAND-1';
 export const PROFILE = '1'.repeat(64); // Reserved synthetic profile; not an admitted accounting profile.
-export interface Command { request_id:string; action:string; organization_id:string|null; parameters:Record<string,any> }
-export interface Challenge { person_id:string; audience:string; nonce:string; command_digest:string; expires_at:number }
-export interface Request { command:Command; challenge:Challenge; signatures:Signature[] }
+import type { Command, Challenge, Request } from './wire.ts';
+export type { Command, Challenge, Request } from './wire.ts';
 interface Company { organization_id:string; name:string; controller_id:string; authority:AuthorityState }
 interface Member { organization_id:string; person_id:string; grant_id:string; status:string; role:string; invited_by:string }
 export const ONBOARDING_SCHEMA = `

@@ -6,7 +6,7 @@ import type { Genesis, Rehome, ResolverEnrollment, Signed, Transition } from '..
 import { IDENTITY_LOG_PUSH_FORMAT, parseIdentityLogPushAck, verifyIdentityLog } from '../foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogPushAck } from '../foundation/identity-log.ts';
 import type { KeyPair } from '../keys.ts';
-import type { Command, Challenge, Request } from './host.ts';
+import type { Command, Challenge, Request } from './wire.ts';
 import { parseUntrustedJson, parseUntrustedResponse } from '../safe-json.ts';
 /** resolver_epoch is per identity, not per host: absent means 0, the epoch of initial enrollment. */
 export interface ResolverMetadata { audience:string;resolver_id:string;resolver_key:string;resolver_epoch?:number }

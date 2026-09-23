@@ -29,6 +29,7 @@ fixtures/dev-keys.json   written by seed (gitignored)
 ```bash
 npm install
 npm run build                 # regenerate from spec/schemas
+npm pack                      # dtp-sdk-0.2.0.tgz for a consumer: prepack emits dist/ (JavaScript + declarations)
 npm test                      # full suite on an embedded store
 STORE_URL=https://…/functions/v1/dtp-store npm test    # same suite against a deployment
 node scripts/dev-server.ts    # http://127.0.0.1:8787/dtp-store
@@ -56,10 +57,12 @@ Import through the package entries, never an internal file path:
 
 | Entry | File | What it is |
 |---|---|---|
-| `@dtp/sdk` | `src/index.ts` | Stable: encodings, canonicalization, keys, envelope signing, scopes. Portable, dependency-free. |
-| `@dtp/sdk/preview/foundation` | `src/preview-foundation.ts` | Unreleased foundation layer (identity, identity log, organization, authority, records vocabulary), profiles and the onboarding client, no compatibility promise. Portable, **dependency-free**. |
-| `@dtp/sdk/preview` | `src/preview.ts` | Everything in the foundation entry plus the v0.4 candidate. Portable; needs `@cfworker/json-schema`. |
-| `@dtp/sdk/preview/host` | `src/preview-host.ts` | Unreleased pieces that need a database, a listener or host keys. |
+| `@dtp/sdk` | `src/index.ts`, packed as `dist/index.js` | Stable: encodings, canonicalization, keys, envelope signing, scopes. Portable, dependency-free. |
+| `@dtp/sdk/preview/foundation` | `src/preview-foundation.ts`, packed as `dist/preview-foundation.js` | Unreleased foundation layer (identity, identity log, organization, authority, records vocabulary), profiles and the onboarding client, no compatibility promise. Portable, **dependency-free**. |
+| `@dtp/sdk/preview` | `src/preview.ts`, packed as `dist/preview.js` | Everything in the foundation entry plus the v0.4 candidate. Portable; needs `@cfworker/json-schema`. |
+| `@dtp/sdk/preview/host` | `src/preview-host.ts` | Unreleased pieces that need a database, a listener or host keys. Source only; not consumable from a packed install. |
+
+A consumer outside this repository installs the packed artifact (`npm pack` here, then `npm install path/to/dtp-sdk-0.2.0.tgz` there): Node does not strip types under `node_modules`, so the three portable entries resolve to JavaScript emitted by `npm run build:package` ([`tsconfig.build.json`](tsconfig.build.json)), which the `prepack` hook runs. [`examples/external-module`](../examples/external-module/README.md) is a module built that way, and [`tests/release/external-package.test.ts`](tests/release/external-package.test.ts) proves the path on every run. The baseline for such a builder is [`docs/EXTERNAL_BUILDER_BASELINE.md`](../docs/EXTERNAL_BUILDER_BASELINE.md).
 
 "Portable" means nothing reachable imports a platform module, so the entry loads in browsers and edge runtimes as well as Node and Deno; a test enforces it for every portable entry. "Dependency-free" means nothing reachable imports a package either, so the entry bundles with this repository's sources alone; a test loads it in a child process whose resolver refuses every bare specifier. Use the foundation entry unless you need the v0.4 candidate: it is the preview entry minus the `v04*` namespaces, and the namespaces it shares are the same module objects, so code written against one works against the other.
 

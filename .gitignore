@@ -7,6 +7,12 @@ remote-mcp-server/node_modules
 remote-mcp-server/dist
 remote-mcp-server/.env
 sdk/node_modules
+sdk/dist
+sdk/*.tgz
+sdk/.dtp-v04-data/
+examples/external-module/node_modules
+examples/external-module/package-lock.json
+examples/external-module/synthetic/
 sdk/fixtures/dev-keys.json
 supabase/.temp
 supabase/.env.local

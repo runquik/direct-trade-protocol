@@ -10,7 +10,9 @@ Use the Node version in [`.node-version`](../.node-version), currently 22.23.2, 
 npm run dev:dtp-v04
 ```
 
-The development server listens on `127.0.0.1:8790`; inspect [its health endpoint](http://127.0.0.1:8790/dtp/v0.4/health). It generates a host key and in-memory PGlite database; restarting loses that state. It does not read the shared v0.2 backend environment or deploy anything. Do not use it as durable company hosting.
+The development server listens on `127.0.0.1:8790`; inspect [its health endpoint](http://127.0.0.1:8790/dtp/v0.4/health). Without configuration it generates a host key and an in-memory PGlite database; restarting loses that state. Pass a configuration file (`npm run dev:dtp-v04 -- path/to/dev-host.json`, or `DTP_V04_DEV_CONFIG`) to set the port, a `data_dir` that keeps the key and state across restarts (delete it to reset), trusted host `pins`, module `assessment_pins` and `revoked_assessments`, invoice `reference_profiles` and `max_state_bytes`; the file is closed, and an unknown member is refused. Nothing about trust or capacity is a source edit. It does not read the shared v0.2 backend environment or deploy anything. Do not use it as durable company hosting.
+
+Building outside this repository? Start from [the external builder baseline](EXTERNAL_BUILDER_BASELINE.md): the packed SDK, the configured host, and [a complete module example](../examples/external-module/README.md) that installs itself under a company's authority and reads by kind.
 
 The host's exact advertised audience is signed into commands. The complete command URL is `<audience>/dtp/v0.4/commands`. For remote hosting, obtain and approve the host key through a trusted enrollment path; blindly trusting a health response is not identity verification.
 
