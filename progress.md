@@ -1,4 +1,19 @@
-# DTP — save point (reviewed 2026-09-23)
+# DTP — save point (reviewed 2026-09-23, evening)
+
+## September 23, evening: business-fact profiles built through the whole build order
+
+The owner took decisions P1 to P14 of the [business-fact profiles proposal](docs/foundation/business-fact-profiles-proposal.md) as recommended and asked for the build order to be run end to end without check-ins. It was, as six pull requests merged in order, each CI-green and each with the full local suite on Node 22.23.2 passing (final counts after #29: 110 default, 154 v0.4/profile/interop, 312 foundation, 12 onboarding, 23 stress, 37 fuzz; typecheck and Deno checks clean). Implementer-tested only; nothing here is independently reviewed or release-approved.
+
+- [#24](https://github.com/runquik/direct-trade-protocol/pull/24) kind registry (`spec/profiles/index.json`, format `dtp-profile-kinds-1`, `dtp` reserved) and a required `kinds` selector on the v0.4 reads, expanding a kind to every admitted profile of that publisher, name and major.
+- [#25](https://github.com/runquik/direct-trade-protocol/pull/25) `dtp/product@1` (`product-v1`), `nullable` in the dialect; immutable `base_unit`, `tracking`, packaging revisions.
+- [#26](https://github.com/runquik/direct-trade-protocol/pull/26) `dtp/inventory@2` (`inventory-v2`): positions by lot, location and status; atomic multi-leg moves against virtual locations; reservations beside status; serials; per-source high-water marks with a 64-sequence window; `inventory.open` and `inventory.ledger`; the v1 projection as the bridge.
+- [#27](https://github.com/runquik/direct-trade-protocol/pull/27) second, separately coded implementations of both fixture sets (`sdk/tests/interop`), `profile.admit` for registered protocol contracts (publisher `dtp`, community, provenanced by the admitting command), both kinds registered.
+- [#28](https://github.com/runquik/direct-trade-protocol/pull/28) `dtp/party@1` (`party-v1`): a person party only under a personnel policy; registered with its reader.
+- [#29](https://github.com/runquik/direct-trade-protocol/pull/29) `dtp/order@1` (`order-v1`, a binding commitment with a fixed transition table; a forecast or a plan is never an order, and there is no flag) and `dtp/forecast@1` (`forecast-v1`, commits nobody); both registered with readers. The build order is complete.
+
+Every profile has a document under `spec/profiles/<name>/<major>.md`, an exact contract and generated fixtures beside it, a portable validator or reducer reachable from both preview entries, host semantics enforced on write and on snapshot import, and a reader in `sdk/tests/interop` that agrees with the reference field by field. The readers are the same author's separately coded consumer agreement, not independent authorship; the promotion rule's two independent implementations, independent review and a second builder remain open.
+
+Findings recorded, not fixed: the v1 pool state keys reservations and observations by `JSON.stringify`, so a v1 pool carries member names with quotation marks that the repository's safe JSON parser refuses on the wire (the v2 ledger avoids this by construction). The `H1/H2` items the implementer cited still exist under no such label.
 
 ## September 23: second implementer gap batch merged
 
