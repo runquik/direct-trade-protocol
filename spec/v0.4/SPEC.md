@@ -113,7 +113,7 @@ The `dtp.schema/1` bounded dialect supports only:
 | boolean, null | None |
 | any of the above except null | optional `nullable: true` |
 
-Unsupported keywords, `$ref`, supplied code, regex validation, arbitrary remote dependencies and open-ended object fields are rejected. Object property names are bounded and dangerous prototype-style names are disallowed. Limits are specified below. Profile semantics are exactly `structural`, `inventory-v1`, `invoice-v1`, `product-v1`, `inventory-v2`, `party-v1`. Inventory, invoice, product and party semantics additionally run the built-in deterministic rules; selecting their label does not allow a publisher to redefine those rules. The dialect's one optional keyword is `nullable: true`, which lets a non-null node also accept `null`.
+Unsupported keywords, `$ref`, supplied code, regex validation, arbitrary remote dependencies and open-ended object fields are rejected. Object property names are bounded and dangerous prototype-style names are disallowed. Limits are specified below. Profile semantics are exactly `structural`, `inventory-v1`, `invoice-v1`, `product-v1`, `inventory-v2`, `party-v1`, `order-v1`, `forecast-v1`. Every semantics but `structural` additionally runs the built-in deterministic rules; selecting their label does not allow a publisher to redefine those rules. The dialect's one optional keyword is `nullable: true`, which lets a non-null node also accept `null`.
 
 Profiles are readable to their publisher, `readers` company IDs or, for `community`, other authorized callers. Community profile visibility is not public company-data access. There is no anonymous catalog/listing endpoint. A private release is available for installation only to its publisher; a community release is available to other companies, subject to all other admission/permission checks.
 
@@ -154,6 +154,10 @@ Packaging pins bind packaging ID, immutable version and digest to a product/base
 ### Party profile
 
 `party-v1` ([`spec/profiles/party/1.md`](../profiles/party/1.md)) is a counterparty as one company knows it: an organization, a person or a unit of a parent party, with names, issuer-namespaced identifiers (GLNs check-digit validated, DUNS nine digits), an optional claim to a protocol organization id, descriptive roles that never grant anything, locations with GLNs, and status. Across a supersession `kind`, `parent` and a made `protocol_identity` claim are immutable. A `person` party is personal data and is accepted only under a `personnel`-classified policy. Refusals are `invalid_party`; snapshot import re-checks all of it.
+
+### Order and forecast profiles
+
+`order-v1` ([`spec/profiles/order/1.md`](../profiles/order/1.md)) is an order as one company records it: a binding commercial commitment by the party that placed it. Exactly one of buyer and seller is the company itself, the other a `party-v1` root; lines name product roots or descriptions with quantities in the `inventory@2` unit object and prices in the order currency; an order is born `placed`, follows a fixed transition table, freezes its lines and terms once acknowledged (a change is a new order that `replaces` it), and never loses an external identifier. **A forecast or a plan is never an order**: there is no flag, the kind is the commitment. `forecast-v1` ([`spec/profiles/forecast/1.md`](../profiles/forecast/1.md)) is the other thing: a projection for a subject over a horizon, from a stated method, as of an instant, that commits nobody; its subject and horizon are immutable and its status moves forward only. Refusals are `invalid_order` and `invalid_forecast`; snapshot import re-checks both.
 
 ### Invoice arithmetic/evidence profile
 

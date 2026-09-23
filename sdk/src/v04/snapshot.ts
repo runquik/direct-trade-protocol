@@ -7,6 +7,8 @@ import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
+import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
+import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -245,6 +247,18 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(validateProduct(r.body).length === 0, "invalid_snapshot", "product violates profile");
       if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkProductContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "product continuity violated"); }
       expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
+    }
+    if (semantics === "order-v1") {
+      demand(validateOrder(r.body).length === 0, "invalid_snapshot", "order violates profile");
+      const prior = r.supersedes ? records.get(r.supersedes) ?? s.records[r.supersedes] : undefined;
+      const orderRules = r.supersedes ? (prior ? checkOrderContinuity(prior.body as any, r.body as any) : [{ path: "$", message: "predecessor missing" }]) : checkOrderGenesis(r.body as any);
+      demand(orderRules.length === 0, "invalid_snapshot", "order continuity violated");
+      expectedValidation = {profile:ORDER_PROFILE,level:"business-rules",business_verified:false};
+    }
+    if (semantics === "forecast-v1") {
+      demand(validateForecast(r.body).length === 0, "invalid_snapshot", "forecast violates profile");
+      if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkForecastContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "forecast continuity violated"); }
+      expectedValidation = {profile:FORECAST_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "party-v1") {
       demand(validateParty(r.body).length === 0, "invalid_snapshot", "party violates profile");

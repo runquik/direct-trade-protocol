@@ -1,0 +1,296 @@
+{
+  "publisher_id": "dtp",
+  "name": "order",
+  "version": "1.0.0",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "buyer",
+      "seller",
+      "placed_at",
+      "currency",
+      "external",
+      "lines",
+      "status",
+      "terms",
+      "replaces"
+    ],
+    "properties": {
+      "buyer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "self",
+          "party_id",
+          "revision"
+        ],
+        "properties": {
+          "self": {
+            "type": "boolean"
+          },
+          "party_id": {
+            "type": "string",
+            "maxLength": 36,
+            "nullable": true
+          },
+          "revision": {
+            "type": "string",
+            "maxLength": 36,
+            "nullable": true
+          }
+        }
+      },
+      "seller": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "self",
+          "party_id",
+          "revision"
+        ],
+        "properties": {
+          "self": {
+            "type": "boolean"
+          },
+          "party_id": {
+            "type": "string",
+            "maxLength": 36,
+            "nullable": true
+          },
+          "revision": {
+            "type": "string",
+            "maxLength": 36,
+            "nullable": true
+          }
+        }
+      },
+      "placed_at": {
+        "type": "string",
+        "maxLength": 24
+      },
+      "currency": {
+        "type": "string",
+        "maxLength": 8
+      },
+      "external": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "value"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        }
+      },
+      "lines": {
+        "type": "array",
+        "maxItems": 256,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "line_id",
+            "product",
+            "quantity",
+            "price",
+            "requested",
+            "links"
+          ],
+          "properties": {
+            "line_id": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "product": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "product_id",
+                "revision",
+                "description"
+              ],
+              "properties": {
+                "product_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "revision": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "nullable": true
+                }
+              }
+            },
+            "quantity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "amount",
+                "unit"
+              ],
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "maxLength": 24
+                },
+                "unit": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "system",
+                    "code",
+                    "packaging_id",
+                    "version",
+                    "base_units_per_pack"
+                  ],
+                  "properties": {
+                    "system": {
+                      "type": "string",
+                      "maxLength": 9,
+                      "enum": [
+                        "ucum",
+                        "packaging"
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 32,
+                      "nullable": true
+                    },
+                    "packaging_id": {
+                      "type": "string",
+                      "maxLength": 80,
+                      "nullable": true
+                    },
+                    "version": {
+                      "type": "string",
+                      "maxLength": 40,
+                      "nullable": true
+                    },
+                    "base_units_per_pack": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            },
+            "price": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "amount",
+                "currency"
+              ],
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "maxLength": 28
+                },
+                "currency": {
+                  "type": "string",
+                  "maxLength": 8
+                }
+              },
+              "nullable": true
+            },
+            "requested": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "start",
+                "end"
+              ],
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "maxLength": 10
+                },
+                "end": {
+                  "type": "string",
+                  "maxLength": 10
+                }
+              },
+              "nullable": true
+            },
+            "links": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "contract_id"
+              ],
+              "properties": {
+                "contract_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "status": {
+        "type": "string",
+        "maxLength": 20,
+        "enum": [
+          "placed",
+          "acknowledged",
+          "rejected",
+          "partially_fulfilled",
+          "fulfilled",
+          "cancelled",
+          "closed"
+        ]
+      },
+      "terms": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "payment_net_days",
+          "incoterm"
+        ],
+        "properties": {
+          "payment_net_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 365,
+            "nullable": true
+          },
+          "incoterm": {
+            "type": "string",
+            "maxLength": 3,
+            "nullable": true
+          }
+        }
+      },
+      "replaces": {
+        "type": "string",
+        "maxLength": 36,
+        "nullable": true
+      }
+    }
+  },
+  "semantics": "order-v1",
+  "dependencies": []
+}

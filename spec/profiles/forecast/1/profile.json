@@ -1,0 +1,159 @@
+{
+  "publisher_id": "dtp",
+  "name": "forecast",
+  "version": "1.0.0",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "party_id",
+      "direction",
+      "horizon",
+      "as_of",
+      "method",
+      "quantity",
+      "confidence",
+      "scenario",
+      "status"
+    ],
+    "properties": {
+      "subject": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "product_id",
+          "description"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "maxLength": 36,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        }
+      },
+      "party_id": {
+        "type": "string",
+        "maxLength": 36,
+        "nullable": true
+      },
+      "direction": {
+        "type": "string",
+        "maxLength": 6,
+        "enum": [
+          "demand",
+          "supply"
+        ]
+      },
+      "horizon": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "start",
+          "end"
+        ],
+        "properties": {
+          "start": {
+            "type": "string",
+            "maxLength": 10
+          },
+          "end": {
+            "type": "string",
+            "maxLength": 10
+          }
+        }
+      },
+      "as_of": {
+        "type": "string",
+        "maxLength": 24
+      },
+      "method": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "quantity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "unit": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "system",
+              "code",
+              "packaging_id",
+              "version",
+              "base_units_per_pack"
+            ],
+            "properties": {
+              "system": {
+                "type": "string",
+                "maxLength": 9,
+                "enum": [
+                  "ucum",
+                  "packaging"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 32,
+                "nullable": true
+              },
+              "packaging_id": {
+                "type": "string",
+                "maxLength": 80,
+                "nullable": true
+              },
+              "version": {
+                "type": "string",
+                "maxLength": 40,
+                "nullable": true
+              },
+              "base_units_per_pack": {
+                "type": "string",
+                "maxLength": 24,
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "confidence": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "nullable": true
+      },
+      "scenario": {
+        "type": "string",
+        "maxLength": 120,
+        "nullable": true
+      },
+      "status": {
+        "type": "string",
+        "maxLength": 9,
+        "enum": [
+          "draft",
+          "published",
+          "withdrawn"
+        ]
+      }
+    }
+  },
+  "semantics": "forecast-v1",
+  "dependencies": []
+}

@@ -1,0 +1,6040 @@
+{
+  "description": "dtp/order@1 fixtures. A conforming validator MUST accept every body under \"accept\" and refuse every body under \"reject\"; it MUST accept a genesis only when \"genesis.accept\" says so; given a previous and a next revision of one order it MUST accept every pair under \"continuity.accept\" and refuse every pair under \"continuity.reject\". Refusal reasons are not normative. An order is a binding commercial commitment: a forecast or a plan is never an order.",
+  "kind": "dtp/order@1",
+  "profile": "dtp.order/1",
+  "semantics": "order-v1",
+  "contract_digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+  "accept": [
+    {
+      "why": "a purchase order the company placed with a supplier: two lines, one by product revision in cases, one by description",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a sales order a customer placed with the company, recorded by the company as seller",
+      "body": {
+        "buyer": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "seller": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "the minimum: one line by description, no price, no window, no terms",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "EUR",
+        "external": [],
+        "lines": [
+          {
+            "line_id": "only",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Consulting day"
+            },
+            "quantity": {
+              "amount": "1",
+              "unit": {
+                "system": "ucum",
+                "code": "{day}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": null,
+          "incoterm": null
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "an order that replaces an earlier one and cites a contract",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": "55555555-5555-4555-8555-555555555555"
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": "66666666-6666-4666-8666-666666666666"
+      }
+    },
+    {
+      "why": "an acknowledged order, as a later revision would carry it",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "acknowledged",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    }
+  ],
+  "reject": [
+    {
+      "why": "both parties the company itself",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "neither party the company itself",
+      "body": {
+        "buyer": {
+          "self": false,
+          "party_id": "66666666-6666-4666-8666-666666666666",
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "the company itself with a party record",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a counterparty without a party record",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": null,
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a placing time that is not a UTC instant",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a lowercase currency",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "usd",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "no lines",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "two lines with one id",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a line with neither product nor description",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": null
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a product revision without its root",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": "x"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a zero quantity",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "0",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a quantity with four places",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "1.0001",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a price in another currency",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "1",
+              "currency": "EUR"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a price with seven places",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "1.0000001",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a window that ends before it starts",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-07",
+              "end": "2026-10-01"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a window with an impossible date",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-02-30",
+              "end": "2026-03-01"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "an unknown status",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "draft",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a payment term beyond a year",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 400,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "an incoterm that is not three letters",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "Free on board"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "a duplicate external identifier",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          },
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
+    },
+    {
+      "why": "an extra member",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null,
+        "forecast": true
+      }
+    },
+    {
+      "why": "a missing member",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "10",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "case-12",
+                "version": "1",
+                "base_units_per_pack": "12"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "replaces": null
+      }
+    }
+  ],
+  "genesis": {
+    "accept": [
+      {
+        "why": "an order is born placed",
+        "body": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "an order cannot be born acknowledged",
+        "body": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "nor closed",
+        "body": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "closed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      }
+    ]
+  },
+  "continuity": {
+    "accept": [
+      {
+        "why": "edited while placed: a line added and a term changed",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "3",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 45,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "acknowledged by the seller",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "rejected",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "rejected",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "cancelled while placed",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "cancelled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "partially fulfilled, then again, then fulfilled, then closed: the seller's own identifier learned on the way",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            },
+            {
+              "scheme": "seller.so",
+              "value": "SO-9"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "partially_fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "fulfilled from partially fulfilled",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "partially_fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "fulfilled straight from acknowledged",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "cancelled after acknowledgment",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "cancelled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "cancelled after partial fulfilment",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "partially_fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "cancelled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "a second partial fulfilment",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "partially_fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            },
+            {
+              "scheme": "seller.so",
+              "value": "SO-9"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "partially_fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "closed from fulfilled",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "closed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a changed buyer",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": false,
+            "party_id": "66666666-6666-4666-8666-666666666666",
+            "revision": null
+          },
+          "seller": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "a changed placing time",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:16:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "a changed currency",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "EUR",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "EUR"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "a changed replaced order",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": "66666666-6666-4666-8666-666666666666"
+        }
+      },
+      {
+        "why": "lines changed after acknowledgment: a change is a new order",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "11",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "terms changed after acknowledgment",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 60,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "an external identifier removed",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "placed straight to fulfilled",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "fulfilled",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "acknowledged back to placed",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "placed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "closed reopened",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "closed",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      },
+      {
+        "why": "rejected then acknowledged",
+        "previous": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "rejected",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        },
+        "next": {
+          "buyer": {
+            "self": true,
+            "party_id": null,
+            "revision": null
+          },
+          "seller": {
+            "self": false,
+            "party_id": "77777777-7777-4777-8777-777777777777",
+            "revision": null
+          },
+          "placed_at": "2026-09-23T09:15:00.000Z",
+          "currency": "USD",
+          "external": [
+            {
+              "scheme": "buyer.po",
+              "value": "PO-4471"
+            }
+          ],
+          "lines": [
+            {
+              "line_id": "1",
+              "product": {
+                "product_id": "22222222-2222-4222-8222-222222222222",
+                "revision": "99999999-9999-4999-8999-999999999999",
+                "description": null
+              },
+              "quantity": {
+                "amount": "10",
+                "unit": {
+                  "system": "packaging",
+                  "code": null,
+                  "packaging_id": "case-12",
+                  "version": "1",
+                  "base_units_per_pack": "12"
+                }
+              },
+              "price": {
+                "amount": "48.500000",
+                "currency": "USD"
+              },
+              "requested": {
+                "start": "2026-10-01",
+                "end": "2026-10-07"
+              },
+              "links": {
+                "contract_id": null
+              }
+            },
+            {
+              "line_id": "2",
+              "product": {
+                "product_id": null,
+                "revision": null,
+                "description": "Pallet wrap, 500 mm"
+              },
+              "quantity": {
+                "amount": "3",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{roll}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "price": null,
+              "requested": null,
+              "links": {
+                "contract_id": null
+              }
+            }
+          ],
+          "status": "acknowledged",
+          "terms": {
+            "payment_net_days": 30,
+            "incoterm": "FOB"
+          },
+          "replaces": null
+        }
+      }
+    ]
+  }
+}
