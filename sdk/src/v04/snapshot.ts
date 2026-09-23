@@ -145,14 +145,22 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
   for (const p of Object.values(s.profiles)) profileNames.set(JSON.stringify([p.publisher_id,p.name,p.version]),p.digest);
   for (const p of snap.profiles) {
     exact(p, ["id", "publisher_id", "name", "version", "digest", "schema", "semantics", "dependencies", "visibility", "readers", "command"]);
-    demand(uuid(p.publisher_id) && !profileDigests.has(p.digest), "invalid_snapshot", "invalid or duplicate profile"); profileDigests.add(p.digest);
-    await validateProfile(p,candidate); await historicalPerson(p.command, p.publisher_id);
+    demand(!profileDigests.has(p.digest), "invalid_snapshot", "invalid or duplicate profile"); profileDigests.add(p.digest);
+    await validateProfile(p,candidate);
+    if (p.publisher_id === "dtp") {
+      // A protocol contract is bound by its digest; the admitting command is provenance, and the destination applies its own registry when a kind is selected.
+      validateCommand(p.command,p.command.audience,instant(p.command.issued_at)); await verifyCommand(p.command);
+      demand(p.id === `dtp/${p.name}@${p.version}` && p.visibility === "community" && Array.isArray(p.readers) && p.readers.length === 0 && p.command.action === "profile.admit" && same(p.command.payload,{digest:p.digest}), "invalid_snapshot", "invalid protocol profile admission");
+    } else {
+    demand(uuid(p.publisher_id), "invalid_snapshot", "invalid profile publisher");
+    await historicalPerson(p.command, p.publisher_id);
     if (p.publisher_id === snap.organization.id) demand(associated.has(p.command.actor.id), "invalid_snapshot", "publisher actor was never associated with company");
     exact(p.command.payload,["name","version","schema","semantics","dependencies","visibility","readers","digest"]);
     demand(p.id === `${p.publisher_id}/${p.name}@${p.version}`, "invalid_snapshot", "profile ID differs from publisher namespace");
     demand(p.command.action === "profile.publish" && ["private", "community"].includes(p.visibility) && Array.isArray(p.readers) && new Set(p.readers).size === p.readers.length && p.readers.every(uuid), "invalid_snapshot", "invalid profile publication");
     for (const [field,value] of Object.entries(p.command.payload)) demand(field in p && same(value,(p as any)[field]), "invalid_snapshot", "profile publication differs from signed fields");
     for (const field of ["name", "version", "schema", "semantics", "dependencies", "visibility", "readers"]) demand(Object.hasOwn(p.command.payload, field), "invalid_snapshot", "profile signature omits required contract field");
+    }
     const name = JSON.stringify([p.publisher_id,p.name,p.version]); demand(!profileNames.has(name) || profileNames.get(name) === p.digest, "conflict", "profile namespace/version collision", 409); profileNames.set(name,p.digest);
     demand(!s.profiles[p.digest] || same(s.profiles[p.digest],p), "conflict", "profile differs at destination",409);
   }

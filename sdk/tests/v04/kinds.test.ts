@@ -22,7 +22,9 @@ test("kinds: the registry file, the grammar and the version rule", () => {
   const file = fileURLToPath(new URL("../../../spec/profiles/index.json", import.meta.url));
   const registry = parseUntrustedJson(readFileSync(file, "utf8")) as { format: string; kinds: Record<string, unknown> };
   assert.equal(registry.format, KIND_REGISTRY_FORMAT);
-  assert.deepEqual(parseKindRegistry(registry), {}, "no protocol kind is registered yet");
+  const product = parseUntrustedJson(readFileSync(fileURLToPath(new URL("../../../spec/profiles/product/1/fixtures.json", import.meta.url)), "utf8")) as { contract_digest: string };
+  const inventory = parseUntrustedJson(readFileSync(fileURLToPath(new URL("../../../spec/profiles/inventory/2/fixtures.json", import.meta.url)), "utf8")) as { contract_digest: string };
+  assert.deepEqual(parseKindRegistry(registry), { "dtp/product@1": [product.contract_digest], "dtp/inventory@2": [inventory.contract_digest] }, "the two kinds with a second implementation are registered, pinning their exact contracts");
   const org = "11111111-1111-4111-8111-111111111111", d = "a".repeat(64);
   assert.deepEqual(parseKindRegistry({ format: KIND_REGISTRY_FORMAT, kinds: { "dtp/inventory@2": { digests: [d] } } }), { "dtp/inventory@2": [d] });
   for (const bad of [{ format: "dtp-profile-kinds-2", kinds: {} }, { format: KIND_REGISTRY_FORMAT, kinds: [] }, { format: KIND_REGISTRY_FORMAT, kinds: { [`${org}/inventory@2`]: { digests: [d] } } },
@@ -83,7 +85,7 @@ test("kinds: a protocol kind resolves through the host's registry to admitted pr
   const store = await createDtpStore({ kinds: registry }); try {
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     const health = await (await fetch(store.audience + "/dtp/v0.4/health")).json();
-    assert.equal(health.capabilities.kind_registry, KIND_REGISTRY_FORMAT); assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/inventory@2", "dtp/order@1"]);
+    assert.equal(health.capabilities.kind_registry, KIND_REGISTRY_FORMAT); assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/inventory@2", "dtp/order@1"], "this host was started with an explicit registry, not the repository one");
     const before = await client.act(owner, "records.list", org, page({ kinds: ["dtp/inventory@2"] }));
     assert.equal(before.status, 422); assert.equal(before.error.code, "unsupported_profile", "registered, but no listed digest is admitted at this host");
     // The registry pins exact contracts: a profile of the same name and major from an unlisted publisher does not count.

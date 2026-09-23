@@ -50,5 +50,8 @@ export const emptyState = (): State => ({ persons: {}, organizations: {}, polici
 export interface Context { audience: string; storeKey: KeyPair; pins: Record<string, string>; now: number;
   assessmentPins?: Record<string,string>; revokedAssessments?: string[];
   referenceProfiles?: Record<string,string[]>;
-  /** Protocol kind registry (spec/profiles/index.json): kind -> admitted profile digests. Operator configuration. */
-  kinds?: Record<string,string[]> }
+  /** Protocol kind registry (spec/profiles/index.json): kind -> registered profile digests. Operator configuration. */
+  kinds?: Record<string,string[]>;
+  /** The registered contracts themselves (spec/profiles/<name>/<major>/profile.json), by digest, for profile.admit. Operator configuration. */
+  protocolProfiles?: Record<string, ProfileContract> }
+export type ProfileContract = Pick<Profile, "publisher_id" | "name" | "version" | "schema" | "semantics" | "dependencies">;
