@@ -86,6 +86,7 @@
         "policy.get",
         "profile.publish",
         "profile.get",
+        "profile.admit",
         "release.publish",
         "installation.create",
         "installation.revoke",
@@ -779,6 +780,32 @@
         "properties": {
           "action": {
             "const": "profile.get"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "digest": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "digest"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "profile.admit"
           }
         }
       },

@@ -161,6 +161,18 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       if(previous){result=previous.result;break;}
       demand(!Object.values(s.profiles).some(x=>x.id===profile.id),"conflict","profile version is immutable",409);s.profiles[profile.digest]=structuredClone(profile);result={id:profile.id,digest:profile.digest};break;
     }
+    case "profile.admit": {
+      // A registered protocol contract enters this host's admitted profiles under the reserved publisher, community-visible, with the admitting command as its provenance.
+      const o=currentOrg();management(s,o,c,"profiles.publish",ctx);exact(p,["digest"]);demand(isDigest(p.digest),"invalid","digest required",400);
+      const contract=ctx.protocolProfiles?.[p.digest];demand(contract,"not_found","protocol profile unavailable at this host",404);
+      demand(Object.values(ctx.kinds??{}).some(ds=>ds.includes(p.digest)),"unsupported_profile","profile is not registered under any protocol kind",422);
+      const profile:Profile={...structuredClone(contract),publisher_id:"dtp",id:`dtp/${contract.name}@${contract.version}`,digest:p.digest,visibility:"community",readers:[],command:c} as Profile;
+      demand(contract.publisher_id==="dtp"&&await digest(profileContract(profile))===p.digest,"digest_mismatch","contract bytes differ from the registered digest",422);
+      await validateProfile(profile,s);
+      if(previous){result=previous.result;break;}
+      if(s.profiles[p.digest]){result={id:profile.id,digest:p.digest,admitted:false};break;}
+      s.profiles[p.digest]=profile;result={id:profile.id,digest:p.digest,admitted:true};break;
+    }
     case "profile.get": {
       exact(p,["digest"]);const o=currentOrg();demand(activeMember(s,o,c.requested_by??o.installations[c.actor.id]?.sponsor_id,ctx.now),"forbidden","membership required");
       demand(isDigest(p.digest)&&Object.hasOwn(s.profiles,p.digest),"not_found","profile unavailable",404);const profile=s.profiles[p.digest];demand(accessibleProfile(profile,o.id)&&understands(p.digest),"not_found","profile unavailable",404);result=structuredClone(profile);break;
@@ -317,7 +329,8 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         demand(pr.id===`${pr.publisher_id}/${pr.name}@${pr.version}`,"invalid_evidence","profile identity label differs from pinned contract");
         validateCommand(pr.command,pr.command.audience,instant(pr.command.issued_at));await verifyCommand(pr.command);
         const{publisher_id:_,...contract}=profileContract(pr);
-        demand(pr.command.action==="profile.publish"&&pr.command.organization_id===pr.publisher_id&&same(pr.command.payload,{...contract,digest:pr.digest,visibility:pr.visibility,readers:pr.readers}),"invalid_evidence","profile differs from signed publication");
+        if(pr.publisher_id==="dtp")demand(pr.command.action==="profile.admit"&&same(pr.command.payload,{digest:pr.digest})&&pr.visibility==="community"&&pr.readers.length===0,"invalid_evidence","protocol profile differs from its admission");
+        else demand(pr.command.action==="profile.publish"&&pr.command.organization_id===pr.publisher_id&&same(pr.command.payload,{...contract,digest:pr.digest,visibility:pr.visibility,readers:pr.readers}),"invalid_evidence","profile differs from signed publication");
       }
       const inspected=[];
       for(const r of body.records){
