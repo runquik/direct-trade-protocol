@@ -24,7 +24,7 @@ Format 1 (`dtp-identity-log-1`) is the same log without the `rehome` member. It 
 
 A verifier MUST refuse the log unless all of the following hold. It needs no clock and no network.
 
-1. **Shape.** The format string is exactly `dtp-identity-log-1`; objects have exactly the members above; instants are non-negative safe integers.
+1. **Shape.** The format string is exactly `dtp-identity-log-2`, or `dtp-identity-log-1` for a log without the `rehome` member; objects have exactly the members above; instants are non-negative safe integers.
 2. **Genesis.** The genesis verifies under `DTP-PERSON-GENESIS-1` with possession by every genesis key, as the identity contract requires. The identity id is derived from it.
 3. **Enrollment.** The enrollment verifies under `DTP-IDENTITY-ENROLLMENT-1` with both the operational and the recovery quorum of the genesis, and names this identity and genesis digest. It fixes the resolver id, resolver key and audience for the whole log, at resolver epoch 0.
 4. **Head 0** is `{identity_id, 0, null, genesis.operational, genesis.recovery, entries[0].effective_at}`, and `enrollment.issued_at <= entries[0].effective_at < enrollment.expires_at`.
@@ -89,7 +89,7 @@ The resolver binding is per epoch. Entry 0's enrollment fixes epoch 0; each reho
 
 **Epoch precedence** (`precedence`): between two valid histories of one identity that diverge, the one whose current binding has the higher epoch supersedes, wherever they fork. Forks at one epoch are a conflict. One history being a prefix of the other is not a fork.
 
-**Admission** (`admitIdentityLog`): a relying party holding a pin `(resolver_id, resolver_key, resolver_epoch, minimum_sequence, minimum_digest)` admits a log only if the log's binding **at the pinned epoch** equals the pin, the log reaches at least the pinned sequence, every move past the pinned epoch is adopted (below), and the pinned digest is either consistent with the log or superseded by a higher epoch. It then stores the log's current binding and head as its new pin, atomically, and refuses the former resolver from then on. A same-epoch conflict is refused. `judgeIdentityLog` is the same procedure as a judgement that never throws for an expected refusal; its reasons are normative: `invalid-log`, `another-identity`, `unknown-identity`, `foreign-lineage`, `behind`, `conflict`, `unadopted-move`.
+**Admission** (`admitIdentityLog`): a relying party holding a pin `(identity_id, resolver_id, resolver_key, resolver_epoch, minimum_sequence, minimum_digest)` admits a log only if it is for the pinned identity (two identities enrolled at one resolver share its binding), the log's binding **at the pinned epoch** equals the pin, the log reaches at least the pinned sequence, every move past the pinned epoch is adopted (below), and the pinned digest is either consistent with the log or superseded by a higher epoch. It then stores the log's current binding and head as its new pin, atomically, and refuses the former resolver from then on. A same-epoch conflict is refused. `judgeIdentityLog` is the same procedure as a judgement that never throws for an expected refusal; its reasons are normative: `invalid-log`, `another-identity`, `unknown-identity`, `foreign-lineage`, `behind`, `conflict`, `unadopted-move`.
 
 Vectors for moves, both formats, precedence pairs, admissions, pushes and refusals are in the same file.
 

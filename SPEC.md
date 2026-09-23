@@ -64,6 +64,8 @@ Defined in [`common/ids.schema.json`](spec/schemas/common/ids.schema.json):
 
 Company handles use NEAR's grammar so that a later on-chain identity mapping is byte-compatible; the handle is *not* itself a NEAR account unless `identifiers.near_account` says so.
 
+`Quantity.unit` `ton` is the US short ton (2,000 lb), consistent with the customary `lb` and `oz` beside it; metric mass is expressed in `kg`. This is a clarification of the existing enum, not a change to it: the unit set is closed for v0.2, and a successor profile is expected to replace it with unambiguous unit codes.
+
 ### 2.2 `core.company` — the spine
 
 Schema: [`core/company.schema.json`](spec/schemas/core/company.schema.json). Subject: the company itself. Default visibility: `public`.
