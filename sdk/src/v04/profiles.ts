@@ -2,7 +2,7 @@
 import { demand, digest, exact } from "./wire.ts";
 import type { Profile, State } from "./model.ts";
 /** Semantics labels a host runs built-in deterministic rules for; a publisher selects one, never redefines it. */
-export const SEMANTICS = ["structural", "inventory-v1", "invoice-v1", "product-v1", "inventory-v2", "party-v1"] as const;
+export const SEMANTICS = ["structural", "inventory-v1", "invoice-v1", "product-v1", "inventory-v2", "party-v1", "order-v1", "forecast-v1"] as const;
 export function checkSchema(schema: unknown): void {
   let nodes = 0;
   function visit(s: any, depth: number) {

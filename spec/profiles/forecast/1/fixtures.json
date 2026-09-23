@@ -1,0 +1,979 @@
+{
+  "description": "dtp/forecast@1 fixtures. A conforming validator MUST accept every body under \"accept\" and refuse every body under \"reject\"; given a previous and a next revision of one forecast it MUST accept every pair under \"continuity.accept\" and refuse every pair under \"continuity.reject\". A forecast commits nobody to anything; a forecast or a plan is never an order.",
+  "kind": "dtp/forecast@1",
+  "profile": "dtp.forecast/1",
+  "semantics": "forecast-v1",
+  "contract_digest": "7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7",
+  "accept": [
+    {
+      "why": "a demand forecast for a product and a customer over a quarter, from a stated method, with a confidence and a scenario",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a supply forecast with no party, by description, zero quantity, no confidence, no scenario",
+      "body": {
+        "subject": {
+          "product_id": null,
+          "description": "Glass jars 680 ml"
+        },
+        "party_id": null,
+        "direction": "supply",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-10-08"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "supplier statement",
+        "quantity": {
+          "amount": "0",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": null,
+        "scenario": null,
+        "status": "published"
+      }
+    },
+    {
+      "why": "a withdrawn forecast",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "withdrawn"
+      }
+    }
+  ],
+  "reject": [
+    {
+      "why": "a subject with neither product nor description",
+      "body": {
+        "subject": {
+          "product_id": null,
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a direction outside demand and supply",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "plan",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a horizon that does not end after it starts",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-10-01"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "an as-of that is not a UTC instant",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "no method",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a negative quantity",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "-1",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a confidence above one hundred",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 101,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "an unknown status",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "placed"
+      }
+    },
+    {
+      "why": "a member an order would have: nothing here commits anyone",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft",
+        "buyer": {
+          "self": true
+        }
+      }
+    },
+    {
+      "why": "a missing member",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "quantity": {
+          "amount": "14400",
+          "unit": {
+            "system": "ucum",
+            "code": "{jar}",
+            "packaging_id": null,
+            "version": null,
+            "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    }
+  ],
+  "continuity": {
+    "accept": [
+      {
+        "why": "re-forecast: a later as-of, a new figure and confidence",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-30T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "15100",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 70,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "published from draft",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "published"
+        }
+      },
+      {
+        "why": "withdrawn from published",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "published"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "withdrawn"
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a changed subject: a different forecast",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": null,
+            "description": "something else"
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "a changed horizon",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2027-03-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "a changed party",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": null,
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "a changed direction",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "supply",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "an as-of earlier than what it revises",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-01T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "published back to draft",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "published"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "draft"
+        }
+      },
+      {
+        "why": "withdrawn back to published",
+        "previous": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "withdrawn"
+        },
+        "next": {
+          "subject": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "description": null
+          },
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "direction": "demand",
+          "horizon": {
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          },
+          "as_of": "2026-09-23T06:00:00.000Z",
+          "method": "trailing 12-week average, seasonal",
+          "quantity": {
+            "amount": "14400",
+            "unit": {
+              "system": "ucum",
+              "code": "{jar}",
+              "packaging_id": null,
+              "version": null,
+              "base_units_per_pack": null
+            }
+          },
+          "confidence": 60,
+          "scenario": "base",
+          "status": "published"
+        }
+      }
+    ]
+  }
+}

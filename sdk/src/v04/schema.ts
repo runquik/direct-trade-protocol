@@ -23,7 +23,7 @@ export const PAYLOADS:Record<string,Schema>={
   "membership.invite":object({invitation_id:id,person_id:id,permissions:array(str(),6),expires_at:time}),
   "membership.accept":object({invitation_id:id}),"membership.revoke":object({person_id:id}),
   "policy.create":policy,"policy.update":policy,"policy.get":object({policy_id:id}),
-  "profile.publish":object({name:str(80),version:str(),schema:{type:"object"},semantics:{enum:["structural","inventory-v1","invoice-v1","product-v1","inventory-v2","party-v1"]},dependencies:array(hash,8),visibility:{enum:["private","community"]},readers:array(id,64),digest:hash}),
+  "profile.publish":object({name:str(80),version:str(),schema:{type:"object"},semantics:{enum:["structural","inventory-v1","invoice-v1","product-v1","inventory-v2","party-v1","order-v1","forecast-v1"]},dependencies:array(hash,8),visibility:{enum:["private","community"]},readers:array(id,64),digest:hash}),
   "profile.get":object({digest:hash}),"profile.admit":object({digest:hash}),
   "release.publish":object({module_id:id,version:str(),artifact_digest:hash,profiles:array(hash,16,1),actions:dataActions,visibility:{enum:["private","community"]},assessment:nullable(token)}),
   "installation.create":object({installation_id:id,release_digest:hash,key_id:key,policy_ids:array(id,32,1),actions:dataActions,mode:{enum:["interactive","automation"]},expires_at:time}),
