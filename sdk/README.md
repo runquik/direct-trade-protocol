@@ -1,6 +1,6 @@
 # @dtp/sdk — DTP v0.2 SDK, tooling, and conformance tests
 
-Web-standard TypeScript (no Node-only APIs in `src/`), so the same code runs in Node ≥ 23.5, Deno, the Supabase edge runtime, and browsers. Node runs the `.ts` files directly (type stripping); no build step is needed to use it.
+Web-standard TypeScript (no Node-only APIs in `src/`), so the same code runs in the pinned Node 22.23.2 (`.node-version`; the `engines` field allows 22.23.2 up to, not including, 23, and newer majors have a JSON member-name parsing fault that breaks some tests), Deno, the Supabase edge runtime, and browsers. Node runs the `.ts` files directly (type stripping); no build step is needed to use it.
 
 ```
 src/
