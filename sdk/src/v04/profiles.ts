@@ -1,6 +1,8 @@
 // Bounded declarative contracts. No $ref, regex, network resolution or executable validators.
 import { demand, digest, exact } from "./wire.ts";
 import type { Profile, State } from "./model.ts";
+/** Semantics labels a host runs built-in deterministic rules for; a publisher selects one, never redefines it. */
+export const SEMANTICS = ["structural", "inventory-v1", "invoice-v1", "product-v1"] as const;
 export function checkSchema(schema: unknown): void {
   let nodes = 0;
   function visit(s: any, depth: number) {
@@ -8,10 +10,12 @@ export function checkSchema(schema: unknown): void {
     const keys: Record<string, string[]> = { object: ["type", "properties", "required", "additionalProperties"], array: ["type", "items", "maxItems"],
       string: ["type", "maxLength"], integer: ["type", "minimum", "maximum"], boolean: ["type"], null: ["type"] };
     demand(typeof s.type === "string" && Object.hasOwn(keys, s.type), "invalid_schema", "unsupported schema type", 400);
+    // `nullable: true` lets a field be absent-as-null without a union; it is the dialect's one optional keyword.
+    if (s.nullable !== undefined) demand(s.nullable === true && s.type !== "null", "invalid_schema", "nullable must be true on a non-null type", 400);
     if (s.enum !== undefined) {
       demand(s.type === "string" && Array.isArray(s.enum) && s.enum.length > 0 && s.enum.length <= 64 && new Set(s.enum).size === s.enum.length && s.enum.every((v: any) => typeof v === "string" && v.length <= s.maxLength), "invalid_schema", "invalid bounded enum", 400);
     }
-    exact(s, [...keys[s.type], ...(s.enum === undefined ? [] : ["enum"])]);
+    exact(s, [...keys[s.type], ...(s.enum === undefined ? [] : ["enum"]), ...(s.nullable === undefined ? [] : ["nullable"])]);
     if (s.type === "object") {
       demand(s.properties && typeof s.properties === "object" && !Array.isArray(s.properties) && Object.keys(s.properties).length <= 64 && s.additionalProperties === false, "invalid_schema", "objects must be closed and bounded", 400);
       demand(Array.isArray(s.required) && new Set(s.required).size === s.required.length && s.required.every((v: any) => typeof v === "string" && Object.hasOwn(s.properties, v)), "invalid_schema", "invalid required fields", 400);
@@ -26,6 +30,7 @@ export function checkSchema(schema: unknown): void {
   visit(schema, 0);
 }
 export function validateShape(schema: any, value: any): boolean {
+  if (value === null && schema.nullable === true) return true;
   switch (schema.type) {
     case "null": return value === null;
     case "boolean": return typeof value === "boolean";
@@ -83,7 +88,7 @@ export function profileContract(p: Pick<Profile, "publisher_id" | "name" | "vers
 export async function validateProfile(p: Profile, state: State) {
   checkSchema(p.schema);
   demand(/^[a-z][a-z0-9._-]{0,79}$/.test(p.name) && /^\d+\.\d+\.\d+$/.test(p.version), "invalid_profile", "invalid profile identity/version", 400);
-  demand(["structural", "inventory-v1", "invoice-v1"].includes(p.semantics), "unsupported_semantics", "unsupported required semantics", 422);
+  demand(SEMANTICS.includes(p.semantics), "unsupported_semantics", "unsupported required semantics", 422);
   demand(Array.isArray(p.dependencies) && p.dependencies.length <= 8 && new Set(p.dependencies).size === p.dependencies.length && p.dependencies.every(d => typeof d === "string" && /^[0-9a-f]{64}$/.test(d) && Object.hasOwn(state.profiles, d)), "unsupported_dependency", "all dependencies must be pinned and admitted", 422);
   demand(p.digest === await digest(profileContract(p)), "digest_mismatch", "profile bytes differ from pinned digest", 422);
 }
