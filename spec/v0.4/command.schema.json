@@ -721,7 +721,8 @@
                 "enum": [
                   "structural",
                   "inventory-v1",
-                  "invoice-v1"
+                  "invoice-v1",
+                  "product-v1"
                 ]
               },
               "dependencies": {

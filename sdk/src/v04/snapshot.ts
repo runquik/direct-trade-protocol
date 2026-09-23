@@ -4,6 +4,7 @@ import { validateProfile, validateShape } from "./profiles.ts";
 import { checkPermissions } from "./permissions.ts";
 import { applyInventoryEvent, createInventoryState } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
+import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -218,6 +219,11 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     if (semantics === "invoice-v1") {
       demand(r.body.seller_company_id === r.organization_id && r.counterparty_ids.includes(r.body.buyer_company_id), "invalid_snapshot", "invoice parties differ");
       expectedValidation = validateInvoice(r.body,{resolveReference:()=>({status:"unknown"})}); demand(expectedValidation.valid, "invalid_snapshot", "invalid invoice arithmetic");
+    }
+    if (semantics === "product-v1") {
+      demand(validateProduct(r.body).length === 0, "invalid_snapshot", "product violates profile");
+      if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkProductContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "product continuity violated"); }
+      expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "inventory-v1") {
       const event = r.body, pool = rebuiltInventory.pools[event.pool_id];

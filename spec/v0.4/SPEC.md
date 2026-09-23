@@ -111,8 +111,9 @@ The `dtp.schema/1` bounded dialect supports only:
 | string | `maxLength`; optional finite string `enum` |
 | integer | `minimum`, `maximum`, both safe integers |
 | boolean, null | None |
+| any of the above except null | optional `nullable: true` |
 
-Unsupported keywords, `$ref`, supplied code, regex validation, arbitrary remote dependencies and open-ended object fields are rejected. Object property names are bounded and dangerous prototype-style names are disallowed. Limits are specified below. Profile semantics are exactly `structural`, `inventory-v1`, `invoice-v1`. Inventory/invoice semantics additionally run the built-in deterministic rules; selecting their label does not allow a publisher to redefine those rules.
+Unsupported keywords, `$ref`, supplied code, regex validation, arbitrary remote dependencies and open-ended object fields are rejected. Object property names are bounded and dangerous prototype-style names are disallowed. Limits are specified below. Profile semantics are exactly `structural`, `inventory-v1`, `invoice-v1`, `product-v1`. Inventory, invoice and product semantics additionally run the built-in deterministic rules; selecting their label does not allow a publisher to redefine those rules. The dialect's one optional keyword is `nullable: true`, which lets a non-null node also accept `null`.
 
 Profiles are readable to their publisher, `readers` company IDs or, for `community`, other authorized callers. Community profile visibility is not public company-data access. There is no anonymous catalog/listing endpoint. A private release is available for installation only to its publisher; a community release is available to other companies, subject to all other admission/permission checks.
 
@@ -141,6 +142,10 @@ Create an authorized pool with `inventory.create {policy_id,pool_id,product_id,b
 The store atomically enforces company-wide `(source_id,observation_id)` deduplication, event-byte meaning, pool revision CAS and resulting stock state. A fresh request ID does not make a duplicate physical observation new stock. Conflicting observation reuse fails. Reordered physical timestamps do not rewind already accepted reservation authority. Inventory corrections are new events, not record supersession.
 
 Packaging pins bind packaging ID, immutable version and digest to a product/base-unit conversion. Conversion cannot retroactively change an earlier event. Pack conversion exceeding three decimal places in the resulting base quantity is rejected instead of rounded. Two reservations cannot exceed declared available stock; fulfillment reduces the named reservation and on-hand balance together. A correction cannot consume stock already reserved. The pool invariant does not verify physical goods, title or exclusive reservations in a different unconnected system.
+
+### Product profile
+
+`product-v1` ([`spec/profiles/product/1.md`](../profiles/product/1.md)) is the first business-fact profile: a product as one company defines it, with names, issuer-namespaced identifiers (GTINs are check-digit validated; at most one `sku`), a UCUM base unit, inline packaging revisions, tracking (`none`, `lot`, `serial`), shelf life and status. The entity is the record root; revisions supersede. Across a supersession `base_unit`, `tracking` and `replaces` are immutable and a published packaging version can neither change nor disappear, because stock ledgers key on the first two and pin pack conversions by the third; a change is a new product that `replaces` the old. Bodies that pass a publisher's schema but break these rules are refused with `invalid_product`; snapshot import re-checks them.
 
 ### Invoice arithmetic/evidence profile
 

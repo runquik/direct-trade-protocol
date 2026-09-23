@@ -19,7 +19,7 @@ export interface Grant { person_id: string; actions: DataAction[]; resource_ids:
 export interface Policy { id: string; organization_id: string; revision: number; classification: "business" | "personnel";
   stewards: string[]; threshold: number; grants: Grant[]; history: Command[] }
 export interface Profile { id: string; publisher_id: string; name: string; version: string; digest: string;
-  schema: Record<string, any>; semantics: "structural" | "inventory-v1" | "invoice-v1"; dependencies: string[];
+  schema: Record<string, any>; semantics: "structural" | "inventory-v1" | "invoice-v1" | "product-v1"; dependencies: string[];
   visibility: "private" | "community"; readers: string[]; command: Command }
 export interface BusinessRecord { id: string; root_id: string; supersedes: string | null; organization_id: string;
   policy_id: string; resource_id: string; profile_digest: string; counterparty_ids: string[];
