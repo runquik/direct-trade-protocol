@@ -71,7 +71,7 @@ A log that fails verification outright proves nothing about the identity in eith
 
 ## Reference implementation
 
-`sdk/src/foundation/identity-log.ts`, portable, reachable as `identityLog` from the preview entry: `verifyIdentityLog`, `compareCheckpoint`, `buildIdentityLog`, `attestHead`, `recoverGenesisInstant`.
+`sdk/src/foundation/identity-log.ts`, portable and dependency-free, reachable as `identityLog` from the preview entries (`@dtp/sdk/preview/foundation` needs no package at all): `verifyIdentityLog`, `compareCheckpoint`, `buildIdentityLog`, `attestHead`, `recoverGenesisInstant`.
 
 The verifier does not restate rule 5. For each entry it constructs a witness timeline, acceptance at `min(expires_at - 1, E[n])` with exactly the lease barrier that yields `E[n]`, and runs `transitionIdentity` itself under it; rule 6 is precisely the condition for that witness to exist. Replay therefore cannot drift from the live rules. The cost is that a second implementation must take rule 5 from the identity contract and the vectors rather than from this file.
 

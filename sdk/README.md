@@ -56,14 +56,17 @@ Import through the package entries, never an internal file path:
 
 | Entry | File | What it is |
 |---|---|---|
-| `@dtp/sdk` | `src/index.ts` | Stable: encodings, canonicalization, keys, envelope signing, scopes. Portable. |
-| `@dtp/sdk/preview` | `src/preview.ts` | Unreleased foundation, onboarding client, profiles and v0.4, no compatibility promise. Portable. |
+| `@dtp/sdk` | `src/index.ts` | Stable: encodings, canonicalization, keys, envelope signing, scopes. Portable, dependency-free. |
+| `@dtp/sdk/preview/foundation` | `src/preview-foundation.ts` | Unreleased foundation layer (identity, identity log, organization, authority, records vocabulary), profiles and the onboarding client, no compatibility promise. Portable, **dependency-free**. |
+| `@dtp/sdk/preview` | `src/preview.ts` | Everything in the foundation entry plus the v0.4 candidate. Portable; needs `@cfworker/json-schema`. |
 | `@dtp/sdk/preview/host` | `src/preview-host.ts` | Unreleased pieces that need a database, a listener or host keys. |
 
-"Portable" means nothing reachable imports a platform module, so the entry loads in browsers and edge runtimes as well as Node and Deno; a test enforces it for both portable entries. The key helpers (`generateKeyPair`, `keyPairFromSecret`, `signBytes`, `verifyBytes` and the `encode*`/`decode*` functions) belong to the stable entry and are also re-exported unchanged as `keys` from the preview entry, so a wallet or a host that signs identity material with a key it holds needs only one import:
+"Portable" means nothing reachable imports a platform module, so the entry loads in browsers and edge runtimes as well as Node and Deno; a test enforces it for every portable entry. "Dependency-free" means nothing reachable imports a package either, so the entry bundles with this repository's sources alone; a test loads it in a child process whose resolver refuses every bare specifier. Use the foundation entry unless you need the v0.4 candidate: it is the preview entry minus the `v04*` namespaces, and the namespaces it shares are the same module objects, so code written against one works against the other.
+
+The key helpers (`generateKeyPair`, `keyPairFromSecret`, `signBytes`, `verifyBytes` and the `encode*`/`decode*` functions) belong to the stable entry and are also re-exported unchanged as `keys` from both preview entries, as are `canonical` and `safeJson`, so a wallet or a host that signs identity material with a key it holds needs only one import:
 
 ```ts
-import { keys, identity } from "@dtp/sdk/preview";
+import { keys, identity } from "@dtp/sdk/preview/foundation";
 const resolverKey = await keys.keyPairFromSecret(secretFromCustody);
 const { state, proof } = await identity.issueResolution(current, request, resolverKey, now);
 ```

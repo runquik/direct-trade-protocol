@@ -78,7 +78,7 @@ Hosts SHOULD warn when an organization has a single controller or a threshold of
 
 ## Reference implementation status
 
-Implemented with this decision: `sdk/src/foundation/organization.ts` (validation, digest, id, initial `Governance`), reachable portably as `organization` from the preview entry. The onboarding preview host derives ids through it, retains the genesis, and no longer defines a derivation of its own.
+Implemented with this decision: `sdk/src/foundation/organization.ts` (validation, digest, id, initial `Governance`), reachable portably as `organization` from the preview entries (`@dtp/sdk/preview/foundation` needs no package at all). The onboarding preview host derives ids through it, retains the genesis, and no longer defines a derivation of its own.
 
 Not implemented, and not claimed:
 

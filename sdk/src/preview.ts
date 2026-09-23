@@ -7,6 +7,10 @@
 // browsers and edge runtimes as well as Node and Deno. Pieces that need a database or a
 // server live in preview-host.ts. Namespaces keep the layers' overlapping names apart.
 //
+// DEPENDENCY. The v0.4 namespaces below need `@cfworker/json-schema`. A bundle that wants only
+// the foundation layer imports preview-foundation.ts instead, which is this entry without the
+// v0.4 candidate and has no dependency at all; the other namespaces are the same objects there.
+//
 // KEYS. The one exception to "unreleased" is `keys`: it is the stable key module from
 // index.ts, re-exported unchanged (the same function objects), so that whoever signs or
 // countersigns through this entry, a wallet or a host holding its own resolver key, needs no
@@ -14,6 +18,8 @@
 // tests/profiles/entrypoints.test.ts holds both entries to that.
 
 export * as keys from "./keys.ts";
+export * as canonical from "./canonical.ts";
+export * as safeJson from "./safe-json.ts";
 
 export * as decimal from "./profiles/decimal.ts";
 export * as inventory from "./profiles/inventory.ts";
