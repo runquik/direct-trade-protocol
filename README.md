@@ -194,9 +194,11 @@ direct-trade-protocol/
   spec/                           ← NORMATIVE: JSON Schemas, type registry, fixed test vectors, generated types
   sdk/                            ← @dtp/sdk: canonicalization, keys, signing, store client, seed/keygen/sign CLIs,
                                      conformance tests, and a no-Docker dev store (embedded Postgres)
+  examples/external-module/       ← a module built outside the SDK against the packed package and a configured host
   supabase/                       ← reference store: migrations/ (schema `protocol`) + functions/dtp-store (edge function)
   docs/
     PROTOCOL_STORE.md             ← builder quickstart for the store (read this first)
+    EXTERNAL_BUILDER_BASELINE.md  ← the supported baseline for a module built in its own repository
     SPRINT_01_PROTOCOL_INTEROP.md ← the interop sprint brief; SPRINT_01_GAP_LOG.md collects findings
     PORTABLE_IDENTITY.md          ← portable business identity + data vault vision
     FINANCE_LAYER.md, FREIGHT_LAYER.md

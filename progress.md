@@ -1,4 +1,14 @@
-# DTP — save point (reviewed 2026-09-23, evening)
+# DTP — save point (reviewed 2026-09-23, night)
+
+## September 23, night: a baseline for a module built outside the repository
+
+A module team preparing to build small business modules in their own repositories asked the maintainers for one supported development baseline, a consumable SDK, a reference environment, a complete authority example, the first slice's domain and synchronization contracts, an extension path, a conformance pack, a bounded portability test and a feedback process. The answer is [docs/EXTERNAL_BUILDER_BASELINE.md](docs/EXTERNAL_BUILDER_BASELINE.md), with a status per request, and the two gaps it found were fixed rather than described:
+
+- The packed `@dtp/sdk` could not be imported from a consumer's `node_modules` at all (Node refuses to strip types there). `npm pack` now emits JavaScript and declarations for the three portable entries first (`tsconfig.build.json`, `prepack`); the exports map points at `dist/`; `./preview/host` stays source only. One type-only import that dragged a host database file into the portable closure moved to `sdk/src/onboarding/wire.ts`.
+- The disposable host could only be configured by editing its source. It now takes one closed JSON file (`npm run dev:dtp-v04 -- dev-host.json`): port, a `data_dir` that keeps the host key and state across restarts (deleting it is the reset), host pins, assessment pins, revoked assessments, reference profiles, capacity.
+- [examples/external-module](examples/external-module/README.md): a read-only inventory exception module in its own package, plain JavaScript on Node 22.23.2, that prepares the host configuration, seeds two synthetic companies, installs itself under one company's authority (release with a signed assessment, unattended installation, read only, expiring), reads by kind, derives an assessment that keeps identifiers and source observations, and is refused the other company, a tampered command, an expired command and a write. `sdk/tests/release/external-package.test.ts` runs it from outside the tree against a host started from the configuration file.
+
+Findings recorded: health lists kind names, not digests, so a module pins digests from the registry (owner's decision whether health should advertise them); no location or facility kind and no observation-origin marker beyond `source_id`; the host serves no change feed, so polling from the greatest processed sequence is the synchronization contract; `spec/README.md` still called the first two kinds unregistered (fixed). Full local suite on Node 22.23.2 after the change: 110 default, 157 v0.4/profile/interop/release, 312 foundation, 12 onboarding, 23 stress, 37 fuzz, all passing; typecheck clean. Implementer-tested only.
 
 ## September 23, evening: business-fact profiles built through the whole build order
 

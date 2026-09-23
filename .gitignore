@@ -11,6 +11,7 @@ sdk/dist
 sdk/*.tgz
 sdk/.dtp-v04-data/
 examples/external-module/node_modules
+examples/external-module/package-lock.json
 examples/external-module/synthetic/
 sdk/fixtures/dev-keys.json
 supabase/.temp
