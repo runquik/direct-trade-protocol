@@ -126,7 +126,9 @@ test('encrypted bundle crosses clients, rejects wrong passwords and corruption; 
     const wallet=await decryptWallet(encrypted,pass),otherClient=new PassportClient(wallet,f.transport);
     assert.equal((await otherClient.run('companies.list'))[0].organization_id,a.organization_id);
     await assert.rejects(decryptWallet(encrypted,'wrong password long enough'),/Wrong passphrase/);
-    await assert.rejects(decryptWallet({...encrypted,ciphertext:'00'+encrypted.ciphertext.slice(2)},pass),/damaged|Wrong/);
+    // Flip the first ciphertext byte rather than set it: setting it to 00 is a no-op on the runs where it already is 00.
+    const flipped=(parseInt(encrypted.ciphertext.slice(0,2),16)^0xff).toString(16).padStart(2,'0');
+    await assert.rejects(decryptWallet({...encrypted,ciphertext:flipped+encrypted.ciphertext.slice(2)},pass),/damaged|Wrong/);
     await assert.rejects(decryptWallet({...encrypted,iterations:1} as any,pass),/Unsupported/);
     await assert.rejects(encryptWallet(wallet,'short'),/14 characters/);
     const persisted=JSON.stringify((await f.pg.query('select body from dtp_foundation.identities')).rows);
