@@ -1,4 +1,15 @@
-# DTP — save point (reviewed 2026-09-18)
+# DTP — save point (reviewed 2026-09-23)
+
+## September 23: second implementer gap batch merged
+
+An independent downstream implementer building a workspace with pluggable modules on the protocol's shapes reported a second batch of gaps. Three were closed as separate, individually reviewed and CI-green pull requests and merged to main in order (tip `18824b9`); the fourth is a design, deliberately left open for the owner's decisions. All implementer-tested on the pinned Node 22.23.2 (full local suite after the merges: 110 default, 127 v0.4/profile, 312 foundation, 12 onboarding, 23 stress, 37 fuzz, all passing; typecheck and Deno check of every foundation module clean). Nothing here is independently reviewed or release-approved.
+
+- [#17](https://github.com/runquik/direct-trade-protocol/pull/17) `@dtp/sdk/preview/foundation`: the preview entry without the v0.4 candidate, portable and dependency-free, so an edge bundle needs no internal file paths and no JSON Schema package. A child-process test loads it under a resolver that refuses every bare specifier. [sdk/README.md](sdk/README.md) says which entry to use for what.
+- [#18](https://github.com/runquik/direct-trade-protocol/pull/18) Re-homing decision D7 closed: a move counts only when the destination attested the head it created (`unadopted-move` at admission, independent of the attestation policy for other entries); a permanent signed refusal under `DTP-IDENTITY-REHOME-REFUSAL-1`; the owner push message (`dtp-identity-log-push-1`) and acknowledgment with normative refusal reasons, idempotent. What stays undetectable without witnesses is stated plainly in [identity-log.md](docs/foundation/identity-log.md). Vectors added to `spec/vectors/identity-log.json`; every existing log, identifier and domain unchanged.
+- [#19](https://github.com/runquik/direct-trade-protocol/pull/19) Organization consent (`DTP-ORGANIZATION-CONSENT-1`, operational quorum, names the person's control head, 24-hour window), the governance transition (`DTP-ORGANIZATION-TRANSITION-1`) and a replayable governance log (`dtp-governance-log-1`) verified from the controllers' identity logs; new `spec/vectors/organization-governance.json`. Succession is no longer normative intent only. Not wired into the onboarding preview host, which still creates a sole controller.
+- [#20](https://github.com/runquik/direct-trade-protocol/pull/20), **open, design only**: [business-fact profiles](docs/foundation/business-fact-profiles-proposal.md) (kind registry and naming, schema language, `inventory@2`, first drafts of `order@1`, `party@1`, `product@1`, prior art) with decisions P1 to P14 for the owner.
+
+Findings recorded rather than fixed: the implementer's "H1/H2 items in docs" exist under no such label in this checkout; `sdk/README.md` says Node 23.5 or later while `.node-version` pins 22.23.2; `spec/README.md` and this file disagree on whether PBP or DTP is the current name; `identity-log.md` rule 1 names only format 1 while the verifier accepts format 2; SPEC.md's `Quantity` unit `ton` is ambiguous. Open decisions for the owner: signed push acknowledgments and the `unknown-identity` disclosure (#18); the 24-hour consent window and refusing a no-change transition (#19); P1 to P14 (#20).
 
 ## September 18: pre-commit review
 
