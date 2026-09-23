@@ -1,6 +1,6 @@
 # Business-fact profiles: design proposal
 
-September 22, 2026. Status: **proposal for the owner's review. Nothing here is implemented, reserved or normative.** It recommends; it does not decide. Section 10 lists the decisions the owner must make before any of it is built.
+September 22, 2026. Status: **decided, not implemented.** The owner took every decision in section 10 on September 23, 2026, as recommended. Nothing here is implemented, reserved or normative yet; section 10 is now the decision record and section 12 the build order that follows from it.
 
 ## 1. The gap
 
@@ -235,9 +235,11 @@ This survey is from the standards' published texts as understood by the author; 
 
 Not surveyed and worth the owner's attention: GS1 GDSN for product master data exchange, and the OpenPEPPOL order profiles built on UBL, which are the most widely deployed subset of UBL orders.
 
-## 10. Decisions for the owner
+## 10. Decision record
 
-| # | Decision | Recommendation |
+Every row was decided by the owner on September 23, 2026, as recommended. The recommendation column is kept as the rationale.
+
+| # | Decision | Decided |
 |---|---|---|
 | P1 | Reserve the `dtp` namespace for protocol kinds and add `spec/profiles/index.json` as the kind registry. | Yes. |
 | P2 | Add a `kinds` selector to the v0.4 read path that expands to admitted digests. | Yes; it is the mechanism that makes "subscribe by kind" real. |
@@ -257,3 +259,16 @@ Not surveyed and worth the owner's attention: GS1 GDSN for product master data e
 ## 11. What this proposal does not do
 
 It does not change any existing profile, vector, signing domain or v0.2 type. It does not claim that the four drafts are complete; each needs its own fixtures, negative vectors and a second implementation before it is registered, per the domain map's promotion rule. It does not settle personnel privacy for `party@1` beyond routing person parties to a personnel policy. It does not define transport or delivery of facts to subscribers beyond the existing v0.4 list and export commands.
+
+## 12. Build order
+
+Following P13 and the promotion rule in the domain map, in this order, each step a separately reviewable change with fixtures:
+
+1. **P1 and P2 together**: reserve `dtp`, add `spec/profiles/index.json`, and add the `kinds` selector to the v0.4 read path that expands to admitted digests. No kind is registered yet; the registry starts empty and the selector is tested against a private kind.
+2. **`product@1`**: the profile document, its `dtp.schema/1` schema (with `nullable`, per P4), identity rules, positive and negative fixtures. Immutable `base_unit` and `tracking` (P12).
+3. **`inventory@2`**: the profile document, schema, the reducer (positions, moves with up to sixteen legs against virtual locations, reservations as a separate array, per-source high-water marks), an event-stream fixture with expected final state in the style of `spec/v0.4/fixtures`, and the v1 bridge as a module, not a rewrite.
+4. **A second implementation** of the `inventory@2` fixture, independent of the SDK reducer, before either kind is registered; then register both.
+5. **`party@1`**, then **`order@1`** with the minimal **`forecast@1`** (P14) drafted beside it.
+
+What is still not decided, because it only arises while building: the exact virtual-location names, the reason vocabulary for `~adjustment`, and whether `product@1` carries packaging revisions inline or by reference to the existing `dtp.packaging/1` objects.
+
