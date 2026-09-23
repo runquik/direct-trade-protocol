@@ -6,9 +6,18 @@
   "description": "Direct Trade Protocol reference SDK: legacy v0.2/v0.3 and isolated v0.4 interoperability candidate",
   "license": "Apache-2.0",
   "exports": {
-    ".": "./src/index.ts",
-    "./preview": "./src/preview.ts",
-    "./preview/foundation": "./src/preview-foundation.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./preview": {
+      "types": "./dist/preview.d.ts",
+      "default": "./dist/preview.js"
+    },
+    "./preview/foundation": {
+      "types": "./dist/preview-foundation.d.ts",
+      "default": "./dist/preview-foundation.js"
+    },
     "./preview/host": "./src/preview-host.ts"
   },
   "scripts": {
@@ -34,6 +43,8 @@
     "check:transitions": "node --test tests/03_records.test.ts tests/06_redteam.test.ts tests/07_infra.test.ts",
     "test:fuzz": "node --test tests/fuzz/fuzz-canonical.test.ts tests/fuzz/fuzz-encodings.test.ts tests/fuzz/fuzz-signing.test.ts tests/fuzz/race-store.test.ts",
     "typecheck": "tsc --noEmit",
+    "build:package": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build:package",
     "test:postgres": "node --test \"tests/postgres/*.test.ts\"",
     "test": "node --test \"tests/*.test.ts\"",
     "seed": "node scripts/seed.ts",
@@ -53,5 +64,10 @@
   },
   "engines": {
     "node": ">=22.23.2 <23"
-  }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ]
 }
