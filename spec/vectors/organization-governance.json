@@ -1,0 +1,3787 @@
+{
+  "description": "Organization consent and governance history. For every \"consents.accept\" entry an implementation MUST accept the consent against the stated act and person control head and derive exactly the expected body; it MUST refuse every \"consents.reject\" entry. For every \"governance.accept\" entry it MUST replay the governance log, using only the supplied identity logs to establish person control heads, and derive exactly the expected heads; it MUST refuse every \"governance.reject\" entry. All keys and identities here are published test material.",
+  "genesis_domain": "DTP-ORGANIZATION-GENESIS-1",
+  "consent_domain": "DTP-ORGANIZATION-CONSENT-1",
+  "transition_domain": "DTP-ORGANIZATION-TRANSITION-1",
+  "format": "dtp-governance-log-1",
+  "window_ms": 86400000,
+  "rules": {
+    "transition_digest": "SHA-256(UTF-8(canonical JSON of {\"domain\":transition_domain,\"body\":transition})) as lowercase hex; it is what consents name and what the next head's previous_digest is.",
+    "head_digest": "SHA-256(UTF-8(canonical JSON of the governance head)) as lowercase hex, with no domain, like a person control head.",
+    "consent_head": "A consent's head_digest is the digest of the person control head whose operational quorum signs it; the verifier establishes that head from the person's identity log or, at acceptance, from a fresh resolution."
+  },
+  "keys": [
+    {
+      "label": "alice-op",
+      "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+      "secret_key": "ed25519:3RzvHfXi8saTWJzLP3cGFYjnm44xvjdCf64PP636ZizEp9Qmn5EAjHF1tJSjBLNSwXoPZ9urTkLUrpQMo8HHFw4S"
+    },
+    {
+      "label": "alice-rec",
+      "key_id": "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb",
+      "secret_key": "ed25519:4gVV49wz1ag6QWXVdrSCxFCqHxAufCY7s9L5FoYE5S6wmouf2NRB2XMNV5ESrAQT7SVoXdceK6PswAzGTpZp7UwZ"
+    },
+    {
+      "label": "alice-op-2",
+      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+      "secret_key": "ed25519:2GMw842BfsQfuVnFWATTyDFzwENeGWRu7W3a1YsiRLVK8WWERVX22hf9FBD92ctEwt4csiwLT52NMPXLn8mqDXHR"
+    },
+    {
+      "label": "bob-op",
+      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+      "secret_key": "ed25519:5kEUpboYLttT6DPBqdiu2jYajHL32ByFQTJv9dovZQPYZYhok3YpyuEZvphiyMfw1UKfKz8MkZw6g7ri42Tq1k1R"
+    },
+    {
+      "label": "bob-rec",
+      "key_id": "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6",
+      "secret_key": "ed25519:4DzSudd3hvAUpc2VEaUJ9JP6Jp3ZwzGCfFDPhjNAUvfRg3NJcc8TcwKk4Zh1Skn1XasyKRU6mxtVvSiX8pFgyDEx"
+    },
+    {
+      "label": "carol-op",
+      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+      "secret_key": "ed25519:3odpyRL14jEaP8cvJhBACs6g6nTkpv29a4YKdUaj4fomyztVTCy4QgjEP4zNWDLY6cnS1qaK2v37d5EUdsqcBr5S"
+    },
+    {
+      "label": "carol-rec",
+      "key_id": "ed25519:c2tFo46BpsyfsEW3Pkcn84sjfE11M3geAYpTfLYso37",
+      "secret_key": "ed25519:4vm9rTGaeazXGaM2UAnhqj5bYpetbdNLRnUnZNYxBzFwjxEWZd8WwLGsTuxbBGi2k1qN29oYAXauKKGg7PWexun9"
+    },
+    {
+      "label": "resolver",
+      "key_id": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+      "secret_key": "ed25519:2oFStxnvRAraQFtcaFUXaWtEbPSa7RNgmu7xurgYG2thXUazeZSP3zBPpw2vraAn3m8YLn12JBm1jtphFEkB9JQN"
+    },
+    {
+      "label": "stranger",
+      "key_id": "ed25519:12x3mTMdBLgEKUuTAoLfkuBAaKaGx7EHazvsqqMTYqwa",
+      "secret_key": "ed25519:2Ansnetcqa7ByJLSPBbTVSH85oaVpDnhtzw9BznThXRY9dLmxf365z1qfnQKeZ1ESqSsf4D69gnpLxpwoCUt2VAc"
+    }
+  ],
+  "people": [
+    {
+      "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+            "operational": {
+              "keys": [
+                "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+              "signature": "ed25519:45SDqjYQmDtcxbrz3QCqCHXX24h7vc18ERe72iUMiPHMWZEDvuX22u8dWDAjY2vYREWwN7hU864Jeu3U8ZxTBo3D"
+            },
+            {
+              "key_id": "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb",
+              "signature": "ed25519:5w23msiFJ6C1pGShmoqWcitV7ez4B39sVzN231VKKw1tuZjgNF7B5FZVibGFxkUNcLZPwNfAL5tQxQcENSpbKNqc"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "genesis_digest": "27f4bd5e503066ca8779ac5e5fbb11748484ade77fc375b27d7558ae4c3abd08",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+            "resolver_key": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+              "signature": "ed25519:HNqosrjd54gz2p1W1GaRPyZ2iZ1vrRN2c1kXaV6ZtgwGutmrSoVc3dgr98iAgevzc3G5j1Z12G7QvmpkiRFt4TX"
+            },
+            {
+              "key_id": "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb",
+              "signature": "ed25519:2fuiCZe1GbwfoUPTgTYsJCCnGpLBxe3UW2NprVxegpfAHs3PF3RX7sY6RiFPunJ8S1BXBAwBJSEKR9vpcAtpBQ8L"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000001000,
+            "transition": null,
+            "rehome": null,
+            "attestation": {
+              "body": {
+                "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+                "resolver_epoch": 0,
+                "sequence": 0,
+                "head_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+                "effective_at": 1800000001000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+                  "signature": "ed25519:25xy5dr5drqMwYJHMMA99TbCaZMxpMrwPHNELyQFAjFySMQbJ4awjVSuJ5NJGZ2VMYVzUs9uwpqm75oWV6RUiHVR"
+                }
+              ]
+            }
+          },
+          {
+            "effective_at": 1800000050500,
+            "transition": {
+              "body": {
+                "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "expected_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+                "sequence": 1,
+                "kind": "rotate",
+                "operational": {
+                  "keys": [
+                    "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd"
+                  ],
+                  "threshold": 1
+                },
+                "recovery": {
+                  "keys": [
+                    "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb"
+                  ],
+                  "threshold": 1
+                },
+                "issued_at": 1800000050000,
+                "expires_at": 1800000350000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+                  "signature": "ed25519:5vyznK7CCAyShdvuDuRAYJQZseA1bHtWNaxuLiV4Es4p84ccJvZkiRGoEPeNjgCEnoa1QLeHyoXGat9NTatT7mU7"
+                },
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:4irFTkaBCpvLAVeLjapUZPphUc1KiShwBEsdzKGuCz8e8hMP75wKSu47cTW18ro4eei3AntbfG1imRcLDe1vv2qg"
+                }
+              ]
+            },
+            "rehome": null,
+            "attestation": {
+              "body": {
+                "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+                "resolver_epoch": 0,
+                "sequence": 1,
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "effective_at": 1800000050500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+                  "signature": "ed25519:GRYwgDgidL4Nbp13wZyQEU43rfNc1FtTZV1D8XKKA57MBL1n3QU4NV7no5u6tt8towPASWG6Qz3aLJ7N7GMTRXg"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020101",
+            "operational": {
+              "keys": [
+                "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:3t6LLsNQyiFtHT4po9siRHErK7D7qWQeJ7K2tBwaP8ZES1Exf2M6mbGvccnJW8HAkH4Wozbs9b7obr3ConZDdB9x"
+            },
+            {
+              "key_id": "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6",
+              "signature": "ed25519:5qrGcZahKzFwTZejfHumdkfM8oReuihDzouUYV5RP3U8FjtyDvxanKz28dajRssNp2kF63UWkDSiibLhpNv5d5SC"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "genesis_digest": "3f4f677a40da606838283930a77b853ab1f2bc032dec56c530bec1a59684abe2",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+            "resolver_key": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:5Nq8TX5kQyqzVCLvwaSQxPvGK4VsJky6FDuNEUy2eMDcDJDAGu9WoVFM2BzkvSoQNX2MypELMwKGSDJfEz5EEDrk"
+            },
+            {
+              "key_id": "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6",
+              "signature": "ed25519:597gfQpGorMzQpGmBFeg6Q4n6WcqRjekTcmL3zNXCDPJWvWen3NzWNzQfSPRp7KiVNdCitPkMp4LReCxo3kMrstk"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000001000,
+            "transition": null,
+            "rehome": null,
+            "attestation": {
+              "body": {
+                "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+                "resolver_epoch": 0,
+                "sequence": 0,
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "effective_at": 1800000001000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+                  "signature": "ed25519:2nsqGk51zg4L6PmPDVJvjT9RzqVgZ2Y4SdaQ8XXkvY8Jq2yaCo48AQuMkqgyZayKWVP367kge13Q6tQneS6Kqhkq"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020102",
+            "operational": {
+              "keys": [
+                "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:c2tFo46BpsyfsEW3Pkcn84sjfE11M3geAYpTfLYso37"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+              "signature": "ed25519:4EM9Xn39FqPJi5FsQtxsGby7rTSawNDL1BT76n2iEELXPQGfzGGuCKHuKEwFQ1VcVgiRRvgBz4jBdmgfXEVgr6RD"
+            },
+            {
+              "key_id": "ed25519:c2tFo46BpsyfsEW3Pkcn84sjfE11M3geAYpTfLYso37",
+              "signature": "ed25519:3gQoQKYQHwpWeoza2TJkH5xBJRqiTW7SufRNnWB4FuTKzwND3mofApha8WEL8oArpjBwN84gJJFdZBP6PQghUVwC"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+            "genesis_digest": "14609f6e381ffbaf2d7b7a82b56b9f7ef5100ffe85a2ce5fc53b7e84db8c0370",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+            "resolver_key": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+              "signature": "ed25519:35txPa6KQdGxf1P34VeKyUjtBJnySerW6T3gyqEbtpJ162PHoLKGMMG4ivt26TU8jk4ppLse98vbrXzqEtcBK8H"
+            },
+            {
+              "key_id": "ed25519:c2tFo46BpsyfsEW3Pkcn84sjfE11M3geAYpTfLYso37",
+              "signature": "ed25519:2GWinmmqtFinv6HVcr2f4Fq395igEeTfjD9ow4oa4JffS4NeufZmS8PJrQUWG7nz3VM7EesA13JuABRQwyKU4Rw1"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000001000,
+            "transition": null,
+            "rehome": null,
+            "attestation": {
+              "body": {
+                "identity_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000c",
+                "resolver_epoch": 0,
+                "sequence": 0,
+                "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                "effective_at": 1800000001000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:BZD9Kzq2ycDHnuP3Z42q12Rebr1M8wBR2BZwyYs73hsC",
+                  "signature": "ed25519:56NFTSqNmZ7H5BTB9cXmsYPdtaBWRHDxcZGeAvF6xQst9HUFEGhmPUcrJGdu7Dq35LBYiBF2PhQCszJNRFY1WCce"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "consents": {
+    "accept": [
+      {
+        "why": "a controller consents to the genesis under their current head, signed by their operational key",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        },
+        "expect": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+          "issued_at": 1800000100500,
+          "expires_at": 1800003700500
+        }
+      },
+      {
+        "why": "a consent signed under an earlier head of a person who has since rotated: valid under that head, which a replay verifier finds in the person's log",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "head_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+            "issued_at": 1800000100000,
+            "expires_at": 1800003700000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+              "signature": "ed25519:3Su1qRq1MZZTUawBYC5Gh9YuJ6jZcypDrE54LzPcm9e1XxLrPMeNzC9VceR76mJhRKTn8pPdtA3Bi4zJtPsskNE8"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174"
+        },
+        "head": {
+          "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        },
+        "expect": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "head_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+          "issued_at": 1800000100000,
+          "expires_at": 1800003700000
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "signed by the person's recovery key: recovery keys are not business signers",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6",
+              "signature": "ed25519:4GG8PS8BuhAXLagE8RHMBbmZ1aCpFie971wAv3FnFcsYPfG5Bp1WWHWjy53eEsXUUzh3mXhXgK8vMvEf6xFRuVa5"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "signed by a stranger",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:12x3mTMdBLgEKUuTAoLfkuBAaKaGx7EHazvsqqMTYqwa",
+              "signature": "ed25519:24LH4oQDpTBEPXvP3WPUtkvf3GW875njHq6v43VkGHRj4ioFCUjqPjXiasVvDfucdy4rWD5CF4wPKyyFtyXv3Kf2"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "signed by a retired operational key, checked under the current head",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+            "issued_at": 1800000100000,
+            "expires_at": 1800003700000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BcXxGmYXb5wmkv7n85zmRKsmg8u4e9WUa4FRb4uP7MNn",
+              "signature": "ed25519:jxJFamWAZFuT6CZNkNuZEESvxapLMUF2GciFDq2fp5ntdLkZdpho7VujcMer7Vdwm29NvpGwRw9jWfqe4nP8ptE"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174"
+        },
+        "head": {
+          "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "sequence": 1,
+          "previous_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+          "operational": {
+            "keys": [
+              "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000050500
+        }
+      },
+      {
+        "why": "the head digest names a head the person never had",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:2tHCRiToDo21KGSMsJgi1khARf9hKPkEnxgmmvFyB6JsVV88FUcEpB3PqAN5ij2BPG7zPGv5oxvQCpFRkxXkEYNz"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "verified under another person's head",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "sequence": 1,
+          "previous_digest": "82122ccfa6074a2443a610911b9d4d23c08217022ff351f069a0ed4f483674bd",
+          "operational": {
+            "keys": [
+              "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:7n8DmUZJ4gDmtyqm2zf9hft2hX1h4MuVwb3Y9um1AWSb"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000050500
+        }
+      },
+      {
+        "why": "consent to a different digest",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4YtsxscLeu5W8J2Y87MQ4MhJB172iTvB3FAyZ7p6pmxVBxecGVd2MefnX3sQSWMAzACNcCvnkiK3Q3Sc8TKpdqsV"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "consent to a transition presented as consent to the genesis",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "transition",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:2rbx3GwP41fFUFS4GHxGtVjRRM68pdUraTRkN5dyw1HpKtWAN8RbukmiNubDsdxJ1jNqmowYjVUyuydV51YFkcAZ"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "consent for another organization",
+        "consent": {
+          "body": {
+            "organization_id": "00000000-0000-4000-8000-000000000000",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:2cqboVdLydadjj5vd4EByQjgua8BcgSqV9ZsmZUKH4dntgjZqn1r3mGxaHqQzRDi7eUB6Rit4uPUPbNL24Za2rCn"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "a body altered after signing",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100501,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "a window longer than the organization ceremony bound",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800086500501
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:3bGaaQZXWunBxzsxPTbVfpMG7E8ns2RuabbUSGtrXEomnKfLNmL6WE8BHiqwu5XHfhrZAvjRcMobHceYJY8N8299"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "a consent signed under the transition domain",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:5fqQNPi8cd2XpjnnBtqKPBVVJWasuwUbT4pZM5QTRMSBnt6UYVn6A4n9qh9NNFPiJhDZZCKUuZHVX2vM9dEi6gA5"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "an extra member",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500,
+            "note": "x"
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:29hcSTjNhzh3CooCHb4oY263MWBgXGEWay6D9LCmBYNVt8tso8AEv7uQjgekmQbmxWSN9NcC6nZ6wNsTPzf4jT85"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "the same key signing twice",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+            },
+            {
+              "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+              "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+            }
+          ]
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      },
+      {
+        "why": "no signatures",
+        "consent": {
+          "body": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "subject": "genesis",
+            "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+            "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+            "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+            "issued_at": 1800000100500,
+            "expires_at": 1800003700500
+          },
+          "signatures": []
+        },
+        "expected": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "subject": "genesis",
+          "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "person_id": "3f4f677a-40da-6068-3828-3930a77b853a"
+        },
+        "head": {
+          "identity_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+          "sequence": 0,
+          "previous_digest": null,
+          "operational": {
+            "keys": [
+              "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh"
+            ],
+            "threshold": 1
+          },
+          "recovery": {
+            "keys": [
+              "ed25519:2QFCEpYTqcXrrNVHU3ScxojNqqzQpDAi4XdB6MND6dX6"
+            ],
+            "threshold": 1
+          },
+          "effective_at": 1800000001000
+        }
+      }
+    ]
+  },
+  "governance": {
+    "accept": [
+      {
+        "why": "a genesis with two controllers, each consenting under their current head",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": []
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ],
+        "expect": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "genesis_digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "heads": [
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 0,
+                "previous_digest": null,
+                "controllers": [
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1
+              },
+              "head_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5"
+            }
+          ],
+          "governance": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "controllers": [
+              {
+                "kind": "person",
+                "id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "organization_id": null
+              },
+              {
+                "kind": "person",
+                "id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "organization_id": null
+              }
+            ],
+            "threshold": 1
+          }
+        }
+      },
+      {
+        "why": "a controller joins with a raised threshold, then the founder leaves: every head replays from the consents alone",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ],
+        "expect": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "genesis_digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "heads": [
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 0,
+                "previous_digest": null,
+                "controllers": [
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1
+              },
+              "head_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5"
+            },
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 1,
+                "previous_digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2
+              },
+              "head_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6"
+            },
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 2,
+                "previous_digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1
+              },
+              "head_digest": "4ef29c75303005e87cbbd2c6a4d2b69273a4a16ad526388f6cb8ef2f2dfdf1dd"
+            }
+          ],
+          "governance": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "controllers": [
+              {
+                "kind": "person",
+                "id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                "organization_id": null
+              },
+              {
+                "kind": "person",
+                "id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "organization_id": null
+              }
+            ],
+            "threshold": 1
+          }
+        }
+      },
+      {
+        "why": "the same history verified with only the logs of the people who ever consented",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ],
+        "expect": {
+          "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+          "genesis_digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+          "heads": [
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 0,
+                "previous_digest": null,
+                "controllers": [
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1
+              },
+              "head_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5"
+            },
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 1,
+                "previous_digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2
+              },
+              "head_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6"
+            },
+            {
+              "head": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "sequence": 2,
+                "previous_digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1
+              },
+              "head_digest": "4ef29c75303005e87cbbd2c6a4d2b69273a4a16ad526388f6cb8ef2f2dfdf1dd"
+            }
+          ],
+          "governance": {
+            "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+            "controllers": [
+              {
+                "kind": "person",
+                "id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                "organization_id": null
+              },
+              {
+                "kind": "person",
+                "id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "organization_id": null
+              }
+            ],
+            "threshold": 1
+          }
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a genesis consent missing: every initial controller must consent",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            }
+          ],
+          "entries": []
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a genesis consent from a person who is not an initial controller",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                  "signature": "ed25519:frQAC33AwvypDGssGwNktmPGNH4UsHygyWXd8a8X5gc1t89SfnZBx2PKaJtXLsJQRnqxZifgZcmy5aC6Y9x3L72"
+                }
+              ]
+            }
+          ],
+          "entries": []
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a person's identity log withheld: their head cannot be established, so their consent fails",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a"
+        ]
+      },
+      {
+        "why": "a transition consented to only by the added controller: the current quorum is missing",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition adding a controller who did not consent",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition consented to by one of three where the threshold is two",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition naming a governance digest that is not the current head",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "4590bfa6e5b689cc089a674dd0d7056c139b69a161b525e1f2e92d6aebfff584",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:53Qeb3GWNeTLhMxigMKAr5gBdtNBouxnHcnqEydKWw7gqkfZjvTVR74unD8BHXhJ7UEw9vdjnfyS1G27z7xtwJMc"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "4590bfa6e5b689cc089a674dd0d7056c139b69a161b525e1f2e92d6aebfff584",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:2Q5HUBHE3aVDAcMiT8LxcLJEJSeEMqtTKne4n6LXBtZYNemZNBAJZy6sE8FdaN3farPdAmpFHWjeMEZA9aqC6rny"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a skipped sequence",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 3,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "bb4f42316b7f26d8fc18149d6ff29efce76a18ed5343be5ad423d0cb97dbe112",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:5R1c1CkFdUWC5RC9mbKuhzMcvwuwfZZ1MCuSQzaCHwDgHc9XiS6UACxowqE9DkAUKE4DBQYAMceLeqDc2AUmLUXT"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "bb4f42316b7f26d8fc18149d6ff29efce76a18ed5343be5ad423d0cb97dbe112",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:4GCHxp8o5ZD2VfhRBWezhttXX9bme4yHJbiZCfwnvDBfrc2jXA7rNG3mpHFhQXHCyVfqkDEtwXJaKxC17Wmk316h"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "entries reordered",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition body altered after the consents were signed",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a consent under a fabricated person head",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition whose controllers are not in ascending order",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "3f4f677a-40da-6068-3828-3930a77b853a",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "ee79017165df1baacca3a499d626cc1d4e2f879584b3af8752365c91e23dbc78",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:2BkAwg4Jc9iJSDq5qDkuerqv2pYhWmX1YGNTYgZwAkcYvfSnPXJVeUto2k8B3qV3zEk1VWaYoumedPFyz1T2CnYY"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "ee79017165df1baacca3a499d626cc1d4e2f879584b3af8752365c91e23dbc78",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3MSHbjTon7YftPnThDH4m5Aenjjkb35W5DQ9aMN2mN9jgqZmCf8E16go5HGSsXg8F7KbKL8MRsVo8NKz63gu65Jw"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a transition that changes nothing",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "771dd24dce1c1ee2e929fdd715ce566951f3fa1dce25eef86b06aeabf0a4d4fc",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:2SbYBYueAygrd3BZHtgULDWzFNnPc3JC8Xip48qtF6cTzZ3atWBzL9HBXRC8SLE8TNaGbaLvf5FmERerY4qxp8EH"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "a genesis consent reused as consent to a transition",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "genesis",
+                    "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000100000,
+                    "expires_at": 1800003700000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "an unknown format",
+        "log": {
+          "format": "dtp-governance-log-2",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      },
+      {
+        "why": "an extra top-level member",
+        "log": {
+          "format": "dtp-governance-log-1",
+          "genesis": {
+            "nonce": "00010203-0405-4607-8809-0a0b0c0d0e0f",
+            "founder": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+            "controllers": [
+              "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+              "3f4f677a-40da-6068-3828-3930a77b853a"
+            ],
+            "threshold": 1
+          },
+          "consents": [
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                "issued_at": 1800000100000,
+                "expires_at": 1800003700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                  "signature": "ed25519:F8mSmEFqekRkKn6hbMWairW8TWXPKhuiFwNnetUEKUY23Jajtfcgriqns6DbLYQvfbDrkub5Ch6aZX2FPDevQF1"
+                }
+              ]
+            },
+            {
+              "body": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "subject": "genesis",
+                "digest": "312017207ca2a62a0b0749fd398a7da16ffe92b8bbad96d7a5afa8457c640b99",
+                "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                "issued_at": 1800000100500,
+                "expires_at": 1800003700500
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                  "signature": "ed25519:4hAVnbrVbJgPennVm1g2x9i8Bc2zwVm2ErLR1WMaATYqUy1AMBshvm4oEmsRiGngregr4uNx4qQgybWhKVy6n2t"
+                }
+              ]
+            }
+          ],
+          "entries": [
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "420c10d0c830e06b61482433f04039e174f7d06df7dfeca85854b7fe35d4d1b5",
+                "sequence": 1,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 2,
+                "issued_at": 1800000200000,
+                "expires_at": 1800086600000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+                    "head_digest": "139fa6e510c36a626c6ba741b5e23a79695725b5b386195679704240bf9284b5",
+                    "issued_at": 1800000201000,
+                    "expires_at": 1800003801000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:ApSwKUcWDwW63Dr3v6zmMoEx6ZuWg8Cf9UcTptNdeqBd",
+                      "signature": "ed25519:3NbMoVsrED52U4Lyr7KbD9ZJeMNnvfHX26X9Tft3fkjMYn4iwHYiqt5bR6NBNfxgyYRWAr8DoFhWrRAReJfAbdot"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "1fa448619b51c5a26a84bfdebd59134e9fccee764f169fa53afc1d0dbfa2a0c4",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000202000,
+                    "expires_at": 1800003802000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3QSEXzdWkpCv3FmADa8BuNXFErCEhtyscUU3v319Ref6cij15wcp6XyhJy5Sq2EUVzC2rdkzSHTbQn3mAKf2dsGj"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "transition": {
+                "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                "expected_digest": "077742982146060e55a2e6c9701baadfe35740fab443842e9bb00b412adac7d6",
+                "sequence": 2,
+                "controllers": [
+                  "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                  "3f4f677a-40da-6068-3828-3930a77b853a"
+                ],
+                "threshold": 1,
+                "issued_at": 1800000300000,
+                "expires_at": 1800086700000
+              },
+              "consents": [
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "3f4f677a-40da-6068-3828-3930a77b853a",
+                    "head_digest": "e9a74fff00cc286cb3a1fb427780fd5838918dd7aacaf6c0a1cbb6e91276ed56",
+                    "issued_at": 1800000301000,
+                    "expires_at": 1800003901000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:55MRGcDSyMNHb9CZ82C3eFjfA1o5i6MgNuN1LSaNyoKh",
+                      "signature": "ed25519:4jp4PLGhmdsYKC4c8PnbLJ4j4iMcXVA6zHVMQwcpQTSbZT8kN7pZ55fkZSCaY7nXQv4LoUzuRTSPGxbtionLMkss"
+                    }
+                  ]
+                },
+                {
+                  "body": {
+                    "organization_id": "31201720-7ca2-a62a-0b07-49fd398a7da1",
+                    "subject": "transition",
+                    "digest": "47d6c63e2d048f2d1c2a8eeca9502c9da478b634c3f170572623eed2a2a15727",
+                    "person_id": "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e",
+                    "head_digest": "85b78eba7f284aa172b1af75cd6960a7aed9d4fa87ade6710f911865fdf030b2",
+                    "issued_at": 1800000302000,
+                    "expires_at": 1800003902000
+                  },
+                  "signatures": [
+                    {
+                      "key_id": "ed25519:G1QjR72LJXDrqjW1HaWe4qRFKsxWr6SKHeXK2W6MUeRi",
+                      "signature": "ed25519:3DpkHXnVNQSEmuataWSudd8nhVdqRXxfzTBGzALas7TwzZWXQQRyRxbZW1qZTaPTgAutQN3Yei2nk6ZmcJKKqUf8"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "name": "Example Foods"
+        },
+        "people": [
+          "27f4bd5e-5030-66ca-8779-ac5e5fbb1174",
+          "3f4f677a-40da-6068-3828-3930a77b853a",
+          "14609f6e-381f-fbaf-2d7b-7a82b56b9f7e"
+        ]
+      }
+    ]
+  }
+}
