@@ -11,6 +11,7 @@ import { applyInventoryEvent, createInventoryState } from "../profiles/inventory
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
+import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 
 function ids(values: any, min = 1, max = 8): asserts values is string[] {
   demand(Array.isArray(values) && values.length >= min && values.length <= max && new Set(values).size === values.length && values.every(uuid), "invalid", "invalid distinct IDs",400);
@@ -226,6 +227,13 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         const issues=validateProduct(p.body);demand(issues.length===0,"invalid_product",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid product",422);
         if(before){const continuity=checkProductContinuity(before.body as any,p.body);demand(continuity.length===0,"invalid_product",continuity.length?`${continuity[0].message} at ${continuity[0].path}`:"invalid product",422);}
         validation={profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
+      }
+      if(profile.semantics==="party-v1"){
+        const issues=validateParty(p.body);demand(issues.length===0,"invalid_party",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid party",422);
+        // A person party is personal data: only a personnel-classified policy may hold it.
+        demand(p.body.kind!=="person"||policy(p.policy_id).classification==="personnel","invalid_party","a person party belongs under a personnel policy",422);
+        if(before){const continuity=checkPartyContinuity(before.body as any,p.body);demand(continuity.length===0,"invalid_party",continuity.length?`${continuity[0].message} at ${continuity[0].path}`:"invalid party",422);}
+        validation={profile:PARTY_PROFILE,level:"business-rules",business_verified:false};
       }
       if(profile.semantics==="inventory-v2"){
         demand(p.supersedes===null,"invalid_inventory","inventory facts are new events, never revisions",422);

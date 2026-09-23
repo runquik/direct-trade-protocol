@@ -726,7 +726,8 @@
                   "inventory-v1",
                   "invoice-v1",
                   "product-v1",
-                  "inventory-v2"
+                  "inventory-v2",
+                  "party-v1"
                 ]
               },
               "dependencies": {

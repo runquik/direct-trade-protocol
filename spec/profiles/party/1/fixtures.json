@@ -1,0 +1,1826 @@
+{
+  "description": "dtp/party@1 fixtures. A conforming validator MUST accept every body under \"accept\" and refuse every body under \"reject\"; given a previous and a next revision of one party it MUST accept every pair under \"continuity.accept\" and refuse every pair under \"continuity.reject\". Refusal reasons are not normative. The contract is the exact profile whose digest the kind registry pins.",
+  "kind": "dtp/party@1",
+  "profile": "dtp.party/1",
+  "semantics": "party-v1",
+  "contract_digest": "e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e",
+  "accept": [
+    {
+      "why": "a supplier organization with a GLN, a DUNS number, a tax id, a protocol identity claim and one location",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "the minimum: a name and nothing else",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Unknown carrier",
+            "language": null
+          }
+        ],
+        "identifiers": [],
+        "protocol_identity": null,
+        "roles": [],
+        "locations": [],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a person party: a contact known to the company, under a personnel policy at the host",
+      "body": {
+        "kind": "person",
+        "names": [
+          {
+            "name": "A. Buyer",
+            "language": null
+          }
+        ],
+        "identifiers": [],
+        "protocol_identity": null,
+        "roles": [
+          "customer"
+        ],
+        "locations": [],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a unit of a parent party: a site",
+      "body": {
+        "kind": "unit",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [],
+        "protocol_identity": null,
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": null
+          }
+        ],
+        "parent": "88888888-8888-4888-8888-888888888888",
+        "status": "active"
+      }
+    },
+    {
+      "why": "an inactive party with no protocol identity",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": null,
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "inactive"
+      }
+    }
+  ],
+  "reject": [
+    {
+      "why": "an unknown kind",
+      "body": {
+        "kind": "company",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "no names",
+      "body": {
+        "kind": "organization",
+        "names": [],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a GLN with a wrong check digit",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000006"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a DUNS that is not nine digits",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "12345678"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a duplicate identifier",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a protocol identity that is not an organization id",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "bluebird"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a role outside the closed set",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "owner"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a repeated role",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "supplier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a location without a country",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": ""
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a country that is not alpha-2",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "USA"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "five address lines",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "e"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a location GLN with a wrong check digit",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000013"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "two locations with one id",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          },
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a unit without a parent",
+      "body": {
+        "kind": "unit",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "an organization with a parent",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": "88888888-8888-4888-8888-888888888888",
+        "status": "active"
+      }
+    },
+    {
+      "why": "an unknown status",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "archived"
+      }
+    },
+    {
+      "why": "an extra member",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active",
+        "email": "x@example.invalid"
+      }
+    },
+    {
+      "why": "a missing member",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    }
+  ],
+  "continuity": {
+    "accept": [
+      {
+        "why": "a new name, role and location",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            },
+            {
+              "name": "Bluebird",
+              "language": null
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            },
+            {
+              "location_id": "dc-2",
+              "name": null,
+              "address": {
+                "lines": [],
+                "locality": "Reno",
+                "region": "NV",
+                "postal_code": null,
+                "country": "US"
+              },
+              "gln": null
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "a protocol identity claimed for the first time",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": null,
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "deactivation",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "inactive"
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a changed kind",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "person",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "a protocol identity switched to another organization",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "88888888-8888-4888-8888-888888888888"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "a protocol identity withdrawn",
+        "previous": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        },
+        "next": {
+          "kind": "organization",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": null,
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "a changed parent",
+        "previous": {
+          "kind": "unit",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": "88888888-8888-4888-8888-888888888888",
+          "status": "active"
+        },
+        "next": {
+          "kind": "unit",
+          "names": [
+            {
+              "name": "Bluebird Supply Co.",
+              "language": "en"
+            }
+          ],
+          "identifiers": [
+            {
+              "scheme": "gs1.gln",
+              "value": "0614141000005"
+            },
+            {
+              "scheme": "duns",
+              "value": "123456789"
+            },
+            {
+              "scheme": "tax.us.ein",
+              "value": "12-3456789"
+            }
+          ],
+          "protocol_identity": {
+            "organization_id": "77777777-7777-4777-8777-777777777777"
+          },
+          "roles": [
+            "supplier",
+            "carrier"
+          ],
+          "locations": [
+            {
+              "location_id": "hq",
+              "name": "Head office",
+              "address": {
+                "lines": [
+                  "1 Harbor Way"
+                ],
+                "locality": "Portland",
+                "region": "OR",
+                "postal_code": "97201",
+                "country": "US"
+              },
+              "gln": "0614141000012"
+            }
+          ],
+          "parent": "77777777-7777-4777-8777-777777777777",
+          "status": "active"
+        }
+      }
+    ]
+  }
+}

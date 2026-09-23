@@ -26,6 +26,7 @@ export * as inventory from "./profiles/inventory.ts";
 export * as invoice from "./profiles/invoice.ts";
 export * as product from "./profiles/product.ts";
 export * as inventory2 from "./profiles/inventory2.ts";
+export * as party from "./profiles/party.ts";
 
 export * as datatypes from "./foundation/datatypes.ts";
 export * as semantics from "./foundation/semantics.ts";

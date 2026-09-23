@@ -24,7 +24,8 @@ test("kinds: the registry file, the grammar and the version rule", () => {
   assert.equal(registry.format, KIND_REGISTRY_FORMAT);
   const product = parseUntrustedJson(readFileSync(fileURLToPath(new URL("../../../spec/profiles/product/1/fixtures.json", import.meta.url)), "utf8")) as { contract_digest: string };
   const inventory = parseUntrustedJson(readFileSync(fileURLToPath(new URL("../../../spec/profiles/inventory/2/fixtures.json", import.meta.url)), "utf8")) as { contract_digest: string };
-  assert.deepEqual(parseKindRegistry(registry), { "dtp/product@1": [product.contract_digest], "dtp/inventory@2": [inventory.contract_digest] }, "the two kinds with a second implementation are registered, pinning their exact contracts");
+  const party = parseUntrustedJson(readFileSync(fileURLToPath(new URL("../../../spec/profiles/party/1/fixtures.json", import.meta.url)), "utf8")) as { contract_digest: string };
+  assert.deepEqual(parseKindRegistry(registry), { "dtp/product@1": [product.contract_digest], "dtp/inventory@2": [inventory.contract_digest], "dtp/party@1": [party.contract_digest] }, "every kind with a second implementation is registered, pinning its exact contract");
   const org = "11111111-1111-4111-8111-111111111111", d = "a".repeat(64);
   assert.deepEqual(parseKindRegistry({ format: KIND_REGISTRY_FORMAT, kinds: { "dtp/inventory@2": { digests: [d] } } }), { "dtp/inventory@2": [d] });
   for (const bad of [{ format: "dtp-profile-kinds-2", kinds: {} }, { format: KIND_REGISTRY_FORMAT, kinds: [] }, { format: KIND_REGISTRY_FORMAT, kinds: { [`${org}/inventory@2`]: { digests: [d] } } },
