@@ -1136,12 +1136,24 @@
                 "maxItems": 32,
                 "minItems": 0,
                 "uniqueItems": true
+              },
+              "kinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$"
+                },
+                "maxItems": 32,
+                "minItems": 0,
+                "uniqueItems": true
               }
             },
             "required": [
               "after",
               "limit",
-              "profile_digests"
+              "profile_digests",
+              "kinds"
             ],
             "additionalProperties": false
           }
@@ -1180,12 +1192,24 @@
                 "maxItems": 32,
                 "minItems": 0,
                 "uniqueItems": true
+              },
+              "kinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$"
+                },
+                "maxItems": 32,
+                "minItems": 0,
+                "uniqueItems": true
               }
             },
             "required": [
               "after",
               "limit",
-              "profile_digests"
+              "profile_digests",
+              "kinds"
             ],
             "additionalProperties": false
           }
@@ -1224,12 +1248,24 @@
                 "maxItems": 32,
                 "minItems": 0,
                 "uniqueItems": true
+              },
+              "kinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$"
+                },
+                "maxItems": 32,
+                "minItems": 0,
+                "uniqueItems": true
               }
             },
             "required": [
               "after",
               "limit",
-              "profile_digests"
+              "profile_digests",
+              "kinds"
             ],
             "additionalProperties": false
           }

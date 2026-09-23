@@ -71,7 +71,7 @@ test('evidence review: valid recipient sees exact signed versions without false 
 });
 
 test('evidence review: read alone does not permit export, nor export alone permit reading', async () => {
-  const f = await pair(), page = { after: 0, limit: 10, profile_digests: [f.profile] };
+  const f = await pair(), page = { after: 0, limit: 10, profile_digests:[f.profile],kinds:[]};
   assert.equal((await f.source.call(f.source.worker, 'records.list', f.source.org, page)).records.length, 1);
   assert.equal((await f.source.call(f.source.worker, 'records.export', f.source.org, page)).records.length, 0);
   await assert.rejects(f.issue(undefined, f.source.worker), denied);
@@ -134,7 +134,7 @@ test('evidence review: signed outer issuer claims cannot substitute for determin
 
 test('evidence review: module export needs its own export action even when the human has it', async () => {
   const f = await pair(), module = await f.source.install([f.profile], f.sourcePolicy, ['read']);
-  const page = await f.source.moduleCall(module, 'records.export', { after: 0, limit: 10, profile_digests: [f.profile] });
+  const page = await f.source.moduleCall(module, 'records.export', { after: 0, limit: 10, profile_digests:[f.profile],kinds:[]});
   assert.equal(page.records.length, 0);
 });
 

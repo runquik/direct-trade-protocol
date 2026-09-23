@@ -3,7 +3,7 @@
 import type { BusinessRecord, Command, Context, DataAction, Organization, Policy, Profile, Release, State } from "./model.ts";
 import { demand, digest, exact, instant, organizationId, personId, same, uuid, validKey, validateCommand, verifyCommand, verifyAssessment, signToken, verifyToken } from "./wire.ts";
 import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, management, quorum, steward } from "./permissions.ts";
-import { profileContract, validateProfile, validateShape } from "./profiles.ts";
+import { expandKinds, profileContract, validateProfile, validateShape } from "./profiles.ts";
 import { buildSnapshot, validateSnapshot, applySnapshot } from "./snapshot.ts";
 import * as migration from "./migration.ts";
 import { authorityAccept, authorityIssue, authorityRelocate, requireRemoteAuthority } from "./federation.ts";
@@ -222,10 +222,12 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     case "records.list":
     case "records.export":
     case "workspace.view": {
-      exact(p,["after","limit","profile_digests"]);const o=currentOrg();demand(Number.isSafeInteger(p.after)&&p.after>=0&&Number.isInteger(p.limit)&&p.limit>0&&p.limit<=100&&Array.isArray(p.profile_digests)&&p.profile_digests.length<=32&&p.profile_digests.every((d:any)=>typeof d==="string"&&/^[0-9a-f]{64}$/.test(d)),"invalid","invalid scoped page",400);
+      exact(p,["after","limit","profile_digests","kinds"]);const o=currentOrg();demand(Number.isSafeInteger(p.after)&&p.after>=0&&Number.isInteger(p.limit)&&p.limit>0&&p.limit<=100&&Array.isArray(p.profile_digests)&&p.profile_digests.length<=32&&p.profile_digests.every((d:any)=>typeof d==="string"&&/^[0-9a-f]{64}$/.test(d))&&Array.isArray(p.kinds)&&p.kinds.length<=32&&new Set(p.kinds).size===p.kinds.length,"invalid","invalid scoped page",400);
       demand(p.profile_digests.every((d:string)=>Object.hasOwn(s.profiles,d)&&accessibleProfile(s.profiles[d],o.id)),"unsupported_profile","requested profile unavailable or unsupported",422);
-      const rows=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.seq>p.after&&p.profile_digests.includes(r.profile_digest)&&can(r.policy_id,r.resource_id,"read")&&(c.action!=="records.export"||can(r.policy_id,r.resource_id,"export"))&&understands(r.profile_digest)).sort((a,b)=>a.seq-b.seq).slice(0,p.limit+1);
-      const page=rows.slice(0,p.limit);result={organization:{id:o.id,name:o.name,generation:o.generation},records:page.map(viewRecord),next_cursor:rows.length>p.limit?page.at(-1)!.seq:null};break;
+      // Subscription by kind: exact digests the caller named plus every admitted digest its kinds select, so a producer can be replaced without touching its subscribers.
+      const accepted=[...new Set([...p.profile_digests,...expandKinds(s,p.kinds,x=>accessibleProfile(x,o.id),ctx.kinds)])].sort();
+      const rows=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.seq>p.after&&accepted.includes(r.profile_digest)&&can(r.policy_id,r.resource_id,"read")&&(c.action!=="records.export"||can(r.policy_id,r.resource_id,"export"))&&understands(r.profile_digest)).sort((a,b)=>a.seq-b.seq).slice(0,p.limit+1);
+      const page=rows.slice(0,p.limit);result={organization:{id:o.id,name:o.name,generation:o.generation},profile_digests:accepted,records:page.map(viewRecord),next_cursor:rows.length>p.limit?page.at(-1)!.seq:null};break;
     }
     case "inventory.create": {
       exact(p,["policy_id","pool_id","product_id","base_unit"]);id(p.pool_id);id(p.product_id);demand(can(p.policy_id,p.pool_id,"write"),"forbidden","stock pool write permission required");

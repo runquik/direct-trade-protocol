@@ -1,0 +1,9 @@
+{
+  "format": "dtp-profile-kinds-1",
+  "description": "Registry of protocol business-fact kinds. A kind is <namespace>/<name>@<major>; the namespace dtp is reserved for kinds registered here by pull request, and every other namespace is a publisher organization id, whose kinds need no registration. Each protocol kind lists the digests of the profile versions admitted for it; a host that supports a kind loads this file as operator configuration and admits those exact profiles. No kind is registered yet: the drafts in docs/foundation/business-fact-profiles-proposal.md are registered only once they have fixtures and a second implementation.",
+  "rules": {
+    "kind": "^(dtp|<organization id>)/[a-z][a-z0-9._-]{0,79}@(0|[1-9][0-9]*)$; the major is the first component of the profile version",
+    "expansion": "a kind selects every admitted, accessible profile whose publisher, name and major match it (private kinds) or every admitted profile whose digest this registry lists for it (protocol kinds); a kind that selects nothing is an explicit unsupported_profile error, never an empty page"
+  },
+  "kinds": {}
+}

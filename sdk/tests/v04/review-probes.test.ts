@@ -79,7 +79,7 @@ async function fixture() {
 test('review: registered outsiders cannot enumerate private organization metadata through empty data pages', async () => {
   const f = await fixture();
   for (const action of ['records.list', 'workspace.view']) {
-    await assert.rejects(f.call(f.outsider, action, f.org, { after: 0, limit: 10, profile_digests: [] }), isDenied);
+    await assert.rejects(f.call(f.outsider, action, f.org, { after: 0, limit: 10, profile_digests:[],kinds:[]}), isDenied);
   }
 });
 
@@ -97,7 +97,7 @@ test('review: module list profile filtering intersects installation release decl
   await f.send(await f.appendCommand(f.owner, policy, beta));
   const module = await f.install([alpha], policy);
   try {
-    const page = await f.moduleCall(module, 'records.list', { after: 0, limit: 10, profile_digests: [alpha, beta] });
+    const page = await f.moduleCall(module, 'records.list', { after: 0, limit: 10, profile_digests:[alpha, beta],kinds:[]});
     assert.ok(page.records.every((record: any) => record.profile_digest === alpha), 'undeclared profile escaped module scope');
   } catch (error) { assert.ok(isDenied(error), `unexpected failure: ${String(error)}`); }
 });

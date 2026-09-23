@@ -25,7 +25,7 @@ test("v0.4 readiness reserves capacity and activation compacts atomically under 
       assert.equal(attempt.status,507);failures++;
     }
     assert.ok(failures>0&&ready,"must demonstrate capacity rejection before successful readiness");
-    assert.equal((await a.act(owner,"workspace.view",org,{after:0,limit:1,profile_digests:[schema]})).status,200);
+    assert.equal((await a.act(owner,"workspace.view",org,{after:0,limit:1,profile_digests:[schema],kinds:[]})).status,200);
     // Fill the remaining unreserved capacity with unrelated, legitimate reads
     // (distinct request receipts) until another write is refused.
     let refused=false;

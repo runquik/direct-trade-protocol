@@ -10,6 +10,7 @@ The prose specification is [`/SPEC.md`](../SPEC.md). This directory holds what *
 | `schemas/core/envelope.schema.json` | The record envelope every record shares | yes |
 | `schemas/{core,trade,finance,traceability}/*.schema.json` | One body schema per record type, each carrying `x-dtp-subject`, `x-dtp-roles`, `x-dtp-transitions` | yes |
 | `schemas/common/*.schema.json` | Shared sub-objects: ids, `Money`, `Quantity`, `Address`, `Key`, `Attestation`, `CertificationRef`, `KybRef` | yes |
+| `profiles/index.json` | Registry of protocol business-fact kinds (`dtp/<name>@<major>` -> admitted profile digests), format `dtp-profile-kinds-1`; empty until a kind has fixtures and a second implementation; private kinds are namespaced by publisher organization id and need no registration; design in [`docs/foundation/business-fact-profiles-proposal.md`](../docs/foundation/business-fact-profiles-proposal.md) | yes, for the v0.4 candidate |
 | `vectors/keys.json` | A fixed Ed25519 key (published on purpose; never use it for anything real) | yes |
 | `vectors/canonicalization.json` | Inputs → canonical JSON → SHA-256 | yes |
 | `vectors/unsafe-json.json` | JSON texts a receiver must refuse before parsing, and texts it must accept; regenerate with `node sdk/scripts/build-unsafe-json-vectors.mjs` | yes |

@@ -77,7 +77,7 @@ This example does **not** deduplicate observations or calculate inventory. Use t
 
 ## Read records as an explicit consumer
 
-`record.get` needs `{id,profile_digest}`. Lists/workspace/export use `{after,limit,profile_digests}` and filter authority before pagination. Use exact accepted profile digests; an unknown required version should produce an explicit incompatibility instead of silent field loss.
+`record.get` needs `{id,profile_digest}`. Lists/workspace/export use `{after,limit,profile_digests,kinds}` (a kind is `<publisher org id>/<name>@<major>`, or `dtp/<name>@<major>` for a registered protocol kind; it expands to every admitted profile of that major, so subscribe by kind rather than by producer) and filter authority before pagination. Use exact accepted profile digests; an unknown required version should produce an explicit incompatibility instead of silent field loss.
 
 Keep the greatest processed sequence when the last page has `next_cursor:null`. Persist business/observation time separately from host arrival order. Record history includes superseded versions; derive heads deliberately. Sequences change when a company migrates, so resume synchronization against the destination rather than reusing the old host cursor as a global identity.
 

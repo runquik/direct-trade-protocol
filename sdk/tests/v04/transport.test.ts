@@ -45,7 +45,7 @@ test("v0.4 filtered pagination advances over unauthorized compartments without l
     const expected=[];
     for(let i=0;i<7;i++){const r=record(org,i%2?hidden:readable,crypto.randomUUID(),p,{note:`synthetic-${i}`});await c.ok(owner,"record.append",org,r);if(i%2===0)expected.push(r.id);}
     let cursor=0;const actual=[];
-    for(let i=0;i<10;i++){const page=await c.ok(owner,"records.list",org,{after:cursor,limit:1,profile_digests:[p]});actual.push(...page.records.map((r:any)=>r.id));if(page.next_cursor===null)break;assert.ok(page.next_cursor>cursor);cursor=page.next_cursor;}
+    for(let i=0;i<10;i++){const page=await c.ok(owner,"records.list",org,{after:cursor,limit:1,profile_digests:[p],kinds:[]});actual.push(...page.records.map((r:any)=>r.id));if(page.next_cursor===null)break;assert.ok(page.next_cursor>cursor);cursor=page.next_cursor;}
     assert.deepEqual(actual,expected);
   }finally{await store.close();}
 });

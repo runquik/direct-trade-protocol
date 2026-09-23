@@ -264,7 +264,7 @@ It does not change any existing profile, vector, signing domain or v0.2 type. It
 
 Following P13 and the promotion rule in the domain map, in this order, each step a separately reviewable change with fixtures:
 
-1. **P1 and P2 together**: reserve `dtp`, add `spec/profiles/index.json`, and add the `kinds` selector to the v0.4 read path that expands to admitted digests. No kind is registered yet; the registry starts empty and the selector is tested against a private kind.
+1. **P1 and P2 together** (done September 23, 2026): `dtp` reserved, `spec/profiles/index.json` added (format `dtp-profile-kinds-1`, empty), and the `kinds` member added to the v0.4 read payloads, expanding a private kind to every admitted accessible profile of that publisher, name and major and a protocol kind to the registry's admitted digests; the accepted set is returned on the page. No kind is registered yet.
 2. **`product@1`**: the profile document, its `dtp.schema/1` schema (with `nullable`, per P4), identity rules, positive and negative fixtures. Immutable `base_unit` and `tracking` (P12).
 3. **`inventory@2`**: the profile document, schema, the reducer (positions, moves with up to sixteen legs against virtual locations, reservations as a separate array, per-source high-water marks), an event-stream fixture with expected final state in the style of `spec/v0.4/fixtures`, and the v1 bridge as a module, not a rewrite.
 4. **A second implementation** of the `inventory@2` fixture, independent of the SDK reducer, before either kind is registered; then register both.
