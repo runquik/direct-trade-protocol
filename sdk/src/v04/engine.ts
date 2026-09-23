@@ -10,6 +10,7 @@ import { authorityAccept, authorityIssue, authorityRelocate, requireRemoteAuthor
 import { applyInventoryEvent, createInventoryState } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
+import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
 
 function ids(values: any, min = 1, max = 8): asserts values is string[] {
   demand(Array.isArray(values) && values.length >= min && values.length <= max && new Set(values).size === values.length && values.every(uuid), "invalid", "invalid distinct IDs",400);
@@ -24,8 +25,14 @@ function keyFree(s: State, key: string) {
   demand(!Object.values(s.persons).some(p => [...p.keys,...p.retired_keys].includes(key)) && !Object.values(s.organizations).some(o => Object.values(o.installations).some(i => i.key_id === key)),"conflict","key already bound",409);
 }
 function accessibleProfile(p: Profile, org: string) { return p.visibility === "community" || p.publisher_id === org || p.readers.includes(org); }
-const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status"]);
-const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","evidence.inspect"]);
+const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.ledger"]);
+const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","inventory.ledger","evidence.inspect"]);
+const inventoryState = (s: State, org: string) => { const company = s.inventory[org] ??= {pools:{},observations:{},creations:{}}; company.ledgers ??= {}; company.openings ??= {}; company.facts ??= {}; return company; };
+/** Pack conversions in a fact must be packaging revisions the product published; a malformed fact is left to the reducer. */
+function packagingPins(fact: any): { packaging_id: unknown; version: unknown; base_units_per_pack: unknown }[] {
+  const units = [...(Array.isArray(fact?.moves) ? fact.moves : []), ...(Array.isArray(fact?.reservations) ? fact.reservations : [])].map((x: any) => x?.quantity?.unit);
+  return units.filter((u: any) => u && typeof u === "object" && u.system === "packaging");
+}
 export async function execute(s: State, input: unknown, ctx: Context): Promise<any> {
   validateCommand(input,ctx.audience,ctx.now); const c = input, p = c.payload, signed = await verifyCommand(c), hash = await digest(c);
   let org = c.organization_id ? s.organizations[c.organization_id] : undefined;
@@ -208,6 +215,19 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         if(before){const continuity=checkProductContinuity(before.body as any,p.body);demand(continuity.length===0,"invalid_product",continuity.length?`${continuity[0].message} at ${continuity[0].path}`:"invalid product",422);}
         validation={profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
       }
+      if(profile.semantics==="inventory-v2"){
+        demand(p.supersedes===null,"invalid_inventory","inventory facts are new events, never revisions",422);
+        const fact=p.body;demand(fact&&typeof fact==="object"&&fact.product_id===p.resource_id,"forbidden","ledger product must equal authorized resource");
+        const company=inventoryState(s,o.id),ledger=company.ledgers[fact.product_id];demand(ledger,"ledger_unavailable","open the product ledger before writing facts",422);
+        demand(ledger.policy_id===p.policy_id,"forbidden","ledger belongs to another policy");
+        const product=Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===fact.product_id&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1");
+        for(const u of packagingPins(fact))demand(product&&(product.body.packaging as any[]).some(x=>x.packaging_id===u.packaging_id&&x.version===u.version&&x.base_units_per_pack===u.base_units_per_pack),"unknown_packaging","pack conversion is not a published packaging revision of the product",422);
+        const obs=JSON.stringify([fact.product_id,fact.observation?.source_id,fact.observation?.sequence]),factHash=await digest(fact),old=company.facts[obs];
+        if(old){demand(old.hash===factHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}
+        const change=applyInventoryFact(ledger,fact);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);
+        company.ledgers[fact.product_id]={...change.state,policy_id:ledger.policy_id};company.facts[obs]={hash:factHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};
+        validation={profile:INVENTORY2_PROFILE,revision:change.state.revision,physical_stock_verified:false};
+      }
       if(profile.semantics==="inventory-v1"){
         demand(p.supersedes===null,"invalid_inventory","inventory corrections are new events",422);
         const company=s.inventory[o.id]??={pools:{},observations:{},creations:{}};const event=p.body;
@@ -242,6 +262,21 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       demand(!company.pools[p.pool_id],"conflict","pool exists",409);
       try{company.pools[p.pool_id]={...createInventoryState(currentOrg().id,p.pool_id,p.product_id,p.base_unit),policy_id:p.policy_id};}catch{demand(false,"invalid_inventory","invalid product or base unit",422);}
       company.creations[p.pool_id]=structuredClone(c);result={pool_id:p.pool_id};break;
+    }
+    case "inventory.open": {
+      exact(p,["policy_id","product_id"]);id(p.product_id);const o=currentOrg();demand(can(p.policy_id,p.product_id,"write"),"forbidden","ledger write permission required");
+      const product=Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===p.product_id&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1");
+      demand(product&&can(product.policy_id,product.resource_id,"read")&&understands(product.profile_digest),"not_found","product unavailable",404);
+      const company=inventoryState(s,o.id);if(previous){result=previous.result;break;}
+      demand(!company.ledgers[p.product_id],"conflict","ledger exists",409);
+      try{company.ledgers[p.product_id]={...openInventoryLedger(o.id,p.product_id,product.body as any),policy_id:p.policy_id};}catch{demand(false,"invalid_inventory","product cannot anchor a ledger",422);}
+      company.openings[p.product_id]=structuredClone(c);result={product_id:p.product_id,revision:0};break;
+    }
+    case "inventory.ledger": {
+      exact(p,["policy_id","product_id"]);id(p.product_id);const o=currentOrg();const ledger=s.inventory[o.id]?.ledgers?.[p.product_id];
+      const consumer=c.actor.kind==="person"||s.releases[o.installations[c.actor.id].release_digest].profiles.some(d=>s.profiles[d]?.semantics==="inventory-v2");
+      const understandsLedger=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.resource_id===p.product_id&&s.profiles[r.profile_digest]?.semantics==="inventory-v2").every(r=>understands(r.profile_digest));
+      demand(ledger&&ledger.policy_id===p.policy_id&&can(p.policy_id,p.product_id,"read")&&consumer&&understandsLedger,"not_found","ledger unavailable",404);result=structuredClone(ledger);break;
     }
     case "inventory.get": {
       exact(p,["policy_id","pool_id"]);id(p.pool_id);const o=currentOrg();const pool=s.inventory[o.id]?.pools[p.pool_id];

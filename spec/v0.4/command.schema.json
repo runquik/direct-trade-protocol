@@ -96,6 +96,8 @@
         "workspace.view",
         "inventory.create",
         "inventory.get",
+        "inventory.open",
+        "inventory.ledger",
         "authority.export",
         "authority.import",
         "authority.relocate",
@@ -722,7 +724,8 @@
                   "structural",
                   "inventory-v1",
                   "invoice-v1",
-                  "product-v1"
+                  "product-v1",
+                  "inventory-v2"
                 ]
               },
               "dependencies": {
@@ -1340,6 +1343,68 @@
             "required": [
               "policy_id",
               "pool_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "inventory.open"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "policy_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "product_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              }
+            },
+            "required": [
+              "policy_id",
+              "product_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "inventory.ledger"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "policy_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "product_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              }
+            },
+            "required": [
+              "policy_id",
+              "product_id"
             ],
             "additionalProperties": false
           }
