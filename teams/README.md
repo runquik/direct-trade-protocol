@@ -38,7 +38,7 @@ Blocked: <what needs the owner, or "nothing">
 
 ## Authority
 
-- Work on a branch named `team/<team>/<short-slug>` and open a pull request into `main`. **Never push to `main`, never merge, never approve**, never force-push a branch you did not create.
+- Work on a branch named `claude/<team>-<short-slug>` (scheduled runs may only push branches that start with `claude/`) and open a pull request into `main`. **Never push to `main`, never merge, never approve**, never force-push a branch you did not create.
 - Sign off every commit (`git commit -s`), as [CONTRIBUTING.md](../CONTRIBUTING.md) requires.
 - Anything that changes wire formats, signing, canonicalization, identifiers, authority rules, a registered profile, or a release gate needs new or updated conformance vectors **and** the `needs-owner` label. The owner decides those; a team proposes.
 - Never mark a release or foundation gate green, and never skip, weaken or delete a test to get green. A test that is wrong is fixed in its own pull request that says why.
