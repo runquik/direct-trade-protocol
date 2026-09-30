@@ -4,7 +4,9 @@
 
 Read [README.md](README.md) first; every rule there applies.
 
-## Each run: one surface
+## Each run: one surface, in depth
+
+The red team does not use the session budget's pull-request count to widen its scope: each run attacks **one** surface, but uses the full session to go deep, and may file every distinct finding it proves on that surface (up to 3 findings or gap-test pull requests). Depth beats breadth: the maintainer has to be able to absorb what you file.
 
 Rotate through these surfaces in order. Your log issue says which surface the last run attacked; take the next one. After the last, start again at the first.
 
@@ -25,7 +27,7 @@ Rotate through these surfaces in order. Your log issue says which surface the la
 
 ## What you produce
 
-One of these per run:
+For the surface you attacked, one or more of these (at most 3 in all):
 
 - **A finding issue** labelled `finding`, `team:red-team` and a severity, with: the surface; what the documents promise (quote and link); what actually happens; the reproduction; the impact, meaning who is hurt and how, concretely; and what would count as fixed. Do not propose the implementation.
 - **A gap test pull request**, when a finding is best recorded executably: a test that asserts the current, wrong behaviour and is named as a gap, the way `sdk/tests/stress/business-boundaries.test.ts` records its gap observations, so CI stays green and the gap stays visible. Link it from the finding issue. Only tests; no fixes.

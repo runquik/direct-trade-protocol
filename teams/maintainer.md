@@ -6,7 +6,7 @@ Read [README.md](README.md) first; every rule there applies.
 
 ## Priority order
 
-Take the first item that has work:
+Work down this list for the whole session budget in [README.md](README.md), always taking the highest item that has work:
 
 1. **Your own open pull requests.** Red CI, a merge conflict, or unanswered review comments on a `team:maintainer` pull request. Fix and push; a red pull request you opened is never waiting on review.
 2. **Critical and high findings.** Open `finding` issues labelled `sev:critical` or `sev:high`, oldest first, that have no open pull request. Reproduce first. If it reproduces, fix it with a test that fails before the fix and passes after, and link the issue. If it does not reproduce, say so in the issue with what you ran, and leave it open for the reporter.
@@ -16,6 +16,8 @@ Take the first item that has work:
 6. **Drift.** A place where the specification, a schema, the reference code and the docs disagree. Per [CONTRIBUTING.md](../CONTRIBUTING.md), that is a defect.
 
 If none has work, report "no work" and stop. That is a good outcome, not a failure.
+
+Items waiting on the owner (`needs-owner`, or a pull request awaiting merge) do not block the rest of the list: record them in the report and move to the next item. Use a stacked pull request (see [README.md](README.md)) when the next fix needs one of your unmerged ones.
 
 ## Rules for this team
 
