@@ -1,5 +1,9 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## October 1: inventory state keys are digests ([#38](https://github.com/runquik/direct-trade-protocol/issues/38))
+
+v0.4 migration refused every organization that had recorded an inventory event: the host's `observations` (inventory-v1) and `facts` (inventory-v2) maps, and the v1 pool's observations, packaging and reservations, were keyed by `JSON.stringify` of the identity tuple, and the destination's safe parser refuses those member names. The owner approved digest keys. Every such map is now keyed by the SHA-256 of the canonical tuple (`inventoryKey` in `sdk/src/profiles/inventory.ts`); snapshot import refuses any other key, the old quoted form included, with no compatibility path; the safe parser is unchanged. New vectors `spec/vectors/inventory-state-keys.json`; a regression test migrates one v1 pool and one v2 ledger through `migrationStage`, `migrationUpload` and `migrationReady` over the byte path (it fails on the old keys with `unsafe_member_name`). Builders reading `inventory.get` see reservation keys as digests and look a reservation up by the key of its id. Still open: a host holding state in the old form must rebuild its projection from signed records; the reference host has no migration for that.
+
 ## September 23, night: a baseline for a module built outside the repository
 
 A module team preparing to build small business modules in their own repositories asked the maintainers for one supported development baseline, a consumable SDK, a reference environment, a complete authority example, the first slice's domain and synchronization contracts, an extension path, a conformance pack, a bounded portability test and a feedback process. The answer is [docs/EXTERNAL_BUILDER_BASELINE.md](docs/EXTERNAL_BUILDER_BASELINE.md), with a status per request, and the two gaps it found were fixed rather than described:
@@ -23,7 +27,7 @@ The owner took decisions P1 to P14 of the [business-fact profiles proposal](docs
 
 Every profile has a document under `spec/profiles/<name>/<major>.md`, an exact contract and generated fixtures beside it, a portable validator or reducer reachable from both preview entries, host semantics enforced on write and on snapshot import, and a reader in `sdk/tests/interop` that agrees with the reference field by field. The readers are the same author's separately coded consumer agreement, not independent authorship; the promotion rule's two independent implementations, independent review and a second builder remain open.
 
-Findings recorded, not fixed: the v1 pool state keys reservations and observations by `JSON.stringify`, so a v1 pool carries member names with quotation marks that the repository's safe JSON parser refuses on the wire (the v2 ledger avoids this by construction). The `H1/H2` items the implementer cited still exist under no such label.
+Findings recorded, not fixed: the v1 pool state keys reservations and observations by `JSON.stringify`, so a v1 pool carries member names with quotation marks that the repository's safe JSON parser refuses on the wire. (Corrected October 1: the v2 ledger itself is safe, but the host's `facts` map around it had the same fault; see the entry above.) The `H1/H2` items the implementer cited still exist under no such label.
 
 ## September 23: second implementer gap batch merged
 

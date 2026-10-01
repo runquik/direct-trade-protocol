@@ -1,0 +1,94 @@
+{
+  "description": "Member names of inventory state carried in a v0.4 snapshot. A host MUST key each map by the lower-case hex SHA-256 of the canonical JSON of the identity tuple, and a destination MUST refuse a snapshot carrying any other key in these maps. Keys under \"refuse\" appear here only as string values.",
+  "rule": "key = lower-case hex SHA-256 of canonical JSON (spec/vectors/canonicalization.json) of the tuple array",
+  "cases": [
+    {
+      "why": "host observations (inventory-v1): [source_id, observation_id]",
+      "map": "inventory[org].observations",
+      "tuple": [
+        "scanner-a",
+        "observation-1"
+      ],
+      "canonical": "[\"scanner-a\",\"observation-1\"]",
+      "key": "0fe32405fbe85a42a57ac20046219f4403e3589efea01545434c25e80c2341df"
+    },
+    {
+      "why": "host facts (inventory-v2): [product_id, source_id, sequence]",
+      "map": "inventory[org].facts",
+      "tuple": [
+        "33333333-3333-3333-3333-333333333333",
+        "scanner-a",
+        1
+      ],
+      "canonical": "[\"33333333-3333-3333-3333-333333333333\",\"scanner-a\",1]",
+      "key": "3301e6af2194405cfa35a73cf774c3a5dae73738417eb584a575dcf89ee963d9"
+    },
+    {
+      "why": "pool observations: [company_id, source_id, observation_id]",
+      "map": "inventory[org].pools[pool].observations",
+      "tuple": [
+        "11111111-1111-1111-1111-111111111111",
+        "scanner-a",
+        "observation-1"
+      ],
+      "canonical": "[\"11111111-1111-1111-1111-111111111111\",\"scanner-a\",\"observation-1\"]",
+      "key": "9890fa1582b41bd24b77bad4b21419aa6549b8b48d2ca8a958cce631ae00b5b2"
+    },
+    {
+      "why": "pool packaging: [packaging_id, version]",
+      "map": "inventory[org].pools[pool].packaging",
+      "tuple": [
+        "case",
+        "1"
+      ],
+      "canonical": "[\"case\",\"1\"]",
+      "key": "e2f8c4efb26011e13aaf38f8e5df6c4c7e3d24189f4041cafbf1e97eb8a0dcf1"
+    },
+    {
+      "why": "pool reservations: [reservation_id]",
+      "map": "inventory[org].pools[pool].reservations",
+      "tuple": [
+        "order-a"
+      ],
+      "canonical": "[\"order-a\"]",
+      "key": "c5e3dfdc8c0c01d713a6ad87780c3359c008f79857cd19ba9048168e964ee035"
+    },
+    {
+      "why": "ids holding a quotation mark and a reverse solidus still give a plain key",
+      "map": "inventory[org].observations",
+      "tuple": [
+        "scanner \"a\"",
+        "shelf\\1"
+      ],
+      "canonical": "[\"scanner \\\"a\\\"\",\"shelf\\\\1\"]",
+      "key": "0f3b2da18eab50e0107ecd91241cac67e6bb81abbe693d81dd8c50b8a44d7776"
+    }
+  ],
+  "refuse": [
+    {
+      "why": "the earlier JSON-encoded tuple form",
+      "map": "inventory[org].observations",
+      "key": "[\"scanner-a\",\"observation-1\"]"
+    },
+    {
+      "why": "the earlier JSON-encoded tuple form",
+      "map": "inventory[org].facts",
+      "key": "[\"33333333-3333-3333-3333-333333333333\",\"scanner-a\",1]"
+    },
+    {
+      "why": "the earlier JSON-encoded tuple form",
+      "map": "inventory[org].pools[pool].reservations",
+      "key": "[\"order-a\"]"
+    },
+    {
+      "why": "a raw id",
+      "map": "inventory[org].pools[pool].reservations",
+      "key": "order-a"
+    },
+    {
+      "why": "an upper-case digest",
+      "map": "inventory[org].observations",
+      "key": "0FE32405FBE85A42A57AC20046219F4403E3589EFEA01545434C25E80C2341DF"
+    }
+  ]
+}

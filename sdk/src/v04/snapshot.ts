@@ -2,7 +2,7 @@ import type { Context, Snapshot, State, Command, Membership, Invitation, Install
 import { demand, digest, exact, instant, organizationId, personId, same, uuid, validKey, validateCommand, verifyCommand } from "./wire.ts";
 import { validateProfile, validateShape } from "./profiles.ts";
 import { checkPermissions } from "./permissions.ts";
-import { applyInventoryEvent, createInventoryState } from "../profiles/inventory.ts";
+import { applyInventoryEvent, createInventoryState, inventoryKey } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
@@ -34,6 +34,7 @@ export function buildSnapshot(s: State, organizationId: string, ctx: Context): S
     remote_authorities: [...counterparties].flatMap(id => s.remote_authorities[id] ? [s.remote_authorities[id].token] : []),
     inventory: s.inventory[organizationId] ? { [organizationId]: s.inventory[organizationId] } : {} });
 }
+const stateKey = (...parts: unknown[]): string => { try { return inventoryKey(...parts); } catch { return demand(false, "invalid_snapshot", "invalid inventory observation identity") as never; } };
 export async function validateSnapshot(s: State, snap: Snapshot) {
   exact(snap, ["version", "source", "organization", "persons", "policies", "profiles", "releases", "records", "remote_authorities", "inventory"]);
   demand(snap.version === "0.4" && typeof snap.source === "string" && snap.organization?.status === "active" && uuid(snap.organization.id) && Number.isSafeInteger(snap.organization.generation) && snap.organization.generation >= 1 && Array.isArray(snap.organization.history) && Array.isArray(snap.persons) && Array.isArray(snap.records) && Array.isArray(snap.policies) && Array.isArray(snap.profiles) && Array.isArray(snap.releases) && Array.isArray(snap.remote_authorities) && snap.inventory && typeof snap.inventory === "object" && !Array.isArray(snap.inventory), "invalid_snapshot", "invalid snapshot collections", 400);
@@ -209,6 +210,9 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
   if (ledgers) { rebuiltInventory.ledgers = {}; rebuiltInventory.openings = {}; rebuiltInventory.facts = {}; }
   if (sourceInventory) {
     exact(sourceInventory,ledgers ? ["pools","observations","creations","ledgers","openings","facts"] : ["pools","observations","creations"]);
+    // Inventory maps are keyed by digest. The earlier JSON-encoded tuple keys are refused, never translated (#38).
+    const digestKeys = (m: unknown) => !!m && typeof m === "object" && !Array.isArray(m) && Object.keys(m).every(k => /^[0-9a-f]{64}$/.test(k));
+    demand(digestKeys(sourceInventory.observations) && (!ledgers || digestKeys(sourceInventory.facts)) && Object.values(sourceInventory.pools ?? {}).every((pool: any) => digestKeys(pool?.observations) && digestKeys(pool?.reservations) && digestKeys(pool?.packaging)), "invalid_snapshot", "inventory state key is not a digest");
     for (const [productId,opening] of Object.entries(ledgers ? sourceInventory.openings : {}) as [string,Command][]) {
       await historicalPerson(opening,snap.organization.id); exact(opening.payload,["policy_id","product_id"]); const p = opening.payload;
       demand(associated.has(opening.actor.id) && opening.action === "inventory.open" && p.product_id === productId && uuid(productId) && policyIds.has(p.policy_id), "invalid_snapshot", "invalid signed ledger opening");
@@ -269,7 +273,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     if (semantics === "inventory-v2") {
       const fact = r.body, ledger = ledgers ? rebuiltInventory.ledgers[fact.product_id] : undefined;
       demand(r.supersedes === null && fact.product_id === r.resource_id && ledger?.policy_id === r.policy_id, "invalid_snapshot", "inventory fact scope differs");
-      const observation = JSON.stringify([fact.product_id,fact.observation?.source_id,fact.observation?.sequence]); demand(!rebuiltInventory.facts[observation], "invalid_snapshot", "duplicate inventory fact");
+      const observation = stateKey(fact.product_id,fact.observation?.source_id,fact.observation?.sequence); demand(!rebuiltInventory.facts[observation], "invalid_snapshot", "duplicate inventory fact");
       const changed = applyInventoryFact(ledger,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "inventory facts violate profile");
       rebuiltInventory.ledgers[fact.product_id] = {...changed.state,policy_id:ledger.policy_id}; rebuiltInventory.facts[observation] = {hash:await digest(fact),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
       expectedValidation = {profile:INVENTORY2_PROFILE,revision:changed.state.revision,physical_stock_verified:false};
@@ -277,7 +281,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     if (semantics === "inventory-v1") {
       const event = r.body, pool = rebuiltInventory.pools[event.pool_id];
       demand(r.supersedes === null && event.company_id === r.organization_id && event.pool_id === r.resource_id && pool?.policy_id === r.policy_id, "invalid_snapshot", "inventory event scope differs");
-      const observation = JSON.stringify([event.source_id,event.observation_id]); demand(!rebuiltInventory.observations[observation], "invalid_snapshot", "duplicate inventory effect");
+      const observation = stateKey(event.source_id,event.observation_id); demand(!rebuiltInventory.observations[observation], "invalid_snapshot", "duplicate inventory effect");
       const changed = applyInventoryEvent(pool,event as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "inventory sequence violates profile");
       rebuiltInventory.pools[event.pool_id] = changed.state; rebuiltInventory.observations[observation] = {hash:await digest(event),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
       expectedValidation = {profile:"dtp.inventory/1",revision:changed.state.revision,physical_stock_verified:false};

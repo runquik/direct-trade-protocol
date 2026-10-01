@@ -7,6 +7,11 @@ import { execute } from "../../src/v04/engine.ts";
 import { draftCommand, signCommand, personId, organizationId, digest } from "../../src/v04/wire.ts";
 import { buildSnapshot, validateSnapshot, applySnapshot } from "../../src/v04/snapshot.ts";
 import { migrationStage, migrationChunk, migrationUpload, migrationReady, migrationCommit, migrationFinalize } from "../../src/v04/migration.ts";
+import { readFileSync } from "node:fs";
+import { parseUntrustedJson } from "../../src/safe-json.ts";
+import { inventoryKey } from "../../src/profiles/inventory.ts";
+import { PRODUCT_SCHEMA, PRODUCT_SEMANTICS } from "../../src/profiles/product.ts";
+import { INVENTORY2_SCHEMA, INVENTORY2_SEMANTICS } from "../../src/profiles/inventory2.ts";
 
 async function fixture() {
   const key = await generateKeyPair(), employeeKey = await generateKeyPair(), storeKey = await generateKeyPair();
@@ -114,4 +119,44 @@ test("migration capacity: finalize replaces staged payload rather than retaining
   const snapshotOfActive=structuredClone(destination.records);
   await migrationFinalize(destination,mid,commit,{...ctx,now:ctx.now+7200000},()=>{throw Error("cannot apply twice");});
   assert.deepEqual(destination.records,snapshotOfActive);
+});
+
+test("migration: a company holding inventory-v1 and inventory-v2 state migrates over the byte path, and quoted state keys are refused (#38)",async()=>{
+  const f=await fixture(),pool=crypto.randomUUID(),product=crypto.randomUUID();
+  const str={type:"string",maxLength:200};
+  const v1Schema={type:"object",properties:{company_id:str,pool_id:str,source_id:str,observation_id:str,expected_revision:{type:"integer",minimum:0,maximum:1000000},occurred_at:str,kind:{type:"string",maxLength:20,enum:["receive","reserve"]},quantity:str,unit:str,reservation_id:str},required:["company_id","pool_id","source_id","observation_id","expected_revision","occurred_at","kind","quantity","unit"],additionalProperties:false};
+  const v1=await f.publish("inventory",v1Schema,"inventory-v1");
+  await f.call("inventory.create",f.org,{policy_id:f.policy,pool_id:pool,product_id:product,base_unit:"unit"});
+  const event=(observation_id:string,expected_revision:number,extra:any)=>({company_id:f.org,pool_id:pool,source_id:"scanner",observation_id,expected_revision,occurred_at:new Date(f.ctx.now).toISOString(),unit:"unit",...extra});
+  for(const body of [event("one",0,{kind:"receive",quantity:"10"}),event("two",1,{kind:"reserve",quantity:"4",reservation_id:"order-a"})]){
+    const id=crypto.randomUUID();await f.call("record.append",f.org,{id,root_id:id,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:pool,profile_digest:v1,counterparty_ids:[],body});
+  }
+  const flow=(parseUntrustedJson(readFileSync(new URL("../../../spec/profiles/inventory/2/fixtures.json",import.meta.url),"utf8")) as any).flows[0];
+  const productProfile=await f.publish("product",PRODUCT_SCHEMA,PRODUCT_SEMANTICS),v2=await f.publish("stock",INVENTORY2_SCHEMA,INVENTORY2_SEMANTICS);
+  const productId=crypto.randomUUID();await f.call("record.append",f.org,{id:productId,root_id:productId,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:productId,profile_digest:productProfile,counterparty_ids:[],body:flow.product});
+  await f.call("inventory.open",f.org,{policy_id:f.policy,product_id:productId});
+  const fact={...structuredClone(flow.facts[0].fact),product_id:productId};
+  const factId=crypto.randomUUID();await f.call("record.append",f.org,{id:factId,root_id:factId,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:productId,profile_digest:v2,counterparty_ids:[],body:fact});
+  const company=f.s.inventory[f.org];
+  assert.deepEqual(Object.keys(company.observations).sort(),[inventoryKey("scanner","one"),inventoryKey("scanner","two")].sort());
+  assert.deepEqual(Object.keys(company.facts!),[inventoryKey(productId,fact.observation.source_id,fact.observation.sequence)]);
+  assert.deepEqual(company.pools[pool].reservations,{[inventoryKey("order-a")]:"4"});
+  const snap=buildSnapshot(f.s,f.org,f.ctx);parseUntrustedJson(JSON.stringify(snap));
+  // The source host's own snapshot crosses the safe parser at the destination.
+  const key=await generateKeyPair(),destination=emptyState();
+  const ctx:Context={audience:"https://destination.test",storeKey:key,pins:{[f.ctx.audience]:f.ctx.storeKey.keyId},now:f.ctx.now+1};
+  f.ctx.pins[ctx.audience]=key.keyId;
+  const token:any=await f.call("migration.prepare",f.org,{destination:{audience:ctx.audience,key_id:key.keyId}}),mid=token.body.manifest.migration_id;
+  await migrationStage(destination,ctx,token);
+  for(let i=0;i<token.body.manifest.chunk_hashes.length;i++)await migrationUpload(destination,mid,i,migrationChunk(f.s,mid,i).data,ctx);
+  await migrationReady(destination,mid,ctx,snap=>validateSnapshot(destination,snap));
+  assert.deepEqual(destination.incoming[mid].snapshot!.inventory[f.org],snap.inventory[f.org]);
+  // The earlier JSON-encoded tuple keys are refused on import, not translated.
+  const quoted=(m:Record<string,unknown>,old:string,from:string)=>{m[old]=m[from];delete m[from];};
+  for(const mutate of [
+    (x:any)=>quoted(x.inventory[f.org].observations,JSON.stringify(["scanner","one"]),inventoryKey("scanner","one")),
+    (x:any)=>quoted(x.inventory[f.org].facts,JSON.stringify([productId,fact.observation.source_id,fact.observation.sequence]),inventoryKey(productId,fact.observation.source_id,fact.observation.sequence)),
+    (x:any)=>quoted(x.inventory[f.org].pools[pool].reservations,JSON.stringify(["order-a"]),inventoryKey("order-a")),
+    (x:any)=>quoted(x.inventory[f.org].pools[pool].observations,JSON.stringify([f.org,"scanner","one"]),inventoryKey(f.org,"scanner","one")),
+  ]){const old=structuredClone(snap);mutate(old);await assert.rejects(validateSnapshot(emptyState(),old),(e:any)=>e.code==="invalid_snapshot"&&/not a digest/.test(e.message));}
 });
