@@ -29,9 +29,12 @@ export type InventoryResult =
 
 const UNITS = new Set(['lb', 'kg', 'oz', 'ton', 'case', 'pallet', 'unit']);
 const identity = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 200;
-const key = (...parts: string[]) => JSON.stringify(parts);
 // Synchronous and platform-free: this reducer must run inside a storage transaction on any runtime.
 const hash = (value: unknown) => sha256HexSync(canonicalize(value));
+/** Map key for an identity tuple: the digest of its canonical form. The ids are arbitrary text, and a
+ * member name that needs an escape is refused on the wire (docs/security/json-member-names.md), so state
+ * that travels in a snapshot must never be keyed by the ids themselves or by a JSON encoding of them. */
+export const inventoryKey = (...parts: unknown[]): string => hash(parts);
 export const packagingDigest = (packaging: PackagingRevision): string => hash({ profile: 'dtp.packaging/1', packaging });
 
 export function createInventoryState(company_id: string, pool_id: string, product_id: string, base_unit: string): InventoryState {
@@ -57,7 +60,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
         ...(event.kind === 'receive' || event.kind === 'adjust' ? ['reason'] : ['reservation_id'])])]);
     if (Object.keys(event).some(k => !allowed.has(k))) return fail('invalid', 'unknown required inventory semantics');
     const eventHash = hash(event);
-    const observationKey = key(event.company_id, event.source_id, event.observation_id);
+    const observationKey = inventoryKey(event.company_id, event.source_id, event.observation_id);
     if (Object.hasOwn(state.observations, observationKey)) {
       return state.observations[observationKey] === eventHash ? { ok: true, duplicate: true, state }
         : fail('observation_conflict', 'observation identity already names a different event');
@@ -74,7 +77,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
       if (pack.company_id !== state.company_id || pack.product_id !== state.product_id || pack.base_unit !== state.base_unit) return fail('wrong_scope', 'packaging revision belongs to another company, product or base unit');
       if (!UNITS.has(pack.pack_unit) || pack.pack_unit === pack.base_unit) return fail('unit_mismatch', 'pack unit must be supported and differ from base unit');
       if (parseDecimal(pack.base_units_per_pack, 3) <= 0n) return fail('invalid', 'pack conversion must be positive');
-      const packKey = key(pack.packaging_id, pack.version);
+      const packKey = inventoryKey(pack.packaging_id, pack.version);
       if (Object.hasOwn(next.packaging, packKey) && packagingDigest(next.packaging[packKey]) !== packagingDigest(pack)) return fail('packaging_conflict', 'packaging version is immutable; publish a new version');
       next.packaging[packKey] = { ...pack };
       return { ok: true, duplicate: false, state: next };
@@ -91,7 +94,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
       const pin = event.packaging_pin;
       if (!pin || Object.keys(pin).sort().join(',') !== 'digest,packaging_id,version' ||
           ![pin.packaging_id, pin.version].every(identity) || !/^[0-9a-f]{64}$/.test(pin.digest)) return fail('unknown_packaging', 'conversion requires exact packaging version and digest');
-      const packKey = key(pin.packaging_id, pin.version);
+      const packKey = inventoryKey(pin.packaging_id, pin.version);
       if (!Object.hasOwn(state.packaging, packKey)) return fail('unknown_packaging', 'packaging revision is not registered');
       const pack = state.packaging[packKey];
       if (pin.digest !== packagingDigest(pack)) return fail('packaging_conflict', 'packaging digest does not match pinned revision');
@@ -110,7 +113,7 @@ export function applyInventoryEvent(state: InventoryState, event: InventoryEvent
       if (onHand < reserved) return fail('insufficient_stock', 'correction would consume reserved stock or make stock negative');
     } else {
       if (!('reservation_id' in event) || !identity(event.reservation_id)) return fail('invalid', 'reservation requires an explicit identity');
-      const reservationKey = key(event.reservation_id);
+      const reservationKey = inventoryKey(event.reservation_id);
       const current = Object.hasOwn(state.reservations, reservationKey) ? parseDecimal(state.reservations[reservationKey], 3) : 0n;
       if (event.kind === 'reserve') {
         if (quantity > onHand - reserved) return fail('insufficient_stock', 'reservation exceeds currently available stock');

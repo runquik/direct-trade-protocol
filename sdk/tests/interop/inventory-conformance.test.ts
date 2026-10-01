@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { generateKeyPairSync, sign } from 'node:crypto';
-import { applyInventoryEvent, createInventoryState } from '../../src/profiles/inventory.ts';
+import { applyInventoryEvent, createInventoryState, inventoryKey } from '../../src/profiles/inventory.ts';
 import type { InventoryEvent } from '../../src/profiles/inventory.ts';
 import { parseDecimal, formatDecimal } from '../../src/profiles/decimal.ts';
 import { readInventory, readerCanonical, readerDigest } from './inventory-reader.ts';
@@ -32,11 +32,13 @@ const reducerResult = (events: InventoryEvent[]) => {
     if (result.duplicate) duplicates++;
     state = result.state;
   }
+  const names = new Map(events.flatMap(e => 'reservation_id' in e ? [[inventoryKey(e.reservation_id), e.reservation_id] as const] : []));
   const reserved = Object.values(state.reservations).reduce((sum, value) => sum + parseDecimal(value, 3), 0n);
   return { status: 'known', on_hand: state.on_hand, reserved: formatDecimal(reserved, 3),
     available: formatDecimal(parseDecimal(state.on_hand, 3) - reserved, 3), revision: state.revision,
     unique_observations: Object.keys(state.observations).length, duplicate_observations: duplicates,
-    reservations: Object.fromEntries(Object.entries(state.reservations).map(([id, value]) => [JSON.parse(id)[0], value])),
+    // Reservations are keyed by the digest of their id; name each one by the id that produced its key.
+    reservations: Object.fromEntries(Object.entries(state.reservations).map(([k, value]) => [names.get(k) ?? k, value])),
     pack_versions: Object.keys(state.packaging).length };
 };
 

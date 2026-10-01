@@ -7,7 +7,7 @@ import { expandKinds, profileContract, validateProfile, validateShape } from "./
 import { buildSnapshot, validateSnapshot, applySnapshot } from "./snapshot.ts";
 import * as migration from "./migration.ts";
 import { authorityAccept, authorityIssue, authorityRelocate, requireRemoteAuthority } from "./federation.ts";
-import { applyInventoryEvent, createInventoryState } from "../profiles/inventory.ts";
+import { applyInventoryEvent, createInventoryState, inventoryKey } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
@@ -30,6 +30,9 @@ function keyFree(s: State, key: string) {
 function accessibleProfile(p: Profile, org: string) { return p.visibility === "community" || p.publisher_id === org || p.readers.includes(org); }
 const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.ledger"]);
 const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","inventory.ledger","evidence.inspect"]);
+// Projection maps travel in snapshots, so they are keyed by digest, never by the ids (#38). Null when the
+// identity cannot be canonicalized; the profile reducer then refuses the body.
+const observationKey = (...parts: unknown[]): string | null => { try { return inventoryKey(...parts); } catch { return null; } };
 const inventoryState = (s: State, org: string) => { const company = s.inventory[org] ??= {pools:{},observations:{},creations:{}}; company.ledgers ??= {}; company.openings ??= {}; company.facts ??= {}; return company; };
 /** Pack conversions in a fact must be packaging revisions the product published; a malformed fact is left to the reducer. */
 function packagingPins(fact: any): { packaging_id: unknown; version: unknown; base_units_per_pack: unknown }[] {
@@ -254,9 +257,9 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         demand(ledger.policy_id===p.policy_id,"forbidden","ledger belongs to another policy");
         const product=Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===fact.product_id&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1");
         for(const u of packagingPins(fact))demand(product&&(product.body.packaging as any[]).some(x=>x.packaging_id===u.packaging_id&&x.version===u.version&&x.base_units_per_pack===u.base_units_per_pack),"unknown_packaging","pack conversion is not a published packaging revision of the product",422);
-        const obs=JSON.stringify([fact.product_id,fact.observation?.source_id,fact.observation?.sequence]),factHash=await digest(fact),old=company.facts[obs];
+        const obs=observationKey(fact.product_id,fact.observation?.source_id,fact.observation?.sequence),factHash=await digest(fact),old=obs===null?undefined:company.facts[obs];
         if(old){demand(old.hash===factHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}
-        const change=applyInventoryFact(ledger,fact);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);
+        const change=applyInventoryFact(ledger,fact);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);demand(obs!==null,"invalid_inventory","invalid observation identity",422);
         company.ledgers[fact.product_id]={...change.state,policy_id:ledger.policy_id};company.facts[obs]={hash:factHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};
         validation={profile:INVENTORY2_PROFILE,revision:change.state.revision,physical_stock_verified:false};
       }
@@ -266,9 +269,9 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         demand(event.company_id===o.id&&event.pool_id===p.resource_id,"forbidden","inventory pool must equal authorized resource");
         const pool=company.pools[event.pool_id];demand(pool,"pool_unavailable","create stock pool before writing events",422);
         demand(pool.policy_id===p.policy_id,"forbidden","stock pool belongs to another policy");
-        const obs=JSON.stringify([event.source_id,event.observation_id]),eventHash=await digest(event),old=company.observations[obs];
+        const obs=observationKey(event.source_id,event.observation_id),eventHash=await digest(event),old=obs===null?undefined:company.observations[obs];
         if(old){demand(old.hash===eventHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}
-        const change=applyInventoryEvent(pool,event);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);
+        const change=applyInventoryEvent(pool,event);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);demand(obs!==null,"invalid_inventory","invalid observation identity",422);
         company.pools[event.pool_id]=change.state;company.observations[obs]={hash:eventHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};validation={profile:"dtp.inventory/1",revision:change.state.revision,physical_stock_verified:false};
       }
       if(before)before.is_head=false;
