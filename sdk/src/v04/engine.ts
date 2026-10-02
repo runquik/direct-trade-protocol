@@ -6,6 +6,7 @@ import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, m
 import { expandKinds, profileContract, validateProfile, validateShape } from "./profiles.ts";
 import { buildSnapshot, validateSnapshot, applySnapshot } from "./snapshot.ts";
 import * as migration from "./migration.ts";
+import { registrableKey } from "../keys.ts";
 import { authorityAccept, authorityIssue, authorityRelocate, requireRemoteAuthority } from "./federation.ts";
 import { applyInventoryEvent, createInventoryState, inventoryKey } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
@@ -24,6 +25,7 @@ function isDigest(value: unknown): value is string { return typeof value === "st
 function future(value: unknown, ctx: Context) { const n = instant(value); demand(n > ctx.now && n <= ctx.now + 366*86400000,"invalid","expiry must be within one year",400); }
 function keyFree(s: State, key: string) {
   validKey(key);
+  demand(registrableKey(key),"invalid","public key is not of prime order",400);
   demand(!migration.migrationKeyReserved(s,key),"migration_reserved","key reserved for validated migration",409);
   demand(!Object.values(s.persons).some(p => [...p.keys,...p.retired_keys].includes(key)) && !Object.values(s.organizations).some(o => Object.values(o.installations).some(i => i.key_id === key)),"conflict","key already bound",409);
 }

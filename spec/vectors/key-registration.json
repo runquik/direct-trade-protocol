@@ -1,0 +1,135 @@
+{
+  "description": "Ed25519 public keys a conforming host MUST accept or MUST refuse where a key enters an identity or authority record: person founding and key rotation, foundation identity genesis, rotation, recovery and recovery-policy changes, and installation keys. A host that accepts a case marked \"refuse\", or refuses one marked \"accept\", is non-conforming. Signature verification is not affected: see signature-verification.json.",
+  "rule": "Accept a key only if its encoding is canonical (RFC 8032 section 5.1.3) and decodes to a curve point of prime order L: [8]A is not the identity and [L]A is the identity. This refuses the eight small-order points, mixed-order points, non-canonical encodings and encodings of no point.",
+  "sources": "small-order and mixed-order keys: Chalkias, Garillot and Nikolaenko, \"Taming the Many EdDSAs\" (2020), ed25519-speccheck cases.json (Apache-2.0); fixed key: spec/vectors/keys.json",
+  "cases": [
+    {
+      "name": "fixed key",
+      "expected": "accept",
+      "order": "prime",
+      "why": "the key of spec/vectors/keys.json, made by RFC 8032 key generation",
+      "public_key_hex": "755c4cb9256ca7cdc4acfdc6cfeeda849017e5b9f9514e99191bd67e0b0d4276",
+      "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+    },
+    {
+      "name": "speccheck prime-order key",
+      "expected": "accept",
+      "order": "prime",
+      "why": "the key of speccheck cases 6 and 7",
+      "public_key_hex": "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+      "key_id": "ed25519:5b6UAGL5gaWXB1veFdcveReiyxMFwgP5B3vpL24h1vt2"
+    },
+    {
+      "name": "identity, canonical",
+      "expected": "refuse",
+      "order": "small",
+      "why": "the identity point (order 1): with R the identity and S = 0, every message verifies (signature-verification.json, \"identity A, canonical\")",
+      "public_key_hex": "0100000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM"
+    },
+    {
+      "name": "identity, y >= p",
+      "expected": "refuse",
+      "order": "invalid",
+      "why": "the identity point encoded with y = p + 1: non-canonical (RFC 8032 5.1.3)",
+      "public_key_hex": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "key_id": "ed25519:H5xSWNRAbqKddKjrabehyU8drL3Dk4LgZJiEJc9rGGyC"
+    },
+    {
+      "name": "identity, sign bit set",
+      "expected": "refuse",
+      "order": "invalid",
+      "why": "the identity point with x = 0 and the sign bit set: non-canonical (RFC 8032 5.1.3)",
+      "public_key_hex": "0100000000000000000000000000000000000000000000000000000000000080",
+      "key_id": "ed25519:4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziohZ"
+    },
+    {
+      "name": "order 2",
+      "expected": "refuse",
+      "order": "small",
+      "why": "the point (0, -1)",
+      "public_key_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "key_id": "ed25519:Gx9dDNxzpALCowVuZb7pBceBLJugLA8sPa6TJDXrpfeW"
+    },
+    {
+      "name": "order 2, sign bit set",
+      "expected": "refuse",
+      "order": "invalid",
+      "why": "the point (0, -1) with the sign bit set: non-canonical; the A of speccheck cases 10 and 11",
+      "public_key_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "key_id": "ed25519:Gx9dDNxzpALCowVuZb7pBceBLJugLA8sPa6TJDXrpfgi"
+    },
+    {
+      "name": "order 4, x even",
+      "expected": "refuse",
+      "order": "small",
+      "why": "a point with y = 0",
+      "public_key_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:11111111111111111111111111111111"
+    },
+    {
+      "name": "order 4, x odd",
+      "expected": "refuse",
+      "order": "small",
+      "why": "a point with y = 0",
+      "public_key_hex": "0000000000000000000000000000000000000000000000000000000000000080",
+      "key_id": "ed25519:11111111111111111111111111111113D"
+    },
+    {
+      "name": "order 8, first",
+      "expected": "refuse",
+      "order": "small",
+      "why": "an order-8 point",
+      "public_key_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a",
+      "key_id": "ed25519:EQAqmjhcsBQhpBv5GJkYgEB7emGHZNoo1j1yAjiFLNvD"
+    },
+    {
+      "name": "order 8, second",
+      "expected": "refuse",
+      "order": "small",
+      "why": "an order-8 point; the A of speccheck cases 0 and 1",
+      "public_key_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+      "key_id": "ed25519:EQAqmjhcsBQhpBv5GJkYgEB7emGHZNoo1j1yAjiFLNxR"
+    },
+    {
+      "name": "order 8, third",
+      "expected": "refuse",
+      "order": "small",
+      "why": "an order-8 point",
+      "public_key_hex": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05",
+      "key_id": "ed25519:3ctC68zTqpRDQShoondiQKDHwZDAUjRyxiPNdg8cD6Pe"
+    },
+    {
+      "name": "order 8, fourth",
+      "expected": "refuse",
+      "order": "small",
+      "why": "an order-8 point",
+      "public_key_hex": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85",
+      "key_id": "ed25519:3ctC68zTqpRDQShoondiQKDHwZDAUjRyxiPNdg8cD6Rr"
+    },
+    {
+      "name": "mixed order, speccheck 2",
+      "expected": "refuse",
+      "order": "mixed",
+      "why": "a prime-order point plus a small-order component; the A of speccheck cases 2, 8 and 9",
+      "public_key_hex": "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+      "key_id": "ed25519:Hg2yH6oDXQSAZt1xvoV7JKWrhCJs4R23SdNXypxMjo9C"
+    },
+    {
+      "name": "mixed order, speccheck 3",
+      "expected": "refuse",
+      "order": "mixed",
+      "why": "a prime-order point plus a small-order component; the A of speccheck cases 3, 4 and 5",
+      "public_key_hex": "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+      "key_id": "ed25519:EqxMvbvZj5dpRpmbyw9k1gzKYHkwZDZJrieP7X3ohLpU"
+    },
+    {
+      "name": "not on the curve",
+      "expected": "refuse",
+      "order": "invalid",
+      "why": "y = 2 has no x on the curve",
+      "public_key_hex": "0200000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:8opHzTAnfzRpPEx21XtnrVTX28YQuCpAjcn1PczScKh"
+    }
+  ]
+}
