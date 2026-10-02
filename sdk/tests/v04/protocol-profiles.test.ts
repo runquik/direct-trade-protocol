@@ -21,6 +21,9 @@ test("protocol profiles: a host loads the registry and the registered contracts,
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     const health = await (await fetch(store.audience + "/dtp/v0.4/health")).json();
     assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/forecast@1", "dtp/inventory@2", "dtp/order@1", "dtp/party@1", "dtp/product@1"], "the repository registry is the default");
+    const fixture = parseUntrustedJson(readFileSync(new URL("../../../spec/v0.4/fixtures/health-capabilities.json", import.meta.url), "utf8")) as any;
+    assert.deepEqual(health.capabilities, fixture.capabilities, "health matches the published fixture");
+    assert.deepEqual(health.capabilities.protocol_kind_digests, Object.fromEntries(Object.entries(protocol.kinds).sort(([a], [b]) => a < b ? -1 : 1).map(([k, ds]) => [k, [...ds].sort()])), "health advertises each kind's registered digests");
     // Registered but not yet admitted at this host: the kind selects nothing.
     assert.equal((await client.act(owner, "records.list", org, page(["dtp/product@1"]))).error.code, "unsupported_profile");
     const admitted = await client.ok(owner, "profile.admit", org, { digest: productFixtures.contract_digest });

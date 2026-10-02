@@ -12,7 +12,7 @@ export async function handle(req:Request,deps:Dependencies):Promise<Response>{
   try{
     const path=new URL(req.url).pathname;
     if(req.method==="GET"&&path==="/dtp/v0.4/health")return json({protocol_version:"0.4",status:"reference-candidate",audience:deps.audience,store_key_id:deps.storeKey.keyId,
-      capabilities:{bounded_schema:"dtp.schema/1",kind_registry:KIND_REGISTRY_FORMAT,protocol_kinds:Object.keys(deps.kinds??{}).sort(),semantics:[...SEMANTICS],migration_chunk_bytes:65536,migration_max_bytes:33554432,max_request_bytes:MAX_REQUEST_BYTES}});
+      capabilities:{bounded_schema:"dtp.schema/1",kind_registry:KIND_REGISTRY_FORMAT,protocol_kinds:Object.keys(deps.kinds??{}).sort(),protocol_kind_digests:Object.fromEntries(Object.keys(deps.kinds??{}).sort().map(k=>[k,[...deps.kinds![k]].sort()])),semantics:[...SEMANTICS],migration_chunk_bytes:65536,migration_max_bytes:33554432,max_request_bytes:MAX_REQUEST_BYTES}});
     if(req.method!=="POST"||path!=="/dtp/v0.4/commands")return json({error:{code:"not_found",message:"route unavailable"}},404);
     const reader=req.body?.getReader();if(!reader)throw new DtpError("invalid","empty body",400);
     const chunks:Uint8Array[]=[];let total=0;
