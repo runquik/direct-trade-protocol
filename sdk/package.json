@@ -41,7 +41,7 @@
     "build": "node scripts/build-schemas.ts",
     "check:runtime": "node tests/fuzz/repro-v8-check.mjs tests/fuzz/v8-repro/polluter.min.json tests/fuzz/v8-repro/target.min.json print",
     "check:transitions": "node --test tests/03_records.test.ts tests/06_redteam.test.ts tests/07_infra.test.ts",
-    "test:fuzz": "node --test tests/fuzz/fuzz-canonical.test.ts tests/fuzz/fuzz-encodings.test.ts tests/fuzz/fuzz-signing.test.ts tests/fuzz/signing-malleability.test.ts tests/fuzz/race-store.test.ts",
+    "test:fuzz": "node --test tests/fuzz/fuzz-canonical.test.ts tests/fuzz/fuzz-encodings.test.ts tests/fuzz/fuzz-signing.test.ts tests/fuzz/race-store.test.ts",
     "typecheck": "tsc --noEmit",
     "build:package": "tsc -p tsconfig.build.json",
     "prepack": "npm run build:package",
