@@ -1,0 +1,167 @@
+{
+  "description": "Ed25519 signatures a conforming verifier MUST accept or MUST refuse. Applies to every DTP signature: commands, tokens, records and foundation proofs. A verifier that accepts a case marked \"refuse\", or refuses one marked \"accept\", is non-conforming.",
+  "rule": "RFC 8032 section 5.1.7, cofactorless ([S]B = R + [k]A). Refuse S >= L. Refuse a non-canonical encoding of A or R (RFC 8032 section 5.1.3: y >= p, or x = 0 with the sign bit set). Hash the R and A bytes exactly as received. Small-order or mixed-order A and R are not refused by themselves.",
+  "sources": "speccheck cases: Chalkias, Garillot and Nikolaenko, \"Taming the Many EdDSAs\" (2020), ed25519-speccheck cases.json (Apache-2.0); fixed-key cases: spec/vectors/keys.json and spec/vectors/signatures.json",
+  "cases": [
+    {
+      "name": "fixed key, canonical",
+      "expected": "accept",
+      "why": "the raw signature from signatures.json",
+      "message_hex": "647470",
+      "public_key_hex": "755c4cb9256ca7cdc4acfdc6cfeeda849017e5b9f9514e99191bd67e0b0d4276",
+      "signature_hex": "f88e21a612e361964f422deadb3f643c6bf49245dc70d25828d1c34b36b6407c93c5ce3ebc2ce0c617abc8aa3daa7fc9b16fd4e68e0d1ab31bc464bf6e11440c",
+      "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+      "signature": "ed25519:5yE7RCa8Wg2mk4Dn9tEug6cTvzrepbc8kRMc5Q3UpCYDKyY2ZF2i5dCJeQ7sL6unWvhCfSEv1hissqHt4qF8srtT"
+    },
+    {
+      "name": "fixed key, S + L",
+      "expected": "refuse",
+      "why": "the same signature with S replaced by S + L: S >= L is not canonical (RFC 8032 5.1.7 step 1)",
+      "message_hex": "647470",
+      "public_key_hex": "755c4cb9256ca7cdc4acfdc6cfeeda849017e5b9f9514e99191bd67e0b0d4276",
+      "signature_hex": "f88e21a612e361964f422deadb3f643c6bf49245dc70d25828d1c34b36b6407c8099c49bd68ff21eee47c04d1ca45edeb16fd4e68e0d1ab31bc464bf6e11441c",
+      "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+      "signature": "ed25519:5yE7RCa8Wg2mk4Dn9tEug6cTvzrepbc8kRMc5Q3UpCYDJghLLjzfAtXpKWig4FELZ2uJPgKbTRRfyXDpyY2ubiVH"
+    },
+    {
+      "name": "identity A, canonical",
+      "expected": "accept",
+      "why": "A and R are the identity point and S = 0, so the equation holds for any message: small order is not refused by itself",
+      "message_hex": "647470",
+      "public_key_hex": "0100000000000000000000000000000000000000000000000000000000000000",
+      "signature_hex": "01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM",
+      "signature": "ed25519:2AFv15MNPuA84RmU66xw2uMzGipcVxNpzAffoacGVvjFue3CBmf633fAWuiP9cwL9C3z3CJiGgRSFjJfeEcA6QX"
+    },
+    {
+      "name": "identity A, y >= p",
+      "expected": "refuse",
+      "why": "the same key encoded with y = p + 1: a non-canonical encoding of A (y >= p)",
+      "message_hex": "647470",
+      "public_key_hex": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "signature_hex": "01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:H5xSWNRAbqKddKjrabehyU8drL3Dk4LgZJiEJc9rGGyC",
+      "signature": "ed25519:2AFv15MNPuA84RmU66xw2uMzGipcVxNpzAffoacGVvjFue3CBmf633fAWuiP9cwL9C3z3CJiGgRSFjJfeEcA6QX"
+    },
+    {
+      "name": "speccheck 0",
+      "expected": "accept",
+      "why": "small-order A and small-order R, S = 0: small order is not refused by itself",
+      "message_hex": "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
+      "public_key_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+      "signature_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a0000000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "ed25519:EQAqmjhcsBQhpBv5GJkYgEB7emGHZNoo1j1yAjiFLNxR",
+      "signature": "ed25519:4ysKf8zpTmPpUorwYupGKbjfVhGuGGTpSvs5Tza7DADQg17qtGRBRx7cs8HsZ43YXSXEqM1CoPj1dZkZodW86GaK"
+    },
+    {
+      "name": "speccheck 1",
+      "expected": "accept",
+      "why": "small-order A, mixed-order R",
+      "message_hex": "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+      "public_key_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+      "signature_hex": "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+      "key_id": "ed25519:EQAqmjhcsBQhpBv5GJkYgEB7emGHZNoo1j1yAjiFLNxR",
+      "signature": "ed25519:5xGcEMUzJBDY9Pfg2ghXVAyca56rQni2LxM2bkh7cEFnphCkdh8nL16aQuQi2EMBUAEeZzoDAXTBavu2c8k9mAw5"
+    },
+    {
+      "name": "speccheck 2",
+      "expected": "accept",
+      "why": "mixed-order A, small-order R",
+      "message_hex": "aebf3f2601a0c8c5d39cc7d8911642f740b78168218da8471772b35f9d35b9ab",
+      "public_key_hex": "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+      "signature_hex": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa8c4bd45aecaca5b24fb97bc10ac27ac8751a7dfe1baff8b953ec9f5833ca260e",
+      "key_id": "ed25519:Hg2yH6oDXQSAZt1xvoV7JKWrhCJs4R23SdNXypxMjo9C",
+      "signature": "ed25519:4ysKf8zpTmPpUorwYupGKbjfVhGuGGTpSvs5Tza7DAE4rqKRdtQ4sDAyWD9uJLnAVyFQnxPUPooA9EPBGPD93cfw"
+    },
+    {
+      "name": "speccheck 3",
+      "expected": "accept",
+      "why": "mixed-order A and R; the cofactorless equation holds",
+      "message_hex": "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+      "public_key_hex": "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+      "signature_hex": "9046a64750444938de19f227bb80485e92b83fdb4b6506c160484c016cc1852f87909e14428a7a1d62e9f22f3d3ad7802db02eb2e688b6c52fcd6648a98bd009",
+      "key_id": "ed25519:EqxMvbvZj5dpRpmbyw9k1gzKYHkwZDZJrieP7X3ohLpU",
+      "signature": "ed25519:3tJb9HyG8CgMHLQWWfvcSur3WdPuPJFYEdBSii8xUZD8nAEfb1akrTybPeUdcZq5pNdbNf98JeB6abWDB8p5aEWU"
+    },
+    {
+      "name": "speccheck 4",
+      "expected": "refuse",
+      "why": "holds only under the cofactored equation; verification is cofactorless",
+      "message_hex": "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+      "public_key_hex": "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+      "signature_hex": "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed5125ec6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09",
+      "key_id": "ed25519:EqxMvbvZj5dpRpmbyw9k1gzKYHkwZDZJrieP7X3ohLpU",
+      "signature": "ed25519:SZKC6493TWqNdR6RaJn8z8onRUn5qjSCiUpgPVCny5AKrQRGYE27w6m9Lr8Cit8cFokjejyEEdpUQAS5UBkacrk"
+    },
+    {
+      "name": "speccheck 5",
+      "expected": "refuse",
+      "why": "holds only under the cofactored equation; verification is cofactorless",
+      "message_hex": "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+      "public_key_hex": "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+      "signature_hex": "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7e40bc836dac0f71076f9abe3a53f9c03c1ceeeddb658d0030494ace586687405",
+      "key_id": "ed25519:EqxMvbvZj5dpRpmbyw9k1gzKYHkwZDZJrieP7X3ohLpU",
+      "signature": "ed25519:fMFyFM7UbhGaHo3f8vKvakp69zr1oQqF5AcmmpNJF5gy2MMQBrqvZQns2tCGzdkrzpLe3NAj3kKNmjh9KobmZhv"
+    },
+    {
+      "name": "speccheck 6",
+      "expected": "refuse",
+      "why": "S > L",
+      "message_hex": "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+      "public_key_hex": "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+      "signature_hex": "e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514",
+      "key_id": "ed25519:5b6UAGL5gaWXB1veFdcveReiyxMFwgP5B3vpL24h1vt2",
+      "signature": "ed25519:5fhBSu6sQaJyaGW5SB4Nx64nADmLiM9h7Jigb4fDgrx8HGxuTdhAeq3YkADcmvncv3kGQCBGBccgbJCPPBmrGPW3"
+    },
+    {
+      "name": "speccheck 7",
+      "expected": "refuse",
+      "why": "S much greater than L",
+      "message_hex": "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+      "public_key_hex": "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+      "signature_hex": "8ce5b96c8f26d0ab6c47958c9e68b937104cd36e13c33566acd2fe8d38aa19427e71f98a473474f2f13f06f97c20d58cc3f54b8bd0d272f42b695dd7e89a8c22",
+      "key_id": "ed25519:5b6UAGL5gaWXB1veFdcveReiyxMFwgP5B3vpL24h1vt2",
+      "signature": "ed25519:3pPMTi97hdFkwoy1oaL4WoHZhsN3iEnViS23gDVzaKwjfoxTa8CbV5wHzd6FLTxudq7ZsvLf67bSq5cKJ8G6ha2M"
+    },
+    {
+      "name": "speccheck 8",
+      "expected": "refuse",
+      "why": "non-canonical R encoding (x = 0 with the sign bit set), reduced for the hash",
+      "message_hex": "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+      "public_key_hex": "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+      "signature_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03be9678ac102edcd92b0210bb34d7428d12ffc5df5f37e359941266a4e35f0f",
+      "key_id": "ed25519:Hg2yH6oDXQSAZt1xvoV7JKWrhCJs4R23SdNXypxMjo9C",
+      "signature": "ed25519:5jpwaJnERa8Gr1ChgrNYnmxm2EtZ4KHC5bW1ZLL7LCYfd7eNSmphiDgmfFmj9EKRUzw5kwDyC5cQVEKdaqnhFnZk"
+    },
+    {
+      "name": "speccheck 9",
+      "expected": "refuse",
+      "why": "non-canonical R encoding (x = 0 with the sign bit set), not reduced for the hash",
+      "message_hex": "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+      "public_key_hex": "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+      "signature_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffca8c5b64cd208982aa38d4936621a4775aa233aa0505711d8fdcfdaa943d4908",
+      "key_id": "ed25519:Hg2yH6oDXQSAZt1xvoV7JKWrhCJs4R23SdNXypxMjo9C",
+      "signature": "ed25519:5jpwaJnERa8Gr1ChgrNYnmxm2EtZ4KHC5bW1ZLL7LCYfrVh5UpZhqCZa26PfACWofm1JN1GJR7HRj5Aa6GjDRQ4X"
+    },
+    {
+      "name": "speccheck 10",
+      "expected": "refuse",
+      "why": "non-canonical A encoding (x = 0 with the sign bit set), reduced for the hash",
+      "message_hex": "e96b7021eb39c1a163b6da4e3093dcd3f21387da4cc4572be588fafae23c155b",
+      "public_key_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "signature_hex": "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+      "key_id": "ed25519:Gx9dDNxzpALCowVuZb7pBceBLJugLA8sPa6TJDXrpfgi",
+      "signature": "ed25519:4PwW2BoJecnVyUT961dyun4Lu3gfbg6AScARvzKaeSLVhJMyfAwFoxgBkb7T7FiiL13W3Y3bgFk8SSGxPQqnD8xb"
+    },
+    {
+      "name": "speccheck 11",
+      "expected": "refuse",
+      "why": "non-canonical A encoding (x = 0 with the sign bit set), not reduced for the hash",
+      "message_hex": "39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f",
+      "public_key_hex": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "signature_hex": "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+      "key_id": "ed25519:Gx9dDNxzpALCowVuZb7pBceBLJugLA8sPa6TJDXrpfgi",
+      "signature": "ed25519:4PwW2BoJecnVyUT961dyun4Lu3gfbg6AScARvzKaeSLVhJMyfAwFoxgBkb7T7FiiL13W3Y3bgFk8SSGxPQqnD8xb"
+    }
+  ]
+}

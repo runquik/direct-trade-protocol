@@ -126,7 +126,7 @@ with `toJSON` (Date) serialize as `{}` in the SDK vs an ISO string in the refere
   (`nacl.sign.detached.verify` -> true; tweetnacl does not enforce `S < L`). **S3 / interop note**: the store rejects
   malleated signatures, but any consumer that re-verifies DTP records with tweetnacl (older near-api-js) treats two
   different `signature` strings as valid for one record. The signature is outside `payload_hash` and record identity is
-  `record_id`, so this is not a forgery vector; it only matters if anyone ever keys on the signature string. Bit flips,
+  `record_id`, so this is not a forgery vector; it only matters if anyone ever keys on the signature string. (October 2026: filed as #44; the verification rule is now normative in `spec/v0.4/SPEC.md` and pinned by `spec/vectors/signature-verification.json`, so a tweetnacl-style verifier is non-conforming.) Bit flips,
   all-zero signatures, and all-zero / 0xFF / small-order public keys are rejected (false, no throw).
 - **S3**: `protocol.keys.key_id` has `check (key_id ~ '^ed25519:[1-9A-HJ-NP-Za-km-z]{43,44}$')`. Random keys encode to
   44 (94.4%) or 43 (5.6%) chars. A public key with 5 or more leading zero bytes encodes to 42 chars and would fail the

@@ -91,7 +91,31 @@ export async function signBytes(secretKey: string, message: Uint8Array): Promise
   return new Uint8Array(await crypto.subtle.sign({ name: "Ed25519" }, key, message as BufferSource));
 }
 
+// Verification rule (spec/v0.4/SPEC.md, spec/vectors/signature-verification.json): RFC 8032 section 5.1.7,
+// cofactorless, with the canonical-S check and canonical point encodings (section 5.1.3) for A and R. Small-order points are
+// not refused by themselves. The encoding checks are explicit so strictness does not depend on the runtime.
+const P = (1n << 255n) - 19n;
+const L = (1n << 252n) + 27742317777372353535851937790883648493n;
+
+function littleEndian(bytes: Uint8Array): bigint {
+  let n = 0n;
+  for (let i = bytes.length - 1; i >= 0; i--) n = (n << 8n) | BigInt(bytes[i]);
+  return n;
+}
+
+/** RFC 8032 section 5.1.3: y (bit 255 cleared) is below p, and x = 0 (y = 1 or y = p - 1) has a clear sign bit. */
+function canonicalPoint(bytes: Uint8Array): boolean {
+  const encoded = bytes.slice();
+  const sign = encoded[31] >> 7;
+  encoded[31] &= 0x7f;
+  const y = littleEndian(encoded);
+  return y < P && !(sign === 1 && (y === 1n || y === P - 1n));
+}
+
 export async function verifyBytes(keyId: string, message: Uint8Array, signature: Uint8Array): Promise<boolean> {
-  const key = await importPublic(decodeKeyId(keyId));
+  const publicKey = decodeKeyId(keyId);
+  if (signature.length !== 64 || !canonicalPoint(publicKey) || !canonicalPoint(signature.subarray(0, 32))) return false;
+  if (littleEndian(signature.subarray(32, 64)) >= L) return false;
+  const key = await importPublic(publicKey);
   return crypto.subtle.verify({ name: "Ed25519" }, key, signature as BufferSource, message as BufferSource);
 }
