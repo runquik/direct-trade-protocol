@@ -119,3 +119,58 @@ export async function verifyBytes(keyId: string, message: Uint8Array, signature:
   const key = await importPublic(publicKey);
   return crypto.subtle.verify({ name: "Ed25519" }, key, signature as BufferSource, message as BufferSource);
 }
+
+// Key registration rule (spec/v0.4/SPEC.md section 2, spec/vectors/key-registration.json, #47): a key may enter an
+// identity or authority record only if its canonical encoding decodes to a point of prime order L. That refuses the
+// eight small-order points (order dividing 8, the identity included), mixed-order points (a prime-order point plus a
+// small-order component), off-curve encodings and non-canonical encodings. RFC 8032 key generation (A = [s]B) never
+// produces any of them. Verification is unaffected: verifyBytes still decides existing signatures by its own rule.
+const D = mod(-121665n * modPow(121666n, P - 2n));
+const SQRT_M1 = modPow(2n, (P - 1n) / 4n);
+type Point = [x: bigint, y: bigint, z: bigint, t: bigint];
+const IDENTITY: Point = [0n, 1n, 1n, 0n];
+
+function mod(n: bigint): bigint { const r = n % P; return r < 0n ? r + P : r; }
+function modPow(base: bigint, exp: bigint): bigint {
+  let result = 1n; base %= P;
+  for (; exp > 0n; exp >>= 1n) { if (exp & 1n) result = (result * base) % P; base = (base * base) % P; }
+  return result;
+}
+/** RFC 8032 section 5.1.3 point decoding; null when the encoding is non-canonical or not on the curve. */
+function decodePoint(bytes: Uint8Array): Point | null {
+  if (bytes.length !== 32 || !canonicalPoint(bytes)) return null;
+  const encoded = bytes.slice(), sign = BigInt(encoded[31] >> 7);
+  encoded[31] &= 0x7f;
+  const y = littleEndian(encoded), u = mod(y * y - 1n), v = mod(D * y * y + 1n);
+  const x2 = mod(u * modPow(v, P - 2n));
+  let x = modPow(x2, (P + 3n) / 8n);
+  if (mod(x * x - x2) !== 0n) x = mod(x * SQRT_M1);
+  if (mod(x * x - x2) !== 0n) return null;
+  if ((x & 1n) !== sign) x = mod(-x);
+  return [x, y, 1n, mod(x * y)];
+}
+/** RFC 8032 section 5.1.4 addition in extended coordinates (complete, so it also doubles). */
+function add([x1, y1, z1, t1]: Point, [x2, y2, z2, t2]: Point): Point {
+  const a = mod((y1 - x1) * (y2 - x2)), b = mod((y1 + x1) * (y2 + x2)), c = mod(t1 * 2n * D * t2), d = mod(z1 * 2n * z2);
+  const e = b - a, f = d - c, g = d + c, h = b + a;
+  return [mod(e * f), mod(g * h), mod(f * g), mod(e * h)];
+}
+function multiply(point: Point, scalar: bigint): Point {
+  let result = IDENTITY;
+  for (let addend = point; scalar > 0n; scalar >>= 1n, addend = add(addend, addend)) if (scalar & 1n) result = add(result, addend);
+  return result;
+}
+const isIdentity = ([x, y, z]: Point) => x === 0n && y === z;
+
+/** The order class of an encoded public key: "prime" is the only class a key may be registered with. */
+export function keyOrder(publicKey: Uint8Array): "invalid" | "small" | "mixed" | "prime" {
+  const point = decodePoint(publicKey);
+  if (!point) return "invalid";
+  if (isIdentity(multiply(point, 8n))) return "small";
+  return isIdentity(multiply(point, L)) ? "prime" : "mixed";
+}
+
+/** True when the key may enter an identity or authority record (founding, rotation, recovery, installations). */
+export function registrableKey(keyId: string): boolean {
+  try { return keyOrder(decodeKeyId(keyId)) === "prime"; } catch { return false; }
+}

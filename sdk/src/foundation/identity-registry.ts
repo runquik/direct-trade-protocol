@@ -1,5 +1,6 @@
 /** Indexed, transactional pilot resolver. No public directory or user-reset backdoor. */
 import type { Db } from '../../../supabase/functions/dtp-store/db.ts';
+import { registrableKey } from '../keys.ts';
 import type { KeyPair } from '../keys.ts';
 import { canonicalBytes, canonicalize, sha256Hex } from '../canonical.ts';
 import { createIdentity, copyIdentityData, issueResolution, rehomeIdentity, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
@@ -43,6 +44,12 @@ interface HistoryRow { sequence:string|number; body:unknown; result:{effective_a
 const isRehome=(body:unknown):body is {rehome:Signed<Rehome>}=>typeof body==='object'&&body!==null&&'rehome' in body;
 function entry(h:HistoryRow):IdentityLogEntry{ return {effective_at:h.result!.effective_at,transition:isRehome(h.body)?null:h.body as Signed<Transition>,rehome:isRehome(h.body)?h.body.rehome:null,attestation:h.attestation??null}; }
 function need(ok:unknown,why:string):asserts ok{if(!ok)throw new Error(why);}
+/** Registration rule (#47): a key entering control must be of prime order. Keys the head already holds are not
+ *  re-checked, so an existing identity stays usable; verification of logs is unaffected. */
+function registrable(next:IdentityState['head'],held:IdentityState['head']|null){
+  const old=held?[...held.operational.keys,...held.recovery.keys]:[];
+  need([...next.operational.keys,...next.recovery.keys].filter(k=>!old.includes(k)).every(registrableKey),'public key is not of prime order');
+}
 function id(value:string){need(typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value),'invalid identity id');}
 const digest=(v:unknown)=>sha256Hex(canonicalBytes(v));
 /** A configured instance owns this database's resolver rows. Never expose Db to clients. */
@@ -66,6 +73,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
       genesis=copyIdentityData(genesis);enrollment=copyIdentityData(enrollment);
       // Verification precedes every DB write. Enrollment is owner-signed and time-limited.
       const now=config.now(),candidate=await createIdentity(genesis,resolver,now);
+      registrable(candidate.head,null);
       await verifyResolverEnrollment(candidate,enrollment,audience,now);
       const enrollment_digest=await digest(enrollment.body),genesis_digest=candidate.genesis_digest;
       return db.transaction(async tx=>{
@@ -91,6 +99,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
         }
         // transitionIdentity validates signature, full closed shape and current exact head.
         const next=await transitionIdentity(row.body,command,now);
+        registrable(next.head,row.body.head);
         const result={identity_id:identity,head_digest:next.head_digest,sequence:next.head.sequence,effective_at:next.head.effective_at};
         await save(tx,row,next);
         await tx.query('insert into dtp_foundation.identity_history(identity_id,sequence,command_digest,body,result) values($1,$2,$3,$4::text::jsonb,$5::text::jsonb)',[identity,next.head.sequence,command_digest,JSON.stringify(command),JSON.stringify(result)]);
