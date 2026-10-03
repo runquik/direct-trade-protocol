@@ -1255,6 +1255,26 @@
       "artifacts": {
         "docs/release/v04-independent-handoff.md": "90bb4dab2b3d9f41a84504007d434c0ab81ec6d9d0dda70ed551a93d31483003"
       }
+    },
+    {
+      "check_id": "profile-contract-tests",
+      "status": "passed",
+      "source_hash": "c5fc2c9c68d0d5936dd52c16092305edc21998fefcce2dd2c7f800ebd3fbb71f",
+      "recorded_at": "2026-10-03T15:39:07.806Z",
+      "actor": "release-runner",
+      "summary": "Actual HTTP bounded profile admission and separately coded inventory consumers: passed",
+      "artifacts": {
+        "docs/release/evidence/profile-contract-tests-2026-10-03T15-39-04-640Z.txt": "c4481f482357b8e46e7ba028c57fc3cbdab4cec18e46d4a62787acd836528450"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/profile-admission.test.ts",
+        "tests/interop/inventory-conformance.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
     }
   ],
   "findings": [
