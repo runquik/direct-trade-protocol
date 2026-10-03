@@ -20,7 +20,7 @@ async function fixedKey(label: string): Promise<KeyPair> {
   const publicKey = new Uint8Array(Buffer.from((await crypto.subtle.exportKey('jwk', key)).x!, 'base64url'));
   return { keyId: encodeKeyId(publicKey), secretKey: encodeSecretKey(seed, publicKey), publicKey, seed };
 }
-const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger', 'resolver-b', 'operational-3'] as const;
+const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger', 'resolver-b', 'operational-3', 'thief-resolver-1', 'thief-resolver-2'] as const;
 const k = Object.fromEntries(await Promise.all(labels.map(async l => [l, await fixedKey(l)]))) as Record<typeof labels[number], KeyPair>;
 
 const T = 1_800_000_000_000, resolverId = '5e5e5e5e-0000-4000-8000-00000000000a', audience = 'https://resolver.example';
@@ -77,6 +77,17 @@ const movedBad = async (body: Rehome, signers?: KeyPair[], at = moveAt): Promise
 // Forks of one identity, for epoch precedence.
 const thiefRotate = async (operational: KeyPair): Promise<IdentityLog> => ({ ...clone(bare), entries: [...clone(bare.entries), { effective_at: T + 950_000, attestation: null, rehome: null, transition: await transition('rotate', [operational.keyId], [rec(1).keyId], [op(2), operational], T + 950_000) }] });
 const thiefBranch = await thiefRotate(k.stranger), rivalBranch = await thiefRotate(k['operational-3']);
+// A retired recovery key's fork. recovery-0 was the recovery quorum at head 2 and head 3 retired it. Holding only
+// recovery-0, a thief forks from head 2, rehomes to a resolver it runs (epoch 1) and rotates that resolver's key
+// (epoch 2), so its branch outranks the owner's move to the second resolver by epoch alone. Every head is attested.
+const thiefIds = ['5e5e5e5e-0000-4000-8000-00000000000c', '5e5e5e5e-0000-4000-8000-00000000000d'] as const, thiefAudience = 'https://thief.example';
+const retiredParts: IdentityLogParts = { genesis, enrollment, entries: clone(attested.entries.slice(0, 3)) };
+for (const [n, at] of [[1, T + 500_000], [2, T + 501_000]] as const) {
+  const v = await verifyIdentityLog(await buildIdentityLog(retiredParts, null), { require_attestation: false }), resolver = k[`thief-resolver-${n}`];
+  retiredParts.entries.push({ effective_at: at, transition: null, attestation: null, rehome: await signRehome({ identity_id: id, expected_digest: v.head_digest, sequence: v.head.sequence + 1,
+    from: { resolver_id: v.resolver.id, resolver_epoch: v.resolver.epoch }, to: { resolver_id: thiefIds[n - 1], resolver_key: resolver.keyId, audience: thiefAudience, resolver_epoch: n }, issued_at: at, expires_at: at + 300_000 }, [rec(0)]) });
+}
+const retiredFork = await buildIdentityLog({ ...retiredParts, entries: (await buildIdentityLog(retiredParts, k['thief-resolver-1'])).entries }, k['thief-resolver-2']);
 
 type Accept = [string, IdentityLog, boolean];
 const accept: Accept[] = [
@@ -143,6 +154,8 @@ const pairs: Pair[] = [
   ['the owner moved to a second resolver; a thief with the old operational key forked at the first resolver: the higher epoch supersedes wherever the fork is', movedBare, thiefBranch, 'a-supersedes-b'],
   ['the same pair the other way round', thiefBranch, movedBare, 'b-supersedes-a'],
   ['two forks at one epoch: a conflict, never resolved by choosing', thiefBranch, rivalBranch, 'conflict'],
+  ['a branch forked by a recovery key the other history retired (recovery-policy at head 3), at a higher epoch than the owner\'s move: a conflict, never superseded', retiredFork, movedBare, 'conflict'],
+  ['the same retired-key branch against the owner\'s history that never moved: a conflict', bare, retiredFork, 'conflict'],
   ['one history is a prefix of the other', bare, movedBare, 'b-extends-a'],
   ['identical histories', bare, bare, 'equal'],
 ];
@@ -153,32 +166,45 @@ const bareHeads = (await verifyIdentityLog(clone(bare), lenient)).heads, movedV 
 const pinA = (minimum_sequence: number, minimum_digest: string | null, extra: Partial<ResolverPin> = {}): ResolverPin =>
   ({ identity_id: id, resolver_id: resolverId, resolver_key: k.resolver.keyId, resolver_epoch: 0, minimum_sequence, minimum_digest, ...extra });
 const pinB: ResolverPin = { identity_id: id, resolver_id: resolverB, resolver_key: k['resolver-b'].keyId, resolver_epoch: 1, minimum_sequence: movedV.head.sequence, minimum_digest: movedV.head_digest };
-type Admission = [string, ResolverPin, IdentityLog, boolean];
+const retiredV = await verifyIdentityLog(clone(retiredFork), lenient);
+const pinThief: ResolverPin = { identity_id: id, resolver_id: thiefIds[1], resolver_key: k['thief-resolver-2'].keyId, resolver_epoch: 2, minimum_sequence: retiredV.head.sequence, minimum_digest: retiredV.head_digest };
+const rivalAt4 = { ...clone(rivalBranch), entries: clone(rivalBranch.entries.slice(0, 5)) };
+/** The fifth member is the log the party holds for its pin (ending at the pinned head), or null when it holds only the pin. */
+type Admission = [string, ResolverPin, IdentityLog, boolean, IdentityLog | null];
 const admission: Admission[] = [
-  ['a pin at head 0 admits the attested history: advanced', pinA(0, bareHeads[0].head_digest), attested, true],
-  ['the same pin admits the move, whose heads are attested by the resolver of each epoch: advanced', pinA(0, bareHeads[0].head_digest), moved, true],
-  ['a pin already at the log\'s head: unchanged', pinA(3, bareHeads[3].head_digest), bare, false],
-  ['a move whose rehome entry no resolver attested is not admitted under ANY attestation policy: the owner consented, but no destination adopted (unadopted-move)', pinA(0, bareHeads[0].head_digest), movedBare, false],
-  ['a pin that already followed the move, shown the same log again: unchanged', pinB, moved, true],
-  ['a pin that verified a resolution at head 4, shown a history that stops at head 3: behind, which is not evidence either way', pinA(4, rivalV.heads[4].head_digest), bare, false],
-  ['a pin whose checkpoint sits on a rival branch at the same epoch: conflict, never resolved by choosing', pinA(4, rivalV.heads[4].head_digest), thiefBranch, false],
-  ['the same rival checkpoint against the owner\'s move: the higher epoch supersedes, and the superseded checkpoint is reported', pinA(4, rivalV.heads[4].head_digest), moved, true],
-  ['a pin enrolled with a resolver key the log never names: foreign-lineage', pinA(0, null, { resolver_key: k.stranger.keyId }), bare, false],
-  ['a pin at epoch 1 shown a history that never left epoch 0: foreign-lineage', pinB, attested, true],
-  ['a pin for another identity: another-identity', pinA(0, null, { identity_id: '00000000-0000-4000-8000-000000000000' }), bare, false],
-  ['a log that fails verification: invalid-log', pinA(0, null), reject[1][1], false],
-  ['unattested heads under a strict policy: invalid-log', pinA(0, null), bare, true],
+  ['a pin at head 0 admits the attested history: advanced', pinA(0, bareHeads[0].head_digest), attested, true, null],
+  ['the same pin admits the move, whose heads are attested by the resolver of each epoch: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null],
+  ['a pin already at the log\'s head: unchanged', pinA(3, bareHeads[3].head_digest), bare, false, null],
+  ['a move whose rehome entry no resolver attested is not admitted under ANY attestation policy: the owner consented, but no destination adopted (unadopted-move)', pinA(0, bareHeads[0].head_digest), movedBare, false, null],
+  ['a pin that already followed the move, shown the same log again: unchanged', pinB, moved, true, null],
+  ['a pin that verified a resolution at head 4, shown a history that stops at head 3: behind, which is not evidence either way', pinA(4, rivalV.heads[4].head_digest), bare, false, null],
+  ['a pin whose checkpoint sits on a rival branch at the same epoch: conflict, never resolved by choosing', pinA(4, rivalV.heads[4].head_digest), thiefBranch, false, null],
+  ['the same rival checkpoint against the owner\'s move, the party holding the rival history it pinned: the recovery quorum the move forked under is still current there, so the higher epoch supersedes, and the superseded checkpoint is reported', pinA(4, rivalV.heads[4].head_digest), moved, true, rivalAt4],
+  ['the same, but the party holds only the pin: it cannot rule out a retired recovery authority, so conflict (fail closed)', pinA(4, rivalV.heads[4].head_digest), moved, true, null],
+  ['a pin enrolled with a resolver key the log never names: foreign-lineage', pinA(0, null, { resolver_key: k.stranger.keyId }), bare, false, null],
+  ['a pin at epoch 1 shown a history that never left epoch 0: foreign-lineage', pinB, attested, true, null],
+  ['a pin for another identity: another-identity', pinA(0, null, { identity_id: '00000000-0000-4000-8000-000000000000' }), bare, false, null],
+  ['a log that fails verification: invalid-log', pinA(0, null), reject[1][1], false, null],
+  ['unattested heads under a strict policy: invalid-log', pinA(0, null), bare, true, null],
+  ['a pin taken after the recovery-policy, shown a higher-epoch fork signed by the recovery key it retired, holding the pinned history: conflict, never superseded', pinA(3, bareHeads[3].head_digest), retiredFork, true, attested],
+  ['the same with only the pin: conflict', pinA(3, bareHeads[3].head_digest), retiredFork, true, null],
+  ['a pin that followed the owner\'s move, shown the retired-key fork, holding the pinned history: conflict', pinB, retiredFork, true, moved],
+  ['a pin taken BEFORE the recovery-policy, shown the retired-key fork first: advanced; nothing it holds shows the retirement yet', pinA(2, bareHeads[2].head_digest), retiredFork, true, null],
+  ['that party, now holding the fork it admitted, is shown the owner\'s real history: conflict, so it learns of the retirement instead of staying silently on the fork', pinThief, moved, true, retiredFork],
 ];
 const pushMessage = (log: IdentityLog, format = IDENTITY_LOG_PUSH_FORMAT): IdentityLogPush => ({ format: format as typeof IDENTITY_LOG_PUSH_FORMAT, log });
-type Push = [string, ResolverPin | null, IdentityLogPush, boolean];
+type Push = [string, ResolverPin | null, IdentityLogPush, boolean, IdentityLog | null];
 const push: Push[] = [
-  ['a relying party that enrolled the identity at the first resolver admits the pushed move', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true],
-  ['the same push again, against the pin the first one produced: unchanged, so a wallet may repeat it freely', pinB, pushMessage(moved), true],
-  ['a relying party that never enrolled the identity: unknown-identity', null, pushMessage(moved), true],
-  ['a message whose log does not verify: invalid-log, and no identity is named', pinA(0, null), pushMessage(reject[1][1]), false],
-  ['a message in an unknown format: invalid-log', pinA(0, null), pushMessage(moved, 'dtp-identity-log-push-2'), true],
-  ['a history that stops before the party checkpoint: behind', pinA(4, rivalV.heads[4].head_digest), pushMessage(bare), false],
-  ['a move nobody attested: unadopted-move', pinA(0, null), pushMessage(movedBare), false],
+  ['a relying party that enrolled the identity at the first resolver admits the pushed move', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null],
+  ['the same push again, against the pin the first one produced: unchanged, so a wallet may repeat it freely', pinB, pushMessage(moved), true, null],
+  ['a relying party that never enrolled the identity: unknown-identity', null, pushMessage(moved), true, null],
+  ['a message whose log does not verify: invalid-log, and no identity is named', pinA(0, null), pushMessage(reject[1][1]), false, null],
+  ['a message in an unknown format: invalid-log', pinA(0, null), pushMessage(moved, 'dtp-identity-log-push-2'), true, null],
+  ['a history that stops before the party checkpoint: behind', pinA(4, rivalV.heads[4].head_digest), pushMessage(bare), false, null],
+  ['a move nobody attested: unadopted-move', pinA(0, null), pushMessage(movedBare), false, null],
+  ['anyone pushes the retired-key fork to a party that pinned after the recovery-policy and holds that history: conflict', pinA(3, bareHeads[3].head_digest), pushMessage(retiredFork), true, attested],
+  ['the same push to a party holding only the pin: conflict', pinA(3, bareHeads[3].head_digest), pushMessage(retiredFork), true, null],
+  ['the owner pushes the real history to a party that admitted the fork and holds it: conflict', pinThief, pushMessage(moved), true, retiredFork],
 ];
 // A destination's signed refusal of one rehome, and what it says next to a log.
 const theRehome = movedParts.entries[4].rehome!, otherRehome = sameResolverNewKey.entries[4].rehome!;
@@ -206,7 +232,7 @@ const contradictions: Contradiction[] = [
 ];
 
 const out = {
-  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
+  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
   format: IDENTITY_LOG_FORMAT, legacy_format: LEGACY_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
@@ -218,13 +244,13 @@ const out = {
   })),
   reject: reject.map(([why, log, require_attestation]) => ({ why, require_attestation, log })),
   precedence: pairs.map(([why, a, b, expect]) => ({ why, a, b, expect })),
-  admission: await Promise.all(admission.map(async ([why, pin, log, require_attestation]) => {
-    const j = await judgeIdentityLog(pin, clone(log), { require_attestation });
-    return { why, pin, log, require_attestation, expect: j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded } };
+  admission: await Promise.all(admission.map(async ([why, pin, log, require_attestation, pinned]) => {
+    const j = await judgeIdentityLog(pin, clone(log), { require_attestation }, pinned === null ? null : clone(pinned));
+    return { why, pin, pinned, log, require_attestation, expect: j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded } };
   })),
-  push: await Promise.all(push.map(async ([why, pin, message, require_attestation]) => {
-    const { ack } = await receiveIdentityLogPush(clone(message), async identity => pin !== null && pin.identity_id === identity ? pin : null, { require_attestation });
-    return { why, pin, message, require_attestation, ack };
+  push: await Promise.all(push.map(async ([why, pin, message, require_attestation, pinned]) => {
+    const { ack } = await receiveIdentityLogPush(clone(message), async identity => pin === null || pin.identity_id !== identity ? null : pinned === null ? pin : { pin, log: clone(pinned) }, { require_attestation });
+    return { why, pin, pinned, message, require_attestation, ack };
   })),
   refusals: {
     accept: await Promise.all(refusalAccept.map(async ([why, rehome, refusal]) => ({ why, rehome, refusal, expect: await verifyRehomeRefusal(refusal, rehome) }))),
@@ -240,9 +266,10 @@ for (const [why, r, log, expect] of contradictions) {
   const got = await compareRehomeRefusal(clone(r), clone(log));
   if (got !== expect) throw new Error('generator: contradiction "' + why + '" gave ' + got);
 }
-const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 'unchanged', 'behind', 'conflict', 'superseded', 'foreign-lineage', 'foreign-lineage', 'another-identity', 'invalid-log', 'invalid-log'];
+const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 'unchanged', 'behind', 'conflict', 'superseded', 'conflict', 'foreign-lineage', 'foreign-lineage', 'another-identity', 'invalid-log', 'invalid-log',
+  'conflict', 'conflict', 'conflict', 'advanced', 'conflict'];
 out.admission.forEach((a, i) => { const got = 'reason' in a.expect ? a.expect.reason : a.expect.outcome; if (got !== expectedReasons[i]) throw new Error(`generator: admission "${a.why}" gave ${got}`); });
-const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move'];
+const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict'];
 out.push.forEach((p, i) => { const got = p.ack.reason ?? p.ack.outcome; if (got !== expectedAcks[i]) throw new Error(`generator: push "${p.why}" gave ${got}`); });
 for (const [why, a, b, expect] of pairs) {
   const got = precedence(await verifyIdentityLog(clone(a), { require_attestation: false }), await verifyIdentityLog(clone(b), { require_attestation: false }));
