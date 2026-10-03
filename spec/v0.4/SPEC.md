@@ -21,7 +21,7 @@ Host pins are explicit `audience -> store public key` configuration. Artifact-as
 | `GET /dtp/v0.4/health` | Unsigned candidate status, exact audience/store key and supported limits/semantics |
 | `POST /dtp/v0.4/commands` | One signed UTF-8 JSON command; success `{ "result": ... }`; failure `{ "error": { "code": "...", "message": "..." } }` |
 
-The health response is discovery information, not a trust anchor obtained independently of the connection. Verify a remote store key through the intended trust/enrollment procedure before pinning it. Use TLS for non-local transport. The command `audience` equals the configured host audience, not the complete command endpoint URL.
+The health response is discovery information, not a trust anchor obtained independently of the connection. Its `capabilities` name the protocol kinds the host's registry supports (`protocol_kinds`) and, in `protocol_kind_digests`, map each of them to the sorted contract digests that registry lists for it; a company still admits a contract with `profile.admit` before records under it are accepted. A module verifies every digest it reads there against the contract digest it pins, and never adopts a digest because health lists it. The [health fixture](fixtures/health-capabilities.json) shows the response for a host on the repository registry. Verify a remote store key through the intended trust/enrollment procedure before pinning it. Use TLS for non-local transport. The command `audience` equals the configured host audience, not the complete command endpoint URL.
 
 Every command has exactly these top-level fields:
 

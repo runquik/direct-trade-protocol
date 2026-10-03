@@ -44,7 +44,7 @@ Set `DTP_AUDIENCE` to point the scripts at a host on another port and `DTP_EXAMP
 
 | Step | Command | Who signs |
 |---|---|---|
-| Discover the host | `GET /dtp/v0.4/health` | nobody; the audience must match what the module expects |
+| Discover the host | `GET /dtp/v0.4/health` | nobody; the audience must match what the module expects, and `capabilities.protocol_kind_digests` must list each pinned digest under its kind |
 | Read company A's records of the kinds it understands, page by page | `records.list {after, limit, profile_digests: [], kinds: ["dtp/product@1", "dtp/inventory@2"]}` | the installation key alone, actor kind `installation`, `requested_by: null` (automation mode) |
 | Read the host's derived ledger for the product | `inventory.ledger {policy_id, product_id}` | the installation key |
 | Derive the assessment | none: local computation in exact thousandths of the base unit | nobody |
@@ -63,6 +63,6 @@ The assessment names, for every position, the on-hand quantity, the quantity cla
 
 ## Where the pieces come from
 
-- Contract digests for the two kinds are pinned in `common.mjs` from the protocol registry (`spec/profiles/index.json`). A module states exactly what it understands; the host answers `unsupported_profile` for a kind it has not admitted rather than an empty page.
+- Contract digests for the two kinds are pinned in `common.mjs` from the protocol registry (`spec/profiles/index.json`). The host lists the digests its registry carries for each kind in `capabilities.protocol_kind_digests`; the module checks its pins against that list and stops on a mismatch, but never takes a digest from it. A module states exactly what it understands; the host answers `unsupported_profile` for a kind it has not admitted rather than an empty page.
 - The product body is the accepted fixture of `dtp/product@1`; the facts follow the `dtp/inventory@2` fixtures: a receipt in packs, a transfer, a reservation, a shipment.
 - The module's artifact digest is the SHA-256 of `read.mjs`; the assessment token binds it. The protocol never downloads or runs the artifact: the token means only that the pinned assessor said so.

@@ -89,6 +89,7 @@ test("kinds: a protocol kind resolves through the host's registry to admitted pr
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     const health = await (await fetch(store.audience + "/dtp/v0.4/health")).json();
     assert.equal(health.capabilities.kind_registry, KIND_REGISTRY_FORMAT); assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/inventory@2", "dtp/order@1"], "this host was started with an explicit registry, not the repository one");
+    assert.deepEqual(health.capabilities.protocol_kind_digests, { "dtp/inventory@2": [missing], "dtp/order@1": [missing] }, "health advertises the digests of this host's registry, admitted or not");
     const before = await client.act(owner, "records.list", org, page({ kinds: ["dtp/inventory@2"] }));
     assert.equal(before.status, 422); assert.equal(before.error.code, "unsupported_profile", "registered, but no listed digest is admitted at this host");
     // The registry pins exact contracts: a profile of the same name and major from an unlisted publisher does not count.

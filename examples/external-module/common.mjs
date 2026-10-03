@@ -26,10 +26,17 @@ export const credentialsFile = resolve(home, "credentials.json");
 export function loadCredentials() { return JSON.parse(readFileSync(credentialsFile, "utf8")); }
 export function saveCredentials(credentials) { writeFileSync(credentialsFile, JSON.stringify(credentials, null, 2) + "\n"); }
 
-/** Read the unsigned health response and refuse to continue if the host does not advertise the expected audience. */
+/**
+ * Read the unsigned health response and refuse to continue if the host does not advertise the expected audience, or
+ * does not list a pinned contract digest under its kind. Health is discovery: the module compares what the host lists
+ * with what it pinned, and never adopts a digest because the host lists it.
+ */
 export async function connect() {
   const health = await fetch(`${audience}/dtp/v0.4/health`).then(r => r.json());
   if (health.audience !== audience) throw new Error(`host advertises audience ${health.audience}, this example expected ${audience}`);
+  for (const [kind, digest] of Object.entries(KINDS)) {
+    if (!health.capabilities?.protocol_kind_digests?.[kind]?.includes(digest)) throw new Error(`host does not list the pinned contract ${digest} for ${kind}`);
+  }
   return { health, client: new v04Client.DtpClient(audience) };
 }
 
