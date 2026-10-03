@@ -44,6 +44,8 @@ export const REHOME_REFUSAL_DOMAIN = 'DTP-IDENTITY-REHOME-REFUSAL-1';
 export interface RehomeRefusal { identity_id: string; rehome_digest: string; resolver_id: string; resolver_epoch: number; refused_at: number }
 /** Why a relying party refused a log. `invalid-log` carries the verifier's error; the rest are admission rules. */
 export type AdmissionRefusal = 'invalid-log' | 'another-identity' | 'unknown-identity' | 'foreign-lineage' | 'behind' | 'conflict' | 'unadopted-move';
+/** A pin together with the log the relying party holds for it, which ends at the pinned head. */
+export interface PinnedHistory { pin: ResolverPin; log: IdentityLog }
 export interface IdentityLogAdmission { outcome: 'unchanged' | 'advanced' | 'superseded'; pin: ResolverPin; superseded: { sequence: number; head_digest: string } | null }
 export type IdentityLogJudgement = IdentityLogAdmission | { outcome: 'refused'; reason: AdmissionRefusal; error: Error | null };
 export const IDENTITY_LOG_PUSH_FORMAT = 'dtp-identity-log-push-1';
@@ -159,13 +161,21 @@ export function compareCheckpoint(log: VerifiedIdentityLog, checkpoint: { sequen
   return log.heads[checkpoint.sequence].head_digest === checkpoint.head_digest ? 'consistent' : 'conflict';
 }
 /** Epoch precedence between two verified histories of one identity. Only the recovery quorum can advance
- *  the epoch, so among forks the history reaching the higher epoch supersedes; forks at one epoch conflict. */
+ *  the epoch, so among forks the history reaching the higher epoch supersedes; forks at one epoch conflict.
+ *  Fork-point rule: the higher branch supersedes only if the recovery quorum that signed its first divergent
+ *  recovery-authorized entry is still the current recovery quorum at the other history's head. Every entry between
+ *  the fork and that one is a rotate, which cannot change recovery, so that quorum is the one of the last shared
+ *  head. If the other history replaced it after the fork (recovery-policy), a retired recovery authority is
+ *  trying to outrank its successor: a conflict, never ranked. */
 export function precedence(a: VerifiedIdentityLog, b: VerifiedIdentityLog): 'equal' | 'a-extends-b' | 'b-extends-a' | 'a-supersedes-b' | 'b-supersedes-a' | 'conflict' {
   need(a.identity_id === b.identity_id && a.genesis_digest === b.genesis_digest, 'histories of different identities');
   const shared = Math.min(a.heads.length, b.heads.length);
   for (let i = 0; i < shared; i++) if (a.heads[i].head_digest !== b.heads[i].head_digest) {
     if (a.resolver.epoch === b.resolver.epoch) return 'conflict';
-    return a.resolver.epoch > b.resolver.epoch ? 'a-supersedes-b' : 'b-supersedes-a';
+    const [higher, lower] = a.resolver.epoch > b.resolver.epoch ? [a, b] : [b, a];
+    // Head 0 differs only in its instant: both heads come from one genesis, so their recovery sets are equal.
+    if (canonicalize(higher.heads[Math.max(i - 1, 0)].head.recovery) !== canonicalize(lower.head.recovery)) return 'conflict';
+    return higher === a ? 'a-supersedes-b' : 'b-supersedes-a';
   }
   if (a.heads.length === b.heads.length) return 'equal';
   return a.heads.length > b.heads.length ? 'a-extends-b' : 'b-extends-a';
@@ -175,10 +185,22 @@ function checkPin(pin: ResolverPin): ResolverPin {
   need(typeof pin.identity_id === 'string' && Number.isSafeInteger(pin.resolver_epoch) && pin.resolver_epoch >= 0 && Number.isSafeInteger(pin.minimum_sequence) && pin.minimum_sequence >= 0 && (pin.minimum_digest === null || hex64(pin.minimum_digest)), 'invalid resolver pin');
   return pin;
 }
+/** The history a relying party holds for its pin, verified, and checked to end exactly at the pinned head under
+ *  the pinned binding. It is the party's own record of what it already admitted, so attestations are not required
+ *  again. A mismatch is the caller's bug and throws. */
+async function pinnedHistory(pin: ResolverPin, log: IdentityLog): Promise<VerifiedIdentityLog> {
+  const p = await verifyIdentityLog(log, { require_attestation: false });
+  need(p.identity_id === pin.identity_id && p.resolver.id === pin.resolver_id && p.resolver.key_id === pin.resolver_key && p.resolver.epoch === pin.resolver_epoch
+    && p.head.sequence === pin.minimum_sequence && p.head_digest === pin.minimum_digest, 'pinned history does not end at the pinned head');
+  return p;
+}
 /** The relying-party procedure over an already verified log; see judgeIdentityLog. */
-function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog): IdentityLogJudgement {
+function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: VerifiedIdentityLog | null): IdentityLogJudgement {
   // Two identities enrolled at one resolver share its binding; the pin is for exactly one of them.
   if (v.identity_id !== pin.identity_id) return { outcome: 'refused', reason: 'another-identity', error: null };
+  // With both histories in hand, a fork that precedence cannot rank (same epoch, or a retired recovery quorum on the
+  // higher branch) is a conflict whichever side the relying party currently follows.
+  if (pinned !== null && precedence(v, pinned) === 'conflict') return { outcome: 'refused', reason: 'conflict', error: null };
   const known = v.resolvers.find(r => r.epoch === pin.resolver_epoch);
   if (!known || known.id !== pin.resolver_id || known.key_id !== pin.resolver_key) return { outcome: 'refused', reason: 'foreign-lineage', error: null };
   if (v.head.sequence < pin.minimum_sequence) return { outcome: 'refused', reason: 'behind', error: null };
@@ -192,29 +214,36 @@ function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog): IdentityLogJud
   let outcome: 'unchanged' | 'advanced' | 'superseded' = v.head.sequence === pin.minimum_sequence && v.resolver.epoch === pin.resolver_epoch ? 'unchanged' : 'advanced', superseded = null;
   if (pin.minimum_digest !== null && compareCheckpoint(v, { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest }) === 'conflict') {
     if (v.resolver.epoch <= pin.resolver_epoch) return { outcome: 'refused', reason: 'conflict', error: null };
+    // The fork-point rule needs the pinned history: without it a branch signed by a recovery quorum the pinned
+    // history already retired is indistinguishable from a legitimate move, so fail closed.
+    if (pinned === null) return { outcome: 'refused', reason: 'conflict', error: null };
     outcome = 'superseded'; superseded = { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest };
   }
   return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
 }
-/** The relying-party procedure as a judgement that never throws for an expected refusal: verify the log; require
- *  that it continues the lineage the pin was enrolled with, at the pinned epoch; require adoption evidence for every
- *  move past the pinned epoch; admit a conflict with the pinned checkpoint only when the log has reached a higher
- *  epoch, and then report it, never hide it. An invalid pin is the caller's bug and still throws. */
-export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<IdentityLogJudgement> {
+/** The relying-party procedure as a judgement that never throws for an expected refusal: verify the log; refuse a
+ *  fork precedence cannot rank against the pinned history, when the party holds it; require that the log continues
+ *  the lineage the pin was enrolled with, at the pinned epoch; require adoption evidence for every move past the
+ *  pinned epoch; admit a conflict with the pinned checkpoint only when the log has reached a higher epoch AND the
+ *  pinned history shows that the recovery quorum the log's branch forked under is still current, and then report it,
+ *  never hide it. `pinned` is the log the party holds, ending at the pinned head, or null when it holds only the pin.
+ *  An invalid pin, or a pinned history that does not end at the pin, is the caller's bug and still throws. */
+export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null): Promise<IdentityLogJudgement> {
   pin = checkPin(pin);
+  const held = pinned === null ? null : await pinnedHistory(pin, pinned);
   let v: VerifiedIdentityLog;
   try { v = await verifyIdentityLog(log, policy); } catch (error) { return { outcome: 'refused', reason: 'invalid-log', error: error instanceof Error ? error : new Error(String(error)) }; }
-  return judgeVerified(pin, v);
+  return judgeVerified(pin, v, held);
 }
 const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string> = {
   'another-identity': 'log is for another identity', 'unknown-identity': 'identity is not enrolled here',
   'foreign-lineage': 'log does not continue the pinned lineage', 'behind': 'log is behind the pinned checkpoint',
-  'conflict': 'conflicting control history at the same resolver epoch', 'unadopted-move': 'move without the destination\'s attestation',
+  'conflict': 'conflicting control history: same resolver epoch, retired recovery authority, or no pinned history to rule it out', 'unadopted-move': 'move without the destination\'s attestation',
 };
 /** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place, or throw.
  *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
-export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }): Promise<IdentityLogAdmission> {
-  const judged = await judgeIdentityLog(pin, log, policy);
+export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null): Promise<IdentityLogAdmission> {
+  const judged = await judgeIdentityLog(pin, log, policy, pinned);
   if (judged.outcome !== 'refused') return judged;
   if (judged.reason === 'invalid-log') throw judged.error;
   throw new Error(REFUSAL_MESSAGES[judged.reason]);
@@ -222,17 +251,19 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, polic
 /** Owner push, relying-party side. The message carries the log and nothing else; the answer is a function of the
  *  message and the pin the relying party holds, so a repeated push is answered identically once admitted
  *  (`unchanged`). `lookup` returns the durable pin for an identity, or null when this relying party never enrolled
- *  it; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
-export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
+ *  it; with the pin it may return the log it holds for that pin, `{ pin, log }`, which lets a higher-epoch fork be
+ *  ranked by the fork-point rule instead of refused as a conflict; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
+export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | PinnedHistory | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
   const refused = (identity_id: string | null, reason: AdmissionRefusal): { ack: IdentityLogPushAck; admission: null } => ({ ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id, outcome: 'refused', reason, binding: null }, admission: null });
   let v: VerifiedIdentityLog;
   try {
     const m = copyIdentityData(message); fields(m, ['format', 'log']); need(m.format === IDENTITY_LOG_PUSH_FORMAT, 'unsupported identity log push format');
     v = await verifyIdentityLog(m.log, policy);
   } catch { return refused(null, 'invalid-log'); }
-  const pin = await lookup(v.identity_id);
-  if (pin === null) return refused(v.identity_id, 'unknown-identity');
-  const judged = judgeVerified(checkPin(pin), v);
+  const found = await lookup(v.identity_id);
+  if (found === null) return refused(v.identity_id, 'unknown-identity');
+  const held = 'log' in found ? found : { pin: found, log: null }, pin = checkPin(held.pin);
+  const judged = judgeVerified(pin, v, held.log === null ? null : await pinnedHistory(pin, held.log));
   if (judged.outcome === 'refused') return refused(v.identity_id, judged.reason);
   const p = judged.pin;
   return { ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id: v.identity_id, outcome: judged.outcome, reason: null,

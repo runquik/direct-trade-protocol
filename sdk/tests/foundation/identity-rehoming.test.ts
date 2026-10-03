@@ -251,8 +251,9 @@ test('the log verifier binds each head attestation to the resolver of its epoch 
     assert.equal((await admitIdentityLog(pinA, exported, strict)).outcome, 'unchanged');
     await assert.rejects(admitIdentityLog({ ...pinA, resolver_key: w.b.key.keyId }, log, strict), /pinned lineage/);
     await assert.rejects(admitIdentityLog({ ...pinA, minimum_sequence: 5 }, log, strict), /behind/);
-    const conflict = await admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, log, strict);
-    assert.equal(conflict.outcome, 'superseded'); assert.deepEqual(conflict.superseded, { sequence: 0, head_digest: 'f'.repeat(64) });
+    // A higher-epoch conflict with a party that holds only its pin: without the pinned history the fork-point rule
+    // cannot rule out a retired recovery quorum (#50), so it fails closed. The supersede path is in the vectors.
+    await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, log, strict), /conflicting control history/);
     await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, exported, strict), /same resolver epoch/);
   } finally { await w.close(); }
 });
