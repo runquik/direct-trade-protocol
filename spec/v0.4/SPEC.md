@@ -47,6 +47,16 @@ Every command has exactly these top-level fields:
 
 This is a shape illustration, not a valid signed enrollment. IDs must be derived where specified; replace timestamps and sign actual bytes. All command/action payload objects are closed: unknown or missing fields fail validation.
 
+**Requester (`requested_by`).** The schema admits a UUID or `null`; what is legal depends on the actor, and the host MUST check it before the action runs:
+
+- `actor.kind` `"person"`: `requested_by` MUST equal `actor.id`, for every action including `person.register`. `null` or any other ID is refused, with `403 forbidden` (`400 invalid` for `person.register`), even when the named person also signs.
+- `actor.kind` `"installation"`, `requested_by` `null`: an **autonomous** call. It is allowed only when the installation was created with `mode` `"automation"` and its sponsor (the person who created it) is still an active member or controller of the company; otherwise `403 forbidden`. The sponsor stands in for the requesting human in the data-access rule of section 4.
+- `actor.kind` `"installation"`, `requested_by` a person ID: an **interactive** call, in either mode. The named person MUST be an active member or controller of the company and MUST sign the command with a current key; otherwise `403 approval_required`. A non-null `requested_by` never falls back to the autonomous path.
+
+`requested_by` is therefore the only wire signal that separates an interactive call from an autonomous one: a host that decides the mode from the installation record alone lets an interactive-only module act on its sponsor's grant with no human present. The conformance cases are [`spec/vectors/requested-by.json`](../vectors/requested-by.json).
+
+*Compatibility.* This states the rule the reference has always enforced; no outcome changes.
+
 Signing input is canonical UTF-8 JSON of `{ "domain": "DTP-COMMAND-0.4", "command": <command without signatures> }`. Canonicalization follows the repository's RFC-8785-compatible, **safe-integer-only JSON** profile; money/quantities needing decimal precision are strings. Reject non-finite/floating JSON numbers and invalid canonical strings. Object key order follows canonical UTF-16 ordering, not insertion order. The [fixed signing vector](signing-vector.json) is the interoperability check.
 
 Ed25519 public keys are 32 bytes, signatures 64 bytes, encoded with the `ed25519:` prefix and the repository base58 alphabet. Every supplied signature must verify; signer keys must be distinct, and the actor's key must sign. Quorum counts distinct people with current keys, not signatures from several keys belonging to one person.
@@ -96,7 +106,7 @@ Every business record is bound to one owning organization, one policy and one op
 
 A grant is exactly `{person_id, actions, resource_ids, expires_at}`. Actions are `read`, `write`, `export`; resource scope is a bounded UUID list or `"*"` **within this policy only**. A person must still be an active member/controller, and the grant must still be live when executed. A grant does not create membership, and a non-controller grant cannot outlive that person's membership. Stewardship alone does not implicitly grant ordinary record reads. `policy.get` is restricted to an active steward.
 
-For an installation, authorized data access is the intersection of its declared release profiles, permitted policy IDs/actions, live installation/assessment, and the requesting human's current resource grant. Interactive calls require both installation and human signatures. Autonomous calls require an explicitly installed automation mode and a sponsoring person's live membership/resource grant; removing that authority stops future automation. Module keys cannot administer company authority or create their own policies.
+For an installation, authorized data access is the intersection of its declared release profiles, permitted policy IDs/actions, live installation/assessment, and the requesting human's current resource grant. Interactive calls require both installation and human signatures. Autonomous calls (`requested_by` `null`, section 2) require an explicitly installed automation mode and a sponsoring person's live membership/resource grant; removing that authority stops future automation. Module keys cannot administer company authority or create their own policies.
 
 `record.get`, list/workspace views, derived inventory and export enforce these boundaries before returning the complete record, including its original signed payload. `records.export` additionally requires export permission; read permission alone does not authorize that route. An installation declaring one profile does not gain all other records in the same resource policy. Empty data queries do not grant outsiders company metadata access.
 

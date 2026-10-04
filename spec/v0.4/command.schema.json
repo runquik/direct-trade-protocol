@@ -69,7 +69,8 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Person actor: MUST equal actor.id. Installation actor: null is an autonomous call (mode automation only); a person ID is an interactive call by that active member, who MUST also sign. See SPEC.md section 2, Requester."
     },
     "action": {
       "enum": [

@@ -43,6 +43,6 @@ export const PAYLOADS:Record<string,Schema>={
 };
 export const COMMAND_SCHEMA:Schema={
   $schema:"https://json-schema.org/draft/2020-12/schema",$id:"urn:dtp:0.4:command",title:"Direct Trade Protocol 0.4 candidate signed command",
-  ...object({version:{const:"0.4"},audience:str(300),request_id:id,issued_at:time,expires_at:time,organization_id:nullable(id),actor:object({kind:{enum:["person","installation"]},id,key_id:key}),requested_by:nullable(id),action:{enum:Object.keys(PAYLOADS)},payload:{type:"object"},signatures:array(object({key_id:key,signature:str(110)}),16,1)}),
+  ...object({version:{const:"0.4"},audience:str(300),request_id:id,issued_at:time,expires_at:time,organization_id:nullable(id),actor:object({kind:{enum:["person","installation"]},id,key_id:key}),requested_by:{...nullable(id),description:"Person actor: MUST equal actor.id. Installation actor: null is an autonomous call (mode automation only); a person ID is an interactive call by that active member, who MUST also sign. See SPEC.md section 2, Requester."},action:{enum:Object.keys(PAYLOADS)},payload:{type:"object"},signatures:array(object({key_id:key,signature:str(110)}),16,1)}),
   allOf:Object.entries(PAYLOADS).map(([action,payload])=>({if:{properties:{action:{const:action}}},then:{properties:{payload}}})),
 };
