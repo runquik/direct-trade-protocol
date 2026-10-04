@@ -111,3 +111,34 @@ test('a recovery key retired by recovery-policy forks from an older head and reh
   // 4. A pinned history that does not end at the pin is the caller's bug.
   await assert.rejects(judgeIdentityLog(pinAfter, thiefLog, strict, ownerAtBLog), /pinned history does not end at the pinned head/);
 });
+
+test('fork-point rule compares quorums as sets: a recovery-policy that only reorders the keys keeps the branch superseding; one that only changes the threshold is a conflict', async () => {
+  const now = 1_800_000_000_000;
+  const [a, b] = await Promise.all([host('host-a'), host('host-b')]);
+  const [op0, recA, recB] = await Promise.all(Array.from({ length: 3 }, () => generateKeyPair()));
+  const genesis = await signIdentity('DTP-PERSON-GENESIS-1', { nonce: crypto.randomUUID(), operational: { keys: [op0.keyId], threshold: 1 }, recovery: { keys: [recA.keyId, recB.keyId], threshold: 1 } }, [op0, recA, recB]);
+  const s0 = await createIdentity(genesis, { id: a.id, key_id: a.key.keyId }, now), identity = s0.head.identity_id;
+  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: identity, genesis_digest: s0.genesis_digest, resolver_id: a.id, resolver_key: a.key.keyId,
+    audience: a.audience, nonce: hex(), issued_at: now, expires_at: now + 300_000 }, [op0, recA, recB]);
+  const head0 = await append([], s0, a, { transition: null, rehome: null });
+  const log = (entries: IdentityLogEntry[]): IdentityLog => ({ format: IDENTITY_LOG_FORMAT, genesis, enrollment, entries });
+  const policy = async (recovery: { keys: string[]; threshold: number }) => {
+    const signed = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: identity, expected_digest: s0.head_digest, sequence: 1, kind: 'recovery-policy',
+      operational: { keys: [op0.keyId], threshold: 1 }, recovery, issued_at: now + 60_000, expires_at: now + 360_000 }, [recA, recB]);
+    const next = await transitionIdentity(s0, signed, now + 60_000);
+    return log(await append(head0, next, a, { transition: signed, rehome: null }));
+  };
+  const reordered = await policy({ keys: [recB.keyId, recA.keyId], threshold: 1 }), raised = await policy({ keys: [recA.keyId, recB.keyId], threshold: 2 });
+  assert.deepEqual((await verifyIdentityLog(reordered, strict)).retired_keys, [], 'reordering retires nothing');
+
+  // A move from head 0 signed by the genesis recovery quorum, which the reordered history still holds.
+  const moved = await rehome(s0, b, [recA], now + 120_000);
+  const branchLog = log(await append(head0, moved.next, b, { transition: null, rehome: moved.signed })), branch = await verifyIdentityLog(branchLog, strict);
+  const kept = await verifyIdentityLog(reordered, strict);
+  assert.equal(precedence(branch, kept), 'a-supersedes-b');
+  const pin: ResolverPin = { identity_id: identity, resolver_id: a.id, resolver_key: a.key.keyId, resolver_epoch: 0, minimum_sequence: 1, minimum_digest: kept.head_digest };
+  const judged = await judgeIdentityLog(pin, branchLog, strict, reordered);
+  assert.equal(judged.outcome, 'superseded');
+  // The same move against a history that changed only the threshold after the fork: not the current quorum there.
+  assert.equal(precedence(branch, await verifyIdentityLog(raised, strict)), 'conflict');
+});

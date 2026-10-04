@@ -9,7 +9,7 @@ import { sha256HexSync } from '../sha256.ts';
 import { decodeSignature, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import type { KeyPair } from '../keys.ts';
 import { CLOCK_MARGIN_MS, LEASE_MS, copyIdentityData, createIdentity, rehomeIdentity, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
-import type { Control, Genesis, IdentityState, Rehome, ResolverEnrollment, Signed, Transition } from './identity.ts';
+import type { Control, Genesis, IdentityState, KeySet, Rehome, ResolverEnrollment, Signed, Transition } from './identity.ts';
 
 export const IDENTITY_LOG_FORMAT = 'dtp-identity-log-2';
 /** Format 1 had no rehome member. It remains valid and is verified by the same rules. */
@@ -160,6 +160,11 @@ export function compareCheckpoint(log: VerifiedIdentityLog, checkpoint: { sequen
   if (checkpoint.sequence >= log.heads.length) return 'log-behind';
   return log.heads[checkpoint.sequence].head_digest === checkpoint.head_digest ? 'consistent' : 'conflict';
 }
+/** One quorum: the same set of keys, in any order, and the same threshold. Key order in a KeySet carries no meaning. */
+function sameQuorum(a: KeySet, b: KeySet) {
+  const x = [...a.keys].sort(), y = [...b.keys].sort();
+  return a.threshold === b.threshold && x.length === y.length && x.every((k, i) => k === y[i]);
+}
 /** Epoch precedence between two verified histories of one identity. Only the recovery quorum can advance
  *  the epoch, so among forks the history reaching the higher epoch supersedes; forks at one epoch conflict.
  *  Fork-point rule: the higher branch supersedes only if the recovery quorum that signed its first divergent
@@ -174,7 +179,7 @@ export function precedence(a: VerifiedIdentityLog, b: VerifiedIdentityLog): 'equ
     if (a.resolver.epoch === b.resolver.epoch) return 'conflict';
     const [higher, lower] = a.resolver.epoch > b.resolver.epoch ? [a, b] : [b, a];
     // Head 0 differs only in its instant: both heads come from one genesis, so their recovery sets are equal.
-    if (canonicalize(higher.heads[Math.max(i - 1, 0)].head.recovery) !== canonicalize(lower.head.recovery)) return 'conflict';
+    if (!sameQuorum(higher.heads[Math.max(i - 1, 0)].head.recovery, lower.head.recovery)) return 'conflict';
     return higher === a ? 'a-supersedes-b' : 'b-supersedes-a';
   }
   if (a.heads.length === b.heads.length) return 'equal';
