@@ -8,7 +8,7 @@ import { generateKeyPair } from '../../src/keys.ts';
 import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, rehomeIdentity, signIdentity, transitionIdentity } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Transition } from '../../src/foundation/identity.ts';
-import { attestHead, buildIdentityLog, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT } from '../../src/foundation/identity-log.ts';
+import { attestHead, buildIdentityLog, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, refuseRehome, rehomeDigest } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogEntry, IdentityLogParts } from '../../src/foundation/identity-log.ts';
 import type { JsonObject } from '../../src/foundation/semantics.ts';
 import { personAuthenticationFixture } from './person-authentication-fixture.ts';
@@ -94,6 +94,31 @@ test('owner push into the adapter: the pushed log is judged against the durable 
     const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { ...f.parts.enrollment.body, identity_id: other.head.identity_id, genesis_digest: other.genesis_digest }, [op, rec]);
     const stranger = await push(await buildIdentityLog({ genesis, enrollment, entries: f.parts.entries }, null));
     assert.deepEqual([stranger.outcome, stranger.reason, stranger.identity_id], ['refused', 'unknown-identity', other.head.identity_id]);
+  } finally { await f.pg.close(); }
+});
+
+test('a held rehome refusal (#56): once recorded, both admission paths refuse a log containing that rehome as refused-move, even with the destination\'s attestation; a fresh rehome is unaffected', async () => {
+  const f = await setup(); try {
+    await f.authenticate(f.identity, f.resolver);
+    const at = Date.now(), moved = await f.move(f.identity, at), rehome = moved.entry.rehome!;
+    // B attested the head while also refusing the rehome that produced it: equivocation, which the held refusal defeats.
+    const log = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, moved.entry] }, f.resolverB);
+    const refusal = await refuseRehome(rehome, f.resolverB, at - 100);
+    const record = (r = refusal, person_id = f.person.id) => f.db.transaction(tx => f.adapter.recordRehomeRefusal(tx, { person_id, rehome, refusal: r }));
+    await assert.rejects(record(await refuseRehome(rehome, f.resolverB, at - 100).then(r => ({ ...r, body: { ...r.body, refused_at: at } }))), /signature/, 'an altered refusal is not taken in');
+    await assert.rejects(record(refusal, crypto.randomUUID()), /not enrolled/, 'only for a person this host enrolled');
+    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: true });
+    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: false }, 'recording it again keeps the first');
+    const kept = await f.db.query<{ rehome: unknown; refusal: unknown }>('select rehome,refusal from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]);
+    assert.deepEqual(kept, [{ rehome, refusal }], 'both artifacts are kept');
+    await assert.rejects(f.admit(log), /refused/);
+    const push = (l: IdentityLog) => f.db.transaction(tx => f.adapter.receiveIdentityLogPush(tx, { message: { format: IDENTITY_LOG_PUSH_FORMAT, log: l }, require_attestation: false }));
+    const ack = await push(log);
+    assert.deepEqual([ack.outcome, ack.reason, ack.binding], ['refused', 'refused-move', null]);
+    assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 0, digest: f.identity.head_digest }, 'nothing moved');
+    // The owner signs a fresh rehome to B, which B adopts: the refusal names the earlier document only.
+    const again = await f.move(f.identity, at + 1_000), fresh = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, again.entry] }, f.resolverB);
+    assert.equal((await push(fresh)).outcome, 'advanced');
   } finally { await f.pg.close(); }
 });
 

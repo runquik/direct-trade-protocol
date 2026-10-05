@@ -168,7 +168,9 @@ test('a destination that will not adopt signs a refusal: it never adopts that re
     const attested = structuredClone(dangling), head = (await verifyIdentityLog(dangling, lenient)).heads[1].head;
     attested.entries[1].attestation = await attestHead(head, { id: w.b.config.id, epoch: 1 }, w.b.key);
     assert.equal(await compareRehomeRefusal(refusal, attested), 'equivocation');
-    assert.equal((await judgeIdentityLog(pin, attested, lenient)).outcome, 'advanced', 'admission alone cannot see the refusal; a relying party holding one refuses the branch itself');
+    assert.equal((await judgeIdentityLog(pin, attested, lenient)).outcome, 'advanced', 'a relying party that holds no refusal cannot see it');
+    assert.deepEqual(await judgeIdentityLog(pin, attested, lenient, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'a relying party holding the refusal refuses the branch (#56)');
+    assert.deepEqual(await judgeIdentityLog(pin, dangling, lenient, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'and the dangling consent too, before any evidence rule');
     // The owner signs a fresh rehome to B, which B adopts; the earlier refusal is about the earlier document only.
     const later = w.clock.advance(1_000), again = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { ...body, issued_at: later, expires_at: later + 300_000 }, [w.rec0]);
     const adopted = await w.b.registry.adopt(exported, again); assert.equal(adopted.resolver_epoch, 1);

@@ -43,9 +43,11 @@ export const REHOME_REFUSAL_DOMAIN = 'DTP-IDENTITY-REHOME-REFUSAL-1';
  *  key, are portable proof that the destination equivocated. */
 export interface RehomeRefusal { identity_id: string; rehome_digest: string; resolver_id: string; resolver_epoch: number; refused_at: number }
 /** Why a relying party refused a log. `invalid-log` carries the verifier's error; the rest are admission rules. */
-export type AdmissionRefusal = 'invalid-log' | 'another-identity' | 'unknown-identity' | 'foreign-lineage' | 'behind' | 'conflict' | 'unadopted-move';
+export type AdmissionRefusal = 'invalid-log' | 'another-identity' | 'unknown-identity' | 'foreign-lineage' | 'behind' | 'conflict' | 'unadopted-move' | 'refused-move';
 /** A pin together with the log the relying party holds for it, which ends at the pinned head. */
-export interface PinnedHistory { pin: ResolverPin; log: IdentityLog }
+/** What a relying party holds for one identity: its pin, the log ending at the pinned head (or null when it holds only
+ *  the pin), and the rehome refusals it holds for that identity. */
+export interface PinnedHistory { pin: ResolverPin; log: IdentityLog | null; refusals?: Signed<RehomeRefusal>[] }
 export interface IdentityLogAdmission { outcome: 'unchanged' | 'advanced' | 'superseded'; pin: ResolverPin; superseded: { sequence: number; head_digest: string } | null }
 export type IdentityLogJudgement = IdentityLogAdmission | { outcome: 'refused'; reason: AdmissionRefusal; error: Error | null };
 export const IDENTITY_LOG_PUSH_FORMAT = 'dtp-identity-log-push-1';
@@ -200,9 +202,11 @@ async function pinnedHistory(pin: ResolverPin, log: IdentityLog): Promise<Verifi
   return p;
 }
 /** The relying-party procedure over an already verified log; see judgeIdentityLog. */
-function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: VerifiedIdentityLog | null): IdentityLogJudgement {
+function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: VerifiedIdentityLog | null, refused: boolean): IdentityLogJudgement {
   // Two identities enrolled at one resolver share its binding; the pin is for exactly one of them.
   if (v.identity_id !== pin.identity_id) return { outcome: 'refused', reason: 'another-identity', error: null };
+  // The destination said never: whether or not it later attested the head, the party holding its refusal refuses.
+  if (refused) return { outcome: 'refused', reason: 'refused-move', error: null };
   // With both histories in hand, a fork that precedence cannot rank (same epoch, or a retired recovery quorum on the
   // higher branch) is a conflict whichever side the relying party currently follows.
   if (pinned !== null && precedence(v, pinned) === 'conflict') return { outcome: 'refused', reason: 'conflict', error: null };
@@ -226,29 +230,41 @@ function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: Verifie
   }
   return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
 }
+/** True when a refusal the party holds is the named destination's verified statement about a rehome in the log. A held
+ *  refusal that names no rehome in the log, or does not verify against one, says nothing about it. */
+async function refusedMove(log: IdentityLog, refusals: Signed<RehomeRefusal>[]): Promise<boolean> {
+  need(Array.isArray(refusals) && refusals.length <= MAX_LOG_ENTRIES, 'held refusals must be a bounded list');
+  if (refusals.length === 0) return false;
+  for (const entry of copyLog(log).entries) {
+    if (entry.rehome === null) continue;
+    for (const refusal of refusals) if (await verifyRehomeRefusal(refusal, entry.rehome).then(() => true, () => false)) return true;
+  }
+  return false;
+}
 /** The relying-party procedure as a judgement that never throws for an expected refusal: verify the log; refuse a
- *  fork precedence cannot rank against the pinned history, when the party holds it; require that the log continues
+ *  log that contains a rehome the party holds a refusal for (`refused-move`); refuse a fork precedence cannot rank against the pinned history, when the party holds it; require that the log continues
  *  the lineage the pin was enrolled with, at the pinned epoch; require adoption evidence for every move past the
  *  pinned epoch; admit a conflict with the pinned checkpoint only when the log has reached a higher epoch AND the
  *  pinned history shows that the recovery quorum the log's branch forked under is still current, and then report it,
  *  never hide it. `pinned` is the log the party holds, ending at the pinned head, or null when it holds only the pin.
  *  An invalid pin, or a pinned history that does not end at the pin, is the caller's bug and still throws. */
-export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null): Promise<IdentityLogJudgement> {
+export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogJudgement> {
   pin = checkPin(pin);
   const held = pinned === null ? null : await pinnedHistory(pin, pinned);
   let v: VerifiedIdentityLog;
   try { v = await verifyIdentityLog(log, policy); } catch (error) { return { outcome: 'refused', reason: 'invalid-log', error: error instanceof Error ? error : new Error(String(error)) }; }
-  return judgeVerified(pin, v, held);
+  return judgeVerified(pin, v, held, await refusedMove(log, refusals));
 }
 const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string> = {
   'another-identity': 'log is for another identity', 'unknown-identity': 'identity is not enrolled here',
   'foreign-lineage': 'log does not continue the pinned lineage', 'behind': 'log is behind the pinned checkpoint',
   'conflict': 'conflicting control history: same resolver epoch, retired recovery authority, or no pinned history to rule it out', 'unadopted-move': 'move without the destination\'s attestation',
+  'refused-move': 'log contains a rehome its destination refused',
 };
 /** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place, or throw.
  *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
-export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null): Promise<IdentityLogAdmission> {
-  const judged = await judgeIdentityLog(pin, log, policy, pinned);
+export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogAdmission> {
+  const judged = await judgeIdentityLog(pin, log, policy, pinned, refusals);
   if (judged.outcome !== 'refused') return judged;
   if (judged.reason === 'invalid-log') throw judged.error;
   throw new Error(REFUSAL_MESSAGES[judged.reason]);
@@ -257,18 +273,19 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, polic
  *  message and the pin the relying party holds, so a repeated push is answered identically once admitted
  *  (`unchanged`). `lookup` returns the durable pin for an identity, or null when this relying party never enrolled
  *  it; with the pin it may return the log it holds for that pin, `{ pin, log }`, which lets a higher-epoch fork be
- *  ranked by the fork-point rule instead of refused as a conflict; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
+ *  ranked by the fork-point rule instead of refused as a conflict, and the rehome refusals it holds for the identity,
+ *  `{ pin, log, refusals }`, so that a log containing a refused rehome is refused as `refused-move`; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
 export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | PinnedHistory | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
   const refused = (identity_id: string | null, reason: AdmissionRefusal): { ack: IdentityLogPushAck; admission: null } => ({ ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id, outcome: 'refused', reason, binding: null }, admission: null });
-  let v: VerifiedIdentityLog;
+  let v: VerifiedIdentityLog, log: IdentityLog;
   try {
     const m = copyIdentityData(message); fields(m, ['format', 'log']); need(m.format === IDENTITY_LOG_PUSH_FORMAT, 'unsupported identity log push format');
-    v = await verifyIdentityLog(m.log, policy);
+    v = await verifyIdentityLog(m.log, policy); log = m.log;
   } catch { return refused(null, 'invalid-log'); }
   const found = await lookup(v.identity_id);
   if (found === null) return refused(v.identity_id, 'unknown-identity');
-  const held = 'log' in found ? found : { pin: found, log: null }, pin = checkPin(held.pin);
-  const judged = judgeVerified(pin, v, held.log === null ? null : await pinnedHistory(pin, held.log));
+  const held: PinnedHistory = 'pin' in found ? found : { pin: found, log: null }, pin = checkPin(held.pin);
+  const judged = judgeVerified(pin, v, held.log === null ? null : await pinnedHistory(pin, held.log), await refusedMove(log, held.refusals ?? []));
   if (judged.outcome === 'refused') return refused(v.identity_id, judged.reason);
   const p = judged.pin;
   return { ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id: v.identity_id, outcome: judged.outcome, reason: null,
@@ -280,7 +297,7 @@ export function parseIdentityLogPushAck(value: unknown): IdentityLogPushAck {
   need(a.format === IDENTITY_LOG_PUSH_ACK_FORMAT, 'unsupported identity log push ack format');
   need(a.identity_id === null || typeof a.identity_id === 'string', 'invalid push ack identity');
   need(['unchanged', 'advanced', 'superseded', 'refused'].includes(a.outcome), 'invalid push ack outcome');
-  need(a.reason === null || ['invalid-log', 'another-identity', 'unknown-identity', 'foreign-lineage', 'behind', 'conflict', 'unadopted-move'].includes(a.reason), 'invalid push ack reason');
+  need(a.reason === null || ['invalid-log', 'another-identity', 'unknown-identity', 'foreign-lineage', 'behind', 'conflict', 'unadopted-move', 'refused-move'].includes(a.reason), 'invalid push ack reason');
   need((a.outcome === 'refused') === (a.reason !== null) && (a.outcome === 'refused') === (a.binding === null), 'push ack outcome, reason and binding disagree');
   if (a.binding !== null) { fields(a.binding, ['resolver_id', 'resolver_epoch', 'sequence', 'head_digest']); need(typeof a.binding.resolver_id === 'string' && instant(a.binding.resolver_epoch) && instant(a.binding.sequence) && hex64(a.binding.head_digest), 'invalid push ack binding'); }
   return a;
