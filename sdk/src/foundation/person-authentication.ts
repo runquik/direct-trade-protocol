@@ -209,8 +209,9 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       return { intent: bounded(r.intent), actor: bounded(r.actor), grant_id: r.grant_id };
     },
     /** Admits a person's move to another resolver from their portable identity log, inside the caller's transaction.
-     *  The log must continue the lineage this host enrolled, at the epoch it currently holds; a conflict with the durable
-     *  checkpoint is admitted only when the log has reached a higher epoch, and is reported. The durable row becomes the
+     *  The log must continue the lineage this host enrolled, at the epoch it currently holds. The durable checkpoint is a
+     *  pin without the history behind it, so the fork-point rule cannot be applied and every conflict with it is refused,
+     *  a higher-epoch one too (identity-log.md, #50); a fork signed by a retired recovery quorum never supersedes here. The durable row becomes the
      *  effective binding, so resolutions from the former resolver are refused from this commit on, across restarts and
      *  regardless of the static configuration. Whether unattested heads are acceptable is the caller's explicit policy. */
     async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog; require_attestation: boolean }) {

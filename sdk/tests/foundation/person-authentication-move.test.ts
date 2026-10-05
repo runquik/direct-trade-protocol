@@ -97,7 +97,7 @@ test('owner push into the adapter: the pushed log is judged against the durable 
   } finally { await f.pg.close(); }
 });
 
-test('admission refuses another identity, a lineage this host never enrolled, an operational-signed move, and a same-epoch fork; a higher-epoch fork supersedes and is reported; a failed transaction changes nothing', async () => {
+test('admission refuses another identity, a lineage this host never enrolled, an operational-signed move, and a same-epoch fork; a higher-epoch fork fails closed without the pinned history; a failed transaction changes nothing', async () => {
   const f = await setup(); try {
     await f.authenticate(f.identity, f.resolver);
     const now = Date.now(), moved = await f.move(f.identity, now), valid = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, moved.entry] }, f.resolverB);
@@ -122,11 +122,11 @@ test('admission refuses another identity, a lineage this host never enrolled, an
     assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 1, digest: rotated.state.head_digest });
     await assert.rejects(f.admit(await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, rival.entry] }, null)), /same resolver epoch/);
     assert.equal((await f.row()).digest, rotated.state.head_digest);
-    // The recovery quorum moves the rival branch to B. Epoch precedence admits it, and the superseded checkpoint is reported, not hidden.
+    // The recovery quorum moves the rival branch to B. The adapter holds only its durable checkpoint, not the history
+    // behind it, so it cannot apply the fork-point rule (#50): a higher-epoch conflict fails closed and changes nothing.
     const rivalMoved = await f.move(rival.state, now + 2), superseding = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, rival.entry, rivalMoved.entry] }, f.resolverB);
-    const outcome = await f.admit(superseding);
-    assert.equal(outcome.outcome, 'superseded'); assert.deepEqual(outcome.superseded, { sequence: 1, head_digest: rotated.state.head_digest });
-    assert.deepEqual(await f.row(), { resolver_id: f.b.resolver_id, epoch: 1, sequence: 2, digest: rivalMoved.state.head_digest });
-    await assert.rejects(f.authenticate(rotated.state, f.resolver, [f.next]), /resolver authority mismatch/);
+    await assert.rejects(f.admit(superseding), /conflicting control history/);
+    assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 1, digest: rotated.state.head_digest });
+    await f.authenticate(rotated.state, f.resolver, [f.next]);
   } finally { await f.pg.close(); }
 });

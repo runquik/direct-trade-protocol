@@ -144,25 +144,25 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
   const vectors = parseUntrustedJson(readFileSync(file, 'utf8')) as { format: string; legacy_format: string; rehome_domain: string; refusal_domain: string; push_format: string; push_ack_format: string; lease_ms: number; clock_margin_ms: number;
     accept: { why: string; require_attestation: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; require_attestation: boolean; log: IdentityLog }[];
     precedence: { why: string; a: IdentityLog; b: IdentityLog; expect: ReturnType<typeof precedence> }[];
-    admission: { why: string; pin: ResolverPin; log: IdentityLog; require_attestation: boolean; expect: any }[];
-    push: { why: string; pin: ResolverPin | null; message: IdentityLogPush; require_attestation: boolean; ack: IdentityLogPushAck }[];
+    admission: { why: string; pin: ResolverPin; pinned: IdentityLog | null; log: IdentityLog; require_attestation: boolean; expect: any }[];
+    push: { why: string; pin: ResolverPin | null; pinned: IdentityLog | null; message: IdentityLogPush; require_attestation: boolean; ack: IdentityLogPushAck }[];
     refusals: { accept: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal>; expect: RehomeRefusal }[]; reject: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal> }[];
       contradictions: { why: string; refusal: Signed<RehomeRefusal>; log: IdentityLog; expect: string }[] } };
   assert.equal(vectors.format, IDENTITY_LOG_FORMAT); assert.equal(vectors.legacy_format, LEGACY_IDENTITY_LOG_FORMAT); assert.equal(vectors.rehome_domain, 'DTP-IDENTITY-REHOME-1');
   assert.equal(vectors.refusal_domain, REHOME_REFUSAL_DOMAIN); assert.equal(vectors.push_format, IDENTITY_LOG_PUSH_FORMAT); assert.equal(vectors.push_ack_format, IDENTITY_LOG_PUSH_ACK_FORMAT);
   assert.equal(vectors.lease_ms, LEASE_MS); assert.equal(vectors.clock_margin_ms, CLOCK_MARGIN_MS);
-  assert.ok(vectors.accept.length >= 8 && vectors.reject.length >= 47 && vectors.precedence.length >= 5);
-  assert.ok(vectors.admission.length >= 13 && vectors.push.length >= 7 && vectors.refusals.accept.length >= 1 && vectors.refusals.reject.length >= 8 && vectors.refusals.contradictions.length >= 4);
+  assert.ok(vectors.accept.length >= 8 && vectors.reject.length >= 47 && vectors.precedence.length >= 7);
+  assert.ok(vectors.admission.length >= 19 && vectors.push.length >= 10 && vectors.refusals.accept.length >= 1 && vectors.refusals.reject.length >= 8 && vectors.refusals.contradictions.length >= 4);
   const reasons = new Set(vectors.admission.map(v => v.expect.reason ?? v.expect.outcome));
   for (const reason of ['unchanged', 'advanced', 'superseded', 'invalid-log', 'another-identity', 'foreign-lineage', 'behind', 'conflict', 'unadopted-move']) assert.ok(reasons.has(reason), `admission vectors cover ${reason}`);
   for (const v of vectors.admission) {
-    const j = await judgeIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation });
+    const j = await judgeIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned);
     assert.deepEqual(j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded }, v.expect, v.why);
-    if (j.outcome === 'refused') await assert.rejects(admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }), v.why);
-    else assert.deepEqual(await admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }), j, v.why);
+    if (j.outcome === 'refused') await assert.rejects(admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned), v.why);
+    else assert.deepEqual(await admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned), j, v.why);
   }
   for (const v of vectors.push) {
-    const { ack } = await receiveIdentityLogPush(v.message, async identity => v.pin !== null && v.pin.identity_id === identity ? v.pin : null, { require_attestation: v.require_attestation });
+    const { ack } = await receiveIdentityLogPush(v.message, async identity => v.pin === null || v.pin.identity_id !== identity ? null : v.pinned === null ? v.pin : { pin: v.pin, log: v.pinned }, { require_attestation: v.require_attestation });
     assert.deepEqual(ack, v.ack, v.why); parseIdentityLogPushAck(ack);
   }
   for (const v of vectors.refusals.accept) assert.deepEqual(await verifyRehomeRefusal(v.refusal, v.rehome), v.expect, v.why);
