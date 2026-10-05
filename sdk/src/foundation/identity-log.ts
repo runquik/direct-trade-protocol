@@ -231,13 +231,19 @@ function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: Verifie
   return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
 }
 /** True when a refusal the party holds is the named destination's verified statement about a rehome in the log. A held
- *  refusal that names no rehome in the log, or does not verify against one, says nothing about it. */
+ *  refusal that names no rehome in the log, or does not verify against one, says nothing about it. Refusals are matched
+ *  by the digest they name, so only a refusal naming one of the log's rehomes costs a signature verification. */
 async function refusedMove(log: IdentityLog, refusals: Signed<RehomeRefusal>[]): Promise<boolean> {
   need(Array.isArray(refusals) && refusals.length <= MAX_LOG_ENTRIES, 'held refusals must be a bounded list');
   if (refusals.length === 0) return false;
+  const named = new Map<string, Signed<RehomeRefusal>[]>();
+  for (const refusal of refusals) {
+    const digest = (refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
+    if (typeof digest === 'string') named.set(digest, [...(named.get(digest) ?? []), refusal]);
+  }
   for (const entry of copyLog(log).entries) {
     if (entry.rehome === null) continue;
-    for (const refusal of refusals) if (await verifyRehomeRefusal(refusal, entry.rehome).then(() => true, () => false)) return true;
+    for (const refusal of named.get(await rehomeDigest(entry.rehome)) ?? []) if (await verifyRehomeRefusal(refusal, entry.rehome).then(() => true, () => false)) return true;
   }
   return false;
 }

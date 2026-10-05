@@ -4,8 +4,8 @@ import { canonicalBytes, canonicalize, sha256Hex, bytesToHex } from '../canonica
 import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
-import type { Signed, Rehome, Resolution, Signature } from './identity.ts';
-import { admitIdentityLog, receiveIdentityLogPush, verifyRehomeRefusal } from './identity-log.ts';
+import type { Signed, Resolution, Signature } from './identity.ts';
+import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal } from './identity-log.ts';
 import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, PinnedHistory, RehomeRefusal, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
@@ -16,6 +16,8 @@ export const PERSON_CHALLENGE_LIFETIME_MS = 60_000;
 export const PERSON_MAX_CLOCK_SKEW_MS = 1_000;
 export const PERSON_MAX_CLOCK_SAMPLE_MS = 1_000;
 export const PERSON_COMMIT_RESERVE_MS = 5_000;
+/** Rehome refusals a host keeps per person. Each one names a rehome its owner's recovery quorum signed. */
+export const PERSON_MAX_REHOME_REFUSALS = 64;
 export const PERSON_AUTHENTICATION_SCHEMA = `
 create schema if not exists dtp_foundation;
 create table if not exists dtp_foundation.person_auth_issuers (
@@ -254,16 +256,27 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       }
       return ack;
     },
-    /** Takes in a destination's refusal of a rehome for an enrolled person, inside the caller's transaction. The
-     *  refusal must verify against the rehome it names; both artifacts are kept, as the identity log requires, and
-     *  from this commit on both admission paths refuse any log containing that rehome (`refused-move`). Recording the
-     *  same rehome's refusal again keeps the first. */
-    async recordRehomeRefusal(tx: Db, input: { person_id: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean }> {
-      const v = bounded(input); exact(v, ['person_id', 'rehome', 'refusal']); uuid(v.person_id); pinFor(v.person_id);
-      const body = await verifyRehomeRefusal(v.refusal, v.rehome); need(body.identity_id === v.person_id, 'refusal is for another identity');
-      const rows = await tx.query('insert into dtp_foundation.person_auth_rehome_refusals (host_id,person_id,rehome_digest,rehome,refusal) values ($1,$2,$3,$4,$5) on conflict (host_id,person_id,rehome_digest) do nothing returning person_id',
-        [config.host_id, v.person_id, body.rehome_digest, v.rehome, v.refusal]);
-      return { rehome_digest: body.rehome_digest, recorded: rows.length === 1 };
+    /** Takes in a destination's refusal of a rehome for an enrolled person, inside the caller's transaction. The rehome
+     *  must be an entry of `log`, a log that verifies for that person, so it is one the person's recovery quorum signed:
+     *  nobody else can make a host hold a refusal for that person. The refusal must verify against that rehome. Both
+     *  artifacts are kept, as the identity log requires, and from this commit on both admission paths refuse any log
+     *  containing that rehome (`refused-move`). Recording the same rehome's refusal again keeps the first; at most
+     *  PERSON_MAX_REHOME_REFUSALS are kept per person, and one more is refused. */
+    async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean }> {
+      const v = bounded(input); exact(v, ['person_id', 'log', 'refusal']); uuid(v.person_id); const p = pinFor(v.person_id);
+      const log = await verifyIdentityLog(v.log, { require_attestation: false }); need(log.identity_id === p.person_id, 'log is for another identity');
+      const named = (v.refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
+      let rehome = null;
+      for (const entry of v.log.entries) if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; break; }
+      need(rehome !== null, 'refusal names no rehome of this person\'s verified log');
+      const body = await verifyRehomeRefusal(v.refusal, rehome); need(body.identity_id === p.person_id, 'refusal is for another identity');
+      await checkpoint(tx, p); // Locks the person's checkpoint row, so concurrent recordings cannot pass the limit together.
+      const held = await tx.query<{ rehome_digest: string }>('select rehome_digest from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2', [config.host_id, p.person_id]);
+      if (held.some(r => r.rehome_digest === body.rehome_digest)) return { rehome_digest: body.rehome_digest, recorded: false };
+      need(held.length < PERSON_MAX_REHOME_REFUSALS, 'rehome refusal limit reached for this person');
+      await tx.query('insert into dtp_foundation.person_auth_rehome_refusals (host_id,person_id,rehome_digest,rehome,refusal) values ($1,$2,$3,$4,$5)',
+        [config.host_id, p.person_id, body.rehome_digest, rehome, v.refusal]);
+      return { rehome_digest: body.rehome_digest, recorded: true };
     },
     /** Must be the mandatory transaction-tail hook, including historical business retries. */
     async beforeCommit(tx: Db, input: { organization_id: string; now: number; verified: VerifiedOperation; request: JsonObject; valid_until: number }): Promise<void> {
