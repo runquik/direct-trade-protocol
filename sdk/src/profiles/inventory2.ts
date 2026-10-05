@@ -95,6 +95,14 @@ function checkPosition(ledger: InventoryLedger, p: unknown, path: string): Posit
 const reservedAt = (ledger: InventoryLedger, key: string) => Object.values(ledger.reservations).filter(r => r.position === key).reduce((n, r) => n + parseDecimal(r.quantity, 3), 0n);
 function positionAt(ledger: InventoryLedger, pos: Position): PositionState { const key = positionKey(pos); return ledger.positions[key] ??= { position: { ...pos }, quantity: '0', serials: [] }; }
 function compact(ledger: InventoryLedger) { for (const [k, p] of Object.entries(ledger.positions)) if (parseDecimal(p.quantity, 3) === 0n && p.serials.length === 0) delete ledger.positions[k]; }
+/** Host rule, not the reducer's: true when a pack conversion in the fact is not a packaging revision the product
+ *  published (`unknown_packaging`), or there is no product. A malformed fact is left to the reducer. The live write path
+ *  and snapshot import both apply it, so import cannot admit a fact a live host refuses. */
+export function unpublishedPackaging(fact: unknown, product: Pick<ProductBody, 'packaging'> | undefined): boolean {
+  const f = fact as any, units = [...(Array.isArray(f?.moves) ? f.moves : []), ...(Array.isArray(f?.reservations) ? f.reservations : [])].map((x: any) => x?.quantity?.unit);
+  return units.filter((u: any) => u && typeof u === 'object' && u.system === 'packaging')
+    .some((u: any) => !product || !(product.packaging as any[]).some(x => x.packaging_id === u.packaging_id && x.version === u.version && x.base_units_per_pack === u.base_units_per_pack));
+}
 /** Applies one fact atomically. Assumes an authenticated, schema-admitted fact and authoritative persisted state; the
  *  caller MUST compare revision, deduplicate and persist the returned state in one transaction. */
 export function applyInventoryFact(state: InventoryLedger, fact: InventoryFact): InventoryResult {

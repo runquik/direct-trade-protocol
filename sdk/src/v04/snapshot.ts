@@ -5,7 +5,7 @@ import { checkPermissions } from "./permissions.ts";
 import { applyInventoryEvent, createInventoryState, inventoryKey } from "../profiles/inventory.ts";
 import { validateInvoice } from "../profiles/invoice.ts";
 import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../profiles/product.ts";
-import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger } from "../profiles/inventory2.ts";
+import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger, unpublishedPackaging } from "../profiles/inventory2.ts";
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
@@ -231,6 +231,8 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
   }
   const recordIds = new Set<string>(), roots = new Set<string>(), predecessors = new Set<string>(); let priorSeq = 0;
   const records = new Map(snap.records.map(r => [r.id,r]));
+  // The product head as of each record, in seq order: the revision a live host checked a fact's packaging against.
+  const productAt = new Map<string,any>();
   for (const r of snap.records) {
     demand(r.organization_id === snap.organization.id && !s.records[r.id] && !recordIds.has(r.id) && candidate.profiles[r.profile_digest] && snap.policies.some(p => p.id === r.policy_id), "invalid_snapshot", "record collision or dependency missing"); recordIds.add(r.id);
     validateCommand(r.command,r.command.audience,instant(r.command.issued_at)); const recordProofs = await verifyCommand(r.command);
@@ -250,7 +252,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     if (semantics === "product-v1") {
       demand(validateProduct(r.body).length === 0, "invalid_snapshot", "product violates profile");
       if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkProductContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "product continuity violated"); }
-      expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
+      productAt.set(r.root_id,r.body); expectedValidation = {profile:PRODUCT_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "order-v1") {
       demand(validateOrder(r.body).length === 0, "invalid_snapshot", "order violates profile");
@@ -274,6 +276,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       const fact = r.body, ledger = ledgers ? rebuiltInventory.ledgers[fact.product_id] : undefined;
       demand(r.supersedes === null && fact.product_id === r.resource_id && ledger?.policy_id === r.policy_id, "invalid_snapshot", "inventory fact scope differs");
       const observation = stateKey(fact.product_id,fact.observation?.source_id,fact.observation?.sequence); demand(!rebuiltInventory.facts[observation], "invalid_snapshot", "duplicate inventory fact");
+      demand(!unpublishedPackaging(fact,productAt.get(fact.product_id)), "invalid_snapshot", "inventory fact pins a packaging revision the product had not published (#59)");
       const changed = applyInventoryFact(ledger,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "inventory facts violate profile");
       rebuiltInventory.ledgers[fact.product_id] = {...changed.state,policy_id:ledger.policy_id}; rebuiltInventory.facts[observation] = {hash:await digest(fact),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
       expectedValidation = {profile:INVENTORY2_PROFILE,revision:changed.state.revision,physical_stock_verified:false};
