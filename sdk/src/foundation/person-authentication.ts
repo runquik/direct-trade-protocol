@@ -5,8 +5,8 @@ import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes }
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
 import type { Signed, Resolution, Signature } from './identity.ts';
-import { admitIdentityLog, receiveIdentityLogPush } from './identity-log.ts';
-import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, ResolverPin } from './identity-log.ts';
+import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal } from './identity-log.ts';
+import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, PinnedHistory, RehomeRefusal, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
 import type { JsonObject, OperationIntent } from './semantics.ts';
@@ -16,6 +16,8 @@ export const PERSON_CHALLENGE_LIFETIME_MS = 60_000;
 export const PERSON_MAX_CLOCK_SKEW_MS = 1_000;
 export const PERSON_MAX_CLOCK_SAMPLE_MS = 1_000;
 export const PERSON_COMMIT_RESERVE_MS = 5_000;
+/** Rehome refusals a host keeps per person. Each one names a rehome its owner's recovery quorum signed. */
+export const PERSON_MAX_REHOME_REFUSALS = 64;
 export const PERSON_AUTHENTICATION_SCHEMA = `
 create schema if not exists dtp_foundation;
 create table if not exists dtp_foundation.person_auth_issuers (
@@ -25,6 +27,10 @@ create table if not exists dtp_foundation.person_auth_checkpoints (
  host_id uuid not null, person_id uuid not null, resolver_id uuid not null, resolver_key text not null,
  resolver_epoch bigint not null, sequence bigint not null, digest text not null,
  primary key(host_id,person_id)
+);
+create table if not exists dtp_foundation.person_auth_rehome_refusals (
+ host_id uuid not null, person_id uuid not null, rehome_digest text not null, rehome jsonb not null, refusal jsonb not null,
+ primary key(host_id,person_id,rehome_digest)
 );
 create table if not exists dtp_foundation.person_auth_challenges (
  host_id uuid not null references dtp_foundation.person_auth_issuers, nonce text not null,
@@ -156,6 +162,8 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
     } else { uuid(row.resolver_id); decodeKeyId(row.resolver_key); } // A later epoch was admitted from a verified log; the row is the binding now.
     integer(Number(row.sequence)); hash(row.digest); return row;
   };
+  const heldRefusals = async (tx: Db, person: string): Promise<Signed<RehomeRefusal>[]> =>
+    (await tx.query<{ refusal: Signed<RehomeRefusal> }>('select refusal from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2 order by rehome_digest', [config.host_id, person])).map(r => r.refusal);
   const lockedChallenge = async (tx: Db, c: PersonChallenge): Promise<ChallengeRow> => {
     const rows = await tx.query<ChallengeRow>('select binding,consumed_at,consumed_request_digest,consumed_transaction,deadline_ms from dtp_foundation.person_auth_challenges where host_id=$1 and nonce=$2 for update', [config.host_id, c.nonce]);
     need(rows.length === 1 && same(rows[0].binding, c), 'challenge unavailable or binding mismatch'); return rows[0];
@@ -218,7 +226,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       const v = bounded(input); exact(v, ['person_id', 'log', 'require_attestation']); uuid(v.person_id); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
       const p = pinFor(v.person_id), head = await checkpoint(tx, p);
       const pin: ResolverPin = { identity_id: p.person_id, resolver_id: head.resolver_id, resolver_key: head.resolver_key, resolver_epoch: Number(head.resolver_epoch), minimum_sequence: Number(head.sequence), minimum_digest: head.digest };
-      const admitted = await admitIdentityLog(pin, v.log, { require_attestation: v.require_attestation }), next = admitted.pin;
+      const admitted = await admitIdentityLog(pin, v.log, { require_attestation: v.require_attestation }, null, await heldRefusals(tx, p.person_id)), next = admitted.pin;
       if (admitted.outcome !== 'unchanged') {
         const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
           [config.host_id, p.person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
@@ -233,10 +241,11 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
     async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush; require_attestation: boolean }): Promise<IdentityLogPushAck> {
       const v = bounded(input); exact(v, ['message', 'require_attestation']); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
       let admitted: PersonResolverPin | null = null;
-      const lookup = async (identity_id: string): Promise<ResolverPin | null> => {
+      const lookup = async (identity_id: string): Promise<PinnedHistory | null> => {
         const p = pins.get(identity_id); if (!p) return null;
         const row = await checkpoint(tx, p); admitted = p;
-        return { identity_id: p.person_id, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest };
+        return { pin: { identity_id: p.person_id, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest },
+          log: null, refusals: await heldRefusals(tx, p.person_id) };
       };
       const { ack, admission } = await receiveIdentityLogPush(v.message, lookup, { require_attestation: v.require_attestation });
       if (admission !== null && admission.outcome !== 'unchanged') {
@@ -246,6 +255,28 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
         need(rows.length === 1, 'checkpoint update conflict');
       }
       return ack;
+    },
+    /** Takes in a destination's refusal of a rehome for an enrolled person, inside the caller's transaction. The rehome
+     *  must be an entry of `log`, a log that verifies for that person, so it is one the person's recovery quorum signed:
+     *  nobody else can make a host hold a refusal for that person. The refusal must verify against that rehome. Both
+     *  artifacts are kept, as the identity log requires, and from this commit on both admission paths refuse any log
+     *  containing that rehome (`refused-move`). Recording the same rehome's refusal again keeps the first; at most
+     *  PERSON_MAX_REHOME_REFUSALS are kept per person, and one more is refused. */
+    async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean }> {
+      const v = bounded(input); exact(v, ['person_id', 'log', 'refusal']); uuid(v.person_id); const p = pinFor(v.person_id);
+      const log = await verifyIdentityLog(v.log, { require_attestation: false }); need(log.identity_id === p.person_id, 'log is for another identity');
+      const named = (v.refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
+      let rehome = null;
+      for (const entry of v.log.entries) if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; break; }
+      need(rehome !== null, 'refusal names no rehome of this person\'s verified log');
+      const body = await verifyRehomeRefusal(v.refusal, rehome); need(body.identity_id === p.person_id, 'refusal is for another identity');
+      await checkpoint(tx, p); // Locks the person's checkpoint row, so concurrent recordings cannot pass the limit together.
+      const held = await tx.query<{ rehome_digest: string }>('select rehome_digest from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2', [config.host_id, p.person_id]);
+      if (held.some(r => r.rehome_digest === body.rehome_digest)) return { rehome_digest: body.rehome_digest, recorded: false };
+      need(held.length < PERSON_MAX_REHOME_REFUSALS, 'rehome refusal limit reached for this person');
+      await tx.query('insert into dtp_foundation.person_auth_rehome_refusals (host_id,person_id,rehome_digest,rehome,refusal) values ($1,$2,$3,$4,$5)',
+        [config.host_id, p.person_id, body.rehome_digest, rehome, v.refusal]);
+      return { rehome_digest: body.rehome_digest, recorded: true };
     },
     /** Must be the mandatory transaction-tail hook, including historical business retries. */
     async beforeCommit(tx: Db, input: { organization_id: string; now: number; verified: VerifiedOperation; request: JsonObject; valid_until: number }): Promise<void> {

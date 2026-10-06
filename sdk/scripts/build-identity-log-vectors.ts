@@ -160,6 +160,11 @@ const pairs: Pair[] = [
   ['identical histories', bare, bare, 'equal'],
 ];
 
+// A destination's signed refusal of one rehome, and what it says next to a log.
+const theRehome = movedParts.entries[4].rehome!, otherRehome = sameResolverNewKey.entries[4].rehome!;
+const refusal = await refuseRehome(theRehome, k['resolver-b'], moveAt - 500);
+const rawRefusal = async (body: RehomeRefusal, signer: KeyPair): Promise<Signed<RehomeRefusal>> =>
+  ({ body, signatures: [{ key_id: signer.keyId, signature: encodeSignature(await signBytes(signer.secretKey, canonicalBytes({ domain: REHOME_REFUSAL_DOMAIN, body }))) }] });
 // Relying-party admission: a durable pin (the binding a party enrolled with and its last verified head) and a log.
 const lenient = { require_attestation: false };
 const bareHeads = (await verifyIdentityLog(clone(bare), lenient)).heads, movedV = await verifyIdentityLog(clone(moved), lenient), rivalV = await verifyIdentityLog(clone(rivalBranch), lenient);
@@ -169,8 +174,9 @@ const pinB: ResolverPin = { identity_id: id, resolver_id: resolverB, resolver_ke
 const retiredV = await verifyIdentityLog(clone(retiredFork), lenient);
 const pinThief: ResolverPin = { identity_id: id, resolver_id: thiefIds[1], resolver_key: k['thief-resolver-2'].keyId, resolver_epoch: 2, minimum_sequence: retiredV.head.sequence, minimum_digest: retiredV.head_digest };
 const rivalAt4 = { ...clone(rivalBranch), entries: clone(rivalBranch.entries.slice(0, 5)) };
-/** The fifth member is the log the party holds for its pin (ending at the pinned head), or null when it holds only the pin. */
-type Admission = [string, ResolverPin, IdentityLog, boolean, IdentityLog | null];
+/** The fifth member is the log the party holds for its pin (ending at the pinned head), or null when it holds only the
+ *  pin; the sixth, when present, the rehome refusals it holds for the identity (none otherwise). */
+type Admission = [string, ResolverPin, IdentityLog, boolean, IdentityLog | null, Signed<RehomeRefusal>[]?];
 const admission: Admission[] = [
   ['a pin at head 0 admits the attested history: advanced', pinA(0, bareHeads[0].head_digest), attested, true, null],
   ['the same pin admits the move, whose heads are attested by the resolver of each epoch: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null],
@@ -191,9 +197,13 @@ const admission: Admission[] = [
   ['a pin that followed the owner\'s move, shown the retired-key fork, holding the pinned history: conflict', pinB, retiredFork, true, moved],
   ['a pin taken BEFORE the recovery-policy, shown the retired-key fork first: advanced; nothing it holds shows the retirement yet', pinA(2, bareHeads[2].head_digest), retiredFork, true, null],
   ['that party, now holding the fork it admitted, is shown the owner\'s real history: conflict, so it learns of the retirement instead of staying silently on the fork', pinThief, moved, true, retiredFork],
+  ['a party holding the destination\'s refusal of the rehome, shown the log in which that destination nevertheless attested the head the rehome produced: refused-move', pinA(0, bareHeads[0].head_digest), moved, true, null, [refusal]],
+  ['the same refusal against the dangling consent nobody attested: refused-move, which a held refusal decides before the evidence rule', pinA(0, bareHeads[0].head_digest), movedBare, false, null, [refusal]],
+  ['a held refusal of a different rehome says nothing about this one: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null, [await refuseRehome(otherRehome, k['resolver-b'], moveAt - 500)]],
+  ['a held "refusal" the named destination did not sign is no refusal: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null, [await rawRefusal(refusal.body, k.stranger)]],
 ];
 const pushMessage = (log: IdentityLog, format = IDENTITY_LOG_PUSH_FORMAT): IdentityLogPush => ({ format: format as typeof IDENTITY_LOG_PUSH_FORMAT, log });
-type Push = [string, ResolverPin | null, IdentityLogPush, boolean, IdentityLog | null];
+type Push = [string, ResolverPin | null, IdentityLogPush, boolean, IdentityLog | null, Signed<RehomeRefusal>[]?];
 const push: Push[] = [
   ['a relying party that enrolled the identity at the first resolver admits the pushed move', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null],
   ['the same push again, against the pin the first one produced: unchanged, so a wallet may repeat it freely', pinB, pushMessage(moved), true, null],
@@ -205,12 +215,9 @@ const push: Push[] = [
   ['anyone pushes the retired-key fork to a party that pinned after the recovery-policy and holds that history: conflict', pinA(3, bareHeads[3].head_digest), pushMessage(retiredFork), true, attested],
   ['the same push to a party holding only the pin: conflict', pinA(3, bareHeads[3].head_digest), pushMessage(retiredFork), true, null],
   ['the owner pushes the real history to a party that admitted the fork and holds it: conflict', pinThief, pushMessage(moved), true, retiredFork],
+  ['a push of a move whose rehome the party holds a refusal for: refused-move', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null, [refusal]],
+  ['the same push to a party holding a refusal the named destination did not sign: advanced', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null, [await rawRefusal(refusal.body, k.stranger)]],
 ];
-// A destination's signed refusal of one rehome, and what it says next to a log.
-const theRehome = movedParts.entries[4].rehome!, otherRehome = sameResolverNewKey.entries[4].rehome!;
-const refusal = await refuseRehome(theRehome, k['resolver-b'], moveAt - 500);
-const rawRefusal = async (body: RehomeRefusal, signer: KeyPair): Promise<Signed<RehomeRefusal>> =>
-  ({ body, signatures: [{ key_id: signer.keyId, signature: encodeSignature(await signBytes(signer.secretKey, canonicalBytes({ domain: REHOME_REFUSAL_DOMAIN, body }))) }] });
 type Refusal = [string, Signed<Rehome>, Signed<RehomeRefusal>];
 const refusalAccept: Refusal[] = [['the destination the rehome names refuses it', theRehome, refusal]];
 const refusalReject: Refusal[] = [
@@ -232,7 +239,7 @@ const contradictions: Contradiction[] = [
 ];
 
 const out = {
-  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
+  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
   format: IDENTITY_LOG_FORMAT, legacy_format: LEGACY_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
@@ -244,13 +251,13 @@ const out = {
   })),
   reject: reject.map(([why, log, require_attestation]) => ({ why, require_attestation, log })),
   precedence: pairs.map(([why, a, b, expect]) => ({ why, a, b, expect })),
-  admission: await Promise.all(admission.map(async ([why, pin, log, require_attestation, pinned]) => {
-    const j = await judgeIdentityLog(pin, clone(log), { require_attestation }, pinned === null ? null : clone(pinned));
-    return { why, pin, pinned, log, require_attestation, expect: j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded } };
+  admission: await Promise.all(admission.map(async ([why, pin, log, require_attestation, pinned, refusals = []]) => {
+    const j = await judgeIdentityLog(pin, clone(log), { require_attestation }, pinned === null ? null : clone(pinned), clone(refusals));
+    return { why, pin, pinned, refusals, log, require_attestation, expect: j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded } };
   })),
-  push: await Promise.all(push.map(async ([why, pin, message, require_attestation, pinned]) => {
-    const { ack } = await receiveIdentityLogPush(clone(message), async identity => pin === null || pin.identity_id !== identity ? null : pinned === null ? pin : { pin, log: clone(pinned) }, { require_attestation });
-    return { why, pin, pinned, message, require_attestation, ack };
+  push: await Promise.all(push.map(async ([why, pin, message, require_attestation, pinned, refusals = []]) => {
+    const { ack } = await receiveIdentityLogPush(clone(message), async identity => pin === null || pin.identity_id !== identity ? null : { pin, log: pinned === null ? null : clone(pinned), refusals: clone(refusals) }, { require_attestation });
+    return { why, pin, pinned, refusals, message, require_attestation, ack };
   })),
   refusals: {
     accept: await Promise.all(refusalAccept.map(async ([why, rehome, refusal]) => ({ why, rehome, refusal, expect: await verifyRehomeRefusal(refusal, rehome) }))),
@@ -267,9 +274,9 @@ for (const [why, r, log, expect] of contradictions) {
   if (got !== expect) throw new Error('generator: contradiction "' + why + '" gave ' + got);
 }
 const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 'unchanged', 'behind', 'conflict', 'superseded', 'conflict', 'foreign-lineage', 'foreign-lineage', 'another-identity', 'invalid-log', 'invalid-log',
-  'conflict', 'conflict', 'conflict', 'advanced', 'conflict'];
+  'conflict', 'conflict', 'conflict', 'advanced', 'conflict', 'refused-move', 'refused-move', 'advanced', 'advanced'];
 out.admission.forEach((a, i) => { const got = 'reason' in a.expect ? a.expect.reason : a.expect.outcome; if (got !== expectedReasons[i]) throw new Error(`generator: admission "${a.why}" gave ${got}`); });
-const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict'];
+const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict', 'refused-move', 'advanced'];
 out.push.forEach((p, i) => { const got = p.ack.reason ?? p.ack.outcome; if (got !== expectedAcks[i]) throw new Error(`generator: push "${p.why}" gave ${got}`); });
 for (const [why, a, b, expect] of pairs) {
   const got = precedence(await verifyIdentityLog(clone(a), { require_attestation: false }), await verifyIdentityLog(clone(b), { require_attestation: false }));
