@@ -226,6 +226,8 @@ Before a particular migration is committed, `migration.cancel` returns a durable
 
 The snapshot includes owned records/history, required personal key histories, policies, inventory creation/events/state, installed releases, all owned published profiles/releases and transitive required definitions. It does not copy foreign-owned records as local ownership or export private installation keys. Snapshot validation preserves signed publication bindings, current heads, authority projections and deterministic profile results; it is not an independent proof of every historical execution-time grant or the source's completeness. Expired memberships/grants remain expired, not refreshed.
 
+[`spec/vectors/snapshot-import.json`](../vectors/snapshot-import.json) is the conformance definition for import: a conforming destination MUST import its base snapshot and reproduce the projections it lists exactly, and MUST refuse every one of its cases with `invalid_snapshot`.
+
 If a source/destination loses its durable database, refuses cooperation, loses authorized keys or becomes malicious, stop and use an explicitly reviewed backup/authority recovery procedure. This candidate does not implement disaster recovery, restoration over an existing same-ID organization, automatic host-key replacement, partition consensus or universal in-flight external-job transfer. Never tell an operator to reactivate both stores or delete a committed stage to clear a stuck migration.
 
 ## 9. Mandatory candidate bounds and errors
