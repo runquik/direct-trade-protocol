@@ -20,7 +20,7 @@ async function fixedKey(label: string): Promise<KeyPair> {
   const publicKey = new Uint8Array(Buffer.from((await crypto.subtle.exportKey('jwk', key)).x!, 'base64url'));
   return { keyId: encodeKeyId(publicKey), secretKey: encodeSecretKey(seed, publicKey), publicKey, seed };
 }
-const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger', 'resolver-b', 'operational-3', 'thief-resolver-1', 'thief-resolver-2'] as const;
+const labels = ['operational-0', 'recovery-0', 'operational-1', 'operational-2', 'recovery-1', 'resolver', 'stranger', 'resolver-b', 'operational-3', 'thief-resolver-1', 'thief-resolver-2', 'resolver-c'] as const;
 const k = Object.fromEntries(await Promise.all(labels.map(async l => [l, await fixedKey(l)]))) as Record<typeof labels[number], KeyPair>;
 
 const T = 1_800_000_000_000, resolverId = '5e5e5e5e-0000-4000-8000-00000000000a', audience = 'https://resolver.example';
@@ -165,6 +165,17 @@ const theRehome = movedParts.entries[4].rehome!, otherRehome = sameResolverNewKe
 const refusal = await refuseRehome(theRehome, k['resolver-b'], moveAt - 500);
 const rawRefusal = async (body: RehomeRefusal, signer: KeyPair): Promise<Signed<RehomeRefusal>> =>
   ({ body, signatures: [{ key_id: signer.keyId, signature: encodeSignature(await signBytes(signer.secretKey, canonicalBytes({ domain: REHOME_REFUSAL_DOMAIN, body }))) }] });
+// Escape rehome (#64). After the refused move to the second resolver, the owner's recovery quorum moves the identity on
+// from it (epoch 2). To a third resolver it escapes the refusal; back to the refusing destination, or to its resolver id
+// under a new key, it does not.
+const resolverC = '5e5e5e5e-0000-4000-8000-00000000000e', audienceC = 'https://host-c.example', escapeAt = moveAt + LEASE_MS + CLOCK_MARGIN_MS + 1_000;
+const movedEnd = await verifyIdentityLog(clone(moved), { require_attestation: true });
+const escapeParts = async (to: Rehome['to']): Promise<IdentityLogParts> => ({ ...parts, entries: [...clone(moved.entries), { effective_at: escapeAt, transition: null, attestation: null,
+  rehome: await signRehome({ identity_id: id, expected_digest: movedEnd.head_digest, sequence: movedEnd.head.sequence + 1, from: { resolver_id: resolverB, resolver_epoch: 1 }, to, issued_at: escapeAt - 1_000, expires_at: escapeAt + 299_000 }) }] });
+const escapeToC = await escapeParts({ resolver_id: resolverC, resolver_key: k['resolver-c'].keyId, audience: audienceC, resolver_epoch: 2 });
+const escaped = await buildIdentityLog(escapeToC, k['resolver-c']), escapedBare = await buildIdentityLog(escapeToC, null);
+const backToB = await buildIdentityLog(await escapeParts({ resolver_id: resolverB, resolver_key: k['resolver-b'].keyId, audience: audienceB, resolver_epoch: 2 }), k['resolver-b']);
+const sameIdNewKey = await buildIdentityLog(await escapeParts({ resolver_id: resolverB, resolver_key: k['resolver-c'].keyId, audience: audienceB, resolver_epoch: 2 }), k['resolver-c']);
 // Relying-party admission: a durable pin (the binding a party enrolled with and its last verified head) and a log.
 const lenient = { require_attestation: false };
 const bareHeads = (await verifyIdentityLog(clone(bare), lenient)).heads, movedV = await verifyIdentityLog(clone(moved), lenient), rivalV = await verifyIdentityLog(clone(rivalBranch), lenient);
@@ -201,6 +212,12 @@ const admission: Admission[] = [
   ['the same refusal against the dangling consent nobody attested: refused-move, which a held refusal decides before the evidence rule', pinA(0, bareHeads[0].head_digest), movedBare, false, null, [refusal]],
   ['a held refusal of a different rehome says nothing about this one: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null, [await refuseRehome(otherRehome, k['resolver-b'], moveAt - 500)]],
   ['a held "refusal" the named destination did not sign is no refusal: advanced', pinA(0, bareHeads[0].head_digest), moved, true, null, [await rawRefusal(refusal.body, k.stranger)]],
+  ['a party already past the refused move (it admitted it before the destination refused), shown the log again with no later move: refused-move; the refusal arrived late, and nothing in the log escapes it', pinB, moved, true, moved, [refusal]],
+  ['the same party shown the owner\'s escape rehome: the recovery quorum moves the identity from the refusing destination to a third resolver, which adopts it: advanced', pinB, escaped, true, moved, [refusal]],
+  ['the same party shown an "escape" back to the refusing destination at the next epoch: refused-move, rehoming back to it does not count', pinB, backToB, true, moved, [refusal]],
+  ['the same party shown an "escape" to the refusing destination\'s resolver id under a new key: refused-move, it is the same destination', pinB, sameIdNewKey, true, moved, [refusal]],
+  ['the same party shown the escape rehome that the third resolver never attested: unadopted-move, the escape needs the next destination\'s adoption like every move', pinB, escapedBare, false, moved, [refusal]],
+  ['a party still at the first resolver, holding the refusal, shown the escaped log: advanced; the refusal is escaped for every party, and adoption evidence is still required for both moves', pinA(0, bareHeads[0].head_digest), escaped, true, null, [refusal]],
 ];
 const pushMessage = (log: IdentityLog, format = IDENTITY_LOG_PUSH_FORMAT): IdentityLogPush => ({ format: format as typeof IDENTITY_LOG_PUSH_FORMAT, log });
 type Push = [string, ResolverPin | null, IdentityLogPush, boolean, IdentityLog | null, Signed<RehomeRefusal>[]?];
@@ -217,6 +234,7 @@ const push: Push[] = [
   ['the owner pushes the real history to a party that admitted the fork and holds it: conflict', pinThief, pushMessage(moved), true, retiredFork],
   ['a push of a move whose rehome the party holds a refusal for: refused-move', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null, [refusal]],
   ['the same push to a party holding a refusal the named destination did not sign: advanced', pinA(0, bareHeads[0].head_digest), pushMessage(moved), true, null, [await rawRefusal(refusal.body, k.stranger)]],
+  ['the owner pushes the escape rehome to a party stranded past the refused move, which holds only its pin: advanced', pinB, pushMessage(escaped), true, null, [refusal]],
 ];
 type Refusal = [string, Signed<Rehome>, Signed<RehomeRefusal>];
 const refusalAccept: Refusal[] = [['the destination the rehome names refuses it', theRehome, refusal]];
@@ -274,9 +292,10 @@ for (const [why, r, log, expect] of contradictions) {
   if (got !== expect) throw new Error('generator: contradiction "' + why + '" gave ' + got);
 }
 const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 'unchanged', 'behind', 'conflict', 'superseded', 'conflict', 'foreign-lineage', 'foreign-lineage', 'another-identity', 'invalid-log', 'invalid-log',
-  'conflict', 'conflict', 'conflict', 'advanced', 'conflict', 'refused-move', 'refused-move', 'advanced', 'advanced'];
+  'conflict', 'conflict', 'conflict', 'advanced', 'conflict', 'refused-move', 'refused-move', 'advanced', 'advanced',
+  'refused-move', 'advanced', 'refused-move', 'refused-move', 'unadopted-move', 'advanced'];
 out.admission.forEach((a, i) => { const got = 'reason' in a.expect ? a.expect.reason : a.expect.outcome; if (got !== expectedReasons[i]) throw new Error(`generator: admission "${a.why}" gave ${got}`); });
-const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict', 'refused-move', 'advanced'];
+const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict', 'refused-move', 'advanced', 'advanced'];
 out.push.forEach((p, i) => { const got = p.ack.reason ?? p.ack.outcome; if (got !== expectedAcks[i]) throw new Error(`generator: push "${p.why}" gave ${got}`); });
 for (const [why, a, b, expect] of pairs) {
   const got = precedence(await verifyIdentityLog(clone(a), { require_attestation: false }), await verifyIdentityLog(clone(b), { require_attestation: false }));

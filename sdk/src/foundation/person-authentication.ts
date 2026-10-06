@@ -260,23 +260,28 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  must be an entry of `log`, a log that verifies for that person, so it is one the person's recovery quorum signed:
      *  nobody else can make a host hold a refusal for that person. The refusal must verify against that rehome. Both
      *  artifacts are kept, as the identity log requires, and from this commit on both admission paths refuse any log
-     *  containing that rehome (`refused-move`). Recording the same rehome's refusal again keeps the first; at most
+     *  containing that rehome (`refused-move`) unless a later rehome in it escapes to another destination (#64).
+     *  `contradicts_admitted_move` is true when this host's checkpoint already lies at or past the head that rehome
+     *  produced, on `log`: the destination refused a move this host admitted, the pair is kept as evidence that it
+     *  equivocated, and the host SHOULD treat that destination as untrusted. A checkpoint `log` does not reach reads as
+     *  false; present a log that reaches it. Recording the same rehome's refusal again keeps the first; at most
      *  PERSON_MAX_REHOME_REFUSALS are kept per person, and one more is refused. */
-    async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean }> {
+    async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean; contradicts_admitted_move: boolean }> {
       const v = bounded(input); exact(v, ['person_id', 'log', 'refusal']); uuid(v.person_id); const p = pinFor(v.person_id);
       const log = await verifyIdentityLog(v.log, { require_attestation: false }); need(log.identity_id === p.person_id, 'log is for another identity');
       const named = (v.refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
-      let rehome = null;
-      for (const entry of v.log.entries) if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; break; }
+      let rehome = null, at = -1;
+      for (let n = 0; n < v.log.entries.length; n++) { const entry = v.log.entries[n]; if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; at = n; break; } }
       need(rehome !== null, 'refusal names no rehome of this person\'s verified log');
       const body = await verifyRehomeRefusal(v.refusal, rehome); need(body.identity_id === p.person_id, 'refusal is for another identity');
-      await checkpoint(tx, p); // Locks the person's checkpoint row, so concurrent recordings cannot pass the limit together.
+      const row = await checkpoint(tx, p); // Locks the person's checkpoint row, so concurrent recordings cannot pass the limit together.
+      const sequence = Number(row.sequence), contradicts_admitted_move = sequence >= at && sequence < log.heads.length && log.heads[sequence].head_digest === row.digest;
       const held = await tx.query<{ rehome_digest: string }>('select rehome_digest from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2', [config.host_id, p.person_id]);
-      if (held.some(r => r.rehome_digest === body.rehome_digest)) return { rehome_digest: body.rehome_digest, recorded: false };
+      if (held.some(r => r.rehome_digest === body.rehome_digest)) return { rehome_digest: body.rehome_digest, recorded: false, contradicts_admitted_move };
       need(held.length < PERSON_MAX_REHOME_REFUSALS, 'rehome refusal limit reached for this person');
       await tx.query('insert into dtp_foundation.person_auth_rehome_refusals (host_id,person_id,rehome_digest,rehome,refusal) values ($1,$2,$3,$4,$5)',
         [config.host_id, p.person_id, body.rehome_digest, rehome, v.refusal]);
-      return { rehome_digest: body.rehome_digest, recorded: true };
+      return { rehome_digest: body.rehome_digest, recorded: true, contradicts_admitted_move };
     },
     /** Must be the mandatory transaction-tail hook, including historical business retries. */
     async beforeCommit(tx: Db, input: { organization_id: string; now: number; verified: VerifiedOperation; request: JsonObject; valid_until: number }): Promise<void> {
