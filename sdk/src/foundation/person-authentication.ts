@@ -56,7 +56,8 @@ create constraint trigger person_auth_deadline_at_commit after insert or update 
  deferrable initially deferred for each row execute function dtp_foundation.enforce_person_auth_deadline();
 `;
 /** The binding the host ENROLLED the person with. The effective binding is the durable checkpoint, which only
- *  admitIdentityMove advances past this epoch; configuration alone can never move a person to another resolver. */
+ *  admitIdentityMove and receiveIdentityLogPush advance past this epoch; configuration alone can never move a person
+ *  to another resolver. */
 export interface PersonResolverPin {
   person_id: string; resolver_id: string; resolver_key: string; resolver_epoch: number;
   minimum_sequence: number; minimum_digest: string;
