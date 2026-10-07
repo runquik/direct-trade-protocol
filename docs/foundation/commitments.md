@@ -44,8 +44,10 @@ BigInt for aggregation even though individual units are safe integers.
 
 Expired holds free capacity. Released/cancelled holds do not reserve it. Accepted,
 fulfilling, completed and disputed commitments retain their booking through their
-window; fulfillment is not implicit resource replenishment. Release only applies
-to held capacity. Cancellation of accepted commitments is allowed only under the
+window; fulfillment is not implicit resource replenishment. Release applies only
+to a hold that was never accepted: a `held` hold, or an `expired` one, which has
+already freed its capacity and is only recorded as released (a coordinator
+compensating after expiry still gets a clean release). Cancellation of accepted commitments is allowed only under the
 quoted `before_fulfillment` policy before any fulfillment; `never` is irreversible
 through this helper. A failure cannot be represented as successful cancellation.
 
