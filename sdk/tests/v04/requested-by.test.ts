@@ -13,7 +13,7 @@ type Actor = { id: string; key: KeyPair };
 const vectors = JSON.parse(readFileSync(new URL('../../../spec/vectors/requested-by.json', import.meta.url), 'utf8'));
 const audience = 'https://requested-by.test';
 
-async function host(mode: string | undefined) {
+async function host(mode: string | undefined, sponsor = 'owner', sponsorRevoked = false) {
   let state = emptyState();
   const ctx: Context = { audience, storeKey: await generateKeyPair(), pins: {}, now: Date.now() };
   ctx.assessmentPins = { [audience]: ctx.storeKey.keyId };
@@ -26,7 +26,7 @@ async function host(mode: string | undefined) {
   const nonce = crypto.randomUUID(), org = await organizationId(owner.id, nonce), expires = new Date(ctx.now + 86400000).toISOString();
   await call(owner, 'organization.create', org, { name: 'Synthetic requester company', nonce, controllers: [owner.id], threshold: 1 });
   const invitation_id = crypto.randomUUID();
-  await call(owner, 'membership.invite', org, { invitation_id, person_id: member.id, permissions: [], expires_at: expires });
+  await call(owner, 'membership.invite', org, { invitation_id, person_id: member.id, permissions: sponsor === 'member' ? ['installations.manage'] : [], expires_at: expires });
   await call(member, 'membership.accept', org, { invitation_id });
   const people: Record<string, Actor> = { owner, member, outsider };
   let installation: Actor | undefined, profile: string | undefined;
@@ -40,13 +40,14 @@ async function host(mode: string | undefined) {
     const artifact_digest = 'd'.repeat(64), assessment = await signToken({ kind: 'module-assessment', issuer: audience, issued_at: new Date(ctx.now).toISOString(), expires_at: expires, artifact_digest, outcome: 'approved' }, ctx);
     const release = await call(owner, 'release.publish', org, { module_id: crypto.randomUUID(), version: '1.0.0', artifact_digest, profiles: [profile], actions: ['read'], visibility: 'private', assessment });
     installation = { id: crypto.randomUUID(), key: await generateKeyPair() };
-    await call(owner, 'installation.create', org, { installation_id: installation.id, release_digest: release.digest, key_id: installation.key.keyId, policy_ids: [policy_id], actions: ['read'], mode, expires_at: expires }, [installation.key]);
+    await call(people[sponsor], 'installation.create', org, { installation_id: installation.id, release_digest: release.digest, key_id: installation.key.keyId, policy_ids: [policy_id], actions: ['read'], mode, expires_at: expires }, [installation.key]);
+    if (sponsorRevoked) await call(owner, 'membership.revoke', org, { person_id: people[sponsor].id });
   }
   return { ctx, org, people, installation, profile, newPerson, send };
 }
 
 async function run(v: any) {
-  const h = await host(v.mode);
+  const h = await host(v.mode, v.sponsor, v.sponsor_revoked);
   const actor: Actor = v.actor === 'installation' ? h.installation! : v.actor === 'new person' ? await h.newPerson() : h.people[v.actor];
   const payload = v.action === 'person.register' ? { keys: [actor.key.keyId] } : v.action === 'records.list' ? { after: 0, limit: 10, profile_digests: [h.profile], kinds: [] } : {};
   const c = draftCommand(audience, actor, v.action, ['person.register', 'organizations.list'].includes(v.action) ? null : h.org, payload, h.ctx.now);
@@ -60,6 +61,7 @@ test('requested_by vectors cover both actor kinds, both installation modes and b
   const cases = vectors.cases as any[];
   assert.ok(cases.some(v => v.actor === 'installation' && v.mode === 'interactive') && cases.some(v => v.actor === 'installation' && v.mode === 'automation'));
   assert.ok(cases.some(v => v.expected === 'accept') && cases.some(v => v.expected !== 'accept'));
+  assert.ok(cases.some(v => v.mode === 'automation' && v.requested_by === null && v.sponsor_revoked && v.expected !== 'accept'));
   assert.equal(new Set(cases.map(v => v.name)).size, cases.length);
 });
 
