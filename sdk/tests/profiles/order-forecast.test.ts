@@ -19,7 +19,7 @@ const forecast = load('../../../spec/profiles/forecast/1/fixtures.json'), foreca
 
 test('order@1 fixtures: bodies, genesis statuses and continuity pairs are judged exactly; the contract and generator are reproducible', () => {
   assert.equal(order.kind, ORDER_KIND); assert.equal(order.profile, ORDER_PROFILE); assert.equal(order.semantics, ORDER_SEMANTICS);
-  assert.ok(order.accept.length >= 5 && order.reject.length >= 22 && order.continuity.accept.length >= 7 && order.continuity.reject.length >= 11);
+  assert.ok(order.accept.length >= 5 && order.reject.length >= 22 && order.continuity.accept.length >= 14 && order.continuity.reject.length >= 13);
   checkSchema(orderContract.schema);
   for (const v of order.accept) { assert.ok(validateShape(orderContract.schema, v.body), v.why); assert.deepEqual(validateOrder(v.body), [], v.why); }
   for (const v of order.reject) assert.ok(validateOrder(v.body).length > 0, v.why);
