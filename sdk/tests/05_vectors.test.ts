@@ -35,6 +35,31 @@ test("canonicalization vectors", async () => {
   }
 });
 
+test("canonicalization vectors tell UTF-16 key order from code-point order (#79)", () => {
+  // A canonicalizer that sorts member names by code point (the native string order in many languages) must
+  // fail at least one published case; otherwise the vectors certify it while it signs different bytes.
+  const byCodePoint = (a: string, b: string) => {
+    const x = [...a], y = [...b];
+    for (let i = 0; i < Math.min(x.length, y.length); i++) {
+      const d = x[i].codePointAt(0)! - y[i].codePointAt(0)!;
+      if (d !== 0) return d;
+    }
+    return x.length - y.length;
+  };
+  const keyOrders = (v: unknown, out: string[][]): string[][] => {
+    if (Array.isArray(v)) v.forEach((e) => keyOrders(e, out));
+    else if (v && typeof v === "object") {
+      const keys = Object.keys(v).filter((k) => (v as Record<string, unknown>)[k] !== undefined);
+      out.push(keys);
+      for (const k of keys) keyOrders((v as Record<string, unknown>)[k], out);
+    }
+    return out;
+  };
+  const distinguishing = canon.cases.filter((c: { input: unknown }) =>
+    keyOrders(c.input, []).some((keys) => [...keys].sort().join("\0") !== [...keys].sort(byCodePoint).join("\0")));
+  assert.ok(distinguishing.length > 0, "no canonicalization case orders keys differently by UTF-16 code unit and by code point");
+});
+
 test("raw signature vector verifies and is reproduced deterministically", async () => {
   const msg = new TextEncoder().encode(sigs.raw.message_utf8);
   const sig = await signBytes(keys.secret_key, msg);
