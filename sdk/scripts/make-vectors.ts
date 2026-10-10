@@ -42,6 +42,9 @@ const canonCases = [
   { name: "undefined is dropped, null kept", input: { a: null, b: undefined, c: [undefined] } },
   { name: "numeric-string keys sort as strings, not numbers", input: { "10": 1, "9": 2, "1": 3, a: 4, "": 5 } },
   { name: "negative zero and escapes in keys", input: { "z\u0013": 1, "\\": 2, n: -0 } },
+  // A supplementary-plane name (U+1F600, UTF-16 D83D DE00) sorts before a high-BMP one (U+FF0F) by UTF-16 code
+  // units but after it by code point, so a canonicalizer that sorts by code point (or by UTF-8 bytes) fails this case.
+  { name: "keys sort by UTF-16 code units, not code points", input: { "\uFF0F": 1, "\u{1F600}": 2, "\u00E9": 3, a: 4 } },
 ];
 const canonical = await Promise.all(canonCases.map(async (c) => {
   const text = canonicalize(c.input);
