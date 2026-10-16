@@ -20,6 +20,7 @@
 export * as keys from "./keys.ts";
 export * as canonical from "./canonical.ts";
 export * as safeJson from "./safe-json.ts";
+export * as core1 from "./core1/envelope.ts";
 
 export * as decimal from "./profiles/decimal.ts";
 export * as inventory from "./profiles/inventory.ts";
