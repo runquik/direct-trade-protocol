@@ -1,0 +1,3612 @@
+{
+  "description": "dtp/flow@1 fixtures. For each flow a conforming reducer, starting from an empty book for the organization with the listed ledgers opened in order, MUST reach exactly the expected outcome for every fact in order (an accepted fact advances every ledger it names by one revision and sets each one's head to the fact's digest; a refused or duplicate fact leaves the book unchanged; refusal codes are normative), MUST end at exactly the final book, and MUST project the stated inventory@2 view of the bridged product.",
+  "kind": "dtp/flow@1",
+  "profile": "dtp.flow/1",
+  "semantics": "flow-v1",
+  "observation_window": 64,
+  "contract_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+  "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+  "flows": [
+    {
+      "why": "a co-packer book: receipts, an atomic multi-ledger transform with yield loss, custody and title transfers, money paid and received with settlements, a signed credit line, an offset, and refusals that leave no trace",
+      "book_id": "0e0e0e0e-0e0e-4e0e-8e0e-0e0e0e0e0e0e",
+      "openings": [
+        {
+          "kind": "goods",
+          "product_id": "00000001-0000-4000-8000-000000000001",
+          "product": {
+            "base_unit": {
+              "system": "ucum",
+              "code": "kg"
+            },
+            "tracking": "lot"
+          }
+        },
+        {
+          "kind": "goods",
+          "product_id": "00000002-0000-4000-8000-000000000002",
+          "product": {
+            "base_unit": {
+              "system": "ucum",
+              "code": "L"
+            },
+            "tracking": "none"
+          }
+        },
+        {
+          "kind": "goods",
+          "product_id": "00000003-0000-4000-8000-000000000003",
+          "product": {
+            "base_unit": {
+              "system": "ucum",
+              "code": "{jar}"
+            },
+            "tracking": "none"
+          }
+        },
+        {
+          "kind": "goods",
+          "product_id": "00000004-0000-4000-8000-000000000004",
+          "product": {
+            "base_unit": {
+              "system": "ucum",
+              "code": "{jar}"
+            },
+            "tracking": "lot"
+          }
+        },
+        {
+          "kind": "money",
+          "currency": "USD",
+          "account": "00000013-0000-4000-8000-000000000013",
+          "balance": "nonnegative"
+        },
+        {
+          "kind": "money",
+          "currency": "USD",
+          "account": "00000014-0000-4000-8000-000000000014",
+          "balance": "signed"
+        }
+      ],
+      "facts": [
+        {
+          "why": "receive fifty kilograms of peppers, lot P1, at the dock",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:01:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "50",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "receive vinegar and jars in one fact: two ledgers, one compare-and-set each",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:02:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0d5d6692d9a85696a44483170a3d2468cccaae429472c5f5791b1f3277ca9a2b",
+                "expected_revision": 0,
+                "expected_digest": null
+              },
+              {
+                "key": "59e93a731d016a91eb61abb3071231fe6028b91e1ce4f2675f4f045cf9028211",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000002-0000-4000-8000-000000000002",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "100",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "L",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000003-0000-4000-8000-000000000003",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED invalid: a transform with no output",
+          "fact": {
+            "act": {
+              "verb": "transform",
+              "occurred_at": "2026-10-23T08:03:00.000Z",
+              "observation": {
+                "source_id": "kettle",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 1,
+                "expected_digest": "7961df875b76b4a57114c43f500d5c43da3617fc8ac592b7e310898d147804d3"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "48",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": {
+              "recipe": {
+                "minted_by": null,
+                "root": "00000017-0000-4000-8000-000000000017",
+                "record_id": null
+              },
+              "yield_loss": [],
+              "equipment": []
+            },
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED wrong_scope: a transform that does not name every ledger it changes",
+          "fact": {
+            "act": {
+              "verb": "transform",
+              "occurred_at": "2026-10-23T08:04:00.000Z",
+              "observation": {
+                "source_id": "kettle",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 1,
+                "expected_digest": "7961df875b76b4a57114c43f500d5c43da3617fc8ac592b7e310898d147804d3"
+              },
+              {
+                "key": "0d5d6692d9a85696a44483170a3d2468cccaae429472c5f5791b1f3277ca9a2b",
+                "expected_revision": 1,
+                "expected_digest": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372"
+              },
+              {
+                "key": "59e93a731d016a91eb61abb3071231fe6028b91e1ce4f2675f4f045cf9028211",
+                "expected_revision": 1,
+                "expected_digest": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "48",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": {
+              "recipe": {
+                "minted_by": null,
+                "root": "00000017-0000-4000-8000-000000000017",
+                "record_id": null
+              },
+              "yield_loss": [],
+              "equipment": []
+            },
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "wrong_scope"
+          }
+        },
+        {
+          "why": "transform peppers, vinegar and jars into two thousand jars of sauce lot S1, atomically across four ledgers, with two kilograms of pepper lost",
+          "fact": {
+            "act": {
+              "verb": "transform",
+              "occurred_at": "2026-10-23T08:05:00.000Z",
+              "observation": {
+                "source_id": "kettle",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 1,
+                "expected_digest": "7961df875b76b4a57114c43f500d5c43da3617fc8ac592b7e310898d147804d3"
+              },
+              {
+                "key": "0d5d6692d9a85696a44483170a3d2468cccaae429472c5f5791b1f3277ca9a2b",
+                "expected_revision": 1,
+                "expected_digest": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372"
+              },
+              {
+                "key": "59e93a731d016a91eb61abb3071231fe6028b91e1ce4f2675f4f045cf9028211",
+                "expected_revision": 1,
+                "expected_digest": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372"
+              },
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "50",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000002-0000-4000-8000-000000000002",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "100",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "L",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000003-0000-4000-8000-000000000003",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": {
+              "recipe": {
+                "minted_by": null,
+                "root": "00000017-0000-4000-8000-000000000017",
+                "record_id": null
+              },
+              "yield_loss": [
+                {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "quantity": {
+                    "amount": "2",
+                    "unit": {
+                      "system": "ucum",
+                      "code": "kg",
+                      "packaging_id": null,
+                      "version": null,
+                      "base_units_per_pack": null
+                    }
+                  },
+                  "reason": "stems and trim"
+                }
+              ],
+              "equipment": [
+                {
+                  "minted_by": null,
+                  "root": "00000018-0000-4000-8000-000000000018",
+                  "record_id": null
+                }
+              ]
+            },
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED invalid: a yield loss of something that was not an input",
+          "fact": {
+            "act": {
+              "verb": "transform",
+              "occurred_at": "2026-10-23T08:06:00.000Z",
+              "observation": {
+                "source_id": "kettle",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 1,
+                "expected_digest": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": {
+              "recipe": null,
+              "yield_loss": [
+                {
+                  "product": "00000002-0000-4000-8000-000000000002",
+                  "quantity": {
+                    "amount": "1",
+                    "unit": {
+                      "system": "ucum",
+                      "code": "L",
+                      "packaging_id": null,
+                      "version": null,
+                      "base_units_per_pack": null
+                    }
+                  },
+                  "reason": "spill"
+                }
+              ],
+              "equipment": []
+            },
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: production legs outside a transform",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:07:00.000Z",
+              "observation": {
+                "source_id": "kettle",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 1,
+                "expected_digest": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~production"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED revision_conflict: a fact that decided on the ledger before the transform",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:08:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "revision_conflict"
+          }
+        },
+        {
+          "why": "reserve three hundred jars on the dock for the retailer",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:09:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 1,
+                "expected_digest": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "300",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000025-0000-4000-8000-000000000025",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED insufficient_stock: a custody transfer of eighteen hundred jars when three hundred are reserved",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:10:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 2,
+                "expected_digest": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1800",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "custody"
+            ],
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "insufficient_stock"
+          }
+        },
+        {
+          "why": "release the reservation: the order is shipped below",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:11:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 2,
+                "expected_digest": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "300",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "transfer custody of twelve hundred jars to the carrier's trailer: the location changes, title does not",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:12:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 3,
+                "expected_digest": "0edbcf0c66a86c089bdf8a4a9019775084a339c06794fa3b493b7616ae9955fb"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1200",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "custody"
+            ],
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED rights_mismatch: a transfer that says title but only moves the goods",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:13:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 4,
+                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "rights_mismatch"
+          }
+        },
+        {
+          "why": "REFUSED rights_mismatch: a move that changes the owner",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:14:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 4,
+                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "rights_mismatch"
+          }
+        },
+        {
+          "why": "transfer title and custody of one thousand jars to the retailer at its DC in one leg",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:15:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [
+                {
+                  "minted_by": null,
+                  "root": "00000021-0000-4000-8000-000000000021",
+                  "record_id": null
+                }
+              ],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 4,
+                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                      "root": "00000016-0000-4000-8000-000000000016",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "quantity": {
+                  "amount": "1000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title",
+              "custody"
+            ],
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "two hundred jars come back rejected: a status change at the carrier, still the company's",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:16:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 5
+              },
+              "basis": "asserted",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 5,
+                "expected_digest": "95aaae0991e81eec47cebc2d0fe0b1371f846bccc4b17f9842a98801af8e21d1"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "damaged",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "200",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "the retailer acknowledged receipt: the thousand jars leave the book to the customer",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:17:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 6
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 6,
+                "expected_digest": "c41aa677881614b463936658d0b5fb60a1894932358a21573f9397c185b51103"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                      "root": "00000016-0000-4000-8000-000000000016",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~customer"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1000",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "receive a payment of 6,400 dollars into the operating account, settling part of the invoice",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:18:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~counterparty"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "6400",
+                  "unit": {
+                    "system": "currency",
+                    "code": "USD",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000021-0000-4000-8000-000000000021",
+                  "record_id": null
+                },
+                "kind": "payment",
+                "amount": "6400",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED rights_mismatch: money received recorded as a move",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:19:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
+                "expected_revision": 1,
+                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~counterparty"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "currency",
+                    "code": "USD",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "rights_mismatch"
+          }
+        },
+        {
+          "why": "REFUSED insufficient_stock: paying ten thousand from an account that holds 6,400 and may not go negative",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:20:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
+                "expected_revision": 1,
+                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~counterparty"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10000",
+                  "unit": {
+                    "system": "currency",
+                    "code": "USD",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000022-0000-4000-8000-000000000022",
+                  "record_id": null
+                },
+                "kind": "payment",
+                "amount": "10000",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "insufficient_stock"
+          }
+        },
+        {
+          "why": "pay the supplier five thousand from the credit line, which may go negative",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:21:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000014-0000-4000-8000-000000000014",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~counterparty"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "5000",
+                  "unit": {
+                    "system": "currency",
+                    "code": "USD",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000022-0000-4000-8000-000000000022",
+                  "record_id": null
+                },
+                "kind": "payment",
+                "amount": "5000",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "sweep four thousand from operating to the credit line: a move between the company's own accounts, two ledgers",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:22:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
+                "expected_revision": 1,
+                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+              },
+              {
+                "key": "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0",
+                "expected_revision": 1,
+                "expected_digest": "3baec7d0ca5c8691448117357661eb5c67fea96822162053a3a0ffaf015a478f"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000014-0000-4000-8000-000000000014",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "4000",
+                  "unit": {
+                    "system": "currency",
+                    "code": "USD",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED unit_mismatch: dollars counted in euros",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:23:00.000Z",
+              "observation": {
+                "source_id": "bank",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
+                "expected_revision": 2,
+                "expected_digest": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+              },
+              {
+                "key": "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0",
+                "expected_revision": 2,
+                "expected_digest": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": null,
+                  "currency": "USD"
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000014-0000-4000-8000-000000000014",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "currency",
+                    "code": "EUR",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "unit_mismatch"
+          }
+        },
+        {
+          "why": "an offset with no money: a promotion the company owes nets against the retailer's deduction",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:24:00.000Z",
+              "observation": {
+                "source_id": "ar",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [],
+            "legs": [],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "3000",
+                "currency": "USD",
+                "reverses": null
+              },
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000024-0000-4000-8000-000000000024",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "3000",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED invalid: an offset of a single claim",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:25:00.000Z",
+              "observation": {
+                "source_id": "ar",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [],
+            "legs": [],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a payment settlement with no money in its currency",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:26:00.000Z",
+              "observation": {
+                "source_id": "ar",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [],
+            "legs": [],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000021-0000-4000-8000-000000000021",
+                  "record_id": null
+                },
+                "kind": "payment",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED ledger_unavailable: a product with no ledger in this book",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:27:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "ledger_unavailable"
+          }
+        },
+        {
+          "why": "a count correction with a reason: two jars broken on the dock",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:28:00.000Z",
+              "observation": {
+                "source_id": "count",
+                "sequence": 1
+              },
+              "basis": "asserted",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 7,
+                "expected_digest": "5c0849302d4b39a02514872a3fc56e1d90453937c683e412e35a68231b074bb0"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~adjustment"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": "cycle count: two jars broken"
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "a source that starts at sequence one hundred: a move to the shelf",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:29:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 100
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 8,
+                "expected_digest": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED stale_observation: sequence one from a source that has already reached one hundred",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:30:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 9,
+                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "stale_observation"
+          }
+        },
+        {
+          "why": "DUPLICATE: the first receipt presented again, byte for byte",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:01:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "50",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": true
+          }
+        },
+        {
+          "why": "REFUSED observation_conflict: the same source and sequence with a different fact",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:01:00.000Z",
+              "observation": {
+                "source_id": "dock",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000001-0000-4000-8000-000000000001",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "P1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "49",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "kg",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "observation_conflict"
+          }
+        }
+      ],
+      "final": {
+        "profile": "dtp.flow/1",
+        "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+        "book_id": "0e0e0e0e-0e0e-4e0e-8e0e-0e0e0e0e0e0e",
+        "ledgers": {
+          "9ce2f6db209041a45b68581f8dfaf6c2d49ef81b22f8cc85cf4bccc9860228d0": {
+            "asset": {
+              "product": "00000001-0000-4000-8000-000000000001",
+              "currency": null
+            },
+            "account": null,
+            "unit": "kg",
+            "tracking": "lot",
+            "balance": "nonnegative",
+            "revision": 2,
+            "head": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded",
+            "positions": {},
+            "reservations": {}
+          },
+          "0d5d6692d9a85696a44483170a3d2468cccaae429472c5f5791b1f3277ca9a2b": {
+            "asset": {
+              "product": "00000002-0000-4000-8000-000000000002",
+              "currency": null
+            },
+            "account": null,
+            "unit": "L",
+            "tracking": "none",
+            "balance": "nonnegative",
+            "revision": 2,
+            "head": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded",
+            "positions": {},
+            "reservations": {}
+          },
+          "59e93a731d016a91eb61abb3071231fe6028b91e1ce4f2675f4f045cf9028211": {
+            "asset": {
+              "product": "00000003-0000-4000-8000-000000000003",
+              "currency": null
+            },
+            "account": null,
+            "unit": "{jar}",
+            "tracking": "none",
+            "balance": "nonnegative",
+            "revision": 2,
+            "head": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded",
+            "positions": {},
+            "reservations": {}
+          },
+          "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2": {
+            "asset": {
+              "product": "00000004-0000-4000-8000-000000000004",
+              "currency": null
+            },
+            "account": null,
+            "unit": "{jar}",
+            "tracking": "lot",
+            "balance": "nonnegative",
+            "revision": 9,
+            "head": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa",
+            "positions": {
+              "41949fb41ff82d67400c6dadffcc533f18090564623718b61178955fe67746bc": {
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "788",
+                "serials": []
+              },
+              "9277970d2fefa7c100af567f44ce24b15fc6ab06094b5e6d8f9a55b4e00bb4d6": {
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c",
+                      "root": "00000015-0000-4000-8000-000000000015",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "damaged",
+                  "owner": null
+                },
+                "quantity": "200",
+                "serials": []
+              },
+              "f8bc565ff0f5b51a22e7e2d536896b79cab77aec5cc9fc23fd729b3146cf16a5": {
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "10",
+                "serials": []
+              }
+            },
+            "reservations": {}
+          },
+          "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa": {
+            "asset": {
+              "product": null,
+              "currency": "USD"
+            },
+            "account": "00000013-0000-4000-8000-000000000013",
+            "unit": "USD",
+            "tracking": "none",
+            "balance": "nonnegative",
+            "revision": 2,
+            "head": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b",
+            "positions": {
+              "7a776f04d6caf6ed63a7bc9a1e941263085d85a34651199954e11f489994e0d1": {
+                "position": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000013-0000-4000-8000-000000000013",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "2400",
+                "serials": []
+              }
+            },
+            "reservations": {}
+          },
+          "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0": {
+            "asset": {
+              "product": null,
+              "currency": "USD"
+            },
+            "account": "00000014-0000-4000-8000-000000000014",
+            "unit": "USD",
+            "tracking": "none",
+            "balance": "signed",
+            "revision": 2,
+            "head": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b",
+            "positions": {
+              "f61989165a45d18776ac6005a5277a96ef60aee1baceb6a764ff1e5b0395394e": {
+                "position": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000014-0000-4000-8000-000000000014",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "-1000",
+                "serials": []
+              }
+            },
+            "reservations": {}
+          }
+        },
+        "sources": {
+          "dock": {
+            "high_water": 6,
+            "recent": {
+              "1": "7961df875b76b4a57114c43f500d5c43da3617fc8ac592b7e310898d147804d3",
+              "2": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372",
+              "3": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f",
+              "4": "95aaae0991e81eec47cebc2d0fe0b1371f846bccc4b17f9842a98801af8e21d1",
+              "5": "c41aa677881614b463936658d0b5fb60a1894932358a21573f9397c185b51103",
+              "6": "5c0849302d4b39a02514872a3fc56e1d90453937c683e412e35a68231b074bb0"
+            }
+          },
+          "kettle": {
+            "high_water": 1,
+            "recent": {
+              "1": "a719570914651ca1ea8f6e80f283a7eeaa90e70dfcde92c52bc3fae90d97cded"
+            }
+          },
+          "orders": {
+            "high_water": 2,
+            "recent": {
+              "1": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5",
+              "2": "0edbcf0c66a86c089bdf8a4a9019775084a339c06794fa3b493b7616ae9955fb"
+            }
+          },
+          "bank": {
+            "high_water": 3,
+            "recent": {
+              "1": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d",
+              "2": "3baec7d0ca5c8691448117357661eb5c67fea96822162053a3a0ffaf015a478f",
+              "3": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+            }
+          },
+          "ar": {
+            "high_water": 1,
+            "recent": {
+              "1": "edc046f172c3afba0da1015bdbb13a6571077f4d0ba53bcea317165099e2504e"
+            }
+          },
+          "count": {
+            "high_water": 1,
+            "recent": {
+              "1": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+            }
+          },
+          "audit": {
+            "high_water": 100,
+            "recent": {
+              "100": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+            }
+          }
+        }
+      },
+      "bridge": {
+        "product_id": "00000004-0000-4000-8000-000000000004",
+        "projection": {
+          "profile": "dtp.inventory/2",
+          "derived": true,
+          "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+          "product_id": "00000004-0000-4000-8000-000000000004",
+          "base_unit": {
+            "system": "ucum",
+            "code": "{jar}"
+          },
+          "tracking": "lot",
+          "revision": 9,
+          "positions": {
+            "857b1262bbe8c9805a62083cbc0c9f30891c4cccc0914355df0d0bd6d1c7f089": {
+              "position": {
+                "lot_id": "S1",
+                "location_id": "00000011-0000-4000-8000-000000000011",
+                "status": "available"
+              },
+              "quantity": "788",
+              "serials": []
+            },
+            "54bcead0c7e6266e79e5c72b402985f6668509e72a92b0acf209b9eb8228fde9": {
+              "position": {
+                "lot_id": "S1",
+                "location_id": "0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c0c/00000015-0000-4000-8000-000000000015",
+                "status": "damaged"
+              },
+              "quantity": "200",
+              "serials": []
+            },
+            "ffe7b1835bfb45a592e9709cd75eca2ea30b8cd412c00b9a06588bfae32174ea": {
+              "position": {
+                "lot_id": "S1",
+                "location_id": "00000012-0000-4000-8000-000000000012",
+                "status": "available"
+              },
+              "quantity": "10",
+              "serials": []
+            }
+          },
+          "reservations": {}
+        }
+      }
+    },
+    {
+      "why": "a serialized product in a second book: units by serial, consignment as a title transfer that leaves the goods in place",
+      "book_id": "0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f",
+      "openings": [
+        {
+          "kind": "goods",
+          "product_id": "00000005-0000-4000-8000-000000000005",
+          "product": {
+            "base_unit": {
+              "system": "ucum",
+              "code": "{unit}"
+            },
+            "tracking": "serial"
+          }
+        }
+      ],
+      "facts": [
+        {
+          "why": "receive two serialized fermenters",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:31:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 0,
+                "expected_digest": null
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "2",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-1",
+                  "FX-2"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED serial_conflict: receiving a serial already in the ledger",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 1,
+                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-2"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "serial_conflict"
+          }
+        },
+        {
+          "why": "REFUSED tracking_mismatch: a serialized move without serials",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:33:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 1,
+                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "tracking_mismatch"
+          }
+        },
+        {
+          "why": "consign one fermenter to a retailer: title passes, it stays on the company's shelf",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:34:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 1,
+                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-1"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "move the consigned unit and the company's unit to the shelf by serial in one fact",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:35:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 2,
+                "expected_digest": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-1"
+                ],
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-2"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        }
+      ],
+      "final": {
+        "profile": "dtp.flow/1",
+        "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+        "book_id": "0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f",
+        "ledgers": {
+          "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3": {
+            "asset": {
+              "product": "00000005-0000-4000-8000-000000000005",
+              "currency": null
+            },
+            "account": null,
+            "unit": "{unit}",
+            "tracking": "serial",
+            "balance": "nonnegative",
+            "revision": 3,
+            "head": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b",
+            "positions": {
+              "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
+                "position": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": {
+                    "minted_by": "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d",
+                    "root": "00000025-0000-4000-8000-000000000025",
+                    "record_id": null
+                  }
+                },
+                "quantity": "1",
+                "serials": [
+                  "FX-1"
+                ]
+              },
+              "b23f7baa2273d96b99355ed273d1cfe7d79a83c5df0c57b7527fa54673a95f5d": {
+                "position": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "1",
+                "serials": [
+                  "FX-2"
+                ]
+              }
+            },
+            "reservations": {}
+          }
+        },
+        "sources": {
+          "wms": {
+            "high_water": 3,
+            "recent": {
+              "1": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15",
+              "2": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a",
+              "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+            }
+          }
+        }
+      },
+      "bridge": {
+        "product_id": "00000005-0000-4000-8000-000000000005",
+        "projection": {
+          "profile": "dtp.inventory/2",
+          "derived": true,
+          "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+          "product_id": "00000005-0000-4000-8000-000000000005",
+          "base_unit": {
+            "system": "ucum",
+            "code": "{unit}"
+          },
+          "tracking": "serial",
+          "revision": 3,
+          "positions": {
+            "f2671fc09c2a85aedb8011657b041f519745d3b47e0a665d00839571be13728a": {
+              "position": {
+                "lot_id": "B1",
+                "location_id": "00000012-0000-4000-8000-000000000012",
+                "status": "available"
+              },
+              "quantity": "1",
+              "serials": [
+                "FX-2"
+              ]
+            }
+          },
+          "reservations": {}
+        }
+      }
+    }
+  ]
+}
