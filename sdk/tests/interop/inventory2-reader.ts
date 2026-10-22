@@ -63,6 +63,12 @@ export function readFact(ledger: Ledger, fact: any): { outcome: Outcome; ledger:
     }
     if (fact.expected_revision !== ledger.revision) stop('revision_conflict');
     const next: Ledger = JSON.parse(JSON.stringify(ledger));
+    // Every operation is checked first; releases and fulfilments then settle before the moves, and reserves claim after them.
+    fact.reservations.forEach((op: any, i: number) => {
+      if (!plain(op) || !keysAre(op, ['kind', 'reservation_id', 'position', 'quantity', 'party'])) stop('invalid', `reservations[${i}]`);
+      if (!['reserve', 'release', 'fulfill'].includes(op.kind) || !ident(op.reservation_id, 120) || (op.party !== null && !UUID.test(op.party))) stop('invalid', 'op');
+      if (op.kind !== 'reserve') operate(op, i);
+    });
     fact.moves.forEach((leg: any, i: number) => {
       const path = `moves[${i}]`;
       if (!plain(leg) || !keysAre(leg, ['from', 'to', 'quantity', 'serial_ids', 'reason', 'links'])) stop('invalid', path);
@@ -88,10 +94,9 @@ export function readFact(ledger: Ledger, fact: any): { outcome: Outcome; ledger:
       } else for (const s of serials ?? []) if (Object.values(next.positions).some(p => p.serials.includes(s))) stop('serial_conflict', 'exists');
       if (!virtual(to.location_id)) { const p = at(next, to); p.quantity = show(th(p.quantity) + qty); p.serials.push(...(serials ?? [])); }
     });
-    fact.reservations.forEach((op: any, i: number) => {
+    fact.reservations.filter((op: any) => op.kind === 'reserve').forEach((op: any) => operate(op, fact.reservations.indexOf(op)));
+    function operate(op: any, i: number) {
       const path = `reservations[${i}]`;
-      if (!plain(op) || !keysAre(op, ['kind', 'reservation_id', 'position', 'quantity', 'party'])) stop('invalid', path);
-      if (!['reserve', 'release', 'fulfill'].includes(op.kind) || !ident(op.reservation_id, 120) || (op.party !== null && !UUID.test(op.party))) stop('invalid', 'op');
       const p = pos(next, op.position, path), k = key(p), qty = toBase(next, op.quantity, path);
       if (virtual(p.location_id) || p.status !== 'available') stop('invalid', 'reservation position');
       const cur = next.reservations[op.reservation_id];
@@ -108,7 +113,7 @@ export function readFact(ledger: Ledger, fact: any): { outcome: Outcome; ledger:
         if (next.tracking === 'serial') stop('tracking_mismatch');
         const s = at(next, p), have = th(s.quantity); if (have < qty) stop('insufficient_stock'); s.quantity = show(have - qty);
       }
-    });
+    }
     for (const [k, p] of Object.entries(next.positions)) if (th(p.quantity) === 0n && p.serials.length === 0) delete next.positions[k];
     const s = next.sources[source_id] ??= { high_water: 0, recent: {} };
     s.recent[String(sequence)] = d; s.high_water = Math.max(s.high_water, sequence);

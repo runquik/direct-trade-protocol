@@ -169,6 +169,20 @@ export function readFlowFact(state: Book, fact: any): { outcome: Outcome; book: 
     }
     if (listed.length !== touched.size || [...touched].some(k => !listed.includes(k))) stop('wrong_scope');
     for (const l of fact.ledgers) { const g = book.ledgers[l.key]; if (l.expected_revision !== g.revision || l.expected_digest !== g.head) stop('revision_conflict'); }
+    // A release or fulfilment settles its claim before the legs move stock; a reserve claims after them.
+    const operate = (r: any) => {
+      const g = book.ledgers[ledgerKeyOf(book, r.asset, r.position)], k = posKey(r.position), n = base(g, r.asset, r.quantity), cur = g.reservations[r.reservation_id];
+      if (r.kind === 'reserve') {
+        if (cur && cur.position !== k) stop('invalid');
+        if (fixed(slot(g, r.position).quantity, 3, true) - reserved(g, k) < n) stop('insufficient_stock');
+        g.reservations[r.reservation_id] = { position: k, quantity: show((cur ? fixed(cur.quantity, 3) : 0n) + n, 3), party: cur ? cur.party : r.party };
+        return;
+      }
+      if (!cur || cur.position !== k || fixed(cur.quantity, 3) < n) stop('insufficient_reservation');
+      const left = fixed(cur.quantity, 3) - n; if (left === 0n) delete g.reservations[r.reservation_id]; else g.reservations[r.reservation_id] = { ...cur, quantity: show(left, 3) };
+      if (r.kind === 'fulfill') { if (g.tracking === 'serial') stop('tracking_mismatch'); const s = slot(g, r.position), have = fixed(s.quantity, 3, true); if (have < n) stop('insufficient_stock'); s.quantity = show(have - n, 3); }
+    };
+    for (const r of fact.reservations) if (r.kind !== 'reserve') operate(r);
     for (const l of fact.legs) {
       const fromKey = outside(l.from) ? null : ledgerKeyOf(book, l.asset, l.from), toKey = outside(l.to) ? null : ledgerKeyOf(book, l.asset, l.to);
       const anchor = book.ledgers[(fromKey ?? toKey)!], n = base(anchor, l.asset, l.quantity), dp = places(anchor), serial = anchor.tracking === 'serial';
@@ -184,18 +198,7 @@ export function readFlowFact(state: Book, fact: any): { outcome: Outcome; book: 
       } else if (serial) for (const x of l.serial_ids) if (Object.values(anchor.positions).some(p => p.serials.includes(x))) stop('serial_conflict');
       if (toKey) { const s = slot(book.ledgers[toKey], l.to); s.quantity = show(fixed(s.quantity, dp, true) + n, dp); if (serial) s.serials.push(...l.serial_ids); }
     }
-    for (const r of fact.reservations) {
-      const g = book.ledgers[ledgerKeyOf(book, r.asset, r.position)], k = posKey(r.position), n = base(g, r.asset, r.quantity), cur = g.reservations[r.reservation_id];
-      if (r.kind === 'reserve') {
-        if (cur && cur.position !== k) stop('invalid');
-        if (fixed(slot(g, r.position).quantity, 3, true) - reserved(g, k) < n) stop('insufficient_stock');
-        g.reservations[r.reservation_id] = { position: k, quantity: show((cur ? fixed(cur.quantity, 3) : 0n) + n, 3), party: cur ? cur.party : r.party };
-        continue;
-      }
-      if (!cur || cur.position !== k || fixed(cur.quantity, 3) < n) stop('insufficient_reservation');
-      const left = fixed(cur.quantity, 3) - n; if (left === 0n) delete g.reservations[r.reservation_id]; else g.reservations[r.reservation_id] = { ...cur, quantity: show(left, 3) };
-      if (r.kind === 'fulfill') { if (g.tracking === 'serial') stop('tracking_mismatch'); const s = slot(g, r.position), have = fixed(s.quantity, 3, true); if (have < n) stop('insufficient_stock'); s.quantity = show(have - n, 3); }
-    }
+    for (const r of fact.reservations) if (r.kind === 'reserve') operate(r);
     for (const k of touched) {
       const g = book.ledgers[k];
       for (const [pk, p] of Object.entries(g.positions)) if (fixed(p.quantity, places(g), true) === 0n && !p.serials.length) delete g.positions[pk];

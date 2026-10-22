@@ -9,7 +9,7 @@ import { sha256HexSync } from '../sha256.ts';
 import { formatDecimal, parseDecimal } from './decimal.ts';
 import { ACT_SCHEMA, OBJECT_REF_SCHEMA, checkActOwner, checkRefOwner, validateAct, validateObjectRef } from './act.ts';
 import type { Act, ObjectRef } from './act.ts';
-import { POSITION_STATUSES } from './inventory2.ts';
+import { POSITION_STATUSES, samePackConversion } from './inventory2.ts';
 import type { PositionStatus, WireUnit } from './inventory2.ts';
 import type { ProductBody } from './product.ts';
 
@@ -175,13 +175,13 @@ function compact(l: FlowLedger) { for (const [k, p] of Object.entries(l.position
 const sameRef = (a: ObjectRef | null, b: ObjectRef | null) => canonicalize(a) === canonicalize(b);
 
 /** Host rule, not the reducer's: true when a goods leg, reservation or yield loss pins a pack conversion its product has
- *  not published (`unknown_packaging`), or the product is unknown. `products` maps product roots to their heads. */
+ *  not published (`unknown_packaging`), matched by value as in inventory@2 (#99), or the product is unknown. `products` maps product roots to their heads. */
 export function flowUnpublishedPackaging(fact: unknown, products: (root: string) => Pick<ProductBody, 'packaging'> | undefined): boolean {
   const f = fact as any, items = [...(Array.isArray(f?.legs) ? f.legs : []), ...(Array.isArray(f?.reservations) ? f.reservations : [])].map((x: any) => [x?.asset?.product, x?.quantity?.unit]);
   for (const y of Array.isArray(f?.transform?.yield_loss) ? f.transform.yield_loss : []) items.push([y?.product, y?.quantity?.unit]);
   return items.filter(([, u]) => u && typeof u === 'object' && u.system === 'packaging').some(([root, u]) => {
     const product = typeof root === 'string' ? products(root) : undefined;
-    return !product || !(product.packaging as any[]).some(x => x.packaging_id === u.packaging_id && x.version === u.version && x.base_units_per_pack === u.base_units_per_pack);
+    return !product || !(product.packaging as any[]).some(x => x.packaging_id === u.packaging_id && x.version === u.version && samePackConversion(x.base_units_per_pack, u.base_units_per_pack));
   });
 }
 /** Host rule: references to the writer's own objects leave minted_by null, everywhere in the fact (checkRefOwner). */
@@ -307,7 +307,30 @@ export function applyFlowFact(state: FlowBook, fact: FlowFact): FlowResult {
       if (ledger.revision >= Number.MAX_SAFE_INTEGER) refuse('invalid', 'ledger revision capacity exhausted');
       if (l.expected_revision !== ledger.revision || l.expected_digest !== ledger.head) refuse('revision_conflict', `ledger ${l.key.slice(0, 12)} changed; reload before deciding a new action`);
     }
-    // Apply the legs in order.
+    // Releases and fulfilments settle existing claims before any leg moves stock, so a leg can ship what a release in the
+    // same fact frees (#85); reserves claim stock after the legs, so one fact can receive stock and reserve it.
+    const reservation = (op: FlowReservation, i: number, phase: 'settle' | 'claim') => {
+      if ((op.kind === 'reserve') !== (phase === 'claim')) return;
+      const path = `$.reservations[${i}]`, ledger = next.ledgers[ledgerOf(next, op.asset, op.position, path)], key = flowPositionKey(op.position), qty = toBase(ledger, op.asset, op.quantity, `${path}.quantity`);
+      const current = ledger.reservations[op.reservation_id];
+      if (op.kind === 'reserve') {
+        if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
+        const have = parseDecimal(positionAt(ledger, op.position).quantity, GOODS_SCALE, true), reserved = reservedAt(ledger, key);
+        if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
+        ledger.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, GOODS_SCALE) : 0n) + qty, GOODS_SCALE), party: current?.party ?? op.party };
+        return;
+      }
+      if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
+      const held = parseDecimal(current.quantity, GOODS_SCALE); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
+      if (held === qty) delete ledger.reservations[op.reservation_id]; else ledger.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, GOODS_SCALE) };
+      if (op.kind === 'fulfill') {
+        if (ledger.tracking === 'serial') refuse('tracking_mismatch', `${path}: serialized stock is fulfilled by a move naming its serials, plus a release`);
+        const p = positionAt(ledger, op.position), have = parseDecimal(p.quantity, GOODS_SCALE, true); if (have < qty) refuse('insufficient_stock', `${path}: fulfilment exceeds the position`);
+        p.quantity = formatDecimal(have - qty, GOODS_SCALE);
+      }
+    };
+    fact.reservations.forEach((op, i) => reservation(op, i, 'settle'));
+    // Apply the legs in order, between the two reservation phases.
     fact.legs.forEach((leg, i) => {
       const path = `$.legs[${i}]`, money = leg.asset.currency !== null;
       const fromKey = isVirtual(leg.from) ? null : ledgerOf(next, leg.asset, leg.from, path), toKey = isVirtual(leg.to) ? null : ledgerOf(next, leg.asset, leg.to, path);
@@ -331,25 +354,7 @@ export function applyFlowFact(state: FlowBook, fact: FlowFact): FlowResult {
         if (anchor.tracking === 'serial') p.serials.push(...leg.serial_ids!);
       }
     });
-    fact.reservations.forEach((op, i) => {
-      const path = `$.reservations[${i}]`, ledger = next.ledgers[ledgerOf(next, op.asset, op.position, path)], key = flowPositionKey(op.position), qty = toBase(ledger, op.asset, op.quantity, `${path}.quantity`);
-      const current = ledger.reservations[op.reservation_id];
-      if (op.kind === 'reserve') {
-        if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
-        const have = parseDecimal(positionAt(ledger, op.position).quantity, GOODS_SCALE, true), reserved = reservedAt(ledger, key);
-        if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
-        ledger.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, GOODS_SCALE) : 0n) + qty, GOODS_SCALE), party: current?.party ?? op.party };
-        return;
-      }
-      if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
-      const held = parseDecimal(current.quantity, GOODS_SCALE); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
-      if (held === qty) delete ledger.reservations[op.reservation_id]; else ledger.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, GOODS_SCALE) };
-      if (op.kind === 'fulfill') {
-        if (ledger.tracking === 'serial') refuse('tracking_mismatch', `${path}: serialized stock is fulfilled by a move naming its serials, plus a release`);
-        const p = positionAt(ledger, op.position), have = parseDecimal(p.quantity, GOODS_SCALE, true); if (have < qty) refuse('insufficient_stock', `${path}: fulfilment exceeds the position`);
-        p.quantity = formatDecimal(have - qty, GOODS_SCALE);
-      }
-    });
+    fact.reservations.forEach((op, i) => reservation(op, i, 'claim'));
     for (const key of touched) { const ledger = next.ledgers[key]; compact(ledger); ledger.revision += 1; ledger.head = factDigest; }
     const src = next.sources[source_id] ??= { high_water: 0, recent: {} };
     src.recent[String(sequence)] = factDigest; src.high_water = Math.max(src.high_water, sequence);
