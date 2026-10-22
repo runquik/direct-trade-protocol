@@ -1,0 +1,952 @@
+{
+  "publisher_id": "dtp",
+  "name": "flow",
+  "version": "1.0.0",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "act",
+      "ledgers",
+      "legs",
+      "reservations",
+      "transform",
+      "rights",
+      "settles"
+    ],
+    "properties": {
+      "act": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "verb",
+          "occurred_at",
+          "observation",
+          "basis",
+          "references",
+          "evidence"
+        ],
+        "properties": {
+          "verb": {
+            "type": "string",
+            "maxLength": 9,
+            "enum": [
+              "move",
+              "transform",
+              "transfer",
+              "assign",
+              "observe",
+              "value"
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "observation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "sequence"
+            ],
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "sequence": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "basis": {
+            "type": "string",
+            "maxLength": 8,
+            "enum": [
+              "asserted",
+              "measured",
+              "inferred"
+            ]
+          },
+          "references": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minted_by",
+                "root",
+                "record_id"
+              ],
+              "properties": {
+                "minted_by": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "root": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "record_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ref",
+                "document"
+              ],
+              "properties": {
+                "ref": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "minted_by",
+                    "root",
+                    "record_id"
+                  ],
+                  "properties": {
+                    "minted_by": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "root": {
+                      "type": "string",
+                      "maxLength": 36
+                    },
+                    "record_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  },
+                  "nullable": true
+                },
+                "document": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "digest",
+                    "media_type",
+                    "description"
+                  ],
+                  "nullable": true,
+                  "properties": {
+                    "digest": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "media_type": {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 200,
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ledgers": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "expected_revision",
+            "expected_digest"
+          ],
+          "properties": {
+            "key": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "expected_revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "expected_digest": {
+              "type": "string",
+              "maxLength": 64,
+              "nullable": true
+            }
+          }
+        }
+      },
+      "legs": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "asset",
+            "from",
+            "to",
+            "quantity",
+            "serial_ids",
+            "reason"
+          ],
+          "properties": {
+            "asset": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "product",
+                "currency"
+              ],
+              "properties": {
+                "product": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "currency": {
+                  "type": "string",
+                  "maxLength": 8,
+                  "nullable": true
+                }
+              }
+            },
+            "from": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "lot_id",
+                "location",
+                "status",
+                "owner"
+              ],
+              "properties": {
+                "lot_id": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "location": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ref",
+                    "virtual"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "minted_by",
+                        "root",
+                        "record_id"
+                      ],
+                      "properties": {
+                        "minted_by": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        },
+                        "root": {
+                          "type": "string",
+                          "maxLength": 36
+                        },
+                        "record_id": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "virtual": {
+                      "type": "string",
+                      "maxLength": 16,
+                      "nullable": true
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "enum": [
+                    "available",
+                    "quarantine",
+                    "damaged",
+                    "expired",
+                    "in_transit"
+                  ]
+                },
+                "owner": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "minted_by",
+                    "root",
+                    "record_id"
+                  ],
+                  "properties": {
+                    "minted_by": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "root": {
+                      "type": "string",
+                      "maxLength": 36
+                    },
+                    "record_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  },
+                  "nullable": true
+                }
+              }
+            },
+            "to": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "lot_id",
+                "location",
+                "status",
+                "owner"
+              ],
+              "properties": {
+                "lot_id": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "location": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ref",
+                    "virtual"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "minted_by",
+                        "root",
+                        "record_id"
+                      ],
+                      "properties": {
+                        "minted_by": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        },
+                        "root": {
+                          "type": "string",
+                          "maxLength": 36
+                        },
+                        "record_id": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "virtual": {
+                      "type": "string",
+                      "maxLength": 16,
+                      "nullable": true
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "enum": [
+                    "available",
+                    "quarantine",
+                    "damaged",
+                    "expired",
+                    "in_transit"
+                  ]
+                },
+                "owner": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "minted_by",
+                    "root",
+                    "record_id"
+                  ],
+                  "properties": {
+                    "minted_by": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "root": {
+                      "type": "string",
+                      "maxLength": 36
+                    },
+                    "record_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  },
+                  "nullable": true
+                }
+              }
+            },
+            "quantity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "amount",
+                "unit"
+              ],
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "maxLength": 28
+                },
+                "unit": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "system",
+                    "code",
+                    "packaging_id",
+                    "version",
+                    "base_units_per_pack"
+                  ],
+                  "properties": {
+                    "system": {
+                      "type": "string",
+                      "maxLength": 9,
+                      "enum": [
+                        "ucum",
+                        "packaging",
+                        "currency"
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 32,
+                      "nullable": true
+                    },
+                    "packaging_id": {
+                      "type": "string",
+                      "maxLength": 80,
+                      "nullable": true
+                    },
+                    "version": {
+                      "type": "string",
+                      "maxLength": 40,
+                      "nullable": true
+                    },
+                    "base_units_per_pack": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            },
+            "serial_ids": {
+              "type": "array",
+              "maxItems": 256,
+              "items": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "nullable": true
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200,
+              "nullable": true
+            }
+          }
+        }
+      },
+      "reservations": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "reservation_id",
+            "asset",
+            "position",
+            "quantity",
+            "party"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "maxLength": 7,
+              "enum": [
+                "reserve",
+                "release",
+                "fulfill"
+              ]
+            },
+            "reservation_id": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "asset": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "product",
+                "currency"
+              ],
+              "properties": {
+                "product": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "currency": {
+                  "type": "string",
+                  "maxLength": 8,
+                  "nullable": true
+                }
+              }
+            },
+            "position": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "lot_id",
+                "location",
+                "status",
+                "owner"
+              ],
+              "properties": {
+                "lot_id": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "location": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ref",
+                    "virtual"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "minted_by",
+                        "root",
+                        "record_id"
+                      ],
+                      "properties": {
+                        "minted_by": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        },
+                        "root": {
+                          "type": "string",
+                          "maxLength": 36
+                        },
+                        "record_id": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "virtual": {
+                      "type": "string",
+                      "maxLength": 16,
+                      "nullable": true
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "enum": [
+                    "available",
+                    "quarantine",
+                    "damaged",
+                    "expired",
+                    "in_transit"
+                  ]
+                },
+                "owner": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "minted_by",
+                    "root",
+                    "record_id"
+                  ],
+                  "properties": {
+                    "minted_by": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "root": {
+                      "type": "string",
+                      "maxLength": 36
+                    },
+                    "record_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  },
+                  "nullable": true
+                }
+              }
+            },
+            "quantity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "amount",
+                "unit"
+              ],
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "maxLength": 28
+                },
+                "unit": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "system",
+                    "code",
+                    "packaging_id",
+                    "version",
+                    "base_units_per_pack"
+                  ],
+                  "properties": {
+                    "system": {
+                      "type": "string",
+                      "maxLength": 9,
+                      "enum": [
+                        "ucum",
+                        "packaging",
+                        "currency"
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 32,
+                      "nullable": true
+                    },
+                    "packaging_id": {
+                      "type": "string",
+                      "maxLength": 80,
+                      "nullable": true
+                    },
+                    "version": {
+                      "type": "string",
+                      "maxLength": 40,
+                      "nullable": true
+                    },
+                    "base_units_per_pack": {
+                      "type": "string",
+                      "maxLength": 24,
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            },
+            "party": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minted_by",
+                "root",
+                "record_id"
+              ],
+              "properties": {
+                "minted_by": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "root": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "record_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              },
+              "nullable": true
+            }
+          }
+        }
+      },
+      "transform": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recipe",
+          "yield_loss",
+          "equipment"
+        ],
+        "nullable": true,
+        "properties": {
+          "recipe": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "minted_by",
+              "root",
+              "record_id"
+            ],
+            "properties": {
+              "minted_by": {
+                "type": "string",
+                "maxLength": 36,
+                "nullable": true
+              },
+              "root": {
+                "type": "string",
+                "maxLength": 36
+              },
+              "record_id": {
+                "type": "string",
+                "maxLength": 36,
+                "nullable": true
+              }
+            },
+            "nullable": true
+          },
+          "yield_loss": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "product",
+                "quantity",
+                "reason"
+              ],
+              "properties": {
+                "product": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "quantity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "amount",
+                    "unit"
+                  ],
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "maxLength": 28
+                    },
+                    "unit": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "system",
+                        "code",
+                        "packaging_id",
+                        "version",
+                        "base_units_per_pack"
+                      ],
+                      "properties": {
+                        "system": {
+                          "type": "string",
+                          "maxLength": 9,
+                          "enum": [
+                            "ucum",
+                            "packaging",
+                            "currency"
+                          ]
+                        },
+                        "code": {
+                          "type": "string",
+                          "maxLength": 32,
+                          "nullable": true
+                        },
+                        "packaging_id": {
+                          "type": "string",
+                          "maxLength": 80,
+                          "nullable": true
+                        },
+                        "version": {
+                          "type": "string",
+                          "maxLength": 40,
+                          "nullable": true
+                        },
+                        "base_units_per_pack": {
+                          "type": "string",
+                          "maxLength": 24,
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                },
+                "reason": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              }
+            }
+          },
+          "equipment": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minted_by",
+                "root",
+                "record_id"
+              ],
+              "properties": {
+                "minted_by": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "root": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "record_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "rights": {
+        "type": "array",
+        "maxItems": 2,
+        "items": {
+          "type": "string",
+          "maxLength": 7,
+          "enum": [
+            "title",
+            "custody"
+          ]
+        },
+        "nullable": true
+      },
+      "settles": {
+        "type": "array",
+        "maxItems": 16,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "claim",
+            "kind",
+            "amount",
+            "currency",
+            "reverses"
+          ],
+          "properties": {
+            "claim": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minted_by",
+                "root",
+                "record_id"
+              ],
+              "properties": {
+                "minted_by": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "root": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "record_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              }
+            },
+            "kind": {
+              "type": "string",
+              "maxLength": 8,
+              "enum": [
+                "payment",
+                "offset",
+                "reversal"
+              ]
+            },
+            "amount": {
+              "type": "string",
+              "maxLength": 28
+            },
+            "currency": {
+              "type": "string",
+              "maxLength": 8
+            },
+            "reverses": {
+              "type": "string",
+              "maxLength": 36,
+              "nullable": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "semantics": "flow-v1",
+  "dependencies": []
+}
