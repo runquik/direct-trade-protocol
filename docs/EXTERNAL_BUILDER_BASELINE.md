@@ -6,17 +6,30 @@ Everything below was verified on the tree that carries this document, on the pin
 
 ## 1. The supported baseline
 
-Pin the merge commit of this document on `main` (the state it was built on is `bb2ef80`, the merge of the business-fact profiles). Everything in one row of the table is meant to be used together; nothing across previews is meant to be combined by assumption.
+Pin the commit named in [Changes to the packed SDK since the first pin](#changes-to-the-packed-sdk-since-the-first-pin) below as the current pin; today that is `444a0c4`. The first pin was the merge of this document, `df13e4c` (built on `bb2ef80`, the merge of the business-fact profiles); it is stale, because later fixes changed what the packed SDK verifies and admits. Everything in one row of the table is meant to be used together; nothing across previews is meant to be combined by assumption.
 
 | Surface | Supported for this experiment | Where |
 |---|---|---|
 | Specification | The 0.4 reference candidate: signed commands, people and companies, policies and grants, profiles and module releases, records and reads, bounds and error classes | [`spec/v0.4/SPEC.md`](../spec/v0.4/SPEC.md) sections 2 to 6 and 9; the command vocabulary in [`command.schema.json`](../spec/v0.4/command.schema.json) |
 | Wire conformance | Canonical JSON, safe-integer numbers, member-name rule, Ed25519 keys and signatures, the fixed signing vector | [`signing-vector.json`](../spec/v0.4/signing-vector.json), [`spec/vectors/canonicalization.json`](../spec/vectors/canonicalization.json), [`spec/vectors/unsafe-json.json`](../spec/vectors/unsafe-json.json), [`docs/security/json-member-names.md`](security/json-member-names.md) |
 | Domain contract | The registered protocol kinds `dtp/product@1` and `dtp/inventory@2` (and, registered but outside the first slice, `dtp/party@1`, `dtp/order@1`, `dtp/forecast@1`) | [`spec/profiles/index.json`](../spec/profiles/index.json) pins the exact contract digests; documents and fixtures under [`spec/profiles/`](../spec/profiles/) |
-| SDK | `@dtp/sdk` 0.2.0, packed from this commit; entries `@dtp/sdk`, `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | section 2 |
+| SDK | `@dtp/sdk` 0.2.0, packed from the current pin; entries `@dtp/sdk`, `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | section 2 |
 | Runtime | Node 22.23.2 ([`.node-version`](../.node-version)); the package's `engines` allows 22.23.2 up to, not including, 23 | |
 | Reference host | The disposable candidate host on embedded Postgres, configured from a file | [`sdk/scripts/dtp-v04-dev-server.ts`](../sdk/scripts/dtp-v04-dev-server.ts); section 3 |
 | Executable example | A module in its own package against the packed SDK and the configured host | [`examples/external-module/`](../examples/external-module/README.md) |
+
+### Changes to the packed SDK since the first pin
+
+The package version is still `0.2.0` at every commit below, and `npm pack` names the file `dtp-sdk-0.2.0.tgz` each time, so neither the version nor the file name tells two artifacts apart; only the commit and the integrity hash do (section 2). Each row is a merge on `main` that changed the behaviour of a packed entry. The current pin is the newest row; a later commit that changes nothing under `sdk/` packs the same artifact. An artifact packed before a row marked conformance or security does not meet the current specification on that point; re-pack from the current pin and run the conformance pack (section 8) again.
+
+| Merge | Pull request | Entry | Change | Kind |
+|---|---|---|---|---|
+| `9e6600f` | #41 | `@dtp/sdk/preview/foundation` (`inventory`) | `inventory@1` reducer state is keyed by the digest of each identity tuple; state built by an earlier artifact is not interchangeable | state shape |
+| `460e6c0` | #45 | `@dtp/sdk` (`verifyBytes`), and every entry that verifies | Ed25519 verification follows [`spec/vectors/signature-verification.json`](../spec/vectors/signature-verification.json); an earlier artifact accepts two of its cases marked refuse | conformance |
+| `4c7bcaf` | #48 | `@dtp/sdk` | adds `keyOrder` and `registrableKey` | additive |
+| `d544182` | #53 | `@dtp/sdk/preview/foundation` (`identityLog`) | the retired-recovery fork rule; an earlier artifact admits the takeover in #50 | security |
+| `d292397` | #61 | `@dtp/sdk/preview/foundation` (`inventory2`) | adds `unpublishedPackaging`, the host rule snapshot import shares | additive |
+| `444a0c4` | #62 | `@dtp/sdk/preview/foundation` (`identityLog`) | refusals of a rehome are honoured, with the new reason `refused-move` | conformance |
 
 **How the candidate and the foundation relate.** The 0.4 candidate is the served surface: the host, the command vocabulary, the records and the reads a module uses. The foundation layer ([`docs/foundation/README.md`](foundation/README.md)) is a set of portable libraries with published vectors: identity control and identity logs, organization genesis and governance, authority delegation, record datatypes, replayable change views, discovery and commitments. They are reachable from `@dtp/sdk/preview/foundation` and tested against their vectors, but **the 0.4 host does not serve them**: it does not authenticate with foundation identities, does not publish change views and does not accept foundation datatypes in payloads. Person and company identifiers in the two layers derive from different domains and are not the same identities. For this experiment a module uses the candidate only; foundation modules are experimental and must not be mixed in on the assumption that the host understands them. The frozen 0.2 store, the 0.3 authority preview and the onboarding preview host are separate systems and are not part of this baseline.
 
@@ -157,7 +170,7 @@ What is not guaranteed and must not be claimed: sequences are renumbered at the 
 ## 10. Change and feedback process
 
 - Minimal reproductions go to this repository as an issue or a pull request: the fixture or command that was sent, the expected and observed result, and the versions from the table in section 1. A reproduction that fits in a test file under `sdk/tests` is best.
-- A contract clarification lands as a change to the specification or profile document, its fixtures and, where the wire is affected, a vector, in one reviewed pull request; the merge commit is the new pinned baseline.
+- A contract clarification lands as a change to the specification or profile document, its fixtures and, where the wire is affected, a vector, in one reviewed pull request; the merge commit is the new pinned baseline. When it changes the behaviour of a packed entry, the same pull request adds a row to the table in section 1, so the current pin stays named in this document.
 - The repository owner decides; the readers' and implementers' reports are inputs. Decisions on new kinds follow the proposal document's process.
 - Breaking changes to a kind are a new major; the candidate itself carries no compatibility promise before its first release, and every change to a served surface is recorded in [`progress.md`](../progress.md) with its pull request.
 
@@ -169,7 +182,7 @@ Independent conformance to the wire specification (the module imports the SDK); 
 
 | # | Request | Status | Owner | Next deliverable |
 |---|---|---|---|---|
-| 1 | One supported baseline | supported now | maintainers | pin the merge commit of this document |
+| 1 | One supported baseline | supported now | maintainers | pin the newest commit in the section 1 change table |
 | 2 | A consumable client SDK | supported now (this change) | maintainers | a version bump and changelog when the served surface changes |
 | 3 | A reference environment | supported now (file configuration, persistence, reset, seed) | maintainers and module team | the module team's own seed once its slice is fixed |
 | 4 | A complete authority example | supported now (example and section 4) | maintainers | none until the slice needs interactive mode or write delegation |
