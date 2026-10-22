@@ -39,15 +39,28 @@ const canonCases = [
   { name: "key order and nesting", input: { z: 1, a: { y: "2", x: [3, { b: true, a: null }] } } },
   { name: "unicode and escapes", input: { s: "héllo \"quoted\" \\ back\nnewline ", e: "" } },
   { name: "integers and arrays", input: { n: [0, -1, 9007199254740991], m: {} } },
-  { name: "undefined is dropped, null kept", input: { a: null, b: undefined, c: [undefined] } },
+  { name: "null is kept, as a member and in an array", input: { a: null, c: [null] } },
   { name: "numeric-string keys sort as strings, not numbers", input: { "10": 1, "9": 2, "1": 3, a: 4, "": 5 } },
-  { name: "negative zero and escapes in keys", input: { "z\u0013": 1, "\\": 2, n: -0 } },
+  { name: "zero, and names that need no escape: spaces, symbols, non-ASCII", input: { n: 0, "a b": 1, "$ref": 2, "\u00fcn\u00ef": 3, "\u65e5": 4 } },
+  // A supplementary-plane name (U+1F600, UTF-16 D83D DE00) sorts before a high-BMP one (U+FF0F) by UTF-16 code
+  // units but after it by code point, so a canonicalizer that sorts by code point (or by UTF-8 bytes) fails this case.
+  { name: "keys sort by UTF-16 code units, not code points", input: { "\uFF0F": 1, "\u{1F600}": 2, "\u00E9": 3, a: 4 } },
+];
+// Values canonicalization MUST refuse. Each is given as text, parsed without the receiver's guard, because a
+// guarded receiver never gets this far: these say what a producer may not sign.
+const canonRefuse = [
+  { why: "a member name with a reverse solidus", text: '{"\\\\":1}' },
+  { why: "a member name with a control character", text: '{"z\\u0013":1}' },
+  { why: "a member name with a quotation mark", text: '{"a\\"b":1}' },
+  { why: "a number with a fraction", text: '{"n":1.5}' },
+  { why: "a number beyond the safe integers", text: '{"n":9007199254740993}' },
+  { why: "a lone surrogate in a string", text: '{"s":"\\ud800"}' },
 ];
 const canonical = await Promise.all(canonCases.map(async (c) => {
   const text = canonicalize(c.input);
   return { name: c.name, input: c.input, canonical: text, sha256: await sha256Hex(text) };
 }));
-writeFileSync(join(out, "canonicalization.json"), JSON.stringify({ description: "canonical = RFC 8785 JCS with integer-only numbers; sha256 over UTF-8 bytes of canonical", cases: canonical }, null, 2) + "\n");
+writeFileSync(join(out, "canonicalization.json"), JSON.stringify({ description: "canonical = RFC 8785 JCS with integer-only numbers; sha256 over UTF-8 bytes of canonical. Under refuse, texts whose parsed value canonicalization MUST refuse.", cases: canonical, refuse: canonRefuse }, null, 2) + "\n");
 
 // Signature vectors: a company genesis record and a contract, both signed by the fixed key
 const created_at = "2026-09-08T14:03:22.117Z";
