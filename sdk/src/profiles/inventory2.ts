@@ -95,13 +95,18 @@ function checkPosition(ledger: InventoryLedger, p: unknown, path: string): Posit
 const reservedAt = (ledger: InventoryLedger, key: string) => Object.values(ledger.reservations).filter(r => r.position === key).reduce((n, r) => n + parseDecimal(r.quantity, 3), 0n);
 function positionAt(ledger: InventoryLedger, pos: Position): PositionState { const key = positionKey(pos); return ledger.positions[key] ??= { position: { ...pos }, quantity: '0', serials: [] }; }
 function compact(ledger: InventoryLedger) { for (const [k, p] of Object.entries(ledger.positions)) if (parseDecimal(p.quantity, 3) === 0n && p.serials.length === 0) delete ledger.positions[k]; }
+/** True when two pack conversions are the same decimal value, however they are spelled ("12", "12.0", "12.000"). (#99) */
+export function samePackConversion(a: unknown, b: unknown): boolean {
+  try { return parseDecimal(a, 3) === parseDecimal(b, 3); } catch { return false; }
+}
 /** Host rule, not the reducer's: true when a pack conversion in the fact is not a packaging revision the product
- *  published (`unknown_packaging`), or there is no product. A malformed fact is left to the reducer. The live write path
- *  and snapshot import both apply it, so import cannot admit a fact a live host refuses. */
+ *  published (`unknown_packaging`), or there is no product. A revision is matched by id, version and the value of its
+ *  conversion, never its spelling. A malformed fact is left to the reducer. The live write path and snapshot import both
+ *  apply it, so import cannot admit a fact a live host refuses. */
 export function unpublishedPackaging(fact: unknown, product: Pick<ProductBody, 'packaging'> | undefined): boolean {
   const f = fact as any, units = [...(Array.isArray(f?.moves) ? f.moves : []), ...(Array.isArray(f?.reservations) ? f.reservations : [])].map((x: any) => x?.quantity?.unit);
   return units.filter((u: any) => u && typeof u === 'object' && u.system === 'packaging')
-    .some((u: any) => !product || !(product.packaging as any[]).some(x => x.packaging_id === u.packaging_id && x.version === u.version && x.base_units_per_pack === u.base_units_per_pack));
+    .some((u: any) => !product || !(product.packaging as any[]).some(x => x.packaging_id === u.packaging_id && x.version === u.version && samePackConversion(x.base_units_per_pack, u.base_units_per_pack)));
 }
 /** Applies one fact atomically. Assumes an authenticated, schema-admitted fact and authoritative persisted state; the
  *  caller MUST compare revision, deduplicate and persist the returned state in one transaction. */
@@ -124,6 +129,34 @@ export function applyInventoryFact(state: InventoryLedger, fact: InventoryFact):
     if (state.revision >= Number.MAX_SAFE_INTEGER) return fail('invalid', 'ledger revision capacity exhausted');
     if (fact.expected_revision !== state.revision) return fail('revision_conflict', 'ledger changed; reload before deciding a new action');
     const next: InventoryLedger = structuredClone(state);
+    // Releases and fulfilments settle existing claims before any leg moves stock, so a leg can ship what a release in the
+    // same fact frees (#85); reserves claim stock after the legs, so one fact can receive stock and reserve it.
+    const reservation = (op: ReservationOp, i: number, phase: 'settle' | 'claim') => {
+      const path = `reservations[${i}]`;
+      if (!isObject(op) || !exact(op, ['kind', 'reservation_id', 'position', 'quantity', 'party'])) refuse('invalid', `${path}: exact reservation fields required`);
+      if (!['reserve', 'release', 'fulfill'].includes(op.kind) || !ident(op.reservation_id, 120) || (op.party !== null && !UUID.test(String(op.party)))) refuse('invalid', `${path}: kind, reservation id and party or null required`);
+      if ((op.kind === 'reserve') !== (phase === 'claim')) return;
+      const pos = checkPosition(next, op.position, `${path}.position`), key = positionKey(pos), qty = toBase(next, op.quantity, `${path}.quantity`);
+      if (isVirtual(pos.location_id)) refuse('invalid', `${path}: reservations claim real stock`);
+      if (pos.status !== 'available') refuse('invalid', `${path}: only available stock is reserved`);
+      const current = next.reservations[op.reservation_id];
+      if (op.kind === 'reserve') {
+        if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
+        const have = parseDecimal(positionAt(next, pos).quantity, 3), reserved = reservedAt(next, key);
+        if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
+        next.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, 3) : 0n) + qty, 3), party: current?.party ?? op.party };
+        return;
+      }
+      if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
+      const held = parseDecimal(current.quantity, 3); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
+      if (held === qty) delete next.reservations[op.reservation_id]; else next.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, 3) };
+      if (op.kind === 'fulfill') {
+        if (next.tracking === 'serial') refuse('tracking_mismatch', `${path}: serialized stock is fulfilled by a move to ~customer naming its serials, plus a release`);
+        const p = positionAt(next, pos), have = parseDecimal(p.quantity, 3); if (have < qty) refuse('insufficient_stock', `${path}: fulfilment exceeds the position`);
+        p.quantity = formatDecimal(have - qty, 3);
+      }
+    };
+    fact.reservations.forEach((op, i) => reservation(op, i, 'settle'));
     fact.moves.forEach((leg, i) => {
       const path = `moves[${i}]`;
       if (!isObject(leg) || !exact(leg, ['from', 'to', 'quantity', 'serial_ids', 'reason', 'links'])) refuse('invalid', `${path}: exact leg fields required`);
@@ -153,30 +186,7 @@ export function applyInventoryFact(state: InventoryLedger, fact: InventoryFact):
         if (next.tracking === 'serial') p.serials.push(...leg.serial_ids!);
       }
     });
-    fact.reservations.forEach((op, i) => {
-      const path = `reservations[${i}]`;
-      if (!isObject(op) || !exact(op, ['kind', 'reservation_id', 'position', 'quantity', 'party'])) refuse('invalid', `${path}: exact reservation fields required`);
-      if (!['reserve', 'release', 'fulfill'].includes(op.kind) || !ident(op.reservation_id, 120) || (op.party !== null && !UUID.test(String(op.party)))) refuse('invalid', `${path}: kind, reservation id and party or null required`);
-      const pos = checkPosition(next, op.position, `${path}.position`), key = positionKey(pos), qty = toBase(next, op.quantity, `${path}.quantity`);
-      if (isVirtual(pos.location_id)) refuse('invalid', `${path}: reservations claim real stock`);
-      if (pos.status !== 'available') refuse('invalid', `${path}: only available stock is reserved`);
-      const current = next.reservations[op.reservation_id];
-      if (op.kind === 'reserve') {
-        if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
-        const have = parseDecimal(positionAt(next, pos).quantity, 3), reserved = reservedAt(next, key);
-        if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
-        next.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, 3) : 0n) + qty, 3), party: current?.party ?? op.party };
-        return;
-      }
-      if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
-      const held = parseDecimal(current.quantity, 3); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
-      if (held === qty) delete next.reservations[op.reservation_id]; else next.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, 3) };
-      if (op.kind === 'fulfill') {
-        if (next.tracking === 'serial') refuse('tracking_mismatch', `${path}: serialized stock is fulfilled by a move to ~customer naming its serials, plus a release`);
-        const p = positionAt(next, pos), have = parseDecimal(p.quantity, 3); if (have < qty) refuse('insufficient_stock', `${path}: fulfilment exceeds the position`);
-        p.quantity = formatDecimal(have - qty, 3);
-      }
-    });
+    fact.reservations.forEach((op, i) => reservation(op, i, 'claim'));
     compact(next);
     const src = next.sources[source_id] ??= { high_water: 0, recent: {} };
     src.recent[String(sequence)] = factDigest; src.high_water = Math.max(src.high_water, sequence);

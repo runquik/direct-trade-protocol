@@ -3502,6 +3502,258 @@
             "ok": true,
             "duplicate": false
           }
+        },
+        {
+          "why": "reserve the company's own unit on the shelf: its position is now fully reserved",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:36:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 1
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 3,
+                "expected_digest": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "so-77",
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000025-0000-4000-8000-000000000025",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED insufficient_stock: shipping the reserved unit without settling its claim",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:37:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 4,
+                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~customer"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-2"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "insufficient_stock"
+          }
+        },
+        {
+          "why": "ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:38:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 4,
+                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~customer"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-2"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "so-77",
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "B1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
         }
       ],
       "final": {
@@ -3518,8 +3770,8 @@
             "unit": "{unit}",
             "tracking": "serial",
             "balance": "nonnegative",
-            "revision": 3,
-            "head": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b",
+            "revision": 5,
+            "head": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507",
             "positions": {
               "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
                 "position": {
@@ -3543,25 +3795,6 @@
                 "serials": [
                   "FX-1"
                 ]
-              },
-              "b23f7baa2273d96b99355ed273d1cfe7d79a83c5df0c57b7527fa54673a95f5d": {
-                "position": {
-                  "lot_id": "B1",
-                  "location": {
-                    "ref": {
-                      "minted_by": null,
-                      "root": "00000012-0000-4000-8000-000000000012",
-                      "record_id": null
-                    },
-                    "virtual": null
-                  },
-                  "status": "available",
-                  "owner": null
-                },
-                "quantity": "1",
-                "serials": [
-                  "FX-2"
-                ]
               }
             },
             "reservations": {}
@@ -3574,6 +3807,13 @@
               "1": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15",
               "2": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a",
               "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+            }
+          },
+          "orders": {
+            "high_water": 2,
+            "recent": {
+              "1": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40",
+              "2": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
             }
           }
         }
@@ -3590,20 +3830,8 @@
             "code": "{unit}"
           },
           "tracking": "serial",
-          "revision": 3,
-          "positions": {
-            "f2671fc09c2a85aedb8011657b041f519745d3b47e0a665d00839571be13728a": {
-              "position": {
-                "lot_id": "B1",
-                "location_id": "00000012-0000-4000-8000-000000000012",
-                "status": "available"
-              },
-              "quantity": "1",
-              "serials": [
-                "FX-2"
-              ]
-            }
-          },
+          "revision": 5,
+          "positions": {},
           "reservations": {}
         }
       }

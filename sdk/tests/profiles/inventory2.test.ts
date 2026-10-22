@@ -49,8 +49,8 @@ test('inventory@2 invariants: the sum over positions plus what left is what came
   const flow = fixtures.flows[0], ledger = flow.final;
   const thousandths = (v: string) => { const [w, f = ''] = v.split('.'); return BigInt(w) * 1000n + BigInt(f.padEnd(3, '0')); };
   const onHand = Object.values(ledger.positions).reduce((n, p) => n + thousandths(p.quantity), 0n);
-  // 120 received + 1 + 1 (audit) + 7 (L3) in; 10 fulfilled + 5 adjusted + 10 produced + 29 shipped out.
-  assert.equal(onHand, (120n + 1n + 1n + 7n - 10n - 5n - 10n - 29n) * 1000n);
+  // 120 received + 1 + 1 (audit) + 7 (L3) + 12 (one case spelled "12.000") in; 10 fulfilled + 5 adjusted + 10 produced + 29 shipped out.
+  assert.equal(onHand, (120n + 1n + 1n + 7n + 12n - 10n - 5n - 10n - 29n) * 1000n);
   assert.deepEqual(Object.keys(ledger.sources).sort(), ['audit', 'count', 'mes', 'orders', 'wms']);
   assert.deepEqual(Object.keys(ledger.sources.audit.recent).sort(), ['100', '40'], 'the window keeps only recent sequences');
   assert.equal(ledger.sources.audit.high_water, 100);

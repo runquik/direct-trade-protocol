@@ -63,6 +63,7 @@ S('REFUSED tracking_mismatch: serials on a lot-tracked product', fact(PRODUCT, '
 S('REFUSED wrong_scope: a fact for another product', fact(SERIALIZED, 'wms', 6, 13, [leg(at(null, '~supplier'), at('L1', 'dock'), q('1'))]));
 S('a whole fact is refused when one leg fails, so the good leg leaves no trace: invalid', fact(PRODUCT, 'wms', 6, 13, [leg(at(null, '~supplier'), at('L3', 'dock'), q('7')), leg(at('L1', 'shelf'), at(null, '~adjustment'), q('1'))]));
 S('the same good leg alone is accepted, at the same revision, proving the previous fact left nothing behind', fact(PRODUCT, 'wms', 6, 13, [leg(at(null, '~supplier'), at('L3', 'dock'), q('7'))]));
+S('one case received with its pack conversion spelled "12.000" against the product\'s published "12": the same revision, matched by value (#99)', fact(PRODUCT, 'wms', 7, 14, [leg(at(null, '~supplier'), at('L3', 'dock'), q('1', { ...cases, base_units_per_pack: '12.000' }))]));
 
 /** Serialized equipment: every unit moves by serial. */
 const units: Step[] = [];
@@ -77,6 +78,9 @@ U('reserve one on the floor', fact(SERIALIZED, 'orders', 1, 2, [], [res('reserve
 U('REFUSED tracking_mismatch: fulfilment of serialized stock must name its serials, so it is a move plus a release', fact(SERIALIZED, 'orders', 2, 3, [], [res('fulfill', 'r-1', at('B1', 'floor'), q('1', unit))]));
 U('ship one by serial and release the claim in one fact', fact(SERIALIZED, 'orders', 2, 3, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-003'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-1', at('B1', 'floor'), q('1', unit))]));
 U('REFUSED tracking_mismatch: a serialized move without serials', fact(SERIALIZED, 'wms', 3, 4, [leg(at('B1', 'floor'), at('B1', 'dock'), q('1', unit))]));
+U('reserve the last unit on the floor: the floor is now fully reserved', fact(SERIALIZED, 'orders', 3, 4, [], [res('reserve', 'r-2', at('B1', 'floor'), q('1', unit), PARTY)]));
+U('REFUSED insufficient_stock: moving the reserved unit without settling its claim', fact(SERIALIZED, 'wms', 3, 5, [leg(at('B1', 'floor'), at('B1', 'dock'), q('1', unit), { serial_ids: ['FX2-001'] })]));
+U('ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)', fact(SERIALIZED, 'orders', 4, 5, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-001'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-2', at('B1', 'floor'), q('1', unit))]));
 
 const flows: Flow[] = [
   { why: 'lot-tracked product: receipts, transfers, status changes, reservations, corrections, production, shipments, duplicates, late and stale observations, refusals that leave no trace', product_id: PRODUCT, product, steps: sauce, bridge_location: 'shelf' },

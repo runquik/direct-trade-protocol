@@ -1505,6 +1505,53 @@
             "ok": true,
             "duplicate": false
           }
+        },
+        {
+          "why": "one case received with its pack conversion spelled \"12.000\" against the product's published \"12\": the same revision, matched by value (#99)",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "wms",
+              "sequence": 7
+            },
+            "occurred_at": "2026-09-23T08:30:00.000Z",
+            "expected_revision": 14,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": null,
+                  "location_id": "~supplier",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": "L3",
+                  "location_id": "dock",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "packaging",
+                    "code": null,
+                    "packaging_id": "case-12",
+                    "version": "1",
+                    "base_units_per_pack": "12.000"
+                  }
+                },
+                "serial_ids": null,
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": null
+                }
+              }
+            ],
+            "reservations": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
         }
       ],
       "final": {
@@ -1516,7 +1563,7 @@
           "code": "{jar}"
         },
         "tracking": "lot",
-        "revision": 14,
+        "revision": 15,
         "positions": {
           "8ea7bdd2506286549ce68501fbd9fb9bb4fc716cabfc54561a1c6717f23cd036": {
             "position": {
@@ -1551,7 +1598,7 @@
               "location_id": "dock",
               "status": "available"
             },
-            "quantity": "7",
+            "quantity": "19",
             "serials": []
           }
         },
@@ -1569,13 +1616,14 @@
         },
         "sources": {
           "wms": {
-            "high_water": 6,
+            "high_water": 7,
             "recent": {
               "1": "b1a0406fa3589703d1d1bfd62e8f0445a5aa5991d5b8a2f4646b70feee39d657",
               "2": "023bb2ba67e63a7cbfa4aae62a5c817fd8003b58b651c5b9cfb045909f2c7b48",
               "3": "62b783db3e9ebe985c26b96193e1309bbfd579367c9b97721eba25ba173b19a6",
               "4": "552ebc5ff7e5cd2b6b21975a07b1de56a1a48219367d3a590e0012c682bb51a0",
-              "6": "e46a13e611b5ed48598baaca05611f3dc1b5a534a27267ebe1b6ee6372117624"
+              "6": "e46a13e611b5ed48598baaca05611f3dc1b5a534a27267ebe1b6ee6372117624",
+              "7": "cd0272aac28cd3303a0e3e6dc3e76ca8b82d212981af150da666ff1da437eac1"
             }
           },
           "orders": {
@@ -1618,7 +1666,7 @@
           "pool_id": "shelf",
           "product_id": "22222222-2222-4222-8222-222222222222",
           "base_unit": "{jar}",
-          "revision": 14,
+          "revision": 15,
           "on_hand": "46",
           "reservations": {
             "res-2": "5",
@@ -1660,7 +1708,7 @@
               "source_id": "wms",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:30:00.000Z",
+            "occurred_at": "2026-09-23T08:31:00.000Z",
             "expected_revision": 0,
             "moves": [
               {
@@ -1711,7 +1759,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:31:00.000Z",
+            "occurred_at": "2026-09-23T08:32:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1760,7 +1808,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:32:00.000Z",
+            "occurred_at": "2026-09-23T08:33:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1809,7 +1857,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:33:00.000Z",
+            "occurred_at": "2026-09-23T08:34:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1858,7 +1906,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:34:00.000Z",
+            "occurred_at": "2026-09-23T08:35:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1908,7 +1956,7 @@
               "source_id": "orders",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:35:00.000Z",
+            "occurred_at": "2026-09-23T08:36:00.000Z",
             "expected_revision": 2,
             "moves": [],
             "reservations": [
@@ -1947,7 +1995,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:36:00.000Z",
+            "occurred_at": "2026-09-23T08:37:00.000Z",
             "expected_revision": 3,
             "moves": [],
             "reservations": [
@@ -1986,7 +2034,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:37:00.000Z",
+            "occurred_at": "2026-09-23T08:38:00.000Z",
             "expected_revision": 3,
             "moves": [
               {
@@ -2056,7 +2104,7 @@
               "source_id": "wms",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:38:00.000Z",
+            "occurred_at": "2026-09-23T08:39:00.000Z",
             "expected_revision": 4,
             "moves": [
               {
@@ -2094,6 +2142,164 @@
             "ok": false,
             "code": "tracking_mismatch"
           }
+        },
+        {
+          "why": "reserve the last unit on the floor: the floor is now fully reserved",
+          "fact": {
+            "product_id": "33333333-3333-4333-8333-333333333333",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 3
+            },
+            "occurred_at": "2026-09-23T08:40:00.000Z",
+            "expected_revision": 4,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "r-2",
+                "position": {
+                  "lot_id": "B1",
+                  "location_id": "floor",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED insufficient_stock: moving the reserved unit without settling its claim",
+          "fact": {
+            "product_id": "33333333-3333-4333-8333-333333333333",
+            "observation": {
+              "source_id": "wms",
+              "sequence": 3
+            },
+            "occurred_at": "2026-09-23T08:41:00.000Z",
+            "expected_revision": 5,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": "B1",
+                  "location_id": "floor",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": "B1",
+                  "location_id": "dock",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX2-001"
+                ],
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": null
+                }
+              }
+            ],
+            "reservations": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "insufficient_stock"
+          }
+        },
+        {
+          "why": "ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)",
+          "fact": {
+            "product_id": "33333333-3333-4333-8333-333333333333",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 4
+            },
+            "occurred_at": "2026-09-23T08:42:00.000Z",
+            "expected_revision": 5,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": "B1",
+                  "location_id": "floor",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": null,
+                  "location_id": "~customer",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX2-001"
+                ],
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": "66666666-6666-4666-8666-666666666666"
+                }
+              }
+            ],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "r-2",
+                "position": {
+                  "lot_id": "B1",
+                  "location_id": "floor",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
         }
       ],
       "final": {
@@ -2105,7 +2311,7 @@
           "code": "{unit}"
         },
         "tracking": "serial",
-        "revision": 4,
+        "revision": 6,
         "positions": {
           "bb76c150dbf56163654bf7172a2ce1352002659a9d18660267ddf491350dfe39": {
             "position": {
@@ -2117,17 +2323,6 @@
             "serials": [
               "FX2-002"
             ]
-          },
-          "a330831bd6bf5d97c332f835312ab7961baea44aef31ff8c1a8dbec56788b5f6": {
-            "position": {
-              "lot_id": "B1",
-              "location_id": "floor",
-              "status": "available"
-            },
-            "quantity": "1",
-            "serials": [
-              "FX2-001"
-            ]
           }
         },
         "reservations": {},
@@ -2135,15 +2330,17 @@
           "wms": {
             "high_water": 2,
             "recent": {
-              "1": "cf50e0bea2d4085cf2d82a13fb398d6cb90925a89de35c598e6bd46c53abc547",
-              "2": "19a50e2aa68dbe69868b077ba7663e4d9775f63e92dbfd8eb4312cb7b4728b79"
+              "1": "98b3a1a8417f67d76b56229aba1853f7944af2ea7513d6ab2a20a7f5a6f72d65",
+              "2": "6404a41befd2e17ecb6bb70e751eb6b5b3823b7d75c02e3752c026c8649b3851"
             }
           },
           "orders": {
-            "high_water": 2,
+            "high_water": 4,
             "recent": {
-              "1": "76ba8949de6b12cdd31def26e4ab678980c451501f993066f877a45cde852cf6",
-              "2": "8071b42526d1848790de58ab27206694b7dc91049ee703af408ee0c07fc20d76"
+              "1": "aef839b48b01d708934911523a9f1df380644ccf25814f697a4d32e59798065a",
+              "2": "3af09f17305d81017afbfd16bcd8dc93b715fdecc70c50b82ac83a52968fc738",
+              "3": "b165758d78369629a2772bd1fe4349e9b6886735fcf5f3f01592ad22b2a5bcf0",
+              "4": "3522e4320f555ea5a9d6bb258b13d8d146ba6a3a1273d415d64d80a7e32f6e89"
             }
           }
         }
