@@ -1,66 +1,106 @@
 {
   "description": "JSON member-name safety. A receiver MUST refuse every text under \"reject\" BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\". Each text is carried here as a string value; none appears as a member name.",
-  "rule": "An object member name must not be written with an escape sequence.",
+  "rule": "An object member name must not be written with an escape sequence, and an object must not name the same member twice.",
   "reject": [
     {
       "why": "a member named with one reverse solidus",
-      "text": "{\"\\\\\":1}"
+      "text": "{\"\\\\\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an escaped newline as a name",
-      "text": "{\"\\n\":1}"
+      "text": "{\"\\n\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an escaped tab as a name",
-      "text": "{\"\\t\":1}"
+      "text": "{\"\\t\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an escaped quotation mark as a name",
-      "text": "{\"\\\"\":1}"
+      "text": "{\"\\\"\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an escaped solidus as a name",
-      "text": "{\"\\/\":1}"
+      "text": "{\"\\/\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "a control character written as a unicode escape",
-      "text": "{\"\\u0013\":1}"
+      "text": "{\"\\u0013\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an ordinary letter written as a unicode escape",
-      "text": "{\"\\u0041\":1}"
+      "text": "{\"\\u0041\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an escape inside a longer name",
-      "text": "{\"x\\\\y\":1}"
+      "text": "{\"x\\\\y\":1}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "a second member, after a comma",
-      "text": "{\"a\":1,\"\\\\\":2}"
+      "text": "{\"a\":1,\"\\\\\":2}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "a nested object",
-      "text": "{\"a\":{\"\\n\":1}}"
+      "text": "{\"a\":{\"\\n\":1}}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "an object inside an array",
-      "text": "[1,{\"\\\"\":1}]"
+      "text": "[1,{\"\\\"\":1}]",
+      "code": "unsafe_member_name"
     },
     {
       "why": "a name after a nested array closes",
-      "text": "{\"a\":[1,2],\"\\\\\":3}"
+      "text": "{\"a\":[1,2],\"\\\\\":3}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "a name after a nested object closes",
-      "text": "{\"a\":{\"b\":1},\"\\\\\":2}"
+      "text": "{\"a\":{\"b\":1},\"\\\\\":2}",
+      "code": "unsafe_member_name"
     },
     {
       "why": "insignificant whitespace around tokens",
-      "text": "{ \"a\" : 1 ,\n\t\"\\\\\" : 2 }"
+      "text": "{ \"a\" : 1 ,\n\t\"\\\\\" : 2 }",
+      "code": "unsafe_member_name"
     },
     {
       "why": "text that is malformed after the unsafe name",
-      "text": "{\"\\\\\":1"
+      "text": "{\"\\\\\":1",
+      "code": "unsafe_member_name"
+    },
+    {
+      "why": "the same member named twice",
+      "text": "{\"a\":1,\"a\":2}",
+      "code": "duplicate_member_name"
+    },
+    {
+      "why": "the same member named twice, with other members between",
+      "text": "{\"a\":1,\"b\":2,\"a\":3}",
+      "code": "duplicate_member_name"
+    },
+    {
+      "why": "the same member named twice in a nested object",
+      "text": "{\"x\":{\"a\":1,\"a\":1}}",
+      "code": "duplicate_member_name"
+    },
+    {
+      "why": "the same member named twice in an object inside an array",
+      "text": "[{\"k\":true,\"k\":true}]",
+      "code": "duplicate_member_name"
+    },
+    {
+      "why": "the same non-ASCII member named twice",
+      "text": "{\"日\":1,\"日\":2}",
+      "code": "duplicate_member_name"
     }
   ],
   "accept": [
@@ -95,6 +135,22 @@
     {
       "why": "empty containers and literals",
       "text": "[{},[],null,true,false,0,-1,\"\",{\"a\":{}}]"
+    },
+    {
+      "why": "the same name in sibling objects",
+      "text": "[{\"a\":1},{\"a\":2}]"
+    },
+    {
+      "why": "the same name at different depths",
+      "text": "{\"a\":{\"a\":{\"a\":1}}}"
+    },
+    {
+      "why": "a value equal to a member name",
+      "text": "{\"a\":\"a\",\"b\":\"a\"}"
+    },
+    {
+      "why": "names differing only in case",
+      "text": "{\"a\":1,\"A\":2}"
     }
   ]
 }
