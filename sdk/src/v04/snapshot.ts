@@ -10,6 +10,7 @@ import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
 import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
+import { FLOW_PROFILE, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, moneyLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger } from "../profiles/flow.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -23,7 +24,7 @@ export function buildSnapshot(s: State, organizationId: string, ctx: Context): S
   for (const id of profileIds) { demand(s.profiles[id], "invalid_snapshot", "required profile is missing"); for (const dependency of s.profiles[id].dependencies) profileIds.add(dependency); }
   const people = new Set([...organization.controllers, ...Object.keys(organization.members), ...Object.values(organization.invitations).map(i => i.person_id),
     ...policies.flatMap(p => [...p.stewards, ...p.grants.map(g => g.person_id)]), ...Object.values(organization.installations).map(i => i.sponsor_id)]);
-  for (const c of [...organization.history, ...policies.flatMap(p => p.history), ...records.map(r => r.command), ...[...profileIds].map(d => s.profiles[d].command), ...releases.map(r => r.command), ...Object.values(s.inventory[organizationId]?.creations ?? {}) as Command[]]) {
+  for (const c of [...organization.history, ...policies.flatMap(p => p.history), ...records.map(r => r.command), ...[...profileIds].map(d => s.profiles[d].command), ...releases.map(r => r.command), ...Object.values(s.inventory[organizationId]?.creations ?? {}) as Command[], ...Object.values(s.inventory[organizationId]?.book_openings ?? {}) as Command[], ...Object.values(s.inventory[organizationId]?.ledger_openings ?? {}) as Command[]]) {
     if (c.actor.kind === "person") people.add(c.actor.id); if (c.requested_by) people.add(c.requested_by);
     if (Array.isArray(c.payload.controllers)) c.payload.controllers.forEach((id: string) => people.add(id));
     if (Array.isArray(c.payload.stewards)) c.payload.stewards.forEach((id: string) => people.add(id));
@@ -209,8 +210,10 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
   const rebuiltInventory: any = {pools:{},observations:{},creations:{}};
   const ledgers = !!sourceInventory && Object.hasOwn(sourceInventory,"ledgers");
   if (ledgers) { rebuiltInventory.ledgers = {}; rebuiltInventory.openings = {}; rebuiltInventory.facts = {}; }
+  const books = ledgers && Object.hasOwn(sourceInventory,"books");
+  if (books) { rebuiltInventory.books = {}; rebuiltInventory.book_openings = {}; rebuiltInventory.ledger_openings = {}; rebuiltInventory.flow_facts = {}; }
   if (sourceInventory) {
-    exact(sourceInventory,ledgers ? ["pools","observations","creations","ledgers","openings","facts"] : ["pools","observations","creations"]);
+    exact(sourceInventory,books ? ["pools","observations","creations","ledgers","openings","facts","books","book_openings","ledger_openings","flow_facts"] : ledgers ? ["pools","observations","creations","ledgers","openings","facts"] : ["pools","observations","creations"]);
     // Inventory maps are keyed by digest. The earlier JSON-encoded tuple keys are refused, never translated (#38).
     const digestKeys = (m: unknown) => !!m && typeof m === "object" && !Array.isArray(m) && Object.keys(m).every(k => /^[0-9a-f]{64}$/.test(k));
     demand(digestKeys(sourceInventory.observations) && (!ledgers || digestKeys(sourceInventory.facts)) && Object.values(sourceInventory.pools ?? {}).every((pool: any) => digestKeys(pool?.observations) && digestKeys(pool?.reservations) && digestKeys(pool?.packaging)), "invalid_snapshot", "inventory state key is not a digest");
@@ -222,6 +225,33 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(product, "invalid_snapshot", "ledger opened for a product the snapshot does not carry");
       try { rebuiltInventory.ledgers[productId] = {...openInventoryLedger(snap.organization.id,productId,product.body as any),policy_id:p.policy_id}; } catch { demand(false,"invalid_snapshot","product cannot anchor a ledger"); }
       rebuiltInventory.openings[productId] = structuredClone(opening);
+    }
+    // Flow books and their ledgers are rebuilt from their signed openings, then every flow fact is replayed in record order.
+    if (books) {
+      demand(Object.keys(sourceInventory.flow_facts).every(k => /^[0-9a-f]{64}$/.test(k)) && Object.keys(sourceInventory.ledger_openings).every(k => /^[0-9a-f]{64}$/.test(k)), "invalid_snapshot", "flow state key is not a digest");
+      for (const [bookId,opening] of Object.entries(sourceInventory.book_openings) as [string,Command][]) {
+        await historicalPerson(opening,snap.organization.id); exact(opening.payload,["policy_id","book_id"]); const p = opening.payload;
+        demand(associated.has(opening.actor.id) && opening.action === "flow.open" && p.book_id === bookId && uuid(bookId) && policyIds.has(p.policy_id), "invalid_snapshot", "invalid signed book opening");
+        rebuiltInventory.books[bookId] = {...openFlowBook(snap.organization.id,bookId),policy_id:p.policy_id}; rebuiltInventory.book_openings[bookId] = structuredClone(opening);
+      }
+      const heads = (root: unknown, semantics: string) => snap.records.find(r => r.root_id === root && r.is_head && candidate.profiles[r.profile_digest]?.semantics === semantics);
+      for (const [openingKey,opening] of Object.entries(sourceInventory.ledger_openings) as [string,Command][]) {
+        await historicalPerson(opening,snap.organization.id); exact(opening.payload,["policy_id","book_id","asset","account","balance"]); const p = opening.payload, book = rebuiltInventory.books[p.book_id];
+        demand(associated.has(opening.actor.id) && opening.action === "flow.ledger.open" && book?.policy_id === p.policy_id && p.asset && typeof p.asset === "object", "invalid_snapshot", "invalid signed ledger opening");
+        try {
+          let next: any, key: string;
+          if (p.asset.product !== null) {
+            const product = heads(p.asset.product,"product-v1"); demand(product && p.asset.currency === null && p.account === null && p.balance === "nonnegative", "invalid_snapshot", "ledger opened for a product the snapshot does not carry");
+            key = goodsLedgerKey(p.asset.product); next = openGoodsLedger(book,p.asset.product,product!.body as any);
+          } else {
+            // The account's class is immutable, so any head of it shows it was a dtp/account.
+            const account = heads(p.account,"object-v1"); demand(account && account.body.class === "dtp/account", "invalid_snapshot", "ledger opened for an account the snapshot does not carry");
+            key = moneyLedgerKey(p.asset.currency,p.account); next = openMoneyLedger(book,p.asset.currency,p.account,p.balance);
+          }
+          demand(stateKey(p.book_id,key) === openingKey, "invalid_snapshot", "ledger opening key differs");
+          rebuiltInventory.books[p.book_id] = next; rebuiltInventory.ledger_openings[openingKey] = structuredClone(opening);
+        } catch (error) { if ((error as any)?.code === "invalid_snapshot") throw error; demand(false,"invalid_snapshot","invalid ledger opening"); }
+      }
     }
     for (const [poolId,creation] of Object.entries(sourceInventory.creations) as [string,Command][]) {
       await historicalPerson(creation,snap.organization.id); exact(creation.payload,["policy_id","pool_id","product_id","base_unit"]); const p = creation.payload;
@@ -288,6 +318,18 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       const changed = applyInventoryFact(ledger,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "inventory facts violate profile");
       rebuiltInventory.ledgers[fact.product_id] = {...changed.state,policy_id:ledger.policy_id}; rebuiltInventory.facts[observation] = {hash:await digest(fact),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
       expectedValidation = {profile:INVENTORY2_PROFILE,revision:changed.state.revision,physical_stock_verified:false};
+    }
+    if (semantics === "flow-v1") {
+      const fact = r.body, book = books ? rebuiltInventory.books[r.resource_id] : undefined;
+      demand(r.supersedes === null && book?.policy_id === r.policy_id, "invalid_snapshot", "flow fact scope differs");
+      demand(checkFlowOwner(fact as any,r.organization_id).length === 0, "invalid_snapshot", "flow fact spells the writer's own object as foreign");
+      demand(!flowUnpublishedPackaging(fact,root => productAt.get(root)), "invalid_snapshot", "flow fact pins a packaging revision the product had not published");
+      // A fact cannot predate the opening of a ledger it changes: a live host would have refused it.
+      for (const l of Array.isArray(fact.ledgers) ? fact.ledgers : []) { const opening = rebuiltInventory.ledger_openings[stateKey(r.resource_id,l?.key)]; demand(opening && opening.issued_at <= r.command.issued_at, "invalid_snapshot", "flow fact precedes its ledger opening"); }
+      const observation = stateKey(r.resource_id,fact.act?.observation?.source_id,fact.act?.observation?.sequence); demand(!rebuiltInventory.flow_facts[observation], "invalid_snapshot", "duplicate flow fact");
+      const { policy_id: bookPolicy, ...state } = book, changed = applyFlowFact(state as any,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "flow facts violate profile");
+      rebuiltInventory.books[r.resource_id] = {...changed.state,policy_id:bookPolicy}; rebuiltInventory.flow_facts[observation] = {hash:await digest(fact),record_id:r.id,policy_id:r.policy_id,profile_digest:r.profile_digest};
+      expectedValidation = {profile:FLOW_PROFILE,revisions:Object.fromEntries(fact.ledgers.map((l: any) => [l.key,changed.state.ledgers[l.key].revision])),physical_stock_verified:false};
     }
     if (semantics === "inventory-v1") {
       const event = r.body, pool = rebuiltInventory.pools[event.pool_id];
