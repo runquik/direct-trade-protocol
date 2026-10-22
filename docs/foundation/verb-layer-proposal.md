@@ -386,7 +386,7 @@ What the fixture checks: the ledgers and standings above; that the risk system, 
 
 Each step is a separately reviewable change with fixtures, a second implementation and registration, as the profiles build order was:
 
-1. **The act header, foreign references and `object@1`** (V3 to V6, V18): the datatypes, the minimal component, the class registry.
+1. **The act header, foreign references and `object@1`** (V3 to V6, V18): the datatypes, the minimal component, the class registry. Done October 22, 2026: [`spec/profiles/verbs.md`](../../spec/profiles/verbs.md) with vectors in `spec/vectors/verb-datatypes.json` and the class list in `spec/profiles/classes.json` (generated from the reference list, so adding a class is a reviewed change to the `object-v1` rules rather than operator configuration); [`spec/profiles/object/1.md`](../../spec/profiles/object/1.md) with its contract and fixtures, `object-v1` in the reference host on write and on snapshot import, a second implementation in `sdk/tests/interop/object-reader.ts` and `verb-datatypes-reader.ts`, and `dtp/object@1` registered. The act header is specified and vectored but carried by no kind until step 2.
 2. **`flow@1`** (V7, V8, V14): the `inventory@2` reducer generalized to books, assets, money accounts, location objects, `owner`, multi-ledger facts and `expected_digest`; `rights` and `settles` as fact members; the bridge projecting a `flow@1` ledger to `inventory@2` for one product.
 3. **`assign@1`** (V11, V16): needed early because custody reads `operates`.
 4. **`claim@1`** (V9, V10): the transition table, settlement checks, offsets and reversals, and the risk system's closed terms vocabulary.

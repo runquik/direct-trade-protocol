@@ -15,6 +15,7 @@ import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger, unpublishe
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
+import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
 
 function ids(values: any, min = 1, max = 8): asserts values is string[] {
   demand(Array.isArray(values) && values.length >= min && values.length <= max && new Set(values).size === values.length && values.every(uuid), "invalid", "invalid distinct IDs",400);
@@ -239,6 +240,13 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         const issues=validateForecast(p.body);demand(issues.length===0,"invalid_forecast",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid forecast",422);
         if(before){const continuity=checkForecastContinuity(before.body as any,p.body);demand(continuity.length===0,"invalid_forecast",continuity.length?`${continuity[0].message} at ${continuity[0].path}`:"invalid forecast",422);}
         validation={profile:FORECAST_PROFILE,level:"business-rules",business_verified:false};
+      }
+      if(profile.semantics==="object-v1"){
+        const issues=validateObject(p.body);demand(issues.length===0,"invalid_object",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid object",422);
+        // One spelling per object: a reference to the writer's own object leaves minted_by null.
+        const owner=checkObjectOwner(p.body as any,o.id);demand(owner.length===0,"invalid_object",owner.length?`${owner[0].message} at ${owner[0].path}`:"invalid object",422);
+        const rules=before?checkObjectContinuity(before.body as any,p.body):checkObjectGenesis(p.body);demand(rules.length===0,"invalid_object",rules.length?`${rules[0].message} at ${rules[0].path}`:"invalid object",422);
+        validation={profile:OBJECT_PROFILE,level:"business-rules",business_verified:false};
       }
       if(profile.semantics==="party-v1"){
         const issues=validateParty(p.body);demand(issues.length===0,"invalid_party",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid party",422);

@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs";
 import { parseUntrustedJson } from "../../src/safe-json.ts";
 import { inventoryKey } from "../../src/profiles/inventory.ts";
 import { PRODUCT_SCHEMA, PRODUCT_SEMANTICS } from "../../src/profiles/product.ts";
+import { OBJECT_SCHEMA, OBJECT_SEMANTICS } from "../../src/profiles/object.ts";
 import { INVENTORY2_SCHEMA, INVENTORY2_SEMANTICS } from "../../src/profiles/inventory2.ts";
 
 async function fixture() {
@@ -159,4 +160,22 @@ test("migration: a company holding inventory-v1 and inventory-v2 state migrates 
     (x:any)=>quoted(x.inventory[f.org].pools[pool].reservations,JSON.stringify(["order-a"]),inventoryKey("order-a")),
     (x:any)=>quoted(x.inventory[f.org].pools[pool].observations,JSON.stringify([f.org,"scanner","one"]),inventoryKey(f.org,"scanner","one")),
   ]){const old=structuredClone(snap);mutate(old);await assert.rejects(validateSnapshot(emptyState(),old),(e:any)=>e.code==="invalid_snapshot"&&/not a digest/.test(e.message));}
+});
+
+test("snapshot: object-v1 records migrate with their validation, and signed records that break object rules are refused at import",async()=>{
+  const f=await fixture(), profile=await f.publish("thing",OBJECT_SCHEMA,OBJECT_SEMANTICS);
+  const body={class:"dtp/vehicle",label:"Reefer trailer 14",identifiers:[],status:"active",retired:null,evidence:[]};
+  const id=crypto.randomUUID(); await f.call("record.append",f.org,{id,root_id:id,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:f.resource,profile_digest:profile,counterparty_ids:[],body});
+  const snap=buildSnapshot(f.s,f.org,f.ctx); await validateSnapshot(emptyState(),snap);
+  const dest=emptyState(); await applySnapshot(dest,snap); assert.deepEqual(dest.records[id].validation,{profile:"dtp.object/1",level:"business-rules",business_verified:false});
+  // A record the live host would have refused, correctly signed by the owner: import must re-check the rules, not trust the source.
+  const forge=async(edit:(b:any)=>void)=>{
+    const bad=structuredClone(snap), r=bad.records.find((x:any)=>x.id===id)!; edit(r.body);
+    r.command=await signCommand(draftCommand(f.ctx.audience,f.owner,"record.append",f.org,{...r.command.payload,body:r.body},Date.parse(r.command.issued_at)),[f.owner.key]);
+    return bad;
+  };
+  await validateSnapshot(emptyState(),await forge(()=>{}));
+  await rejectsSnapshot(await forge(b=>{b.status="retired";b.retired={reason:"lost",note:null};}));
+  await rejectsSnapshot(await forge(b=>{b.evidence=[{minted_by:f.org,root:crypto.randomUUID(),record_id:null}];}));
+  await rejectsSnapshot(await forge(b=>{b.class="dtp/pallet";}));
 });

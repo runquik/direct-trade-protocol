@@ -730,7 +730,8 @@
                   "inventory-v2",
                   "party-v1",
                   "order-v1",
-                  "forecast-v1"
+                  "forecast-v1",
+                  "object-v1"
                 ]
               },
               "dependencies": {

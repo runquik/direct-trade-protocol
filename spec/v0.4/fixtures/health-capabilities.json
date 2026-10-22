@@ -6,6 +6,7 @@
     "protocol_kinds": [
       "dtp/forecast@1",
       "dtp/inventory@2",
+      "dtp/object@1",
       "dtp/order@1",
       "dtp/party@1",
       "dtp/product@1"
@@ -16,6 +17,9 @@
       ],
       "dtp/inventory@2": [
         "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"
+      ],
+      "dtp/object@1": [
+        "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2"
       ],
       "dtp/order@1": [
         "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6"
@@ -35,7 +39,8 @@
       "inventory-v2",
       "party-v1",
       "order-v1",
-      "forecast-v1"
+      "forecast-v1",
+      "object-v1"
     ],
     "migration_chunk_bytes": 65536,
     "migration_max_bytes": 33554432,

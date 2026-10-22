@@ -29,6 +29,8 @@ export * as inventory2 from "./profiles/inventory2.ts";
 export * as party from "./profiles/party.ts";
 export * as order from "./profiles/order.ts";
 export * as forecast from "./profiles/forecast.ts";
+export * as act from "./profiles/act.ts";
+export * as object from "./profiles/object.ts";
 
 export * as datatypes from "./foundation/datatypes.ts";
 export * as semantics from "./foundation/semantics.ts";
