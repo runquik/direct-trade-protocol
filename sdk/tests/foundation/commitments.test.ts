@@ -63,6 +63,14 @@ test('commitments: expired holds free capacity but cannot be confirmed as curren
   await f.send('hold', { ...holdPayload(q, 71), expires_at: '2026-09-12T14:00:00.000Z' }, undefined, later); assert.equal(f.state.holds[0].status, 'expired');
 });
 
+test('commitments: an expired hold can still be released, and releasing it frees nothing more', async () => {
+  const f = await fixture(20, 5), q = quote(1); await f.publish(q);
+  await f.send('hold', { ...holdPayload(q), expires_at: '2026-09-12T12:30:00.000Z' });
+  const later = '2026-09-12T12:45:00.000Z'; await f.send('hold', holdPayload(q, 71), undefined, later);
+  await f.send('release', target(q), undefined, later);
+  assert.equal(f.state.holds[0].status, 'released'); assert.equal(f.state.holds[1].status, 'held');
+});
+
 test('commitments: superseded quotes block new confirmation but preserve existing firm obligations', async () => {
   const f = await fixture(), q = quote(1); await f.publish(q); await f.send('hold', holdPayload(q)); await f.send('confirm', target(q));
   await f.send('hold', holdPayload(q, 71));

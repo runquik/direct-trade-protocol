@@ -11,7 +11,7 @@ cd sdk/tests/fuzz
 npm install          # canonicalize (RFC 8785 reference), json-canonicalize, tweetnacl, bs58
 ```
 
-Node >= 23.5 (runs `.ts` directly; WebCrypto Ed25519 is native). Developed on Node 25.
+Use the pinned Node in [`/.node-version`](../../../.node-version) (22.23.2). It runs `.ts` directly and has native WebCrypto Ed25519. The suite was first developed on Node 25. CI runs the whole suite from `sdk/` with `npm run test:fuzz` once the dependencies above are installed.
 
 ## Part A: canonicalization, encodings, signing (offline)
 

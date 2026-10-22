@@ -1,0 +1,14 @@
+{
+  "format": "dtp-object-classes-1",
+  "description": "Protocol object classes (decision V18). A class is <namespace>/<name>; the namespace dtp is reserved for the classes listed here, which are part of the object-v1 rules and change only by a reviewed pull request that changes both. Every other namespace is a publisher organization id, whose classes need no registration. Generated from OBJECT_CLASSES in sdk/src/profiles/act.ts by sdk/scripts/build-verb-datatypes.ts.",
+  "classes": [
+    "dtp/account",
+    "dtp/document",
+    "dtp/equipment",
+    "dtp/handling-unit",
+    "dtp/instrument",
+    "dtp/location",
+    "dtp/position",
+    "dtp/vehicle"
+  ]
+}

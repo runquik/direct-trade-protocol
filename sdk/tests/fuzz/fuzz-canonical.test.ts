@@ -356,7 +356,7 @@ test("deep nesting (informational): recursion limits", () => {
   }
 });
 
-test("reference implementations reproduce the spec vectors (sanity check on the oracle); vectors contain no numeric-string keys", () => {
+test("reference implementations reproduce the spec vectors (sanity check on the oracle); counts numeric-string keys in the vectors", () => {
   const vectors = JSON.parse(readFileSync(new URL("../../../spec/vectors/canonicalization.json", import.meta.url), "utf8"));
   let numericKeys = 0;
   const walk = (v: Json) => {
@@ -372,5 +372,5 @@ test("reference implementations reproduce the spec vectors (sanity check on the 
     assert.equal(canonicalize(c.input), c.canonical, `sdk: ${c.name}`);
     walk(c.input);
   }
-  console.log(`  numeric-string keys in the fixed vectors: ${numericKeys} (so the vectors cannot catch the numeric-key divergence)`);
+  console.log(`  numeric-string keys in the fixed vectors: ${numericKeys} (a count of 0 would mean the vectors cannot catch the numeric-key divergence)`);
 });
