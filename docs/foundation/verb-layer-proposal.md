@@ -1,6 +1,6 @@
 # The verb layer: design proposal
 
-October 22, 2026. Status: **proposal, decisions open.** Nothing here is implemented, reserved or normative. Section 12 lists the decisions for the owner (V1 to V20), each with a recommendation; section 14 is the build order that follows if they are taken as recommended.
+October 22, 2026. Status: **decided, not implemented.** The owner took every decision in section 12 (V1 to V20) on October 22, 2026, as recommended. Nothing here is implemented, reserved or normative yet; section 12 is now the decision record and section 14 the build order that follows from it.
 
 ## 1. Where this comes from
 
@@ -339,7 +339,9 @@ A chain proves the ledger was not rewritten after the fact; it does not prove th
 
 ## 12. Decision record
 
-| # | Decision | Recommendation |
+Every row was decided by the owner on October 22, 2026, as recommended. The recommendation column is kept as the rationale.
+
+| # | Decision | Decided |
 |---|---|---|
 | V1 | Adopt the verbs as the organizing vocabulary for new protocol kinds. | Yes. New protocol kinds are verb kinds or components; existing kinds stay registered and are bridged. |
 | V2 | Build the verbs as protocol kinds on the v0.4 record and profile substrate, or as a new envelope and protocol version. | As kinds. No new signing domain, envelope or version; the voice doc's envelope is the existing signed command plus the act header. |
