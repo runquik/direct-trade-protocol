@@ -115,8 +115,8 @@ test('a held rehome refusal (#56): once recorded, both admission paths refuse a 
     await assert.rejects(record(forgedRefusal), /names no rehome/, 'a refusal of a fabricated rehome, against the genuine log');
     const forgedLog = structuredClone(log); forgedLog.entries[1].rehome = forged;
     await assert.rejects(record(forgedRefusal, f.person.id, forgedLog), 'a refusal of a fabricated rehome, inside a log that does not verify');
-    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: true });
-    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: false }, 'recording it again keeps the first');
+    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: true, contradicts_admitted_move: false }, 'this host never admitted the move');
+    assert.deepEqual(await record(), { rehome_digest: await rehomeDigest(rehome), recorded: false, contradicts_admitted_move: false }, 'recording it again keeps the first');
     const kept = await f.db.query<{ rehome: unknown; refusal: unknown }>('select rehome,refusal from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]);
     assert.deepEqual(kept, [{ rehome, refusal }], 'both artifacts are kept');
     await assert.rejects(f.admit(log), /refused/);
@@ -127,6 +127,44 @@ test('a held rehome refusal (#56): once recorded, both admission paths refuse a 
     // The owner signs a fresh rehome to B, which B adopts: the refusal names the earlier document only.
     const again = await f.move(f.identity, at + 1_000), fresh = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, again.entry] }, f.resolverB);
     assert.equal((await push(fresh)).outcome, 'advanced');
+  } finally { await f.pg.close(); }
+});
+
+test('a person stranded past a refused move (#64): the host admitted the move, the destination then refused it, and the owner\'s escape rehome to a third resolver recovers them; going back to the refusing destination does not', async () => {
+  const f = await setup(); try {
+    const at = Date.now() - 10_000, moved = await f.move(f.identity, at), rehome = moved.entry.rehome!;
+    const log = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, moved.entry] }, f.resolverB);
+    assert.equal((await f.admit(log)).outcome, 'advanced');
+    await f.authenticate(moved.state, f.resolverB);
+    // B attested the head it created, then refused the rehome that created it.
+    const refusal = await refuseRehome(rehome, f.resolverB, at + 500);
+    const recorded = await f.db.transaction(tx => f.adapter.recordRehomeRefusal(tx, { person_id: f.person.id, log, refusal }));
+    assert.deepEqual(recorded, { rehome_digest: await rehomeDigest(rehome), recorded: true, contradicts_admitted_move: true }, 'the host is told the refusal contradicts a move it admitted');
+    const push = (l: IdentityLog) => f.db.transaction(tx => f.adapter.receiveIdentityLogPush(tx, { message: { format: IDENTITY_LOG_PUSH_FORMAT, log: l }, require_attestation: false }));
+    assert.deepEqual([(await push(log)).outcome, (await push(log)).reason], ['refused', 'refused-move'], 'stranded: every log contains the refused rehome');
+    // The owner's recovery quorum moves the identity on from B, at the next epoch.
+    const resolverC = await generateKeyPair(), c = { resolver_id: crypto.randomUUID(), resolver_key: resolverC.keyId, audience: 'https://resolver-c.example' };
+    const away = async (to: typeof c) => {
+      const body: Rehome = { identity_id: f.person.id, expected_digest: moved.state.head_digest, sequence: 2, from: { resolver_id: f.b.resolver_id, resolver_epoch: 1 },
+        to: { ...to, resolver_epoch: 2 }, issued_at: at + 500, expires_at: at + 300_500 };
+      const signed = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', body, [f.recovery]);
+      return { state: await rehomeIdentity(moved.state, signed, at + 1_000), entry: { effective_at: at + 1_000, transition: null, rehome: signed, attestation: null } as IdentityLogEntry };
+    };
+    const back = await away(f.b), backLog = await buildIdentityLog({ ...f.parts, entries: [...log.entries, back.entry] }, f.resolverB);
+    assert.deepEqual([(await push(backLog)).outcome, (await push(backLog)).reason], ['refused', 'refused-move'], 'rehoming back to the refusing destination does not escape');
+    const escape = await away(c), unadopted = await buildIdentityLog({ ...f.parts, entries: [...log.entries, escape.entry] }, null);
+    assert.equal((await push(unadopted)).reason, 'unadopted-move', 'the escape needs the next destination\'s adoption');
+    await assert.rejects(f.admit(unadopted), /attestation/);
+    assert.deepEqual(await f.row(), { resolver_id: f.b.resolver_id, epoch: 1, sequence: 1, digest: moved.state.head_digest }, 'nothing moved yet');
+    const escaped = await buildIdentityLog({ ...f.parts, entries: [...log.entries, escape.entry] }, resolverC);
+    assert.equal((await f.admit(escaped)).outcome, 'advanced', 'the escape rehome, adopted by C, is admitted');
+    assert.deepEqual(await f.row(), { resolver_id: c.resolver_id, epoch: 2, sequence: 2, digest: escape.state.head_digest });
+    await f.authenticate(escape.state, resolverC);
+    await assert.rejects(f.authenticate(moved.state, f.resolverB), /resolver authority mismatch/, 'the refusing destination is refused from then on');
+    assert.equal((await push(escaped)).outcome, 'unchanged', 'and the push path agrees');
+    // Recorded again against the escaped log, the refusal still contradicts the move this host admitted.
+    assert.deepEqual(await f.db.transaction(tx => f.adapter.recordRehomeRefusal(tx, { person_id: f.person.id, log: escaped, refusal })),
+      { rehome_digest: await rehomeDigest(rehome), recorded: false, contradicts_admitted_move: true });
   } finally { await f.pg.close(); }
 });
 

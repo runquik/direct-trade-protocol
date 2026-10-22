@@ -14,14 +14,23 @@
 // this single check also forbids those characters in names, and it means a canonical
 // serialisation (RFC 8785) never needs to escape a name. Member VALUES are unaffected by the
 // fault and may use any escape.
+//
+// The same pass refuses an object that names a member twice (I-JSON, RFC 7493 section 2.3).
+// Parsers disagree about such an object: JSON.parse keeps the last value, others keep the first
+// or fail. A signature is checked over the canonical form of what this side parsed, so a text
+// with a duplicate name could verify here and mean something else to the next reader. Because
+// names carry no escapes, two names are the same exactly when their raw text is the same.
+
+export type UnsafeJsonCode = "unsafe_member_name" | "duplicate_member_name";
 
 export class UnsafeJsonError extends Error {
-  readonly code = "unsafe_member_name";
+  readonly code: UnsafeJsonCode;
   readonly offset: number;
-  constructor(message: string, offset: number) {
+  constructor(message: string, offset: number, code: UnsafeJsonCode = "unsafe_member_name") {
     super(message);
     this.name = "UnsafeJsonError";
     this.offset = offset;
+    this.code = code;
   }
 }
 
@@ -30,13 +39,15 @@ const OPEN_OBJECT = 0x7b, CLOSE_OBJECT = 0x7d, OPEN_ARRAY = 0x5b, CLOSE_ARRAY = 
 
 /**
  * Throws UnsafeJsonError if any object member name in `text` is written with an escape
- * sequence. Linear time, no recursion, does not parse. It is deliberately not a JSON validator:
+ * sequence (code `unsafe_member_name`), or if an object names the same member twice (code
+ * `duplicate_member_name`). Linear time, no recursion, does not parse. It is deliberately not a JSON validator:
  * JSON.parse still runs afterwards and rejects malformed text. It only has to agree with a
  * conforming parser about which strings are member names in the valid prefix of the text,
  * because a parser stops at the first syntax error and never reads a name beyond it.
  */
 export function assertSafeJsonText(text: string): void {
   const objectContext: boolean[] = [];
+  const names: (Set<string> | null)[] = []; // the names seen so far in each open object; null for an array
   let expectName = false;
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
@@ -50,11 +61,18 @@ export function assertSafeJsonText(text: string): void {
           j++; // the escaped character, which may itself be a quotation mark
         } else if (d === QUOTE) break;
       }
+      if (isName) {
+        const seen = names[names.length - 1], name = text.slice(i + 1, j);
+        if (seen) {
+          if (seen.has(name)) throw new UnsafeJsonError(`an object names the member ${JSON.stringify(name)} twice`, i, "duplicate_member_name");
+          seen.add(name);
+        }
+      }
       i = j;
       expectName = false;
-    } else if (c === OPEN_OBJECT) { objectContext.push(true); expectName = true; }
-    else if (c === OPEN_ARRAY) { objectContext.push(false); expectName = false; }
-    else if (c === CLOSE_OBJECT || c === CLOSE_ARRAY) { objectContext.pop(); expectName = false; }
+    } else if (c === OPEN_OBJECT) { objectContext.push(true); names.push(new Set()); expectName = true; }
+    else if (c === OPEN_ARRAY) { objectContext.push(false); names.push(null); expectName = false; }
+    else if (c === CLOSE_OBJECT || c === CLOSE_ARRAY) { objectContext.pop(); names.pop(); expectName = false; }
     else if (c === COMMA) expectName = objectContext.length > 0 && objectContext[objectContext.length - 1];
     else if (c === COLON) expectName = false;
   }

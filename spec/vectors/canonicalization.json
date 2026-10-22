@@ -1,5 +1,5 @@
 {
-  "description": "canonical = RFC 8785 JCS with integer-only numbers; sha256 over UTF-8 bytes of canonical",
+  "description": "canonical = RFC 8785 JCS with integer-only numbers; sha256 over UTF-8 bytes of canonical. Under refuse, texts whose parsed value canonicalization MUST refuse.",
   "cases": [
     {
       "name": "key order and nesting",
@@ -42,7 +42,7 @@
       "sha256": "7aca40e835f3ea39958b41d9efae6adcd0c27dc046bda687bf1dc0caa1777180"
     },
     {
-      "name": "undefined is dropped, null kept",
+      "name": "null is kept, as a member and in an array",
       "input": {
         "a": null,
         "c": [
@@ -65,14 +65,16 @@
       "sha256": "8d4d482b35df342f1e7451cddb739bafbbfd456e4f48075ea0e2a6e6cc7293cb"
     },
     {
-      "name": "negative zero and escapes in keys",
+      "name": "zero, and names that need no escape: spaces, symbols, non-ASCII",
       "input": {
-        "z\u0013": 1,
-        "\\": 2,
-        "n": 0
+        "n": 0,
+        "a b": 1,
+        "$ref": 2,
+        "ünï": 3,
+        "日": 4
       },
-      "canonical": "{\"\\\\\":2,\"n\":0,\"z\\u0013\":1}",
-      "sha256": "34b7b2f5cf997d02bfc0478d6d0ea673040c73f3ae751165fdb036327d1f87db"
+      "canonical": "{\"$ref\":2,\"a b\":1,\"n\":0,\"ünï\":3,\"日\":4}",
+      "sha256": "caf8b71dba68d7091a7bd315d0735df0c56702ebca646527da155a675319666b"
     },
     {
       "name": "keys sort by UTF-16 code units, not code points",
@@ -84,6 +86,32 @@
       },
       "canonical": "{\"a\":4,\"é\":3,\"😀\":2,\"／\":1}",
       "sha256": "a491c11921c266564f461e0390b60a6e4b9b09eb1e8ec312db22e6d13ed156d9"
+    }
+  ],
+  "refuse": [
+    {
+      "why": "a member name with a reverse solidus",
+      "text": "{\"\\\\\":1}"
+    },
+    {
+      "why": "a member name with a control character",
+      "text": "{\"z\\u0013\":1}"
+    },
+    {
+      "why": "a member name with a quotation mark",
+      "text": "{\"a\\\"b\":1}"
+    },
+    {
+      "why": "a number with a fraction",
+      "text": "{\"n\":1.5}"
+    },
+    {
+      "why": "a number beyond the safe integers",
+      "text": "{\"n\":9007199254740993}"
+    },
+    {
+      "why": "a lone surrogate in a string",
+      "text": "{\"s\":\"\\ud800\"}"
     }
   ]
 }

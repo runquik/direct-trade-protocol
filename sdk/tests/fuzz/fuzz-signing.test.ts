@@ -148,7 +148,10 @@ test("signRecord: output contains exactly SIGNED_FIELDS + signature, drops unkno
     const other = { ...signed, issuer: { ...(signed.issuer as object), key_id: "ed25519:11111111111111111111111111111111111111111111" } } as unknown as Envelope;
     assert.equal((await verifyRecord(other)).ok, false);
   }
-  assert.ok(signedCount >= 20 && refused >= 1, `fuzzer exercised both outcomes (${signedCount} signed, ${refused} refused)`);
+  assert.ok(signedCount >= 20, `fuzzer signed enough (${signedCount} signed, ${refused} refused)`);
+  // The generator only makes names DTP accepts (rng.ts), so refusal is checked with a fixed name that needs an escape.
+  const backslash = String.fromCharCode(92);
+  await assert.rejects(signRecord({ ...baseEnvelope(r), body: { [`a${backslash}b`]: 1 } }, kp.secretKey), UnsafeJsonError);
   const withFloat = { ...baseEnvelope(r), body: { amount: 1.5 } };
   await assert.rejects(signRecord(withFloat, kp.secretKey), FloatNotAllowedError);
 });
