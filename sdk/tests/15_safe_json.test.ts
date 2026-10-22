@@ -10,14 +10,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '../..');
 // The vector file holds every hostile text as a string VALUE, so loading it is itself safe.
 const vectors = parseUntrustedJson(readFileSync(resolve(repo, 'spec/vectors/unsafe-json.json'), 'utf8')) as
-  { reject: { why: string; text: string }[]; accept: { why: string; text: string }[] };
+  { reject: { why: string; text: string; code: string }[]; accept: { why: string; text: string }[] };
 const B = String.fromCharCode(92), Q = '"';
 
 test('conformance vectors: unsafe member names are refused before parsing, everything else parses', () => {
-  assert.ok(vectors.reject.length >= 15 && vectors.accept.length >= 8);
-  for (const { why, text } of vectors.reject) {
-    assert.throws(() => assertSafeJsonText(text), UnsafeJsonError, why);
-    assert.throws(() => parseUntrustedJson(text), UnsafeJsonError, why);
+  assert.ok(vectors.reject.length >= 20 && vectors.accept.length >= 12);
+  assert.ok(vectors.reject.some(v => v.code === 'duplicate_member_name'), 'the vectors cover duplicate names');
+  for (const { why, text, code } of vectors.reject) {
+    assert.throws(() => assertSafeJsonText(text), (error: unknown) => error instanceof UnsafeJsonError && error.code === code, why);
+    assert.throws(() => parseUntrustedJson(text), (error: unknown) => error instanceof UnsafeJsonError && error.code === code, why);
   }
   for (const { why, text } of vectors.accept) {
     assert.doesNotThrow(() => assertSafeJsonText(text), why);
