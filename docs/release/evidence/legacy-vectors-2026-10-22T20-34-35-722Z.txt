@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: fixed key round-trips through the encodings
+ok 1 - fixed key round-trips through the encodings
+  ---
+  duration_ms: 1099.1528
+  type: 'test'
+  ...
+# Subtest: canonicalization vectors
+ok 2 - canonicalization vectors
+  ---
+  duration_ms: 2.5736
+  type: 'test'
+  ...
+# Subtest: canonicalization vectors tell UTF-16 key order from code-point order (\#79)
+ok 3 - canonicalization vectors tell UTF-16 key order from code-point order (\#79)
+  ---
+  duration_ms: 0.4724
+  type: 'test'
+  ...
+# Subtest: raw signature vector verifies and is reproduced deterministically
+ok 4 - raw signature vector verifies and is reproduced deterministically
+  ---
+  duration_ms: 2.5677
+  type: 'test'
+  ...
+# Subtest: record vectors: signing input, hash, and signature all match; store agrees
+ok 5 - record vectors: signing input, hash, and signature all match; store agrees
+  ---
+  duration_ms: 46.4884
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1376.3522
+
+
