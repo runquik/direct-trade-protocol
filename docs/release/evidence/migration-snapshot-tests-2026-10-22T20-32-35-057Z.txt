@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: snapshot: private uninstalled developer IP, signed authority and expired grants survive migration
+ok 1 - snapshot: private uninstalled developer IP, signed authority and expired grants survive migration
+  ---
+  duration_ms: 48.122
+  type: 'test'
+  ...
+# Subtest: snapshot: unsigned policy, membership, profile visibility and head edits are rejected
+ok 2 - snapshot: unsigned policy, membership, profile visibility and head edits are rejected
+  ---
+  duration_ms: 34.85
+  type: 'test'
+  ...
+# Subtest: snapshot: policy update replay and stale supersession chains are checked
+ok 3 - snapshot: policy update replay and stale supersession chains are checked
+  ---
+  duration_ms: 27.2782
+  type: 'test'
+  ...
+# Subtest: snapshot: personal aliases and immutable publisher versions cannot collide at destination
+ok 4 - snapshot: personal aliases and immutable publisher versions cannot collide at destination
+  ---
+  duration_ms: 16.7737
+  type: 'test'
+  ...
+# Subtest: snapshot: another ready migration reserves IDs before either company is activated
+ok 5 - snapshot: another ready migration reserves IDs before either company is activated
+  ---
+  duration_ms: 35.3721
+  type: 'test'
+  ...
+# Subtest: snapshot: signed stock initialization and event replay reject inflated projected inventory
+ok 6 - snapshot: signed stock initialization and event replay reject inflated projected inventory
+  ---
+  duration_ms: 31.1485
+  type: 'test'
+  ...
+# Subtest: migration capacity: finalize replaces staged payload rather than retaining a second company copy
+ok 7 - migration capacity: finalize replaces staged payload rather than retaining a second company copy
+  ---
+  duration_ms: 34.9851
+  type: 'test'
+  ...
+# Subtest: migration: a company holding inventory-v1 and inventory-v2 state migrates over the byte path, and quoted state keys are refused (\#38)
+ok 8 - migration: a company holding inventory-v1 and inventory-v2 state migrates over the byte path, and quoted state keys are refused (\#38)
+  ---
+  duration_ms: 74.0844
+  type: 'test'
+  ...
+# Subtest: snapshot: object-v1 records migrate with their validation, and signed records that break object rules are refused at import
+ok 9 - snapshot: object-v1 records migrate with their validation, and signed records that break object rules are refused at import
+  ---
+  duration_ms: 43.7639
+  type: 'test'
+  ...
+# Subtest: snapshot: flow books migrate by replaying signed openings and facts; forged facts and edited ledgers are refused
+ok 10 - snapshot: flow books migrate by replaying signed openings and facts; forged facts and edited ledgers are refused
+  ---
+  duration_ms: 82.5821
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 575.0941
+
+

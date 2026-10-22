@@ -1713,6 +1713,442 @@
       "exit_code": 0,
       "tests": 16,
       "skipped": 0
+    },
+    {
+      "check": "F0-graph-tests",
+      "status": "pending",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:07.686Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/gates.test.ts",
+        "sdk/tests/foundation/gates-review.test.ts",
+        "sdk/tests/foundation/runner.test.ts",
+        "sdk/tests/foundation/runner-review.test.ts",
+        "sdk/tests/foundation/foundation-ci-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F0-graph-tests",
+      "status": "passed",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "42 tests passed, zero skips; 2026-10-22T20:31:07.686Z",
+      "artifacts": {
+        "docs/foundation/runs/F0-graph-tests-33c2c581-5fad-4d75-8eb8-58f5ba2dd5d2.json": "de2e19e6f0b01df8fe1e911bed3da07ad46aec01db6ca9646efd5bba26626d3e"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/gates.test.ts",
+        "sdk/tests/foundation/gates-review.test.ts",
+        "sdk/tests/foundation/runner.test.ts",
+        "sdk/tests/foundation/runner-review.test.ts",
+        "sdk/tests/foundation/foundation-ci-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 42,
+      "skipped": 0
+    },
+    {
+      "check": "F0-archive-tests",
+      "status": "pending",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:10.051Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/legacy-exclusion.test.ts",
+        "sdk/tests/foundation/archive-review.test.ts",
+        "sdk/tests/foundation/ci-wiring-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F0-archive-tests",
+      "status": "passed",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "17 tests passed, zero skips; 2026-10-22T20:31:10.051Z",
+      "artifacts": {
+        "docs/foundation/runs/F0-archive-tests-58a3c0ab-d06a-4425-8355-e8bae56061b3.json": "1dfe90e9831ec2ef23a52555548f873d1505f2bc89a16b4d72a35f91b42a7a33"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/legacy-exclusion.test.ts",
+        "sdk/tests/foundation/archive-review.test.ts",
+        "sdk/tests/foundation/ci-wiring-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 17,
+      "skipped": 0
+    },
+    {
+      "check": "F0-compatibility-tests",
+      "status": "pending",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:11.540Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/release-policy.test.ts",
+        "sdk/tests/foundation/release-policy-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F0-compatibility-tests",
+      "status": "passed",
+      "fingerprint": "819a5929aa8b6078b0839bd49d644d03056b05300b26e49d0e544da2cb0c30aa",
+      "actor": "root",
+      "summary": "9 tests passed, zero skips; 2026-10-22T20:31:11.540Z",
+      "artifacts": {
+        "docs/foundation/runs/F0-compatibility-tests-e02e7c04-6820-4990-b1b6-5e6cc16df61a.json": "fcdfc05d0e8e2dec09c426f4afc4a1bc118a86a18e1de1f0f186af371281c692"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/release-policy.test.ts",
+        "sdk/tests/foundation/release-policy-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 9,
+      "skipped": 0
+    },
+    {
+      "check": "F1-helper-tests",
+      "status": "pending",
+      "fingerprint": "2034b3612c8e418c5579fedea9b274075e7a135cf21b79708621bf494dd774a7",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:12.000Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/identity.test.ts",
+        "sdk/tests/foundation/identity-review.test.ts",
+        "sdk/tests/foundation/identity-registry.test.ts",
+        "sdk/tests/foundation/identity-registry-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F1-helper-tests",
+      "status": "passed",
+      "fingerprint": "2034b3612c8e418c5579fedea9b274075e7a135cf21b79708621bf494dd774a7",
+      "actor": "root",
+      "summary": "28 tests passed, zero skips; 2026-10-22T20:31:12.000Z",
+      "artifacts": {
+        "docs/foundation/runs/F1-helper-tests-31e762b0-0c20-4b14-91b5-23bdc8a7e8ab.json": "1ea38918ba3b1e23f94d3911522ed2508ba2a234b1dbe69ef3873393d48c2de6"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/identity.test.ts",
+        "sdk/tests/foundation/identity-review.test.ts",
+        "sdk/tests/foundation/identity-registry.test.ts",
+        "sdk/tests/foundation/identity-registry-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 28,
+      "skipped": 0
+    },
+    {
+      "check": "F2-helper-tests",
+      "status": "pending",
+      "fingerprint": "4b7f34d91c87136074b5b61c54e2a92040dafab7555a364ebc3bb80ba20d9956",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:19.085Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/authority.test.ts",
+        "sdk/tests/foundation/authority-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F2-helper-tests",
+      "status": "passed",
+      "fingerprint": "4b7f34d91c87136074b5b61c54e2a92040dafab7555a364ebc3bb80ba20d9956",
+      "actor": "root",
+      "summary": "16 tests passed, zero skips; 2026-10-22T20:31:19.085Z",
+      "artifacts": {
+        "docs/foundation/runs/F2-helper-tests-3d22eecd-68bd-49a6-a780-1b233ed10967.json": "418fd1979d6899e10ccd9e0e78f173855879ed7f67eb037a7330979beb7145a6"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/authority.test.ts",
+        "sdk/tests/foundation/authority-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 16,
+      "skipped": 0
+    },
+    {
+      "check": "F3-helper-tests",
+      "status": "pending",
+      "fingerprint": "e18edb5530264838fd5f0306788af1a84d3873521bd51dc4d99f77ee6db80050",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:19.494Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/datatypes.test.ts",
+        "sdk/tests/foundation/datatypes-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F3-helper-tests",
+      "status": "passed",
+      "fingerprint": "e18edb5530264838fd5f0306788af1a84d3873521bd51dc4d99f77ee6db80050",
+      "actor": "root",
+      "summary": "20 tests passed, zero skips; 2026-10-22T20:31:19.494Z",
+      "artifacts": {
+        "docs/foundation/runs/F3-helper-tests-82c8a7e6-6c3f-44ef-bf2a-025ce8609389.json": "80483e2d02b8c6ed60fc9c06bae87631c9bf76b5ad5cc8833f07cff7d328e0f6"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/datatypes.test.ts",
+        "sdk/tests/foundation/datatypes-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 20,
+      "skipped": 0
+    },
+    {
+      "check": "F4-helper-tests",
+      "status": "pending",
+      "fingerprint": "6e57ace8581d1b8320a5820445dbdfb6ac6ebff33b75aa3b97f20ccdd3a68da1",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:19.904Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/semantics.test.ts",
+        "sdk/tests/foundation/semantics-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F4-helper-tests",
+      "status": "passed",
+      "fingerprint": "6e57ace8581d1b8320a5820445dbdfb6ac6ebff33b75aa3b97f20ccdd3a68da1",
+      "actor": "root",
+      "summary": "20 tests passed, zero skips; 2026-10-22T20:31:19.904Z",
+      "artifacts": {
+        "docs/foundation/runs/F4-helper-tests-26eafffb-316b-410e-8986-0ffe44b3ecfb.json": "557bea56e1921c5b95f854f87a7e2b901d1e0290344cdb447bbb1e622ea7c234"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/semantics.test.ts",
+        "sdk/tests/foundation/semantics-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 20,
+      "skipped": 0
+    },
+    {
+      "check": "F5-helper-tests",
+      "status": "pending",
+      "fingerprint": "15ccaa9d3ca699d5d6fde49ff4d63411c336e5b7b35076bb8d1ad1ea5fc087c6",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:20.342Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/changes.test.ts",
+        "sdk/tests/foundation/changes-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F5-helper-tests",
+      "status": "passed",
+      "fingerprint": "15ccaa9d3ca699d5d6fde49ff4d63411c336e5b7b35076bb8d1ad1ea5fc087c6",
+      "actor": "root",
+      "summary": "25 tests passed, zero skips; 2026-10-22T20:31:20.342Z",
+      "artifacts": {
+        "docs/foundation/runs/F5-helper-tests-9dcc5a31-42d3-4837-87b1-0cc22c1680e8.json": "73d6e131f3ed3760f8e70f176788593f69bb2274446e11032ba25e32bd8cfe86"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/changes.test.ts",
+        "sdk/tests/foundation/changes-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 25,
+      "skipped": 0
+    },
+    {
+      "check": "F6-helper-tests",
+      "status": "pending",
+      "fingerprint": "9577b8d965bcd12d0bcdc6faad77774aad5def3098e508f2ded557ef2e61fdef",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:20.866Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/discovery.test.ts",
+        "sdk/tests/foundation/discovery-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F6-helper-tests",
+      "status": "passed",
+      "fingerprint": "9577b8d965bcd12d0bcdc6faad77774aad5def3098e508f2ded557ef2e61fdef",
+      "actor": "root",
+      "summary": "30 tests passed, zero skips; 2026-10-22T20:31:20.866Z",
+      "artifacts": {
+        "docs/foundation/runs/F6-helper-tests-c61eb2de-3d1f-4ec2-a7df-b4adfd73e9cf.json": "1f91855422a707abe30b09e68450903ea71f9b6d70f785853f9551f2978c05b5"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/discovery.test.ts",
+        "sdk/tests/foundation/discovery-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 30,
+      "skipped": 0
+    },
+    {
+      "check": "F7-helper-tests",
+      "status": "pending",
+      "fingerprint": "f740d1577631175a842a7eb1f8e50ddc099d5f6e301338f2b447d8e3e63edaa7",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:21.349Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/commitments.test.ts",
+        "sdk/tests/foundation/commitments-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F7-helper-tests",
+      "status": "passed",
+      "fingerprint": "f740d1577631175a842a7eb1f8e50ddc099d5f6e301338f2b447d8e3e63edaa7",
+      "actor": "root",
+      "summary": "29 tests passed, zero skips; 2026-10-22T20:31:21.349Z",
+      "artifacts": {
+        "docs/foundation/runs/F7-helper-tests-e75a2310-2f87-407f-aea8-5c8e94cc23a3.json": "2231d5100a9b7db2d1e06be8385965e49f1dcf0ecbf86f8ede7b612218392324"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/commitments.test.ts",
+        "sdk/tests/foundation/commitments-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 29,
+      "skipped": 0
+    },
+    {
+      "check": "F9-helper-tests",
+      "status": "pending",
+      "fingerprint": "aabae02c65d01434eb24ae46f5e75d67ba3327fac6d9a69180c4ca009f486481",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:21.907Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/persistence.test.ts",
+        "sdk/tests/foundation/persistence-review.test.ts",
+        "sdk/tests/foundation/persistence-finalization.test.ts",
+        "sdk/tests/foundation/persistence-finalization-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F9-helper-tests",
+      "status": "passed",
+      "fingerprint": "aabae02c65d01434eb24ae46f5e75d67ba3327fac6d9a69180c4ca009f486481",
+      "actor": "root",
+      "summary": "30 tests passed, zero skips; 2026-10-22T20:31:21.907Z",
+      "artifacts": {
+        "docs/foundation/runs/F9-helper-tests-6decbdd2-ae2c-4078-a99d-78206a888de9.json": "50273a70015df21943df7469bc6af763aae4c920a22aed83ecf02aa7e43857de"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/persistence.test.ts",
+        "sdk/tests/foundation/persistence-review.test.ts",
+        "sdk/tests/foundation/persistence-finalization.test.ts",
+        "sdk/tests/foundation/persistence-finalization-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 30,
+      "skipped": 0
+    },
+    {
+      "check": "F9-person-auth-tests",
+      "status": "pending",
+      "fingerprint": "aabae02c65d01434eb24ae46f5e75d67ba3327fac6d9a69180c4ca009f486481",
+      "actor": "root",
+      "summary": "Started 2026-10-22T20:31:35.557Z",
+      "artifacts": {},
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/person-authentication.test.ts",
+        "sdk/tests/foundation/person-authentication-review.test.ts"
+      ],
+      "runtime": "v22.23.2"
+    },
+    {
+      "check": "F9-person-auth-tests",
+      "status": "passed",
+      "fingerprint": "aabae02c65d01434eb24ae46f5e75d67ba3327fac6d9a69180c4ca009f486481",
+      "actor": "root",
+      "summary": "16 tests passed, zero skips; 2026-10-22T20:31:35.557Z",
+      "artifacts": {
+        "docs/foundation/runs/F9-person-auth-tests-794921c8-53a9-48a4-bce3-648bb9144d3a.json": "50bfc16c66a4e8df117fe4f2f455238e24f10f26d780709511ce8d57ba6bea12"
+      },
+      "command": [
+        "C:\\Users\\runqu\\AppData\\Local\\npm-cache\\_npx\\52027bd8fc0022aa\\node_modules\\node\\bin\\node.exe",
+        "--test",
+        "sdk/tests/foundation/person-authentication.test.ts",
+        "sdk/tests/foundation/person-authentication-review.test.ts"
+      ],
+      "runtime": "v22.23.2",
+      "exit_code": 0,
+      "tests": 16,
+      "skipped": 0
     }
   ],
   "findings": [

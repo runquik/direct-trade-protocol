@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: snapshot-import vectors: the base imports and the destination reproduces its projections exactly
+ok 1 - snapshot-import vectors: the base imports and the destination reproduces its projections exactly
+  ---
+  duration_ms: 30.8602
+  type: 'test'
+  ...
+# Subtest: snapshot-import vectors: every case is refused with invalid_snapshot, for the rule it names
+ok 2 - snapshot-import vectors: every case is refused with invalid_snapshot, for the rule it names
+  ---
+  duration_ms: 167.8956
+  type: 'test'
+  ...
+# Subtest: snapshot-import vectors: each case is the base company with its records re-signed, not a different company
+ok 3 - snapshot-import vectors: each case is the base company with its records re-signed, not a different company
+  ---
+  duration_ms: 17.7742
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 386.7854
+
+
