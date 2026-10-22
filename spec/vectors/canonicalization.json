@@ -73,6 +73,17 @@
       },
       "canonical": "{\"\\\\\":2,\"n\":0,\"z\\u0013\":1}",
       "sha256": "34b7b2f5cf997d02bfc0478d6d0ea673040c73f3ae751165fdb036327d1f87db"
+    },
+    {
+      "name": "keys sort by UTF-16 code units, not code points",
+      "input": {
+        "／": 1,
+        "😀": 2,
+        "é": 3,
+        "a": 4
+      },
+      "canonical": "{\"a\":4,\"é\":3,\"😀\":2,\"／\":1}",
+      "sha256": "a491c11921c266564f461e0390b60a6e4b9b09eb1e8ec312db22e6d13ed156d9"
     }
   ]
 }
