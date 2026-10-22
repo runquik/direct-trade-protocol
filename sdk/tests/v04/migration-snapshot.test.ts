@@ -11,6 +11,8 @@ import { readFileSync } from "node:fs";
 import { parseUntrustedJson } from "../../src/safe-json.ts";
 import { inventoryKey } from "../../src/profiles/inventory.ts";
 import { PRODUCT_SCHEMA, PRODUCT_SEMANTICS } from "../../src/profiles/product.ts";
+import { OBJECT_SCHEMA, OBJECT_SEMANTICS } from "../../src/profiles/object.ts";
+import { FLOW_SCHEMA, FLOW_SEMANTICS, goodsLedgerKey, moneyLedgerKey } from "../../src/profiles/flow.ts";
 import { INVENTORY2_SCHEMA, INVENTORY2_SEMANTICS } from "../../src/profiles/inventory2.ts";
 
 async function fixture() {
@@ -159,4 +161,53 @@ test("migration: a company holding inventory-v1 and inventory-v2 state migrates 
     (x:any)=>quoted(x.inventory[f.org].pools[pool].reservations,JSON.stringify(["order-a"]),inventoryKey("order-a")),
     (x:any)=>quoted(x.inventory[f.org].pools[pool].observations,JSON.stringify([f.org,"scanner","one"]),inventoryKey(f.org,"scanner","one")),
   ]){const old=structuredClone(snap);mutate(old);await assert.rejects(validateSnapshot(emptyState(),old),(e:any)=>e.code==="invalid_snapshot"&&/not a digest/.test(e.message));}
+});
+
+test("snapshot: object-v1 records migrate with their validation, and signed records that break object rules are refused at import",async()=>{
+  const f=await fixture(), profile=await f.publish("thing",OBJECT_SCHEMA,OBJECT_SEMANTICS);
+  const body={class:"dtp/vehicle",label:"Reefer trailer 14",identifiers:[],status:"active",retired:null,evidence:[]};
+  const id=crypto.randomUUID(); await f.call("record.append",f.org,{id,root_id:id,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:f.resource,profile_digest:profile,counterparty_ids:[],body});
+  const snap=buildSnapshot(f.s,f.org,f.ctx); await validateSnapshot(emptyState(),snap);
+  const dest=emptyState(); await applySnapshot(dest,snap); assert.deepEqual(dest.records[id].validation,{profile:"dtp.object/1",level:"business-rules",business_verified:false});
+  // A record the live host would have refused, correctly signed by the owner: import must re-check the rules, not trust the source.
+  const forge=async(edit:(b:any)=>void)=>{
+    const bad=structuredClone(snap), r=bad.records.find((x:any)=>x.id===id)!; edit(r.body);
+    r.command=await signCommand(draftCommand(f.ctx.audience,f.owner,"record.append",f.org,{...r.command.payload,body:r.body},Date.parse(r.command.issued_at)),[f.owner.key]);
+    return bad;
+  };
+  await validateSnapshot(emptyState(),await forge(()=>{}));
+  await rejectsSnapshot(await forge(b=>{b.status="retired";b.retired={reason:"lost",note:null};}));
+  await rejectsSnapshot(await forge(b=>{b.evidence=[{minted_by:f.org,root:crypto.randomUUID(),record_id:null}];}));
+  await rejectsSnapshot(await forge(b=>{b.class="dtp/pallet";}));
+});
+
+test("snapshot: flow books migrate by replaying signed openings and facts; forged facts and edited ledgers are refused",async()=>{
+  const f=await fixture(), productProfile=await f.publish("product",PRODUCT_SCHEMA,PRODUCT_SEMANTICS), objectProfile=await f.publish("thing",OBJECT_SCHEMA,OBJECT_SEMANTICS), flowProfile=await f.publish("flow",FLOW_SCHEMA,FLOW_SEMANTICS);
+  const append=(id:string,profile:string,resource:string,body:any)=>f.call("record.append",f.org,{id,root_id:id,supersedes:null,organization_id:f.org,policy_id:f.policy,resource_id:resource,profile_digest:profile,counterparty_ids:[],body});
+  const product=crypto.randomUUID(), account=crypto.randomUUID(), dock=crypto.randomUUID(), book=crypto.randomUUID();
+  const productBody=parseUntrustedJson(readFileSync(new URL("../../../spec/profiles/product/1/fixtures.json",import.meta.url),"utf8")) as any;
+  await append(product,productProfile,product,{...productBody.accept[0].body,identifiers:[],packaging:[],base_unit:{system:"ucum",code:"kg"},tracking:"none"});
+  await append(account,objectProfile,account,{class:"dtp/account",label:"Operating",identifiers:[],status:"active",retired:null,evidence:[]});
+  await f.call("flow.open",f.org,{policy_id:f.policy,book_id:book});
+  await f.call("flow.ledger.open",f.org,{policy_id:f.policy,book_id:book,asset:{product,currency:null},account:null,balance:"nonnegative"});
+  await f.call("flow.ledger.open",f.org,{policy_id:f.policy,book_id:book,asset:{product:null,currency:"USD"},account,balance:"nonnegative"});
+  const own=(root:string)=>({minted_by:null,root,record_id:null}), place=(root:string)=>({lot_id:null,location:{ref:own(root),virtual:null},status:"available",owner:null}), outside=(virtual:string)=>({lot_id:null,location:{ref:null,virtual},status:"available",owner:null});
+  const act=(verb:string,sequence:number)=>({verb,occurred_at:"2026-10-23T08:00:00.000Z",observation:{source_id:"desk",sequence},basis:"asserted",references:[],evidence:[]});
+  const G=goodsLedgerKey(product), M=moneyLedgerKey("USD",account);
+  const receipt={act:act("move",1),ledgers:[{key:G,expected_revision:0,expected_digest:null}],legs:[{asset:{product,currency:null},from:outside("~supplier"),to:place(dock),quantity:{amount:"40",unit:{system:"ucum",code:"kg",packaging_id:null,version:null,base_units_per_pack:null}},serial_ids:null,reason:null}],reservations:[],transform:null,rights:null,settles:[]};
+  const usd={system:"currency",code:"USD",packaging_id:null,version:null,base_units_per_pack:null};
+  const paid={act:act("transfer",2),ledgers:[{key:M,expected_revision:0,expected_digest:null}],legs:[{asset:{product:null,currency:"USD"},from:outside("~counterparty"),to:place(account),quantity:{amount:"100",unit:usd},serial_ids:null,reason:null}],reservations:[],transform:null,rights:["title"],settles:[]};
+  const first=crypto.randomUUID(), second=crypto.randomUUID(); await append(first,flowProfile,book,receipt); await append(second,flowProfile,book,paid);
+  const snap=buildSnapshot(f.s,f.org,f.ctx); await validateSnapshot(emptyState(),snap);
+  const dest=emptyState(); await applySnapshot(dest,snap); assert.deepEqual(dest.inventory[f.org].books[book],f.s.inventory[f.org].books[book]);
+  assert.equal(dest.records[second].validation.profile,"dtp.flow/1");
+  const forge=async(id:string,edit:(b:any)=>void)=>{
+    const bad=structuredClone(snap), r=bad.records.find((x:any)=>x.id===id)!; edit(r.body);
+    r.command=await signCommand(draftCommand(f.ctx.audience,f.owner,"record.append",f.org,{...r.command.payload,body:r.body},Date.parse(r.command.issued_at)),[f.owner.key]);
+    return bad;
+  };
+  // Re-signing alone changes nothing the import checks except the record's own signature; editing the body must be caught by replay.
+  await rejectsSnapshot(await forge(second,b=>{b.legs[0].from=place(account);b.legs[0].to=outside("~counterparty");}));
+  await rejectsSnapshot(await forge(first,b=>{b.legs[0].to.location.ref.minted_by=f.org;}));
+  const edited=structuredClone(snap); const ledger=(edited.inventory as any)[f.org].books[book].ledgers[M]; Object.values(ledger.positions as Record<string,any>)[0].quantity="1000000"; await rejectsSnapshot(edited);
 });

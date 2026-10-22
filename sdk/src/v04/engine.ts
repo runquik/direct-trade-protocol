@@ -15,6 +15,8 @@ import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger, unpublishe
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
+import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
+import { FLOW_PROFILE, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, moneyLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger } from "../profiles/flow.ts";
 
 function ids(values: any, min = 1, max = 8): asserts values is string[] {
   demand(Array.isArray(values) && values.length >= min && values.length <= max && new Set(values).size === values.length && values.every(uuid), "invalid", "invalid distinct IDs",400);
@@ -30,12 +32,13 @@ function keyFree(s: State, key: string) {
   demand(!Object.values(s.persons).some(p => [...p.keys,...p.retired_keys].includes(key)) && !Object.values(s.organizations).some(o => Object.values(o.installations).some(i => i.key_id === key)),"conflict","key already bound",409);
 }
 function accessibleProfile(p: Profile, org: string) { return p.visibility === "community" || p.publisher_id === org || p.readers.includes(org); }
-const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.ledger"]);
-const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","inventory.ledger","evidence.inspect"]);
+const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.ledger","flow.book"]);
+const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","inventory.ledger","flow.book","evidence.inspect"]);
 // Projection maps travel in snapshots, so they are keyed by digest, never by the ids (#38). Null when the
 // identity cannot be canonicalized; the profile reducer then refuses the body.
 const observationKey = (...parts: unknown[]): string | null => { try { return inventoryKey(...parts); } catch { return null; } };
 const inventoryState = (s: State, org: string) => { const company = s.inventory[org] ??= {pools:{},observations:{},creations:{}}; company.ledgers ??= {}; company.openings ??= {}; company.facts ??= {}; return company; };
+const flowState = (s: State, org: string) => { const company = inventoryState(s, org); company.books ??= {}; company.book_openings ??= {}; company.ledger_openings ??= {}; company.flow_facts ??= {}; return company; };
 export async function execute(s: State, input: unknown, ctx: Context): Promise<any> {
   validateCommand(input,ctx.audience,ctx.now); const c = input, p = c.payload, signed = await verifyCommand(c), hash = await digest(c);
   let org = c.organization_id ? s.organizations[c.organization_id] : undefined;
@@ -240,6 +243,13 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         if(before){const continuity=checkForecastContinuity(before.body as any,p.body);demand(continuity.length===0,"invalid_forecast",continuity.length?`${continuity[0].message} at ${continuity[0].path}`:"invalid forecast",422);}
         validation={profile:FORECAST_PROFILE,level:"business-rules",business_verified:false};
       }
+      if(profile.semantics==="object-v1"){
+        const issues=validateObject(p.body);demand(issues.length===0,"invalid_object",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid object",422);
+        // One spelling per object: a reference to the writer's own object leaves minted_by null.
+        const owner=checkObjectOwner(p.body as any,o.id);demand(owner.length===0,"invalid_object",owner.length?`${owner[0].message} at ${owner[0].path}`:"invalid object",422);
+        const rules=before?checkObjectContinuity(before.body as any,p.body):checkObjectGenesis(p.body);demand(rules.length===0,"invalid_object",rules.length?`${rules[0].message} at ${rules[0].path}`:"invalid object",422);
+        validation={profile:OBJECT_PROFILE,level:"business-rules",business_verified:false};
+      }
       if(profile.semantics==="party-v1"){
         const issues=validateParty(p.body);demand(issues.length===0,"invalid_party",issues.length?`${issues[0].message} at ${issues[0].path}`:"invalid party",422);
         // A person party is personal data: only a personnel-classified policy may hold it.
@@ -259,6 +269,21 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         const change=applyInventoryFact(ledger,fact);demand(change.ok,change.ok?"invalid_inventory":change.code,change.ok?"invalid inventory":change.message,409);demand(obs!==null,"invalid_inventory","invalid observation identity",422);
         company.ledgers[fact.product_id]={...change.state,policy_id:ledger.policy_id};company.facts[obs]={hash:factHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};
         validation={profile:INVENTORY2_PROFILE,revision:change.state.revision,physical_stock_verified:false};
+      }
+      if(profile.semantics==="flow-v1"){
+        demand(p.supersedes===null,"invalid_flow","flow facts are new events, never revisions",422);
+        const fact=p.body,company=flowState(s,o.id),book=company.books[p.resource_id];demand(book,"book_unavailable","open the book before writing facts",422);
+        demand(book.policy_id===p.policy_id,"forbidden","book belongs to another policy");
+        // One spelling per object: references to the writer's own objects leave minted_by null.
+        const owner=Array.isArray(fact?.legs)&&Array.isArray(fact?.reservations)&&Array.isArray(fact?.settles)&&fact?.act&&Array.isArray(fact.act.references)&&Array.isArray(fact.act.evidence)?checkFlowOwner(fact,o.id):[];
+        demand(owner.length===0,"invalid_flow",owner.length?`${owner[0].message} at ${owner[0].path}`:"invalid flow",422);
+        const productHead=(root:string)=>Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===root&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1")?.body as any;
+        demand(!flowUnpublishedPackaging(fact,productHead),"unknown_packaging","pack conversion is not a published packaging revision of the product",422);
+        const obs=observationKey(p.resource_id,fact?.act?.observation?.source_id,fact?.act?.observation?.sequence),factHash=await digest(fact),old=obs===null?undefined:company.flow_facts[obs];
+        if(old){demand(old.hash===factHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}
+        const {policy_id:bookPolicy,...state}=book,change=applyFlowFact(state,fact);demand(change.ok,change.ok?"invalid_flow":change.code,change.ok?"invalid flow":change.message,409);demand(obs!==null,"invalid_flow","invalid observation identity",422);
+        company.books[p.resource_id]={...change.state,policy_id:bookPolicy};company.flow_facts[obs]={hash:factHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};
+        validation={profile:FLOW_PROFILE,revisions:Object.fromEntries(fact.ledgers.map((l:any)=>[l.key,change.state.ledgers[l.key].revision])),physical_stock_verified:false};
       }
       if(profile.semantics==="inventory-v1"){
         demand(p.supersedes===null,"invalid_inventory","inventory corrections are new events",422);
@@ -309,6 +334,38 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       const consumer=c.actor.kind==="person"||s.releases[o.installations[c.actor.id].release_digest].profiles.some(d=>s.profiles[d]?.semantics==="inventory-v2");
       const understandsLedger=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.resource_id===p.product_id&&s.profiles[r.profile_digest]?.semantics==="inventory-v2").every(r=>understands(r.profile_digest));
       demand(ledger&&ledger.policy_id===p.policy_id&&can(p.policy_id,p.product_id,"read")&&consumer&&understandsLedger,"not_found","ledger unavailable",404);result=structuredClone(ledger);break;
+    }
+    case "flow.open": {
+      exact(p,["policy_id","book_id"]);id(p.book_id);const o=currentOrg();demand(can(p.policy_id,p.book_id,"write"),"forbidden","book write permission required");
+      const company=flowState(s,o.id);if(previous){result=previous.result;break;}
+      demand(!company.books[p.book_id],"conflict","book exists",409);
+      company.books[p.book_id]={...openFlowBook(o.id,p.book_id),policy_id:p.policy_id};company.book_openings[p.book_id]=structuredClone(c);result={book_id:p.book_id};break;
+    }
+    case "flow.ledger.open": {
+      exact(p,["policy_id","book_id","asset","account","balance"]);id(p.book_id);const o=currentOrg();demand(can(p.policy_id,p.book_id,"write"),"forbidden","book write permission required");
+      const company=flowState(s,o.id),book=company.books[p.book_id];demand(book&&book.policy_id===p.policy_id,"not_found","book unavailable",404);
+      if(previous){result=previous.result;break;}
+      const head=(root:unknown,semantics:string)=>Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===root&&r.is_head&&s.profiles[r.profile_digest]?.semantics===semantics);
+      exact(p.asset,["product","currency"]);let next:any,key:string;
+      if(p.asset.product!==null){
+        demand(p.asset.currency===null&&p.account===null&&p.balance==="nonnegative","invalid_flow","a goods ledger names a product, no account, and a nonnegative balance",422);
+        const product=head(p.asset.product,"product-v1");demand(product&&can(product.policy_id,product.resource_id,"read")&&understands(product.profile_digest),"not_found","product unavailable",404);
+        key=goodsLedgerKey(p.asset.product);demand(!book.ledgers[key],"conflict","ledger exists",409);
+        try{next=openGoodsLedger(book,p.asset.product,product.body as any);}catch{demand(false,"invalid_flow","product cannot anchor a ledger",422);}
+      }else{
+        const account=head(p.account,"object-v1");
+        demand(account&&can(account.policy_id,account.resource_id,"read")&&understands(account.profile_digest)&&account.body.class==="dtp/account"&&account.body.status==="active","not_found","account unavailable: an active dtp/account object the company owns",404);
+        demand(typeof p.asset.currency==="string","invalid_flow","a money ledger names a currency",422);
+        key=moneyLedgerKey(p.asset.currency,p.account);demand(!book.ledgers[key],"conflict","ledger exists",409);
+        try{next=openMoneyLedger(book,p.asset.currency,p.account,p.balance);}catch{demand(false,"invalid_flow","invalid currency, account or balance",422);}
+      }
+      company.books[p.book_id]=next;company.ledger_openings[observationKey(p.book_id,key)!]=structuredClone(c);result={book_id:p.book_id,key,revision:0};break;
+    }
+    case "flow.book": {
+      exact(p,["policy_id","book_id"]);id(p.book_id);const o=currentOrg();const book=s.inventory[o.id]?.books?.[p.book_id];
+      const consumer=c.actor.kind==="person"||s.releases[o.installations[c.actor.id].release_digest].profiles.some(d=>s.profiles[d]?.semantics==="flow-v1");
+      const understandsBook=Object.values(s.records).filter(r=>r.organization_id===o.id&&r.resource_id===p.book_id&&s.profiles[r.profile_digest]?.semantics==="flow-v1").every(r=>understands(r.profile_digest));
+      demand(book&&book.policy_id===p.policy_id&&can(p.policy_id,p.book_id,"read")&&consumer&&understandsBook,"not_found","book unavailable",404);result=structuredClone(book);break;
     }
     case "inventory.get": {
       exact(p,["policy_id","pool_id"]);id(p.pool_id);const o=currentOrg();const pool=s.inventory[o.id]?.pools[p.pool_id];
