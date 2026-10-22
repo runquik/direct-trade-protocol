@@ -1,6 +1,6 @@
 # DTP Core-1
 
-**Status: proposal, accepted in direction by the owner; not released.** Core-1 is the smallest part of DTP that every implementation must have and that is enough for two parties who have never met to create identities and exchange a signed record each can verify, with no host in the loop. Everything else in DTP becomes an optional, separately versioned extension on top of it.
+**Status: approved by the owner on October 22, 2026, with two amendments (business vocabulary, time in business payloads); not released.** Core-1 is the smallest part of DTP that every implementation must have and that is enough for two parties who have never met to create identities and exchange a signed record each can verify, with no host in the loop. Everything else in DTP becomes an optional, separately versioned extension on top of it.
 
 This document defines what Core-1 is and how today's layers converge on it. Each part lands in its own pull request with conformance vectors; the list at the end says which.
 
@@ -28,7 +28,7 @@ Canonical form is RFC 8785 (JCS) over that JSON. Canonicalization refuses anythi
 | Signature | Ed25519, RFC 8032, verified strictly (cofactorless, canonical S, A and R) | A key is refused when it enters control unless it is of prime order (`spec/vectors/key-registration.json`). |
 | Key and signature text | `ed25519:` followed by base58 | One encoding for both. |
 | Identifiers | An identity's id is the UUID form of the first 128 bits of its genesis digest | The full genesis digest is kept and checked. |
-| Time | Integer milliseconds since the Unix epoch, UTC | One time encoding. ISO-8601 strings are not used in signed bodies. |
+| Time | Integer milliseconds since the Unix epoch, UTC | The one time encoding of Core-1's own bodies: envelopes, identity logs and record metadata. A business payload (a profile's or verb kind's body) carries a UTC instant as an ISO-8601 string with millisecond precision, `YYYY-MM-DDTHH:MM:SS.sssZ`, in exactly that one spelling, as the act header and every registered kind already do and as UBL and EPCIS documents do (amendment, October 22, 2026). |
 
 ### 3. One signed envelope
 
@@ -60,6 +60,10 @@ An identity is not a verified legal person. It is self-certifying control over k
 
 **Open question for the bundle pull request: backdating.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both.
 
+## The business vocabulary on top of Core-1
+
+**Amendment, October 22, 2026.** The [verb layer](../../docs/foundation/verb-layer-proposal.md) is DTP's normative business vocabulary: object references, the act header, the protocol object classes ([`spec/profiles/verbs.md`](../profiles/verbs.md)) and the verb kinds (`dtp/object@1`, `dtp/flow@1`, and `assign`, `claim`, `observe` and `value` as they are registered). It sits on Core-1 records rather than inside Core-1: an implementation that only creates identities and exchanges signed records does not need it. An implementation that reads or writes business records MUST use it, so it is not an optional extension in the sense of the list below. The registered kinds that predate it (`product@1`, `party@1`, `inventory@2`, `order@1`, `forecast@1`) stay registered and are bridged to it.
+
 ## What is not Core-1
 
 These stay in the repository as optional extensions, each with its own document, version and vectors, implemented by whoever needs them:
@@ -68,7 +72,7 @@ These stay in the repository as optional extensions, each with its own document,
 - host-issued evidence and authority tokens;
 - host migration of live business state (the v0.4 cooperative freeze, as an optimisation on top of the owner-signed rehome);
 - module release and admission;
-- business profiles (`product`, `party`, `order`, `inventory@2`, `invoice`, …), as registered kinds with fixtures;
+- business profiles beyond the verb layer, including private kinds, as registered kinds with fixtures;
 - discovery, commitments, changes and semantics, which no specified flow uses yet. They move to an unexported `experimental/` area until one does.
 
 ## Retired before the first release
@@ -83,7 +87,7 @@ Nothing here has been released, so these go without a migration: the v0.2 record
 
 ## Order of work
 
-Each item is its own pull request with vectors, labelled `needs-owner`:
+Each item is its own pull request with vectors, labelled `needs-owner`. Sequencing (owner, October 22, 2026): steps 1 and 2 first; then verb-layer build steps 3 and 4 (`assign@1`, `claim@1`), which the flagship's shadow close needs; then steps 3 to 5 here.
 
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).
