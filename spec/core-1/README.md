@@ -41,7 +41,7 @@ signing input = canonical({ "domain": <domain>, "body": <body> })
 
 The **domain** names what the body is and its format version, such as `DTP-PERSON-GENESIS-1`. Domains are permanent: a domain never changes meaning, and a new format is a new domain. It is never derived from a software release number. A verifier knows from context which domain to expect and never takes it from the message. Several signatures over the same input express a threshold. This is the foundation layer's form today, close to JWS general serialization and COSE_Sign.
 
-The Core-1 domains are those of parts 4 and 5. A verifier implements only those.
+The Core-1 domains are those of parts 4 and 5. A verifier implements only those. Reference: `sdk/src/core1/envelope.ts` (`signEnvelope`, `verifyEnvelope`, `meetsQuorum`, `CORE1_DOMAINS`). Vectors: `spec/core-1/vectors/envelope.json` (regenerate with `node sdk/scripts/build-core1-envelope-vectors.ts`).
 
 ### 4. Identity
 
