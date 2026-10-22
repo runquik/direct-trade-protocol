@@ -1,0 +1,916 @@
+{
+  "description": "Verb-layer datatypes (spec/profiles/verbs.md). A conforming reader MUST accept every \"refs.accept\" object reference and refuse every \"refs.reject\"; accept every \"acts.accept\" act header and refuse every \"acts.reject\"; give the stated outcome for every \"ownership\" case, where the writing organization is organization_id and a reference to the writer's own object must leave minted_by null; and judge every \"classes\" name as stated against spec/profiles/classes.json.",
+  "refs": {
+    "accept": [
+      {
+        "why": "the writer's own object, by entity",
+        "value": {
+          "minted_by": null,
+          "root": "11111111-1111-4111-8111-111111111111",
+          "record_id": null
+        }
+      },
+      {
+        "why": "the writer's own object, at an exact revision",
+        "value": {
+          "minted_by": null,
+          "root": "11111111-1111-4111-8111-111111111111",
+          "record_id": "12121212-1212-4212-8212-121212121212"
+        }
+      },
+      {
+        "why": "another organization's object, at an exact revision",
+        "value": {
+          "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+          "root": "33333333-3333-4333-8333-333333333333",
+          "record_id": "12121212-1212-4212-8212-121212121212"
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a root that is not a UUID",
+        "value": {
+          "minted_by": null,
+          "root": "pallet-14",
+          "record_id": null
+        }
+      },
+      {
+        "why": "a minting organization that is not an id",
+        "value": {
+          "minted_by": "Carrier C",
+          "root": "11111111-1111-4111-8111-111111111111",
+          "record_id": null
+        }
+      },
+      {
+        "why": "an upper-case root",
+        "value": {
+          "minted_by": null,
+          "root": "ABCDEF12-1111-4111-8111-111111111111",
+          "record_id": null
+        }
+      },
+      {
+        "why": "a missing record_id member",
+        "value": {
+          "minted_by": null,
+          "root": "11111111-1111-4111-8111-111111111111"
+        }
+      },
+      {
+        "why": "an extra member",
+        "value": {
+          "minted_by": null,
+          "root": "11111111-1111-4111-8111-111111111111",
+          "record_id": null,
+          "kind": "pallet"
+        }
+      }
+    ]
+  },
+  "acts": {
+    "accept": [
+      {
+        "why": "a measured move citing a claim, with a foreign record and a document as evidence",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "an inferred observation with nothing cited",
+        "value": {
+          "verb": "observe",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "inferred",
+          "references": [],
+          "evidence": []
+        }
+      },
+      {
+        "why": "an asserted transfer",
+        "value": {
+          "verb": "transfer",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "asserted",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "create is a revision of object@1, not an event verb",
+        "value": {
+          "verb": "create",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "claim is a state kind, not an event verb",
+        "value": {
+          "verb": "claim",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "a writer cannot assert that its own fact is verified",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "verified",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "business time that is not a UTC millisecond instant",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "a zero sequence",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 0
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "an empty source",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "the same reference twice",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "seventeen references",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000000",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000001",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000002",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000003",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000004",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000005",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000006",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000007",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000008",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000009",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000010",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000011",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000012",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000013",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000014",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000015",
+              "record_id": null
+            },
+            {
+              "minted_by": null,
+              "root": "55555555-5555-4555-8555-000000000016",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "evidence with both a ref and a document",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": null,
+                "root": "11111111-1111-4111-8111-111111111111",
+                "record_id": null
+              },
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "evidence with neither",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": null,
+              "document": null
+            }
+          ]
+        }
+      },
+      {
+        "why": "a document digest that is not SHA-256 hex",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "abc",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "a media type that is not type/subtype",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "a reference that is not one",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "H-E-B",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "why": "the recorded time as a body member: the host sets it",
+        "value": {
+          "verb": "move",
+          "occurred_at": "2026-10-23T14:14:00.000Z",
+          "observation": {
+            "source_id": "dock-scanner-2",
+            "sequence": 41
+          },
+          "basis": "measured",
+          "references": [
+            {
+              "minted_by": null,
+              "root": "44444444-4444-4444-8444-444444444444",
+              "record_id": null
+            }
+          ],
+          "evidence": [
+            {
+              "ref": {
+                "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+                "root": "33333333-3333-4333-8333-333333333333",
+                "record_id": "12121212-1212-4212-8212-121212121212"
+              },
+              "document": null
+            },
+            {
+              "ref": null,
+              "document": {
+                "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "media_type": "image/jpeg",
+                "description": "signed receipt"
+              }
+            }
+          ],
+          "recorded_at": "2026-10-23T14:15:00.000Z"
+        }
+      }
+    ]
+  },
+  "ownership": [
+    {
+      "why": "own objects spelled with minted_by null, foreign ones with their minter",
+      "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "act": {
+        "verb": "move",
+        "occurred_at": "2026-10-23T14:14:00.000Z",
+        "observation": {
+          "source_id": "dock-scanner-2",
+          "sequence": 41
+        },
+        "basis": "measured",
+        "references": [
+          {
+            "minted_by": null,
+            "root": "44444444-4444-4444-8444-444444444444",
+            "record_id": null
+          }
+        ],
+        "evidence": [
+          {
+            "ref": {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "33333333-3333-4333-8333-333333333333",
+              "record_id": "12121212-1212-4212-8212-121212121212"
+            },
+            "document": null
+          },
+          {
+            "ref": null,
+            "document": {
+              "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "media_type": "image/jpeg",
+              "description": "signed receipt"
+            }
+          }
+        ]
+      },
+      "outcome": "accept"
+    },
+    {
+      "why": "a reference naming the writer itself as minter",
+      "organization_id": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "act": {
+        "verb": "move",
+        "occurred_at": "2026-10-23T14:14:00.000Z",
+        "observation": {
+          "source_id": "dock-scanner-2",
+          "sequence": 41
+        },
+        "basis": "measured",
+        "references": [
+          {
+            "minted_by": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+            "root": "44444444-4444-4444-8444-444444444444",
+            "record_id": null
+          }
+        ],
+        "evidence": [
+          {
+            "ref": {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "33333333-3333-4333-8333-333333333333",
+              "record_id": "12121212-1212-4212-8212-121212121212"
+            },
+            "document": null
+          },
+          {
+            "ref": null,
+            "document": {
+              "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "media_type": "image/jpeg",
+              "description": "signed receipt"
+            }
+          }
+        ]
+      },
+      "outcome": "reject"
+    },
+    {
+      "why": "evidence naming the writer itself as minter",
+      "organization_id": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+      "act": {
+        "verb": "move",
+        "occurred_at": "2026-10-23T14:14:00.000Z",
+        "observation": {
+          "source_id": "dock-scanner-2",
+          "sequence": 41
+        },
+        "basis": "measured",
+        "references": [
+          {
+            "minted_by": null,
+            "root": "44444444-4444-4444-8444-444444444444",
+            "record_id": null
+          }
+        ],
+        "evidence": [
+          {
+            "ref": {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "33333333-3333-4333-8333-333333333333",
+              "record_id": "12121212-1212-4212-8212-121212121212"
+            },
+            "document": null
+          },
+          {
+            "ref": null,
+            "document": {
+              "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "media_type": "image/jpeg",
+              "description": "signed receipt"
+            }
+          }
+        ]
+      },
+      "outcome": "reject"
+    }
+  ],
+  "classes": [
+    {
+      "name": "dtp/location",
+      "valid": true
+    },
+    {
+      "name": "dtp/account",
+      "valid": true
+    },
+    {
+      "name": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a/gasket",
+      "valid": true
+    },
+    {
+      "name": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a/reefer-unit.v2",
+      "valid": true
+    },
+    {
+      "name": "dtp/pallet",
+      "valid": false
+    },
+    {
+      "name": "dtp/Location",
+      "valid": false
+    },
+    {
+      "name": "location",
+      "valid": false
+    },
+    {
+      "name": "acme/gasket",
+      "valid": false
+    },
+    {
+      "name": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a/",
+      "valid": false
+    },
+    {
+      "name": "dtp/location/bay",
+      "valid": false
+    }
+  ]
+}
