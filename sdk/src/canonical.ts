@@ -36,6 +36,14 @@ function checkString(s: string, path: string): void {
   if (LONE_SURROGATE.test(s)) throw new CanonicalizationError(path, "lone surrogate in string (RFC 8785 requires well-formed Unicode)");
 }
 
+/** A member name a receiver would refuse (it needs an escape sequence) is refused here too, so it can never be signed. */
+function checkName(name: string, path: string): void {
+  for (let i = 0; i < name.length; i++) {
+    const c = name.charCodeAt(i);
+    if (c === 0x22 || c === 0x5c || c < 0x20) throw new CanonicalizationError(path, "member name contains a quotation mark, a reverse solidus or a control character, which DTP refuses");
+  }
+}
+
 /** Throws FloatNotAllowedError if any number in `value` is not a safe integer. */
 export function assertNoFloats(value: unknown, path = "$"): void {
   if (typeof value === "number") return checkNumber(value, path);
@@ -78,6 +86,7 @@ function serialize(value: unknown, path: string): string {
       const parts: string[] = [];
       for (const k of keys) {
         checkString(k, `${path}.${k}`);
+        checkName(k, `${path}.${k}`);
         parts.push(JSON.stringify(k) + ":" + serialize(obj[k], `${path}.${k}`));
       }
       return "{" + parts.join(",") + "}";

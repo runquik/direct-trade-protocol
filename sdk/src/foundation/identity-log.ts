@@ -205,7 +205,8 @@ async function pinnedHistory(pin: ResolverPin, log: IdentityLog): Promise<Verifi
 function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: VerifiedIdentityLog | null, refused: boolean): IdentityLogJudgement {
   // Two identities enrolled at one resolver share its binding; the pin is for exactly one of them.
   if (v.identity_id !== pin.identity_id) return { outcome: 'refused', reason: 'another-identity', error: null };
-  // The destination said never: whether or not it later attested the head, the party holding its refusal refuses.
+  // The destination said never: whether or not it later attested the head, the party holding its refusal refuses,
+  // unless the log moves on from that destination to another one (escape rehome, #64).
   if (refused) return { outcome: 'refused', reason: 'refused-move', error: null };
   // With both histories in hand, a fork that precedence cannot rank (same epoch, or a retired recovery quorum on the
   // higher branch) is a conflict whichever side the relying party currently follows.
@@ -230,9 +231,13 @@ function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: Verifie
   }
   return { outcome, superseded, pin: { identity_id: v.identity_id, resolver_id: v.resolver.id, resolver_key: v.resolver.key_id, resolver_epoch: v.resolver.epoch, minimum_sequence: v.head.sequence, minimum_digest: v.head_digest } };
 }
-/** True when a refusal the party holds is the named destination's verified statement about a rehome in the log. A held
- *  refusal that names no rehome in the log, or does not verify against one, says nothing about it. Refusals are matched
- *  by the digest they name, so only a refusal naming one of the log's rehomes costs a signature verification. */
+/** True when the log contains a rehome the party holds a refusal for and does not escape it. A held refusal that names
+ *  no rehome in the log, or does not verify against one, says nothing about it. Refusals are matched by the digest they
+ *  name, so only a refusal naming one of the log's rehomes costs a signature verification. Escape rehome (#64): a refused
+ *  rehome is escaped when a later rehome in the same log goes to another destination, one whose resolver id and resolver
+ *  key both differ from the refusing destination's; a later rehome back to it does not count. The log is already
+ *  verified, so the escape is signed by the recovery quorum current at that point; whether it was adopted is the
+ *  adoption-evidence rule's question, which judgeVerified asks next (`unadopted-move`). */
 async function refusedMove(log: IdentityLog, refusals: Signed<RehomeRefusal>[]): Promise<boolean> {
   need(Array.isArray(refusals) && refusals.length <= MAX_LOG_ENTRIES, 'held refusals must be a bounded list');
   if (refusals.length === 0) return false;
@@ -241,14 +246,26 @@ async function refusedMove(log: IdentityLog, refusals: Signed<RehomeRefusal>[]):
     const digest = (refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
     if (typeof digest === 'string') named.set(digest, [...(named.get(digest) ?? []), refusal]);
   }
-  for (const entry of copyLog(log).entries) {
-    if (entry.rehome === null) continue;
-    for (const refusal of named.get(await rehomeDigest(entry.rehome)) ?? []) if (await verifyRehomeRefusal(refusal, entry.rehome).then(() => true, () => false)) return true;
+  const entries = copyLog(log).entries;
+  for (let n = 0; n < entries.length; n++) {
+    const move = entries[n].rehome; if (move === null) continue;
+    let refused = false;
+    for (const refusal of named.get(await rehomeDigest(move)) ?? []) if (await verifyRehomeRefusal(refusal, move).then(() => true, () => false)) { refused = true; break; }
+    if (refused && !escaped(entries, n)) return true;
   }
   return false;
 }
+/** Whether a rehome after entry n leaves the destination the rehome at entry n names, for another destination. */
+function escaped(entries: IdentityLogEntry[], n: number): boolean {
+  const refuser = rehomeTarget(entries[n].rehome!);
+  return entries.slice(n + 1).some(e => {
+    if (e.rehome === null) return false;
+    const to = rehomeTarget(e.rehome);
+    return to.resolver_id !== refuser.resolver_id && to.resolver_key !== refuser.resolver_key;
+  });
+}
 /** The relying-party procedure as a judgement that never throws for an expected refusal: verify the log; refuse a
- *  log that contains a rehome the party holds a refusal for (`refused-move`); refuse a fork precedence cannot rank against the pinned history, when the party holds it; require that the log continues
+ *  log that contains a rehome the party holds a refusal for, unless a later rehome in it escapes to another destination (`refused-move`); refuse a fork precedence cannot rank against the pinned history, when the party holds it; require that the log continues
  *  the lineage the pin was enrolled with, at the pinned epoch; require adoption evidence for every move past the
  *  pinned epoch; admit a conflict with the pinned checkpoint only when the log has reached a higher epoch AND the
  *  pinned history shows that the recovery quorum the log's branch forked under is still current, and then report it,
@@ -265,7 +282,7 @@ const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string>
   'another-identity': 'log is for another identity', 'unknown-identity': 'identity is not enrolled here',
   'foreign-lineage': 'log does not continue the pinned lineage', 'behind': 'log is behind the pinned checkpoint',
   'conflict': 'conflicting control history: same resolver epoch, retired recovery authority, or no pinned history to rule it out', 'unadopted-move': 'move without the destination\'s attestation',
-  'refused-move': 'log contains a rehome its destination refused',
+  'refused-move': 'log contains a rehome its destination refused, and no later move to another destination',
 };
 /** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place, or throw.
  *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
@@ -280,7 +297,7 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, polic
  *  (`unchanged`). `lookup` returns the durable pin for an identity, or null when this relying party never enrolled
  *  it; with the pin it may return the log it holds for that pin, `{ pin, log }`, which lets a higher-epoch fork be
  *  ranked by the fork-point rule instead of refused as a conflict, and the rehome refusals it holds for the identity,
- *  `{ pin, log, refusals }`, so that a log containing a refused rehome is refused as `refused-move`; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
+ *  `{ pin, log, refusals }`, so that a log containing a refused rehome it does not escape is refused as `refused-move`; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
 export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | PinnedHistory | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
   const refused = (identity_id: string | null, reason: AdmissionRefusal): { ack: IdentityLogPushAck; admission: null } => ({ ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id, outcome: 'refused', reason, binding: null }, admission: null });
   let v: VerifiedIdentityLog, log: IdentityLog;

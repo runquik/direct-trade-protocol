@@ -6,6 +6,8 @@ In any JSON that this protocol signs or admits, an object member name must not c
 
 The reference implementation is `sdk/src/safe-json.ts`: `parseUntrustedJson`, `parseUntrustedJsonBytes` and `parseUntrustedResponse` for receivers, `assertSafeMemberNames` for producers. Conformance vectors are in `spec/vectors/unsafe-json.json`.
 
+**Duplicate names.** The same check refuses an object that names a member twice (I-JSON, RFC 7493 §2.3), with `duplicate_member_name`. Parsers keep the first value, the last, or fail; a signature verified over what one side parsed could then mean something else to the next reader. Because names carry no escapes, comparing the raw text of the names is exact. Vectors: the `duplicate_member_name` entries in `spec/vectors/unsafe-json.json`.
+
 ## Why
 
 Several widely deployed JavaScript engines misread member names. Within one isolate, once any JSON containing a member named with a single reverse solidus has been parsed, a later **single-character member name written with an escape sequence** is returned as a reverse solidus instead. The escaped newline, tab, quotation mark and solidus are affected, as are control characters and even an ordinary letter written as a Unicode escape. Values are not affected, names of two or more characters are not affected, and names written without an escape are not affected.

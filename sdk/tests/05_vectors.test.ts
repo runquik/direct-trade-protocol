@@ -33,6 +33,9 @@ test("canonicalization vectors", async () => {
     assert.equal(text, c.canonical, c.name);
     assert.equal(await sha256Hex(text), c.sha256, c.name);
   }
+  // What a producer may not sign: parsed without the receiver's guard, then refused by canonicalization.
+  assert.ok(canon.refuse.length >= 6);
+  for (const r of canon.refuse) assert.throws(() => canonicalize(JSON.parse(r.text)), r.why);
 });
 
 test("canonicalization vectors tell UTF-16 key order from code-point order (#79)", () => {
