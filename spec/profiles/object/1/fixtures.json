@@ -1,0 +1,740 @@
+{
+  "description": "dtp/object@1 fixtures. A conforming validator MUST accept every body under \"accept\" and refuse every body under \"reject\" (protocol classes judged against spec/profiles/classes.json); it MUST accept a genesis only when \"genesis.accept\" says so; given a previous and a next revision of one object it MUST accept every pair under \"continuity.accept\" and refuse every pair under \"continuity.reject\". A retired object is never deleted; it changes only by being found.",
+  "kind": "dtp/object@1",
+  "profile": "dtp.object/1",
+  "semantics": "object-v1",
+  "contract_digest": "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2",
+  "accept": [
+    {
+      "why": "a vehicle with a VIN",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a handling unit identified by a check-digit-valid SSCC",
+      "body": {
+        "class": "dtp/handling-unit",
+        "label": null,
+        "identifiers": [
+          {
+            "scheme": "gs1.sscc",
+            "value": "106141411234567897"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a private class with no identifiers and no label",
+      "body": {
+        "class": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a/gasket",
+        "label": null,
+        "identifiers": [],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a location with a GLN",
+      "body": {
+        "class": "dtp/location",
+        "label": "Cross-dock, bay 3",
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a retired pallet, lost, with a note",
+      "body": {
+        "class": "dtp/handling-unit",
+        "label": null,
+        "identifiers": [
+          {
+            "scheme": "gs1.sscc",
+            "value": "106141411234567897"
+          }
+        ],
+        "status": "retired",
+        "retired": {
+          "reason": "lost",
+          "note": "not received at the DC"
+        },
+        "evidence": []
+      }
+    },
+    {
+      "why": "a retired machine, other reason with a note, citing a foreign record",
+      "body": {
+        "class": "dtp/equipment",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "retired",
+        "retired": {
+          "reason": "other",
+          "note": "sold for parts"
+        },
+        "evidence": [
+          {
+            "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+            "root": "66666666-6666-4666-8666-666666666666",
+            "record_id": "67676767-6767-4767-8767-676767676767"
+          }
+        ]
+      }
+    }
+  ],
+  "reject": [
+    {
+      "why": "a protocol class that is not listed",
+      "body": {
+        "class": "dtp/pallet",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a class without a namespace",
+      "body": {
+        "class": "vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a class whose namespace is neither dtp nor an organization id",
+      "body": {
+        "class": "acme/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "an SSCC with a wrong check digit",
+      "body": {
+        "class": "dtp/handling-unit",
+        "label": null,
+        "identifiers": [
+          {
+            "scheme": "gs1.sscc",
+            "value": "106141411234567890"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a GLN with a wrong check digit",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000006"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "the same identifier twice",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          },
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "an active object with a retirement",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": {
+          "reason": "scrapped",
+          "note": null
+        },
+        "evidence": []
+      }
+    },
+    {
+      "why": "a retired object without a reason",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "retired",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "a sale is not a retirement",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "retired",
+        "retired": {
+          "reason": "sold",
+          "note": null
+        },
+        "evidence": []
+      }
+    },
+    {
+      "why": "reason other without a note",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "retired",
+        "retired": {
+          "reason": "other",
+          "note": null
+        },
+        "evidence": []
+      }
+    },
+    {
+      "why": "an unknown status",
+      "body": {
+        "class": "dtp/handling-unit",
+        "label": null,
+        "identifiers": [
+          {
+            "scheme": "gs1.sscc",
+            "value": "106141411234567897"
+          }
+        ],
+        "status": "lost",
+        "retired": null,
+        "evidence": []
+      }
+    },
+    {
+      "why": "evidence that is not an object reference",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": [
+          {
+            "minted_by": null,
+            "root": "scan-14",
+            "record_id": null
+          }
+        ]
+      }
+    },
+    {
+      "why": "the same evidence twice",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": [
+          {
+            "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+            "root": "66666666-6666-4666-8666-666666666666",
+            "record_id": "67676767-6767-4767-8767-676767676767"
+          },
+          {
+            "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+            "root": "66666666-6666-4666-8666-666666666666",
+            "record_id": "67676767-6767-4767-8767-676767676767"
+          }
+        ]
+      }
+    },
+    {
+      "why": "a member a component would carry: describing is a revision, not a subject",
+      "body": {
+        "class": "dtp/vehicle",
+        "label": "Reefer trailer 14",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": [],
+        "subject": {
+          "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+          "root": "66666666-6666-4666-8666-666666666666",
+          "record_id": "67676767-6767-4767-8767-676767676767"
+        }
+      }
+    },
+    {
+      "why": "a missing member",
+      "body": {
+        "class": "dtp/vehicle",
+        "identifiers": [
+          {
+            "scheme": "vin",
+            "value": "1JJV532D4KL123456"
+          }
+        ],
+        "status": "active",
+        "retired": null,
+        "evidence": []
+      }
+    }
+  ],
+  "genesis": {
+    "accept": [
+      {
+        "why": "created active",
+        "body": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "created already retired: retire it by a revision",
+        "body": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        }
+      }
+    ]
+  },
+  "continuity": {
+    "accept": [
+      {
+        "why": "retire: lost",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        }
+      },
+      {
+        "why": "found: active again, citing the sighting",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": [
+            {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "66666666-6666-4666-8666-666666666666",
+              "record_id": "67676767-6767-4767-8767-676767676767"
+            }
+          ]
+        }
+      },
+      {
+        "why": "relabel and add an identifier while active",
+        "previous": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14 (leased)",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            },
+            {
+              "scheme": "plate.us.tx",
+              "value": "R14-882"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        }
+      },
+      {
+        "why": "retire with a different reason later in life",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": [
+            {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "66666666-6666-4666-8666-666666666666",
+              "record_id": "67676767-6767-4767-8767-676767676767"
+            }
+          ]
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "scrapped",
+            "note": null
+          },
+          "evidence": [
+            {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "66666666-6666-4666-8666-666666666666",
+              "record_id": "67676767-6767-4767-8767-676767676767"
+            }
+          ]
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "a changed class: a different object",
+        "previous": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/equipment",
+          "label": "Reefer trailer 14",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        }
+      },
+      {
+        "why": "a removed identifier",
+        "previous": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14",
+          "identifiers": [
+            {
+              "scheme": "vin",
+              "value": "1JJV532D4KL123456"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/vehicle",
+          "label": "Reefer trailer 14",
+          "identifiers": [],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        }
+      },
+      {
+        "why": "a retired object edited without being found",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "scrapped",
+            "note": null
+          },
+          "evidence": []
+        }
+      },
+      {
+        "why": "found without new evidence",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": []
+        }
+      },
+      {
+        "why": "found and renamed in one revision",
+        "previous": {
+          "class": "dtp/handling-unit",
+          "label": null,
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "retired",
+          "retired": {
+            "reason": "lost",
+            "note": "not received at the DC"
+          },
+          "evidence": []
+        },
+        "next": {
+          "class": "dtp/handling-unit",
+          "label": "Pallet 7",
+          "identifiers": [
+            {
+              "scheme": "gs1.sscc",
+              "value": "106141411234567897"
+            }
+          ],
+          "status": "active",
+          "retired": null,
+          "evidence": [
+            {
+              "minted_by": "0b0b0b0b-0b0b-4b0b-8b0b-0b0b0b0b0b0b",
+              "root": "66666666-6666-4666-8666-666666666666",
+              "record_id": "67676767-6767-4767-8767-676767676767"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

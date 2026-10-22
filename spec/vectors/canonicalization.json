@@ -75,6 +75,17 @@
       },
       "canonical": "{\"$ref\":2,\"a b\":1,\"n\":0,\"ünï\":3,\"日\":4}",
       "sha256": "caf8b71dba68d7091a7bd315d0735df0c56702ebca646527da155a675319666b"
+    },
+    {
+      "name": "keys sort by UTF-16 code units, not code points",
+      "input": {
+        "／": 1,
+        "😀": 2,
+        "é": 3,
+        "a": 4
+      },
+      "canonical": "{\"a\":4,\"é\":3,\"😀\":2,\"／\":1}",
+      "sha256": "a491c11921c266564f461e0390b60a6e4b9b09eb1e8ec312db22e6d13ed156d9"
     }
   ],
   "refuse": [

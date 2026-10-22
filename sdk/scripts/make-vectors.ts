@@ -42,6 +42,9 @@ const canonCases = [
   { name: "null is kept, as a member and in an array", input: { a: null, c: [null] } },
   { name: "numeric-string keys sort as strings, not numbers", input: { "10": 1, "9": 2, "1": 3, a: 4, "": 5 } },
   { name: "zero, and names that need no escape: spaces, symbols, non-ASCII", input: { n: 0, "a b": 1, "$ref": 2, "\u00fcn\u00ef": 3, "\u65e5": 4 } },
+  // A supplementary-plane name (U+1F600, UTF-16 D83D DE00) sorts before a high-BMP one (U+FF0F) by UTF-16 code
+  // units but after it by code point, so a canonicalizer that sorts by code point (or by UTF-8 bytes) fails this case.
+  { name: "keys sort by UTF-16 code units, not code points", input: { "\uFF0F": 1, "\u{1F600}": 2, "\u00E9": 3, a: 4 } },
 ];
 // Values canonicalization MUST refuse. Each is given as text, parsed without the receiver's guard, because a
 // guarded receiver never gets this far: these say what a producer may not sign.

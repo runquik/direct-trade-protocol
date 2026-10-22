@@ -414,7 +414,7 @@ Not in v0.2: on-chain escrow and USDC settlement (on-chain profile); a decentral
 - **C. Agent Autonomy Context** — v0.1 §11 verbatim, informative: private module configuration (COGS, margins, budgets, negotiation guidelines) that is never a record and never stored in a cabinet. See [`docs/archive/SPEC_v0.1.md`](docs/archive/SPEC_v0.1.md) §11.
 - **D. v0.1 EventType map** — [`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md) §4. Every v0.1 `EventType` is recoverable as `(type, status)` on a `record_appended` event (e.g. `FulfillmentBuyerAttested` ≡ `(trade.fulfillment, buyer_attested)`); escrow events belong to the on-chain profile.
 - **E. Rust type mapping** — [`docs/RUST_MAPPING.md`](docs/RUST_MAPPING.md), including §5: what the NEAR contract needs to become a conforming on-chain store profile.
-- **F. Vector index** — [`spec/vectors/`](spec/vectors): `keys.json` (fixed key), `canonicalization.json` (4 cases), `signatures.json` (raw message + two signed records).
+- **F. Vector index** — [`spec/vectors/`](spec/vectors): `keys.json` (fixed key), `canonicalization.json` (7 cases), `signatures.json` (raw message + two signed records).
 
 ---
 
