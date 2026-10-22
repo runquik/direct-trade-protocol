@@ -9,6 +9,7 @@ import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger, unpublishe
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
+import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
 import { canonicalBytes } from "../canonical.ts";
 import { verifyBytes, decodeSignature } from "../keys.ts";
 
@@ -265,6 +266,13 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(validateForecast(r.body).length === 0, "invalid_snapshot", "forecast violates profile");
       if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkForecastContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "forecast continuity violated"); }
       expectedValidation = {profile:FORECAST_PROFILE,level:"business-rules",business_verified:false};
+    }
+    if (semantics === "object-v1") {
+      demand(validateObject(r.body).length === 0 && checkObjectOwner(r.body as any, r.organization_id).length === 0, "invalid_snapshot", "object violates profile");
+      const prior = r.supersedes ? records.get(r.supersedes) ?? s.records[r.supersedes] : undefined;
+      const objectRules = r.supersedes ? (prior ? checkObjectContinuity(prior.body as any, r.body as any) : [{ path: "$", message: "predecessor missing" }]) : checkObjectGenesis(r.body as any);
+      demand(objectRules.length === 0, "invalid_snapshot", "object continuity violated");
+      expectedValidation = {profile:OBJECT_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "party-v1") {
       demand(validateParty(r.body).length === 0, "invalid_snapshot", "party violates profile");

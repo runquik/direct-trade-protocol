@@ -14,13 +14,13 @@ const page = (kinds: string[]) => ({ after: 0, limit: 100, profile_digests: [], 
 
 test("protocol profiles: a host loads the registry and the registered contracts, a company admits them, and protocol kinds then select records written under them", async () => {
   const protocol = await loadProtocolProfiles();
-  assert.deepEqual(Object.keys(protocol.kinds).sort(), ["dtp/forecast@1", "dtp/inventory@2", "dtp/order@1", "dtp/party@1", "dtp/product@1"]);
+  assert.deepEqual(Object.keys(protocol.kinds).sort(), ["dtp/forecast@1", "dtp/inventory@2", "dtp/object@1", "dtp/order@1", "dtp/party@1", "dtp/product@1"]);
   assert.ok(Object.keys(protocol.protocolProfiles).includes(productFixtures.contract_digest) && Object.keys(protocol.protocolProfiles).includes(inventoryFixtures.contract_digest), "every registered digest has its contract beside the document");
   assert.deepEqual(Object.keys(protocol.protocolProfiles).sort(), Object.values(protocol.kinds).flat().sort());
   const store = await createDtpStore(); try {
     const client = new Client(store.audience), owner = await person(client), org = await company(client, owner);
     const health = await (await fetch(store.audience + "/dtp/v0.4/health")).json();
-    assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/forecast@1", "dtp/inventory@2", "dtp/order@1", "dtp/party@1", "dtp/product@1"], "the repository registry is the default");
+    assert.deepEqual(health.capabilities.protocol_kinds, ["dtp/forecast@1", "dtp/inventory@2", "dtp/object@1", "dtp/order@1", "dtp/party@1", "dtp/product@1"], "the repository registry is the default");
     const fixture = parseUntrustedJson(readFileSync(new URL("../../../spec/v0.4/fixtures/health-capabilities.json", import.meta.url), "utf8")) as any;
     assert.deepEqual(health.capabilities, fixture.capabilities, "health matches the published fixture");
     assert.deepEqual(health.capabilities.protocol_kind_digests, Object.fromEntries(Object.entries(protocol.kinds).sort(([a], [b]) => a < b ? -1 : 1).map(([k, ds]) => [k, [...ds].sort()])), "health advertises each kind's registered digests");
