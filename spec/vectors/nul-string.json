@@ -1,0 +1,101 @@
+{
+  "description": "v0.4 candidate: string values containing U+0000. Each case is a scenario, not signed bytes. A \"command\" case: on a fresh host, a registered person sends the action with the given value in the given field and every other field valid; for record.append, the company has a policy granting that person write and a private structural profile whose schema is {note: string}. A \"snapshot\" case: a source company whose exported snapshot carries the given value at the given place (a source that admitted it before this rule) is staged and uploaded to a conforming destination, which then receives migration.ready. A host must give the expected outcome: \"accept\" (the command succeeds, or the destination answers ready), or a refusal with the given error code and HTTP status before anything is stored. A host that accepts a refused case, refuses an accepted one, or refuses with another code, is non-conforming. The rule is in spec/v0.4/SPEC.md section 2 (String values).",
+  "rule": "A string value MUST NOT contain U+0000 (NUL), at any depth, in a command or in an imported snapshot. A host refuses such a command, and a destination refuses such a snapshot at migration.ready, with 400 nul_character. Every other character a JSON string can carry, other control characters included, is an ordinary value; the six-character text \\u0000 is not U+0000.",
+  "cases": [
+    {
+      "name": "company name containing U+0000",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "A\u0000B",
+      "expected": {
+        "code": "nul_character",
+        "status": 400
+      }
+    },
+    {
+      "name": "company name that is only U+0000",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "\u0000",
+      "expected": {
+        "code": "nul_character",
+        "status": 400
+      }
+    },
+    {
+      "name": "company name containing U+0001",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "A\u0001B",
+      "expected": "accept"
+    },
+    {
+      "name": "company name containing U+001F",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "A\u001fB",
+      "expected": "accept"
+    },
+    {
+      "name": "company name containing the six characters \\u0000, not the character",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "A\\u0000B",
+      "expected": "accept"
+    },
+    {
+      "name": "record body string containing U+0000",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "value": "line 1\u0000line 2",
+      "expected": {
+        "code": "nul_character",
+        "status": 400
+      }
+    },
+    {
+      "name": "record body string ending in U+0000",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "value": "line 1\u0000",
+      "expected": {
+        "code": "nul_character",
+        "status": 400
+      }
+    },
+    {
+      "name": "record body string containing U+0001",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "value": "line 1\u0001line 2",
+      "expected": "accept"
+    },
+    {
+      "name": "imported snapshot whose company name contains U+0000",
+      "where": "snapshot",
+      "action": "migration.ready",
+      "field": "organization.name",
+      "value": "A\u0000B",
+      "expected": {
+        "code": "nul_character",
+        "status": 400
+      }
+    },
+    {
+      "name": "imported snapshot whose company name contains U+0001",
+      "where": "snapshot",
+      "action": "migration.ready",
+      "field": "organization.name",
+      "value": "A\u0001B",
+      "expected": "accept"
+    }
+  ]
+}

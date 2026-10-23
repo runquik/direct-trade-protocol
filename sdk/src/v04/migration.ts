@@ -127,6 +127,7 @@ export async function migrationReady(s: State, migrationId: string, ctx: Context
   const queue: { value: unknown; depth: number }[] = [{ value: snapshot!, depth: 0 }];
   while (queue.length) {
     const { value, depth } = queue.pop()!; demand(depth <= 48, "invalid_snapshot", "snapshot nesting exceeds 48 levels", 400);
+    if (typeof value === "string") demand(!value.includes("\u0000"), "nul_character", "a snapshot string value contains U+0000", 400);
     if (value && typeof value === "object") for (const child of Object.values(value)) queue.push({ value: child, depth: depth + 1 });
   }
   demand(await digest(snapshot!) === m.snapshot_hash && encoder.encode(canonicalize(snapshot!)).length === m.byte_length, "invalid_snapshot", "snapshot digest or size differs", 400);
