@@ -67,6 +67,7 @@ const continuityAccept: Pair[] = [
   ['cancelled after partial fulfilment', change(b => { b.status = 'partially_fulfilled'; }), change(b => { b.status = 'cancelled'; })],
   ['a second partial fulfilment', change(b => { b.status = 'partially_fulfilled'; }), change(b => { b.status = 'partially_fulfilled'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
   ['closed from fulfilled', change(b => { b.status = 'fulfilled'; }), change(b => { b.status = 'closed'; })],
+  ['acknowledged, then the seller\'s own identifier added without a change of status', acknowledged, change(b => { b.external.push({ scheme: 'seller.so', value: 'SO-9' }); }, acknowledged)],
 ];
 const continuityReject: Pair[] = [
   ['a changed buyer', base, change(b => { b.buyer = { self: false, party_id: OLD, revision: null }; b.seller = { self: true, party_id: null, revision: null }; })],
@@ -80,6 +81,11 @@ const continuityReject: Pair[] = [
   ['acknowledged back to placed', acknowledged, base],
   ['closed reopened', change(b => { b.status = 'closed'; }), change(b => { b.status = 'acknowledged'; })],
   ['rejected then acknowledged', change(b => { b.status = 'rejected'; }), acknowledged],
+  ['closed, then an identifier added: a terminal order takes no revision', change(b => { b.status = 'closed'; }), change(b => { b.status = 'closed'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
+  ['cancelled, then an identifier added', change(b => { b.status = 'cancelled'; }), change(b => { b.status = 'cancelled'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
+  ['rejected, then an identifier added', change(b => { b.status = 'rejected'; }), change(b => { b.status = 'rejected'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
+  ['closed, then republished unchanged', change(b => { b.status = 'closed'; }), change(b => { b.status = 'closed'; })],
+  ['fulfilled, then an identifier added: the table lists no fulfilled-to-fulfilled revision', change(b => { b.status = 'fulfilled'; }), change(b => { b.status = 'fulfilled'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
 ];
 for (const [why, body] of accept) { if (!validateShape(contract.schema, body)) throw new Error(`generator: dialect refuses "${why}"`); const i = validateOrder(body); if (i.length) throw new Error(`generator: refused "${why}": ${i[0].message} at ${i[0].path}`); }
 for (const [why, body] of reject) if (validateOrder(body).length === 0) throw new Error(`generator: accepted "${why}"`);

@@ -17,7 +17,7 @@ export function unitIssue(u: unknown): string | null {
   if (u.system !== 'packaging' || u.code !== null || !bounded(u.packaging_id, 80) || !bounded(u.version, 40) || !decimal(u.base_units_per_pack, 3) || Number(u.base_units_per_pack) <= 0) return 'packaging';
   return null;
 }
-const TRANSITIONS: Record<string, string[]> = { placed: ['acknowledged', 'rejected', 'cancelled'], acknowledged: ['partially_fulfilled', 'fulfilled', 'cancelled'], partially_fulfilled: ['partially_fulfilled', 'fulfilled', 'cancelled'], fulfilled: ['closed'], rejected: [], cancelled: [], closed: [] };
+const TRANSITIONS: Record<string, string[]> = { placed: ['placed', 'acknowledged', 'rejected', 'cancelled'], acknowledged: ['acknowledged', 'partially_fulfilled', 'fulfilled', 'cancelled'], partially_fulfilled: ['partially_fulfilled', 'fulfilled', 'cancelled'], fulfilled: ['closed'], rejected: [], cancelled: [], closed: [] };
 const STATUSES = Object.keys(TRANSITIONS);
 
 export function readOrder(body: unknown): Issue[] {
@@ -81,7 +81,7 @@ export const readOrderGenesis = (body: any): Issue[] => body.status === 'placed'
 export function readOrderContinuity(previous: any, next: any): Issue[] {
   const out: Issue[] = [], same = (a: unknown, b: unknown) => readerCanonical(a) === readerCanonical(b);
   for (const k of ['buyer', 'seller', 'placed_at', 'currency', 'replaces']) if (!same(previous[k], next[k])) out.push({ path: `$.${k}`, message: 'immutable' });
-  if (previous.status !== next.status && !(TRANSITIONS[previous.status] ?? []).includes(next.status)) out.push({ path: '$.status', message: 'transition' });
+  if (!(TRANSITIONS[previous.status] ?? []).includes(next.status)) out.push({ path: '$.status', message: 'transition' });
   if (previous.status !== 'placed') {
     if (!same(previous.lines, next.lines)) out.push({ path: '$.lines', message: 'frozen' });
     if (!same(previous.terms, next.terms)) out.push({ path: '$.terms', message: 'frozen' });
