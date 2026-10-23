@@ -47,6 +47,16 @@ export function validateCommand(input: unknown, audience: string, now: number): 
   const start = instant(input.issued_at), end = instant(input.expires_at);
   demand(start <= now + 30000 && end > now && end > start && end - start <= 300000, "expired", "command expired or outside five-minute window", 401);
   assertNoFloats(input);
+  assertNoNulStrings(input);
+}
+/** Refuses a string value containing U+0000, at any depth (SPEC section 2): not every host store can hold one. */
+export function assertNoNulStrings(value: unknown): void {
+  const queue: unknown[] = [value];
+  while (queue.length) {
+    const v = queue.pop();
+    if (typeof v === "string") demand(!v.includes("\u0000"), "nul_character", "a string value contains U+0000", 400);
+    else if (v && typeof v === "object") for (const child of Object.values(v)) queue.push(child);
+  }
 }
 export async function verifyCommand(c: Command): Promise<Set<string>> {
   demand(Array.isArray(c.signatures) && c.signatures.length > 0 && c.signatures.length <= 16, "invalid", "1-16 signatures required", 400);
