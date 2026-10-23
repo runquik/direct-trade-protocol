@@ -2265,6 +2265,520 @@
       "exit_code": 0,
       "skipped_tests": 0,
       "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "profile-contract-tests",
+      "status": "passed",
+      "source_hash": "f5250d3b6d7fe7ef009aaf4b9ce26fad390fa4e53850745bd56f6fc7f1a886e3",
+      "recorded_at": "2026-10-22T20:32:00.099Z",
+      "actor": "release-runner",
+      "summary": "Actual HTTP bounded profile admission and separately coded inventory consumers: passed",
+      "artifacts": {
+        "docs/release/evidence/profile-contract-tests-2026-10-22T20-31-57-423Z.txt": "3a94358f6ea7e72a93459fbfb49f374d783a839aa20bb60800ece003142862d0"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/profile-admission.test.ts",
+        "tests/interop/inventory-conformance.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "v04-core-http",
+      "status": "passed",
+      "source_hash": "3b62444447b3f3999c92ca6da84d60279a000f77c7d34ad970105430bc9b2332",
+      "recorded_at": "2026-10-22T20:32:10.775Z",
+      "actor": "release-runner",
+      "summary": "Actual HTTP authority, scoped reads and personnel privacy: passed",
+      "artifacts": {
+        "docs/release/evidence/v04-core-http-2026-10-22T20-32-07-808Z.txt": "1a64fbb65e1f9aa5d8bd8c5d14bd669a6e0e7df2cd3146d1dc160b7804068143"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/core.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "business-profile-tests",
+      "status": "passed",
+      "source_hash": "7b1d660b9a09aba90ce8761906c4b9a1f5928dff451cd962fe56b1a4dfe0cfd1",
+      "recorded_at": "2026-10-22T20:32:19.010Z",
+      "actor": "release-runner",
+      "summary": "Exact business-profile arithmetic, references, packaging and inventory reducer: passed",
+      "artifacts": {
+        "docs/release/evidence/business-profile-tests-2026-10-22T20-32-18-400Z.txt": "17b0282953c08ec9a0b1ef0950ae38e4b5d22e69434657d995f545962161bc88"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/profiles/business-profiles.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "migration-helper-tests",
+      "status": "passed",
+      "source_hash": "f47433c77d0806fb894c86608d16743785d9a188196fd71a05b6b7163718b7dc",
+      "recorded_at": "2026-10-22T20:32:27.424Z",
+      "actor": "release-runner",
+      "summary": "Migration/federation transport adversarial helper invariants: passed",
+      "artifacts": {
+        "docs/release/evidence/migration-helper-tests-2026-10-22T20-32-26-620Z.txt": "1310245156d72453b4f533777d5974f1c1ce32ee7924a7a475949de99e6dd077"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/migration.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "migration-snapshot-tests",
+      "status": "passed",
+      "source_hash": "0ea1057fb0b00fd065529249e9191d27ae2bfd53c79b2b9941ffa54f8c7ea9d3",
+      "recorded_at": "2026-10-22T20:32:35.909Z",
+      "actor": "release-runner",
+      "summary": "Signed snapshot projection and malicious migration admission: passed",
+      "artifacts": {
+        "docs/release/evidence/migration-snapshot-tests-2026-10-22T20-32-35-057Z.txt": "8ac28d0d58e973f06fb6a294a24e13ff273eec833a5ce18c856d26fd0c74e226"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/migration-snapshot.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "migration-http-tests",
+      "status": "passed",
+      "source_hash": "0ea1057fb0b00fd065529249e9191d27ae2bfd53c79b2b9941ffa54f8c7ea9d3",
+      "recorded_at": "2026-10-22T20:32:55.715Z",
+      "actor": "release-runner",
+      "summary": "Genuine large signed-state HTTP migration, source safety, privacy and partner continuity: passed",
+      "artifacts": {
+        "docs/release/evidence/migration-http-tests-2026-10-22T20-32-43-632Z.txt": "6146cde73a3c6d50485c233a71a623c79892bbcd9d2d6073cb2b1b72738d2594"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/migration-http.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "independent-review-probes",
+      "status": "passed",
+      "source_hash": "f9623a10af2c464f45b7671900f8b276eb774bd9aa21707a393ee0c2ecb6da9f",
+      "recorded_at": "2026-10-22T20:33:06.389Z",
+      "actor": "release-runner",
+      "summary": "Independent desired-invariant integration reproducers: passed",
+      "artifacts": {
+        "docs/release/evidence/independent-review-probes-2026-10-22T20-33-03-513Z.txt": "716c24f09c60daf0b8a92392f6524eec7a38c9b5d3a4229f53db409200de5ca2"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/review-probes.test.ts",
+        "tests/v04/product-review.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "native-client-conformance",
+      "status": "passed",
+      "source_hash": "f9623a10af2c464f45b7671900f8b276eb774bd9aa21707a393ee0c2ecb6da9f",
+      "recorded_at": "2026-10-22T20:33:17.013Z",
+      "actor": "release-runner",
+      "summary": "Independent native signing vector and bidirectional native/reference HTTP clients: passed",
+      "artifacts": {
+        "docs/release/evidence/native-client-conformance-2026-10-22T20-33-14-184Z.txt": "dcd54e55dde5e960b77b3e3217a818c3753bb802e029ecc7c4691a772f79228a"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/independent-conformance.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "snapshot-adversarial-review",
+      "status": "passed",
+      "source_hash": "0ea1057fb0b00fd065529249e9191d27ae2bfd53c79b2b9941ffa54f8c7ea9d3",
+      "recorded_at": "2026-10-22T20:33:25.241Z",
+      "actor": "release-runner",
+      "summary": "Independent malicious snapshot admission review reproducers: passed",
+      "artifacts": {
+        "docs/release/evidence/snapshot-adversarial-review-2026-10-22T20-33-24-680Z.txt": "3a3024eacb265cd10e288a6e05fbe5b43d2df1c808f17f83c20ebbbe2ae11ff2"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/snapshot-review.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "evidence-adversarial-review",
+      "status": "passed",
+      "source_hash": "f9623a10af2c464f45b7671900f8b276eb774bd9aa21707a393ee0c2ecb6da9f",
+      "recorded_at": "2026-10-22T20:33:34.071Z",
+      "actor": "release-runner",
+      "summary": "Independent signed evidence and authority boundary review reproducers: passed",
+      "artifacts": {
+        "docs/release/evidence/evidence-adversarial-review-2026-10-22T20-33-33-092Z.txt": "8f9d247985fbac673c275c3fa535371da8bc322908d6cbb0bb3255c44f9bbd15"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/evidence-review.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "snapshot-import-vectors",
+      "status": "passed",
+      "source_hash": "0ea1057fb0b00fd065529249e9191d27ae2bfd53c79b2b9941ffa54f8c7ea9d3",
+      "recorded_at": "2026-10-22T20:33:42.263Z",
+      "actor": "release-runner",
+      "summary": "Normative host snapshot-import vectors: the base imports and reproduces its projections, every case is refused with invalid_snapshot: passed",
+      "artifacts": {
+        "docs/release/evidence/snapshot-import-vectors-2026-10-22T20-33-41-588Z.txt": "2705653360d71893f76050435a7ebee906b877d492e420e60c05b247f5578c88"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/snapshot-import-vectors.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "migration-capacity-tests",
+      "status": "passed",
+      "source_hash": "0ea1057fb0b00fd065529249e9191d27ae2bfd53c79b2b9941ffa54f8c7ea9d3",
+      "recorded_at": "2026-10-22T20:33:53.214Z",
+      "actor": "release-runner",
+      "summary": "Destination migration capacity admission and reserved activation safety: passed",
+      "artifacts": {
+        "docs/release/evidence/migration-capacity-tests-2026-10-22T20-33-49-739Z.txt": "54105805c8fa886c82dbfb5369fc5e935b1dd5d41b46c101a0ba11796118b2af"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/migration-capacity.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "transport-resource-tests",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:34:05.752Z",
+      "actor": "release-runner",
+      "summary": "HTTP transport limits, invalid encodings, capacity rollback and filtered pagination: passed",
+      "artifacts": {
+        "docs/release/evidence/transport-resource-tests-2026-10-22T20-34-01-053Z.txt": "beb024c1dd94e64dbb4ad90d9a1eb278e75af267065c4e9e8065b480857166e5"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/v04/transport.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "release-graph-tests",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:34:14.603Z",
+      "actor": "release-runner",
+      "summary": "Release loop cannot accept stale, skipped or dangling evidence: passed",
+      "artifacts": {
+        "docs/release/evidence/release-graph-tests-2026-10-22T20-34-13-559Z.txt": "3c9f75009168d0323539ec557671e61595eb78dd1742c54c96b9a22e92adf5d2"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/release/release-gates.test.ts",
+        "tests/release/independent-release-review.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "legacy-core",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:34:27.852Z",
+      "actor": "release-runner",
+      "summary": "Legacy v0.3 authority and edge adapter regressions: passed",
+      "artifacts": {
+        "docs/release/evidence/legacy-core-2026-10-22T20-34-22-375Z.txt": "1d4e2cde5674f9c14ccf1326db2508eb8d1e2f6892b9f7bfb174ed751c770afd"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/08_pbp.test.ts",
+        "tests/09_pbp_edge.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "legacy-vectors",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:34:37.568Z",
+      "actor": "release-runner",
+      "summary": "Frozen legacy vectors remain conformant: passed",
+      "artifacts": {
+        "docs/release/evidence/legacy-vectors-2026-10-22T20-34-35-722Z.txt": "c79737c17b9c18c76b524439fc4aa9478924488407f9f140c3b1531c70f21cd9"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/05_vectors.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "legacy-fuzz",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:35:34.929Z",
+      "actor": "release-runner",
+      "summary": "Canonicalization, encodings, signing and legacy race regressions: passed",
+      "artifacts": {
+        "docs/release/evidence/legacy-fuzz-2026-10-22T20-34-45-319Z.txt": "a48e0a1e4047418023deb002224bcaf90c5683e85194dc8416fced0a77b6465b"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "--test",
+        "tests/fuzz/fuzz-canonical.test.ts",
+        "tests/fuzz/fuzz-encodings.test.ts",
+        "tests/fuzz/fuzz-signing.test.ts",
+        "tests/fuzz/race-store.test.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "deno-adapter",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:35:45.115Z",
+      "actor": "release-runner",
+      "summary": "Deno hosted entry point type checking: passed",
+      "artifacts": {
+        "docs/release/evidence/deno-adapter-2026-10-22T20-35-42-908Z.txt": "89b20eef6758517c77537b284218ecf339c610cb52ad3ce083aa9f779852a0cb"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/05b6ef7b13673c57/node_modules/@deno/win32-x64/deno.exe",
+        "check",
+        "--cached-only",
+        "--config",
+        "../supabase/functions/pbp-store/deno.json",
+        "../supabase/functions/pbp-store/index.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "deno 2.9.6 (stable, release, x86_64-pc-windows-msvc)\nv8 15.0.245.2-rusty\ntypescript 6.0.3"
+    },
+    {
+      "check_id": "deno-runtime",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:35:53.659Z",
+      "actor": "release-runner",
+      "summary": "Deno legacy authority runtime probe: passed",
+      "artifacts": {
+        "docs/release/evidence/deno-runtime-2026-10-22T20-35-52-887Z.txt": "04f36319f5354bd875d5f8fef3c4edbe1ecab6a38dad7e0cbed42627939aa582"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/05b6ef7b13673c57/node_modules/@deno/win32-x64/deno.exe",
+        "run",
+        "--cached-only",
+        "--config",
+        "../supabase/functions/pbp-store/deno.json",
+        "scripts/pbp-runtime-probe.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "deno 2.9.6 (stable, release, x86_64-pc-windows-msvc)\nv8 15.0.245.2-rusty\ntypescript 6.0.3"
+    },
+    {
+      "check_id": "deno-v04-check",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:36:02.857Z",
+      "actor": "release-runner",
+      "summary": "Deno v0.4 router and client type checking: passed",
+      "artifacts": {
+        "docs/release/evidence/deno-v04-check-2026-10-22T20-36-01-471Z.txt": "acca68276c2ecbd3aa795c8b49bbcf495034670725cffbd08a23192f76e0b3d3"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/05b6ef7b13673c57/node_modules/@deno/win32-x64/deno.exe",
+        "check",
+        "--cached-only",
+        "--config",
+        "../supabase/functions/pbp-store/deno.json",
+        "src/v04/router.ts",
+        "src/v04/client.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "deno 2.9.6 (stable, release, x86_64-pc-windows-msvc)\nv8 15.0.245.2-rusty\ntypescript 6.0.3"
+    },
+    {
+      "check_id": "deno-v04-runtime",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:36:11.476Z",
+      "actor": "release-runner",
+      "summary": "Deno v0.4 custom profile, policy and signed record runtime probe: passed",
+      "artifacts": {
+        "docs/release/evidence/deno-v04-runtime-2026-10-22T20-36-10-633Z.txt": "1667ef0cf60ab694197c0419d8a1bf99dfbf486d08bcc23142696ecac785a1cf"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/05b6ef7b13673c57/node_modules/@deno/win32-x64/deno.exe",
+        "run",
+        "--cached-only",
+        "--config",
+        "../supabase/functions/pbp-store/deno.json",
+        "scripts/dtp-v04-runtime-probe.ts"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "deno 2.9.6 (stable, release, x86_64-pc-windows-msvc)\nv8 15.0.245.2-rusty\ntypescript 6.0.3"
+    },
+    {
+      "check_id": "default-regression-tests",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:36:56.215Z",
+      "actor": "release-runner",
+      "summary": "Complete discovered top-level default regression suite: passed",
+      "artifacts": {
+        "docs/release/evidence/default-regression-tests-2026-10-22T20-36-19-308Z.txt": "142b415051042042e145709b925d4ec8b240b7ae6dc6293d1d2bc7f6619ee4a7"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "scripts/candidate-validation.ts",
+        "default"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "candidate-typecheck",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:37:08.300Z",
+      "actor": "release-runner",
+      "summary": "Complete candidate TypeScript check: passed",
+      "artifacts": {
+        "docs/release/evidence/candidate-typecheck-2026-10-22T20-37-04-468Z.txt": "44345dba1fcf20f0f31d0e85f8fb32135c54ea0f66ebdf40403ff51a6ebaac63"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "scripts/candidate-validation.ts",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "candidate-generation-parity",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:37:19.229Z",
+      "actor": "release-runner",
+      "summary": "All generated artifacts rebuilt in disposable copy with exact normalized output parity: passed",
+      "artifacts": {
+        "docs/release/evidence/candidate-generation-parity-2026-10-22T20-37-16-400Z.txt": "0d406090c8ca2f8d68e81f69daee87ee26cc658fc0852174eac67aa627fd45d9"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "scripts/candidate-validation.ts",
+        "generated"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "candidate-node-runtime",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:37:27.979Z",
+      "actor": "release-runner",
+      "summary": "Pinned Node JSON runtime regression and v0.4 profile/record smoke: passed",
+      "artifacts": {
+        "docs/release/evidence/candidate-node-runtime-2026-10-22T20-37-27-258Z.txt": "74abf8ca288cd861c945a322c71b52a47fd94bd47f60adf180190b50f7325732"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "scripts/candidate-validation.ts",
+        "runtime"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
+    },
+    {
+      "check_id": "historical-stress-regression",
+      "status": "passed",
+      "source_hash": "ce615082e01676dd31eb0471b43a61de3df1c81cf0354451aa482aaa239fe981",
+      "recorded_at": "2026-10-22T20:37:42.464Z",
+      "actor": "release-runner",
+      "summary": "Historical business stress regression; legacy GAP observations are not v0.4 acceptance: passed",
+      "artifacts": {
+        "docs/release/evidence/historical-stress-regression-2026-10-22T20-37-36-094Z.txt": "76e71392c3b571726692e74f3d3aa1a0d6c95bb4160c033fd68f7d8915be1e01"
+      },
+      "command": [
+        "C:/Users/runqu/AppData/Local/npm-cache/_npx/52027bd8fc0022aa/node_modules/node/bin/node.exe",
+        "scripts/candidate-validation.ts",
+        "stress"
+      ],
+      "exit_code": 0,
+      "skipped_tests": 0,
+      "runtime": "v22.23.2"
     }
   ],
   "findings": [

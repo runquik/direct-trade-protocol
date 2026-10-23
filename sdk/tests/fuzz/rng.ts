@@ -189,11 +189,16 @@ export const KEY_FAMILIES: readonly (readonly string[])[] = [
   [u(0x1f600), u(0xffff, 0x1f600), u(0x1f600, 0xffff)],
 ];
 
+// DTP refuses a member name containing a quotation mark, a reverse solidus or a control character (SPEC section 2,
+// docs/security/json-member-names.md), and canonicalize() refuses to sign one, so generated names avoid them; refusing
+// them is covered by spec/vectors/unsafe-json.json and canonicalization.json's refuse list.
+const allowedName = (name: string): string => name.replace(/["\\\u0000-\u001f]/g, "_");
+
 export function randomKey(r: Rng, opts: StringOpts = {}): string {
   const roll = r.next();
-  if (roll < 0.35) return r.pick(r.pick(KEY_FAMILIES));
+  if (roll < 0.35) return allowedName(r.pick(r.pick(KEY_FAMILIES)));
   if (roll < 0.45) return String(r.int(20)); // numeric-string keys (JS orders these first in Object.keys)
-  return randomString(r, { ...opts, maxLen: 200 });
+  return allowedName(randomString(r, { ...opts, maxLen: 200 }));
 }
 
 // ---------------------------------------------------------------------------

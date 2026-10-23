@@ -10,6 +10,8 @@
     "dtp/inventory@2": { "digests": ["01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"] },
     "dtp/order@1": { "digests": ["2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6"] },
     "dtp/forecast@1": { "digests": ["7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7"] },
-    "dtp/party@1": { "digests": ["e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e"] }
+    "dtp/party@1": { "digests": ["e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e"] },
+    "dtp/object@1": { "digests": ["94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2"] },
+    "dtp/flow@1": { "digests": ["49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763"] }
   }
 }

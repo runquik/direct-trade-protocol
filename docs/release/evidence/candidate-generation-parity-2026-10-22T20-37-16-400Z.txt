@@ -1,0 +1,13 @@
+Candidate validation: generated
+ok: 33 schemas, 16 record types → sdk/src/schemas.ts, spec/generated/ts/types.d.ts, spec/generated/accountability.md
+
+Generated PBP 0.3 command schema; no v0.2 artifacts changed.
+
+Generated PBP 0.3 fixed signing vector.
+
+
+Generated isolated v0.4 schema and public test vector.
+
+PASS: 8 generated artifacts match source (UTF-8 LF-normalized); candidate files untouched
+
+

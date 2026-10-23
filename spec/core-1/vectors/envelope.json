@@ -1,0 +1,255 @@
+{
+  "description": "Core-1 signed envelopes (spec/core-1/README.md, part 3). signing input = canonical({domain, body}). Verify each envelope under the given domain: accept gives the key ids that signed; reject gives the error code. Signed with the fixed test key in spec/vectors/keys.json.",
+  "accept": [
+    {
+      "why": "a record signed by one key",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "signers": [
+        "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+      ]
+    },
+    {
+      "why": "an identity genesis body under its domain",
+      "domain": "DTP-PERSON-GENESIS-1",
+      "envelope": {
+        "body": {
+          "identity_hint": "",
+          "operational": {
+            "keys": [
+              "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+            ],
+            "threshold": 1
+          },
+          "created_at": 1760000000000
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:65LFD6Wrh34eik87zR9LoqarBh9R8iei6o5JsP4XhB6XR2ztJdDt9hvZB9pNYKtcQwPavgdrraJ7uZB2R9VPUbAc"
+          }
+        ]
+      },
+      "signers": [
+        "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+      ]
+    }
+  ],
+  "reject": [
+    {
+      "why": "verified under another domain than it was signed under",
+      "domain": "DTP-PERSON-GENESIS-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_signature"
+    },
+    {
+      "why": "the body changed after signing",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 2,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_signature"
+    },
+    {
+      "why": "a signature whose S is not canonical (S + L)",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpRfS3aRdsacrdTchpvWLyWCNMphhx1CBrbcEFKXQ231yb"
+          }
+        ]
+      },
+      "code": "invalid_signature"
+    },
+    {
+      "why": "a member beside body and signatures",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ],
+        "domain": "DTP-RECORD-1"
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a member beside key_id and signature",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq",
+            "alg": "Ed25519"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "the same key signing twice",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          },
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "no signatures",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": []
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a key id that is not a key",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:not-a-key",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a domain that names no format version",
+      "domain": "DTP-RECORD",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    }
+  ]
+}

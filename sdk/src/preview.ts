@@ -20,6 +20,7 @@
 export * as keys from "./keys.ts";
 export * as canonical from "./canonical.ts";
 export * as safeJson from "./safe-json.ts";
+export * as core1 from "./core1/envelope.ts";
 
 export * as decimal from "./profiles/decimal.ts";
 export * as inventory from "./profiles/inventory.ts";
@@ -29,6 +30,9 @@ export * as inventory2 from "./profiles/inventory2.ts";
 export * as party from "./profiles/party.ts";
 export * as order from "./profiles/order.ts";
 export * as forecast from "./profiles/forecast.ts";
+export * as act from "./profiles/act.ts";
+export * as object from "./profiles/object.ts";
+export * as flow from "./profiles/flow.ts";
 
 export * as datatypes from "./foundation/datatypes.ts";
 export * as semantics from "./foundation/semantics.ts";
