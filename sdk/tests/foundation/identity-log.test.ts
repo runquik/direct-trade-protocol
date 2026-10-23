@@ -9,7 +9,8 @@ import { parseUntrustedJson } from '../../src/safe-json.ts';
 import { generateKeyPair } from '../../src/keys.ts';
 import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
-import type { IdentityState, Rehome, Transition, Signed } from '../../src/foundation/identity.ts';
+import type { IdentityState, Rehome, Resolution, Transition, Signed } from '../../src/foundation/identity.ts';
+import { checkResolutionHead } from '../../src/foundation/person-authentication.ts';
 import { admitIdentityLog, attestHead, buildIdentityLog, compareCheckpoint, compareRehomeRefusal, judgeIdentityLog, parseIdentityLogPushAck, precedence, receiveIdentityLogPush, recoverGenesisInstant, verifyIdentityLog, verifyRehomeRefusal,
   IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, LEGACY_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, IdentityLogPushAck, RehomeRefusal, ResolverPin } from '../../src/foundation/identity-log.ts';
@@ -139,7 +140,7 @@ test('identity log: a host that never recorded the genesis instant can recover i
   assert.equal(await recoverGenesisInstant(f.parts.genesis, f.parts.enrollment, 'f'.repeat(64)), null);
 });
 
-test('identity log conformance vectors: accepted logs yield exactly the published heads; every rejected log is refused; admissions, pushes and refusals are judged exactly', async () => {
+test('identity log conformance vectors: accepted logs yield exactly the published heads; every rejected log is refused; admissions, pushes, refusals and wallet signing are judged exactly', async () => {
   const file = fileURLToPath(new URL('../../../spec/vectors/identity-log.json', import.meta.url));
   const vectors = parseUntrustedJson(readFileSync(file, 'utf8')) as { format: string; legacy_format: string; rehome_domain: string; refusal_domain: string; push_format: string; push_ack_format: string; lease_ms: number; clock_margin_ms: number;
     accept: { why: string; require_attestation: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; require_attestation: boolean; log: IdentityLog }[];
@@ -147,7 +148,8 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
     admission: { why: string; pin: ResolverPin; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; log: IdentityLog; require_attestation: boolean; expect: any }[];
     push: { why: string; pin: ResolverPin | null; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; message: IdentityLogPush; require_attestation: boolean; ack: IdentityLogPushAck }[];
     refusals: { accept: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal>; expect: RehomeRefusal }[]; reject: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal> }[];
-      contradictions: { why: string; refusal: Signed<RehomeRefusal>; log: IdentityLog; expect: string }[] } };
+      contradictions: { why: string; refusal: Signed<RehomeRefusal>; log: IdentityLog; expect: string }[] };
+    signing: { why: string; log: IdentityLog; resolution: Signed<Resolution>; sign: boolean }[] };
   assert.equal(vectors.format, IDENTITY_LOG_FORMAT); assert.equal(vectors.legacy_format, LEGACY_IDENTITY_LOG_FORMAT); assert.equal(vectors.rehome_domain, 'DTP-IDENTITY-REHOME-1');
   assert.equal(vectors.refusal_domain, REHOME_REFUSAL_DOMAIN); assert.equal(vectors.push_format, IDENTITY_LOG_PUSH_FORMAT); assert.equal(vectors.push_ack_format, IDENTITY_LOG_PUSH_ACK_FORMAT);
   assert.equal(vectors.lease_ms, LEASE_MS); assert.equal(vectors.clock_margin_ms, CLOCK_MARGIN_MS);
@@ -168,6 +170,11 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
   for (const v of vectors.refusals.accept) assert.deepEqual(await verifyRehomeRefusal(v.refusal, v.rehome), v.expect, v.why);
   for (const v of vectors.refusals.reject) await assert.rejects(verifyRehomeRefusal(v.refusal, v.rehome), v.why);
   for (const v of vectors.refusals.contradictions) assert.equal(await compareRehomeRefusal(v.refusal, v.log), v.expect, v.why);
+  assert.ok(vectors.signing.length >= 6 && vectors.signing.some(v => v.sign) && vectors.signing.some(v => !v.sign));
+  for (const v of vectors.signing) {
+    const held = await verifyIdentityLog(v.log, { require_attestation: false });
+    assert.equal(await checkResolutionHead(v.resolution, { head: held.head, head_digest: held.head_digest }).then(() => true, () => false), v.sign, v.why);
+  }
   assert.ok(vectors.accept.some(v => v.log.format === LEGACY_IDENTITY_LOG_FORMAT) && vectors.accept.some(v => v.log.entries.some(e => e.rehome !== null)), 'both formats and a move are covered');
   for (const v of vectors.accept) {
     const r = await verifyIdentityLog(v.log, { require_attestation: v.require_attestation });

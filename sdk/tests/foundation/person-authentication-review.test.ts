@@ -34,11 +34,11 @@ test('independent person auth: operational threshold excludes recovery, duplicat
   const f = await fixture(2); try {
     const one = await f.request(f.unsigned(), [f.operational]); await assert.rejects(f.store.execute(f.organization_id, asJson(one)), /quorum/);
     const duplicate = structuredClone(one); duplicate.authentication.signatures.push(duplicate.authentication.signatures[0]); await assert.rejects(f.store.execute(f.organization_id, asJson(duplicate)), /duplicate/);
-    const recovery = await signPersonOperation({ intent: one.intent, actor: f.actor, grant_id: f.grant.id, challenge: one.authentication.challenge, resolution: one.authentication.resolution }, [f.operational, f.recovery]);
+    const recovery = await signPersonOperation({ intent: one.intent, actor: f.actor, grant_id: f.grant.id, challenge: one.authentication.challenge, resolution: one.authentication.resolution }, [f.operational, f.recovery], f.identity);
     await assert.rejects(f.store.execute(f.organization_id, asJson(recovery)), /current operational key/);
     const wrongPurpose = structuredClone(one); wrongPurpose.authentication.signatures = (await signIdentity('DTP-IDENTITY-RESOLUTION-1', one.intent, [f.operational, f.second])).signatures;
     await assert.rejects(f.store.execute(f.organization_id, asJson(wrongPurpose)), /invalid person operation signature/);
-    const valid = await signPersonOperation({ intent: one.intent, actor: f.actor, grant_id: f.grant.id, challenge: one.authentication.challenge, resolution: one.authentication.resolution }, [f.operational, f.second]);
+    const valid = await signPersonOperation({ intent: one.intent, actor: f.actor, grant_id: f.grant.id, challenge: one.authentication.challenge, resolution: one.authentication.resolution }, [f.operational, f.second], f.identity);
     await f.store.execute(f.organization_id, asJson(valid)); assert.equal((await f.counts()).business_receipts, 1);
   } finally { await f.pg.close(); }
 });

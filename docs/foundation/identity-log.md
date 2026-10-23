@@ -39,7 +39,7 @@ A verifier MUST refuse the log unless all of the following hold. It needs no clo
 7. **Head `n`** is `{identity_id, n, digest(head n-1), transition.operational, transition.recovery, E[n]}`. A digest is SHA-256 over canonical JSON.
 8. **Attestations.** Every attestation present is signed under `DTP-IDENTITY-LOG-HEAD-1` by exactly the enrolled resolver key, and its body equals the head it sits beside, member for member. The verifier's caller MUST state whether heads without an attestation are acceptable. There is no default.
 
-Conformance vectors, including tampered, reordered, truncated and spliced logs: [`spec/vectors/identity-log.json`](../../spec/vectors/identity-log.json).
+Conformance vectors, including tampered, reordered, truncated and spliced logs: [`spec/vectors/identity-log.json`](../../spec/vectors/identity-log.json). Its `signing` cases pin the wallet's rule in the [identity contract](identity-contract.md): a wallet holding a log signs a person operation only over a resolution of that log's head.
 
 ## What a verified log proves, and what it does not
 

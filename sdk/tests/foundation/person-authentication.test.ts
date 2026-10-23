@@ -35,7 +35,7 @@ test('historical business retry accepts fresh identity authentication but never 
     const differentGrant = { ...f.personGrant, id: crypto.randomUUID() }; f.state.now = Date.now();
     await f.store.govern(f.organization_id, { action: 'grant', grant: differentGrant }, f.controller);
     const challenge = await f.issue(original.intent, f.organization_id, differentGrant.id);
-    const swap = await signPersonOperation({ intent: original.intent, actor: f.person, grant_id: differentGrant.id, challenge, resolution: await f.proof(challenge) }, [f.ordinary]);
+    const swap = await signPersonOperation({ intent: original.intent, actor: f.person, grant_id: differentGrant.id, challenge, resolution: await f.proof(challenge) }, [f.ordinary], f.identity);
     await assert.rejects(f.run(swap), /operation ID conflict/);
   } finally { await f.pg.close(); }
 });
@@ -85,7 +85,7 @@ test('resolver key/epoch pins and durable head checkpoint reject replacement and
     const otherOrg = crypto.randomUUID(), otherIntent = f.intent(); otherIntent.organization_id = otherOrg;
     otherIntent.resources = otherIntent.resources.map(r => ({ ...r, organization_id: otherOrg }));
     const c = await f.issue(otherIntent, otherOrg), resolution = await f.proof(c, moved);
-    const higher = await signPersonOperation({ intent: otherIntent, actor: f.person, grant_id: f.personGrant.id, challenge: c, resolution }, [f.next]);
+    const higher = await signPersonOperation({ intent: otherIntent, actor: f.person, grant_id: f.personGrant.id, challenge: c, resolution }, [f.next], moved);
     await f.db.transaction(async tx => {
       const verified = await f.adapter.authenticateOperation(tx, { organization_id: otherOrg, now: Date.now(), request: higher as unknown as JsonObject });
       await f.adapter.beforeCommit(tx, { organization_id: otherOrg, now: Date.now(), verified, request: higher as unknown as JsonObject, valid_until: Date.now() + 60000 });
