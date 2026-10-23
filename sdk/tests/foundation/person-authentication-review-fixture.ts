@@ -25,7 +25,7 @@ export async function personReviewFixture(db: Db, threshold = 1) {
   const request = async (input = unsigned(), keys: KeyPair[] = threshold === 1 ? [operational] : [operational, second], proofOverride?: (proof: Signed<Resolution>) => Promise<Signed<Resolution>>) => {
     const c = await challenge(input), result = await issueResolution(identity, { identity_id: actor.id, audience, challenge: c.nonce }, resolver, Date.now());
     const resolution = proofOverride ? await proofOverride(result.proof) : result.proof;
-    return signPersonOperation({ ...input, challenge: c, resolution }, keys);
+    return signPersonOperation({ ...input, challenge: c, resolution }, keys, identity);
   };
   const consumed = (nonce: string) => db.query<{ consumed_at: string | null; consumed_request_digest: string | null; deadline_ms: string | null }>('select consumed_at,consumed_request_digest,deadline_ms from dtp_foundation.person_auth_challenges where host_id=$1 and nonce=$2', [host_id, nonce]);
   return { ...base, store, storeOptions, auth, authOptions: options, operational, second, recovery, resolver, resolver_id, identity, actor, host_id, audience, grant, unsigned, challenge, request, consumed };

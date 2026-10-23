@@ -4,7 +4,7 @@ import { canonicalBytes, canonicalize, sha256Hex, bytesToHex } from '../canonica
 import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
-import type { Signed, Resolution, Signature } from './identity.ts';
+import type { Control, Signed, Resolution, Signature } from './identity.ts';
 import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal } from './identity-log.ts';
 import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, PinnedHistory, RehomeRefusal, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
@@ -110,10 +110,22 @@ async function signedBytes(r: PersonOperationRequest): Promise<Uint8Array> {
   return canonicalBytes({ domain: 'DTP-PERSON-OPERATION-1', body: { challenge: r.authentication.challenge, actor: r.actor,
     intent_digest: await sha256Hex(canonicalBytes(r.intent)), grant_id: r.grant_id, resolution_digest: await sha256Hex(canonicalBytes(r.authentication.resolution)) } });
 }
-/** Client helper; does not authenticate the host's challenge or establish its issuer trust. */
-export async function signPersonOperation(value: Omit<PersonOperationRequest, 'authentication'> & { challenge: PersonChallenge; resolution: Signed<Resolution> }, keys: KeyPair[]): Promise<PersonOperationRequest> {
+/** The wallet's signing rule (#83). `held` is the head of the owner's own verified identity log. A relying party
+ *  advances its checkpoint to the resolved head on the strength of the owner's operational signatures, so the wallet
+ *  signs only a resolution of this identity over exactly that head; one over a head the owner never had (a hostile
+ *  resolver's fabrication) or over an older head is refused. */
+export async function checkResolutionHead(resolution: Signed<Resolution>, held: { head: Control; head_digest: string }): Promise<void> {
+  const h = bounded(held); need(h && typeof h === 'object' && h.head && typeof h.head === 'object', 'held identity head required'); hash(h.head_digest);
+  need(await sha256Hex(canonicalBytes(h.head)) === h.head_digest, 'held identity head digest mismatch');
+  const resolved = (bounded(resolution) as { body?: Partial<Resolution> } | null)?.body;
+  need(resolved?.identity_id === h.head.identity_id && resolved.head_digest === h.head_digest, 'resolution head is not the head this wallet holds');
+}
+/** Client helper for the owner's wallet; does not authenticate the host's challenge or establish its issuer trust.
+ *  It signs only under `checkResolutionHead`. */
+export async function signPersonOperation(value: Omit<PersonOperationRequest, 'authentication'> & { challenge: PersonChallenge; resolution: Signed<Resolution> }, keys: KeyPair[], held: { head: Control; head_digest: string }): Promise<PersonOperationRequest> {
   const v = bounded(value); exact(v, ['intent', 'actor', 'grant_id', 'challenge', 'resolution']);
   need(Array.isArray(keys) && keys.length > 0 && keys.length <= 8, 'bounded signing keys required');
+  await checkResolutionHead(v.resolution, held);
   const r: PersonOperationRequest = { intent: v.intent, actor: v.actor, grant_id: v.grant_id, authentication: { challenge: v.challenge, resolution: v.resolution, signatures: [] } };
   const bytes = await signedBytes(r);
   r.authentication.signatures = await Promise.all(keys.map(async k => ({ key_id: k.keyId, signature: encodeSignature(await signBytes(k.secretKey, bytes)) })));
