@@ -107,7 +107,7 @@ When the source company moves, the observer calls `authority.relocate` with the 
 
 Use two disposable stores and synthetic records first. The exact [migration and recovery sequence](../spec/v0.4/SPEC.md#8-cooperative-migration-and-recovery) is part of the integration contract, not a convenience export button.
 
-- Obtain controller and every policy's steward quorum for the complete snapshot.
+- Obtain controller and every policy's steward quorum for the complete snapshot. A policy whose stewards have all left or expired blocks the migration, and no controller can override it: keep every policy's active stewards above its threshold ([SPEC section 3, *Steward availability*](../spec/v0.4/SPEC.md#3-people-companies-and-administration)).
 - Prepare, stage and upload bounded chunks; use destination status to resume.
 - Obtain signed readiness before committing. Concurrent source changes require a new snapshot, not force-overwriting the check.
 - Commit/freeze, then finalize using the durable receipt. Verify exact records, profiles, policies and inventory at the destination and reinstall modules with fresh authority.
