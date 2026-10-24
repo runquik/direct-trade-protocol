@@ -218,6 +218,7 @@ const admission: Admission[] = [
   ['the same party shown an "escape" to the refusing destination\'s resolver id under a new key: refused-move, it is the same destination', pinB, sameIdNewKey, true, moved, [refusal]],
   ['the same party shown the escape rehome that the third resolver never attested: unadopted-move, the escape needs the next destination\'s adoption like every move', pinB, escapedBare, false, moved, [refusal]],
   ['a party still at the first resolver, holding the refusal, shown the escaped log: advanced; the refusal is escaped for every party, and adoption evidence is still required for both moves', pinA(0, bareHeads[0].head_digest), escaped, true, null, [refusal]],
+  ['the party that admitted the retired-key fork and holds it, now also holding the refusal of the owner\'s rehome, is shown the owner\'s real history: its pinned history conflicts and its refusal matches, and refused-move wins, because a held refusal is checked right after the identity, before the pinned-history comparison (#69)', pinThief, moved, true, retiredFork, [refusal]],
 ];
 const pushMessage = (log: IdentityLog, format = IDENTITY_LOG_PUSH_FORMAT): IdentityLogPush => ({ format: format as typeof IDENTITY_LOG_PUSH_FORMAT, log });
 type Push = [string, ResolverPin | null, IdentityLogPush, boolean, IdentityLog | null, Signed<RehomeRefusal>[]?];
@@ -293,7 +294,7 @@ for (const [why, r, log, expect] of contradictions) {
 }
 const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 'unchanged', 'behind', 'conflict', 'superseded', 'conflict', 'foreign-lineage', 'foreign-lineage', 'another-identity', 'invalid-log', 'invalid-log',
   'conflict', 'conflict', 'conflict', 'advanced', 'conflict', 'refused-move', 'refused-move', 'advanced', 'advanced',
-  'refused-move', 'advanced', 'refused-move', 'refused-move', 'unadopted-move', 'advanced'];
+  'refused-move', 'advanced', 'refused-move', 'refused-move', 'unadopted-move', 'advanced', 'refused-move'];
 out.admission.forEach((a, i) => { const got = 'reason' in a.expect ? a.expect.reason : a.expect.outcome; if (got !== expectedReasons[i]) throw new Error(`generator: admission "${a.why}" gave ${got}`); });
 const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict', 'refused-move', 'advanced', 'advanced'];
 out.push.forEach((p, i) => { const got = p.ack.reason ?? p.ack.outcome; if (got !== expectedAcks[i]) throw new Error(`generator: push "${p.why}" gave ${got}`); });
