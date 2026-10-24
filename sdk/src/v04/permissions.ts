@@ -7,6 +7,13 @@ export function checkPermissions(input: any): string[] {
 export function activeMember(s: State, org: Organization, id: string, now: number): boolean {
   return !!s.persons[id] && (org.controllers.includes(id) || !!(org.members[id]?.active && instant(org.members[id].expires_at) > now));
 }
+// A grant counts only when the policy revision carrying it was signed after the person's latest membership.revoke in this company (#98).
+export function revokedAt(org: Organization, id: string): number {
+  let at = -Infinity; for (const c of org.history) if (c.action === "membership.revoke" && c.payload.person_id === id) at = Math.max(at, instant(c.issued_at)); return at;
+}
+export function grantCurrent(org: Organization, policy: Policy, id: string): boolean {
+  return instant(policy.history[policy.history.length - 1].issued_at) > revokedAt(org, id);
+}
 export function management(s: State, org: Organization, c: Command, action: string, ctx: Context) {
   demand(c.actor.kind === "person" && activeMember(s, org, c.actor.id, ctx.now) && (org.controllers.includes(c.actor.id) || org.members[c.actor.id]?.permissions.includes(action)), "forbidden", "administration permission required");
 }
@@ -23,7 +30,7 @@ export function steward(s: State, org: Organization, policy: Policy, c: Command,
 export function dataAllowed(s: State, org: Organization, policy: Policy, resource: string, action: DataAction, c: Command, ctx: Context): boolean {
   if (policy.organization_id !== org.id || org.status !== "active") return false;
   const human = c.actor.kind === "person" ? c.actor.id : c.requested_by ?? org.installations[c.actor.id]?.sponsor_id;
-  const grants = (id: string) => activeMember(s, org, id, ctx.now) && policy.grants.some(g => g.person_id === id && g.actions.includes(action) && instant(g.expires_at) > ctx.now && (g.resource_ids === "*" || g.resource_ids.includes(resource)));
+  const grants = (id: string) => activeMember(s, org, id, ctx.now) && grantCurrent(org, policy, id) && policy.grants.some(g => g.person_id === id && g.actions.includes(action) && instant(g.expires_at) > ctx.now && (g.resource_ids === "*" || g.resource_ids.includes(resource)));
   if (c.actor.kind === "person") return !!human && grants(human);
   const inst = org.installations[c.actor.id];
   if (!inst?.active || instant(inst.expires_at) <= ctx.now || !inst.policy_ids.includes(policy.id) || !inst.actions.includes(action)) return false;
@@ -41,5 +48,6 @@ export function checkPolicy(policy: Policy, s: State, org: Organization, ctx: Co
     demand(g.resource_ids === "*" || (Array.isArray(g.resource_ids) && g.resource_ids.length > 0 && g.resource_ids.length <= 128 && new Set(g.resource_ids).size === g.resource_ids.length && g.resource_ids.every(uuid)), "invalid", "invalid resource scope", 400);
     demand(instant(g.expires_at) > ctx.now && instant(g.expires_at) <= ctx.now + 366 * 86400000, "invalid", "invalid grant expiry", 400);
     if (!org.controllers.includes(g.person_id)) demand(instant(g.expires_at) <= instant(org.members[g.person_id].expires_at), "forbidden", "grant outlives membership");
+    demand(grantCurrent(org, policy, g.person_id), "invalid", "policy revision predates the person's membership revocation", 400);
   }
 }

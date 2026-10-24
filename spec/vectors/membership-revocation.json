@@ -1,0 +1,190 @@
+{
+  "description": "v0.4 candidate: membership revocation ends a person's policy grants (#98). Each case is a scenario, not signed bytes. Build it on a fresh host with one company whose controller is \"owner\" (threshold 1), a registered person \"worker\" whom the owner invites with no administration permissions and who accepts, one private structural profile, one policy whose only steward is the owner and which grants owner and worker read and write on every resource (\"*\"), and one record the owner appends under that policy. Then run the steps in order. The host clock starts at the time of setup and advances by clock_step_ms before each step, except a step marked same_instant; every command is signed (issued_at) at the host clock of the step that signs it. Steps: \"revoke\" is the owner's membership.revoke of the worker; \"reinvite\" is a new owner invitation to the worker with no permissions, and the worker's membership.accept of it; \"regrant\" is the owner's policy.update carrying the same steward, threshold and grants at the next expected_revision; \"read\" is the worker's record.get of the record; \"write\" is the worker's record.append superseding the record. \"sign\" signs the named step's command(s) now, without submitting them, under the label \"as\"; \"submit\" submits the labelled command later. Every step but the last must be accepted. The last step must give the expected outcome: \"accept\", or a refusal with the given error code and HTTP status. The rule is in spec/v0.4/SPEC.md section 4 (Grants).",
+  "rule": "A grant to a person counts only when the policy revision that carries it was signed (issued_at) strictly after that person's latest membership.revoke in the company. membership.revoke MUST be refused with 409 conflict when a company policy granting the person has a current revision signed strictly after the revocation; at an equal issued_at the revocation is accepted and the grant is ended. policy.create and policy.update MUST be refused with 400 invalid when a grant names a person whose latest revocation was signed at or after the policy command.",
+  "clock_step_ms": 1000,
+  "cases": [
+    {
+      "name": "a member with a live grant reads",
+      "steps": [
+        {
+          "op": "read"
+        }
+      ],
+      "expected": "accept"
+    },
+    {
+      "name": "a revoked member cannot read",
+      "steps": [
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "re-admission without a new grant does not restore reads",
+      "steps": [
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "re-admission without a new grant does not restore writes",
+      "steps": [
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "write"
+        }
+      ],
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "a steward re-grant after re-admission restores reads",
+      "steps": [
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "regrant"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": "accept"
+    },
+    {
+      "name": "reinviting an active member does not end their grants",
+      "steps": [
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": "accept"
+    },
+    {
+      "name": "a policy revision signed before the revocation is refused after re-admission",
+      "steps": [
+        {
+          "op": "sign",
+          "as": "early",
+          "what": "regrant"
+        },
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "submit",
+          "what": "early"
+        }
+      ],
+      "expected": {
+        "code": "invalid",
+        "status": 400
+      }
+    },
+    {
+      "name": "a revocation signed before a newer granting policy revision is refused",
+      "steps": [
+        {
+          "op": "sign",
+          "as": "early",
+          "what": "revoke"
+        },
+        {
+          "op": "regrant"
+        },
+        {
+          "op": "submit",
+          "what": "early"
+        }
+      ],
+      "expected": {
+        "code": "conflict",
+        "status": 409
+      }
+    },
+    {
+      "name": "a fresh revocation after that refusal is accepted and ends the grant",
+      "steps": [
+        {
+          "op": "sign",
+          "as": "early",
+          "what": "revoke"
+        },
+        {
+          "op": "regrant"
+        },
+        {
+          "op": "revoke"
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "a revocation signed at the same instant as the granting revision is accepted and ends the grant",
+      "steps": [
+        {
+          "op": "regrant"
+        },
+        {
+          "op": "revoke",
+          "same_instant": true
+        },
+        {
+          "op": "reinvite"
+        },
+        {
+          "op": "read"
+        }
+      ],
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    }
+  ]
+}
