@@ -140,7 +140,10 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     }
     case "membership.revoke": {
       const o=currentOrg();management(s,o,c,"members.manage",ctx);exact(p,["person_id"]);id(p.person_id);demand(!o.controllers.includes(p.person_id),"forbidden","use controller quorum policy");
-      if(previous){result=previous.result;break;}const m=o.members[p.person_id];if(m)m.active=false;for(const i of Object.values(o.invitations))if(i.person_id===p.person_id)i.active=false;
+      if(previous){result=previous.result;break;}
+      // Revocation ends the person's grants by ordering: it must not be signed before a policy revision that grants them (#98).
+      demand(!Object.values(s.policies).some(x=>x.organization_id===o.id&&x.grants.some(g=>g.person_id===p.person_id)&&instant(x.history[x.history.length-1].issued_at)>instant(c.issued_at)),"conflict","a policy revision granting this person is newer than this revocation",409);
+      const m=o.members[p.person_id];if(m)m.active=false;for(const i of Object.values(o.invitations))if(i.person_id===p.person_id)i.active=false;
       history=true;result={revoked:true};break;
     }
     case "policy.create":
