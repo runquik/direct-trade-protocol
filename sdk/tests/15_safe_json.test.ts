@@ -10,7 +10,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '../..');
 // The vector file holds every hostile text as a string VALUE, so loading it is itself safe.
 const vectors = parseUntrustedJson(readFileSync(resolve(repo, 'spec/vectors/unsafe-json.json'), 'utf8')) as
-  { reject: { why: string; text: string; code: string }[]; accept: { why: string; text: string }[] };
+  { reject: { why: string; text: string; code: string }[]; accept: { why: string; text: string }[];
+    numbers: { reject: { why: string; text: string; code: string }[]; accept: { why: string; text: string }[] } };
 const B = String.fromCharCode(92), Q = '"';
 
 test('conformance vectors: unsafe member names are refused before parsing, everything else parses', () => {
@@ -24,6 +25,23 @@ test('conformance vectors: unsafe member names are refused before parsing, every
     assert.doesNotThrow(() => assertSafeJsonText(text), why);
     assert.deepEqual(parseUntrustedJson(text), JSON.parse(text), why);
   }
+});
+
+test('conformance vectors: v0.4 numbers with a fraction or an exponent are refused before parsing (#97)', () => {
+  assert.ok(vectors.numbers.reject.length >= 10 && vectors.numbers.accept.length >= 6);
+  const integerNumbers = { integerNumbers: true };
+  for (const { why, text, code } of vectors.numbers.reject) {
+    assert.equal(code, 'non_integer_number');
+    assert.throws(() => assertSafeJsonText(text, integerNumbers), (error: unknown) => error instanceof UnsafeJsonError && error.code === code, why);
+    assert.throws(() => parseUntrustedJsonBytes(new TextEncoder().encode(text), integerNumbers), (error: unknown) => error instanceof UnsafeJsonError && error.code === code, why);
+    assert.doesNotThrow(() => assertSafeJsonText(text), `${why}: only refused when asked`);
+  }
+  for (const { why, text } of vectors.numbers.accept) {
+    assert.deepEqual(parseUntrustedJson(text, integerNumbers), JSON.parse(text), why);
+  }
+  // Every member-name vector keeps its outcome when the number rule is also on.
+  for (const { why, text, code } of vectors.reject) assert.throws(() => assertSafeJsonText(text, integerNumbers), (error: unknown) => error instanceof UnsafeJsonError && error.code === code, why);
+  for (const { why, text } of vectors.accept) assert.doesNotThrow(() => assertSafeJsonText(text, integerNumbers), why);
 });
 
 test('the text guard and the producer-side guard agree on every randomly generated document', () => {

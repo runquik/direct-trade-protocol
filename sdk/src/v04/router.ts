@@ -18,7 +18,7 @@ export async function handle(req:Request,deps:Dependencies):Promise<Response>{
     const chunks:Uint8Array[]=[];let total=0;
     try{for(;;){const r=await reader.read();if(r.done)break;total+=r.value.length;if(total>MAX_REQUEST_BYTES){void reader.cancel().catch(()=>{});throw new DtpError("payload_too_large","request exceeds 1 MiB",413);}chunks.push(r.value);}}finally{reader.releaseLock();}
     const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-    let input:any;try{input=parseUntrustedJsonBytes(bytes);}catch(error){if(error instanceof UnsafeJsonError)throw new DtpError(error.code,error.code==="duplicate_member_name"?"an object names the same member twice":"object member names must not use escape sequences",400);throw new DtpError("invalid","invalid UTF-8 JSON",400);}
+    let input:any;try{input=parseUntrustedJsonBytes(bytes,{integerNumbers:true});}catch(error){if(error instanceof UnsafeJsonError)throw new DtpError(error.code,error.code==="duplicate_member_name"?"an object names the same member twice":error.code==="non_integer_number"?"numbers must be written as integers":"object member names must not use escape sequences",400);throw new DtpError("invalid","invalid UTF-8 JSON",400);}
     const queue=[{value:input,depth:0}];let nodes=0;
     while(queue.length){const {value,depth}=queue.pop()!;if(depth>48||++nodes>100000)throw new DtpError("invalid","request complexity exceeded",400);if(value&&typeof value==="object")for(const child of Object.values(value))queue.push({value:child,depth:depth+1});}
     const result=await deps.db.transaction(async tx=>{
