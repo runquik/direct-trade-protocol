@@ -152,5 +152,92 @@
       "why": "names differing only in case",
       "text": "{\"a\":1,\"A\":2}"
     }
-  ]
+  ],
+  "numbers": {
+    "description": "v0.4 integer literals (SPEC section 2, #97). A v0.4 receiver MUST refuse every text under \"reject\" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\". The rule is lexical, so it does not depend on how a parser converts numbers.",
+    "rule": "A number is written as an optional minus sign followed by digits, with no fraction and no exponent.",
+    "reject": [
+      {
+        "why": "a zero fraction",
+        "text": "{\"threshold\":1.0}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "an exponent",
+        "text": "{\"threshold\":1e0}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a capital exponent",
+        "text": "{\"threshold\":1E0}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a signed exponent",
+        "text": "{\"n\":1e+2}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a negative exponent that still denotes an integer",
+        "text": "{\"n\":10E-1}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a decimal that binary64 rounds to an integer, but whose exact value is not one",
+        "text": "{\"threshold\":1.0000000000000001}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a negative fraction",
+        "text": "{\"n\":-1.5}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "zero written with a fraction",
+        "text": "{\"n\":0.0}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a fraction inside an array",
+        "text": "{\"a\":[1,2.0]}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a fraction at depth",
+        "text": "{\"a\":{\"b\":[{\"c\":3.0}]}}",
+        "code": "non_integer_number"
+      },
+      {
+        "why": "a top-level number with a fraction",
+        "text": "1.0",
+        "code": "non_integer_number"
+      }
+    ],
+    "accept": [
+      {
+        "why": "integers",
+        "text": "{\"a\":0,\"b\":1,\"c\":-1,\"d\":42}"
+      },
+      {
+        "why": "the largest safe integer, written as digits",
+        "text": "{\"n\":9007199254740991}"
+      },
+      {
+        "why": "numbers as array elements",
+        "text": "[1,-2,3]"
+      },
+      {
+        "why": "decimal and exponent text inside string values",
+        "text": "{\"price\":\"1.0\",\"note\":\"1e0 and 2.5E3\"}"
+      },
+      {
+        "why": "a member name containing a full stop and the letter e",
+        "text": "{\"a.e\":1}"
+      },
+      {
+        "why": "literals, which contain the letter e",
+        "text": "[true,false,null]"
+      }
+    ]
+  }
 }

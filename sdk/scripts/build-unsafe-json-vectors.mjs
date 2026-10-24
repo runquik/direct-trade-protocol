@@ -38,10 +38,36 @@ const accept=[
   ['a value equal to a member name','{"a":"a","b":"a"}'],
   ['names differing only in case','{"a":1,"A":2}'],
 ];
+// v0.4 numbers (#97): an integer is written as an optional minus sign and digits, nothing else.
+const numberReject=[
+  ['a zero fraction','{"threshold":1.0}'],
+  ['an exponent','{"threshold":1e0}'],
+  ['a capital exponent','{"threshold":1E0}'],
+  ['a signed exponent','{"n":1e+2}'],
+  ['a negative exponent that still denotes an integer','{"n":10E-1}'],
+  ['a decimal that binary64 rounds to an integer, but whose exact value is not one','{"threshold":1.0000000000000001}'],
+  ['a negative fraction','{"n":-1.5}'],
+  ['zero written with a fraction','{"n":0.0}'],
+  ['a fraction inside an array','{"a":[1,2.0]}'],
+  ['a fraction at depth','{"a":{"b":[{"c":3.0}]}}'],
+  ['a top-level number with a fraction','1.0'],
+];
+const numberAccept=[
+  ['integers','{"a":0,"b":1,"c":-1,"d":42}'],
+  ['the largest safe integer, written as digits','{"n":9007199254740991}'],
+  ['numbers as array elements','[1,-2,3]'],
+  ['decimal and exponent text inside string values','{"price":"1.0","note":"1e0 and 2.5E3"}'],
+  ['a member name containing a full stop and the letter e','{"a.e":1}'],
+  ['literals, which contain the letter e','[true,false,null]'],
+];
 const out={
   description:'JSON member-name safety. A receiver MUST refuse every text under "reject" BEFORE handing it to a JSON parser, and MUST accept every text under "accept". Each text is carried here as a string value; none appears as a member name.',
   rule:'An object member name must not be written with an escape sequence, and an object must not name the same member twice.',
-  reject:reject.map(([why,text,code='unsafe_member_name'])=>({why,text,code})),accept:accept.map(([why,text])=>({why,text}))};
+  reject:reject.map(([why,text,code='unsafe_member_name'])=>({why,text,code})),accept:accept.map(([why,text])=>({why,text})),
+  numbers:{
+    description:'v0.4 integer literals (SPEC section 2, #97). A v0.4 receiver MUST refuse every text under "reject" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under "accept". The rule is lexical, so it does not depend on how a parser converts numbers.',
+    rule:'A number is written as an optional minus sign followed by digits, with no fraction and no exponent.',
+    reject:numberReject.map(([why,text])=>({why,text,code:'non_integer_number'})),accept:numberAccept.map(([why,text])=>({why,text}))}};
 const text=JSON.stringify(out,null,2)+'\n';
 writeFileSync(new URL('../../spec/vectors/unsafe-json.json',import.meta.url),text);
-console.log('vectors:',reject.length,'reject,',accept.length,'accept');
+console.log('vectors:',reject.length,'reject,',accept.length,'accept,',numberReject.length,'number reject,',numberAccept.length,'number accept');

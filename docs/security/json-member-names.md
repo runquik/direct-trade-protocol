@@ -8,6 +8,8 @@ The reference implementation is `sdk/src/safe-json.ts`: `parseUntrustedJson`, `p
 
 **Duplicate names.** The same check refuses an object that names a member twice (I-JSON, RFC 7493 §2.3), with `duplicate_member_name`. Parsers keep the first value, the last, or fail; a signature verified over what one side parsed could then mean something else to the next reader. Because names carry no escapes, comparing the raw text of the names is exact. Vectors: the `duplicate_member_name` entries in `spec/vectors/unsafe-json.json`.
 
+**Integer literals (v0.4).** With the `integerNumbers` option, the same pass also refuses a number written with a fraction or an exponent, with `non_integer_number`. The v0.4 host and snapshot import turn it on; see SPEC §2, *Integer literals* ([#97](https://github.com/runquik/direct-trade-protocol/issues/97)). Vectors: `numbers` in `spec/vectors/unsafe-json.json`.
+
 ## Why
 
 Several widely deployed JavaScript engines misread member names. Within one isolate, once any JSON containing a member named with a single reverse solidus has been parsed, a later **single-character member name written with an escape sequence** is returned as a reverse solidus instead. The escaped newline, tab, quotation mark and solidus are affected, as are control characters and even an ordinary letter written as a Unicode escape. Values are not affected, names of two or more characters are not affected, and names written without an escape are not affected.
