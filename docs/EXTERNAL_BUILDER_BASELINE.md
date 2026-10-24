@@ -6,7 +6,7 @@ Everything below was verified on the tree that carries this document, on the pin
 
 ## 1. The supported baseline
 
-Pin the commit named in [Changes to the packed SDK since the first pin](#changes-to-the-packed-sdk-since-the-first-pin) below as the current pin; today that is `444a0c4`. The first pin was the merge of this document, `df13e4c` (built on `bb2ef80`, the merge of the business-fact profiles); it is stale, because later fixes changed what the packed SDK verifies and admits. Everything in one row of the table is meant to be used together; nothing across previews is meant to be combined by assumption.
+Pin the commit named in [Changes to the packed SDK since the first pin](#changes-to-the-packed-sdk-since-the-first-pin) below as the current pin; today that is `622c5d1`. The first pin was the merge of this document, `df13e4c` (built on `bb2ef80`, the merge of the business-fact profiles); it is stale, because later fixes changed what the packed SDK verifies and admits. Everything in one row of the table is meant to be used together; nothing across previews is meant to be combined by assumption.
 
 | Surface | Supported for this experiment | Where |
 |---|---|---|
@@ -30,6 +30,12 @@ The package version is still `0.2.0` at every commit below, and `npm pack` names
 | `d544182` | #53 | `@dtp/sdk/preview/foundation` (`identityLog`) | the retired-recovery fork rule; an earlier artifact admits the takeover in #50 | security |
 | `d292397` | #61 | `@dtp/sdk/preview/foundation` (`inventory2`) | adds `unpublishedPackaging`, the host rule snapshot import shares | additive |
 | `444a0c4` | #62 | `@dtp/sdk/preview/foundation` (`identityLog`) | refusals of a rehome are honoured, with the new reason `refused-move` | conformance |
+| `617a2ca` | #101 | `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | adds the `act` and `object` namespaces and the `object-v1` semantics label (`v04Profiles`, `v04Model`, the `profile.publish` schema) | additive |
+| `d734dcc` | #103 | `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | adds the `flow` namespace and the `flow-v1` semantics label | additive |
+| `84734b0` | #91 | `@dtp/sdk` (`canonicalize`, `assertSafeJsonText`), and every entry that signs or parses | the safe JSON parser refuses a duplicate member name (`duplicate_member_name`), and canonicalization refuses to sign a member name a receiver refuses; an earlier artifact accepts the first and signs the second | conformance |
+| `bf502db` | #67 | `@dtp/sdk/preview/foundation` (`identityLog`) | a refused move no longer strands an identity (#64); an earlier artifact cannot rehome after a `refused-move` | conformance |
+| `b737f1e` | #93 | `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | adds the `core1` namespace: one sign and one strict verify for every signed object | additive |
+| `622c5d1` | #105 | `@dtp/sdk/preview/foundation` (`inventory2`, `flow`) | within a fact, releases and fulfilments settle before move legs and reserves claim after them (#85), and `unpublishedPackaging` matches `base_units_per_pack` by decimal value (#99); an earlier artifact refuses the documented serialized shipment and a pack written as `"12.000"` for a revision published as `"12"` | conformance |
 
 **How the candidate and the foundation relate.** The 0.4 candidate is the served surface: the host, the command vocabulary, the records and the reads a module uses. The foundation layer ([`docs/foundation/README.md`](foundation/README.md)) is a set of portable libraries with published vectors: identity control and identity logs, organization genesis and governance, authority delegation, record datatypes, replayable change views, discovery and commitments. They are reachable from `@dtp/sdk/preview/foundation` and tested against their vectors, but **the 0.4 host does not serve them**: it does not authenticate with foundation identities, does not publish change views and does not accept foundation datatypes in payloads. Person and company identifiers in the two layers derive from different domains and are not the same identities. For this experiment a module uses the candidate only; foundation modules are experimental and must not be mixed in on the assumption that the host understands them. The frozen 0.2 store, the 0.3 authority preview and the onboarding preview host are separate systems and are not part of this baseline.
 
