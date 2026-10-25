@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { generateKeyPair } from "../../src/keys.ts";
 import type { Context, State } from "../../src/v04/model.ts";
-import { emptyState } from "../../src/v04/model.ts";
+import { emptyState, takeRecordSeq } from "../../src/v04/model.ts";
 import { execute } from "../../src/v04/engine.ts";
 import { draftCommand, signCommand, personId, organizationId, digest } from "../../src/v04/wire.ts";
 import { buildSnapshot, applySnapshot } from "../../src/v04/snapshot.ts";
@@ -80,7 +80,7 @@ async function source() {
     company.facts[inventoryKey(productId, body.observation.source_id, body.observation.sequence)] = { hash: await digest(body), record_id: id, policy_id: policy, profile_digest: invProfile };
     s.records[id] = {
       id, root_id: id, supersedes: null, organization_id: org, policy_id: policy, resource_id: productId, profile_digest: invProfile,
-      counterparty_ids: [], body, command, seq: s.next_seq++, is_head: true, accepted_at: new Date(ctx.now).toISOString(),
+      counterparty_ids: [], body, command, seq: takeRecordSeq(s, org), is_head: true, accepted_at: new Date(ctx.now).toISOString(),
       validation: { profile: INVENTORY2_PROFILE, revision: change.state.revision, physical_stock_verified: false },
     };
   };

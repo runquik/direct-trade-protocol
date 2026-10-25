@@ -44,9 +44,24 @@ export interface State { persons: Record<string, Person>; organizations: Record<
   records: Record<string, BusinessRecord>; inventory: Record<string, any>; remote_authorities: Record<string, RemoteAuthority>;
   outgoing: Record<string, OutboundMigration>; incoming: Record<string, InboundMigration>;
   receipts: Record<string, { hash: string; result: any; expires_at: number }>;
-  next_seq: number }
+  /** Next record sequence, per organization: a caller's `seq` values never count another company's writes. */
+  record_seq: Record<string, number> }
 export const emptyState = (): State => ({ persons: {}, organizations: {}, policies: {}, profiles: {}, releases: {}, records: {}, inventory: {},
-  remote_authorities: {}, outgoing: {}, incoming: {}, receipts: {}, next_seq: 1 });
+  remote_authorities: {}, outgoing: {}, incoming: {}, receipts: {}, record_seq: {} });
+/** The sequence the organization's next record takes. A store written before per-organization sequences
+ * has no counter yet; it continues after the organization's highest existing `seq`, so cursors stay monotonic. */
+export function nextRecordSeq(s: State, organizationId: string): number {
+  const stored = s.record_seq?.[organizationId];
+  if (stored !== undefined) return stored;
+  let highest = 0;
+  for (const r of Object.values(s.records)) if (r.organization_id === organizationId && r.seq > highest) highest = r.seq;
+  return highest + 1;
+}
+export function takeRecordSeq(s: State, organizationId: string): number {
+  const seq = nextRecordSeq(s, organizationId);
+  (s.record_seq ??= {})[organizationId] = seq + 1;
+  return seq;
+}
 export interface Context { audience: string; storeKey: KeyPair; pins: Record<string, string>; now: number;
   assessmentPins?: Record<string,string>; revokedAssessments?: string[];
   referenceProfiles?: Record<string,string[]>;
