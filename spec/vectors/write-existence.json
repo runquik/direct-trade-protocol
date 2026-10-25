@@ -1,0 +1,244 @@
+{
+  "description": "v0.4 candidate: what a refused write tells its caller about policies and records it cannot read. Each case is a scenario, not signed bytes. On one host, company C has a member, the caller, and three policies: \"writable\" grants the caller read and write on every resource, \"read-only\" grants it read only, \"hidden\" grants it nothing; \"absent\" is a policy id no company holds, and \"foreign\" is a policy of another company D on the same host. \"policy\" names the policy_id the caller's command carries; every other field is valid, with fresh resource, pool, book and product ids. For record.append the company has a private structural profile; a \"supersedes\" case writes into \"writable\" and names as predecessor: \"readable\", a head record of a different chain in \"writable\"; \"hidden\", a record in \"hidden\"; \"foreign\", a record of company D; \"absent\", an id no record has. A host must give the expected outcome: \"accept\", or a refusal with the given error code and HTTP status. Where a case names \"same_as\", its refusal must also be indistinguishable from that case's: the same status and the same error body. A host that answers otherwise is non-conforming. The rule is in spec/v0.4/SPEC.md section 4 (Refusals and existence).",
+  "rule": "A refused command tells its caller nothing about a policy or record the caller cannot read. A write naming a policy of the caller's company on which the caller cannot read the named resource is refused exactly as a write naming an absent policy is (404 not_found); a write the caller may read but not make is refused 403 forbidden. A predecessor named by supersedes that the caller cannot read, or that belongs to another company, is refused exactly as an absent predecessor is. The same holds for the recipient compartment of evidence.inspect.",
+  "cases": [
+    {
+      "name": "record.append into a compartment the caller writes",
+      "action": "record.append",
+      "policy": "writable",
+      "expected": "accept"
+    },
+    {
+      "name": "record.append into a compartment the caller only reads",
+      "action": "record.append",
+      "policy": "read-only",
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "record.append naming an absent policy",
+      "action": "record.append",
+      "policy": "absent",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "record.append into a compartment the caller cannot read",
+      "action": "record.append",
+      "policy": "hidden",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "record.append naming an absent policy"
+    },
+    {
+      "name": "record.append naming another company's policy",
+      "action": "record.append",
+      "policy": "foreign",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "record.append naming an absent policy"
+    },
+    {
+      "name": "inventory.create into a compartment the caller only reads",
+      "action": "inventory.create",
+      "policy": "read-only",
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "inventory.create naming an absent policy",
+      "action": "inventory.create",
+      "policy": "absent",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "inventory.create into a compartment the caller cannot read",
+      "action": "inventory.create",
+      "policy": "hidden",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "inventory.create naming an absent policy"
+    },
+    {
+      "name": "inventory.create naming another company's policy",
+      "action": "inventory.create",
+      "policy": "foreign",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "inventory.create naming an absent policy"
+    },
+    {
+      "name": "inventory.open into a compartment the caller only reads",
+      "action": "inventory.open",
+      "policy": "read-only",
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "inventory.open naming an absent policy",
+      "action": "inventory.open",
+      "policy": "absent",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "inventory.open into a compartment the caller cannot read",
+      "action": "inventory.open",
+      "policy": "hidden",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "inventory.open naming an absent policy"
+    },
+    {
+      "name": "inventory.open naming another company's policy",
+      "action": "inventory.open",
+      "policy": "foreign",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "inventory.open naming an absent policy"
+    },
+    {
+      "name": "flow.open into a compartment the caller only reads",
+      "action": "flow.open",
+      "policy": "read-only",
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "flow.open naming an absent policy",
+      "action": "flow.open",
+      "policy": "absent",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "flow.open into a compartment the caller cannot read",
+      "action": "flow.open",
+      "policy": "hidden",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "flow.open naming an absent policy"
+    },
+    {
+      "name": "flow.open naming another company's policy",
+      "action": "flow.open",
+      "policy": "foreign",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "flow.open naming an absent policy"
+    },
+    {
+      "name": "flow.ledger.open into a compartment the caller only reads",
+      "action": "flow.ledger.open",
+      "policy": "read-only",
+      "expected": {
+        "code": "forbidden",
+        "status": 403
+      }
+    },
+    {
+      "name": "flow.ledger.open naming an absent policy",
+      "action": "flow.ledger.open",
+      "policy": "absent",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      }
+    },
+    {
+      "name": "flow.ledger.open into a compartment the caller cannot read",
+      "action": "flow.ledger.open",
+      "policy": "hidden",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "flow.ledger.open naming an absent policy"
+    },
+    {
+      "name": "flow.ledger.open naming another company's policy",
+      "action": "flow.ledger.open",
+      "policy": "foreign",
+      "expected": {
+        "code": "not_found",
+        "status": 404
+      },
+      "same_as": "flow.ledger.open naming an absent policy"
+    },
+    {
+      "name": "record.append superseding a readable record from another chain",
+      "action": "record.append",
+      "policy": "writable",
+      "supersedes": "readable",
+      "expected": {
+        "code": "conflict",
+        "status": 409
+      }
+    },
+    {
+      "name": "record.append superseding an absent record",
+      "action": "record.append",
+      "policy": "writable",
+      "supersedes": "absent",
+      "expected": {
+        "code": "conflict",
+        "status": 409
+      }
+    },
+    {
+      "name": "record.append superseding a record in a compartment the caller cannot read",
+      "action": "record.append",
+      "policy": "writable",
+      "supersedes": "hidden",
+      "expected": {
+        "code": "conflict",
+        "status": 409
+      },
+      "same_as": "record.append superseding an absent record"
+    },
+    {
+      "name": "record.append superseding another company's record",
+      "action": "record.append",
+      "policy": "writable",
+      "supersedes": "foreign",
+      "expected": {
+        "code": "conflict",
+        "status": 409
+      },
+      "same_as": "record.append superseding an absent record"
+    }
+  ]
+}
