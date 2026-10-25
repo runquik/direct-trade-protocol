@@ -1,6 +1,7 @@
 // Deterministic candidate kernel. MUST execute in one transaction; discard state
 // on failure. Data policies are separate from organization administration.
 import type { BusinessRecord, Command, Context, DataAction, Organization, Policy, Profile, Release, State } from "./model.ts";
+import { nextRecordSeq, takeRecordSeq } from "./model.ts";
 import { demand, digest, exact, instant, organizationId, personId, same, uuid, validKey, validateCommand, verifyCommand, verifyAssessment, signToken, verifyToken } from "./wire.ts";
 import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, management, quorum, steward } from "./permissions.ts";
 import { expandKinds, profileContract, validateProfile, validateShape } from "./profiles.ts";
@@ -217,6 +218,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       demand(isDigest(p.profile_digest)&&Object.hasOwn(s.profiles,p.profile_digest),"unsupported_profile","pinned profile unavailable",422);const profile=s.profiles[p.profile_digest];demand(accessibleProfile(profile,o.id),"unsupported_profile","pinned profile unavailable",422);
       if(c.actor.kind==="installation")demand(s.releases[o.installations[c.actor.id].release_digest].profiles.includes(p.profile_digest),"forbidden","module does not declare this profile");
       if(previous){result=previous.result;break;}demand(!s.records[p.id]&&!migration.migrationResourceReserved(s,"records",p.id),"conflict","record ID exists or reserved",409);
+      const next=nextRecordSeq(s,o.id);demand(Number.isSafeInteger(next)&&next>=1&&next<Number.MAX_SAFE_INTEGER,"capacity","record sequence capacity exhausted",507);
       const before=p.supersedes?s.records[p.supersedes]:null;
       if(before)demand(before.is_head&&before.root_id===p.root_id&&before.organization_id===o.id&&before.policy_id===p.policy_id&&before.resource_id===p.resource_id&&before.profile_digest===p.profile_digest&&same(before.counterparty_ids,p.counterparty_ids)&&can(before.policy_id,before.resource_id,"read"),"conflict","record continuity failed",409);
       else demand(p.supersedes===null&&p.id===p.root_id,"conflict","predecessor missing or genesis invalid",409);
@@ -297,7 +299,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         company.pools[event.pool_id]=change.state;company.observations[obs]={hash:eventHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};validation={profile:"dtp.inventory/1",revision:change.state.revision,physical_stock_verified:false};
       }
       if(before)before.is_head=false;
-      s.records[p.id]={...structuredClone(p),command:structuredClone(c),seq:s.next_seq++,is_head:true,accepted_at:new Date(ctx.now).toISOString(),validation} as BusinessRecord;result={id:p.id,seq:s.records[p.id].seq,duplicate:false};break;
+      s.records[p.id]={...structuredClone(p),command:structuredClone(c),seq:takeRecordSeq(s,o.id),is_head:true,accepted_at:new Date(ctx.now).toISOString(),validation} as BusinessRecord;result={id:p.id,seq:s.records[p.id].seq,duplicate:false};break;
     }
     case "record.get": {
       exact(p,["id","profile_digest"]);id(p.id);const r=s.records[p.id];demand(r&&r.organization_id===currentOrg().id&&can(r.policy_id,r.resource_id,"read")&&understands(r.profile_digest),"not_found","record unavailable",404);

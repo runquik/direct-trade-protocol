@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { sha256Sync } from '../src/sha256.ts';
 import { encodeKeyId, encodeSecretKey } from '../src/keys.ts';
 import type { KeyPair } from '../src/keys.ts';
-import { emptyState } from '../src/v04/model.ts';
+import { emptyState, takeRecordSeq } from '../src/v04/model.ts';
 import type { BusinessRecord, Context, Snapshot, State } from '../src/v04/model.ts';
 import { execute } from '../src/v04/engine.ts';
 import { digest, draftCommand, organizationId, personId, signCommand } from '../src/v04/wire.ts';
@@ -97,7 +97,7 @@ async function source(variant: Variant): Promise<Snapshot> {
       validation = { profile: INVENTORY2_PROFILE, revision: change.state.revision, physical_stock_verified: false };
     }
     if (p.supersedes) s.records[p.supersedes].is_head = false;
-    s.records[p.id] = { ...structuredClone(p), command, seq: s.next_seq++, is_head: true, accepted_at: new Date(ctx.now).toISOString(), validation } as BusinessRecord;
+    s.records[p.id] = { ...structuredClone(p), command, seq: takeRecordSeq(s, ORG), is_head: true, accepted_at: new Date(ctx.now).toISOString(), validation } as BusinessRecord;
   };
 
   await call('person.register', null, { keys: [ownerKey.keyId] });

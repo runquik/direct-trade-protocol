@@ -133,9 +133,8 @@ export async function migrationReady(s: State, migrationId: string, ctx: Context
   demand(snapshot!.version === "0.4" && snapshot!.source === m.source.audience && snapshot!.organization.id === m.organization_id && snapshot!.organization.generation === m.generation && snapshot!.organization.status === "active", "invalid_snapshot", "snapshot identity differs", 400);
   demand(snapshot!.organization.controllers.includes(stage.manifest_token.body.actor_id), "invalid_snapshot", "migration initiator is not an exported controller");
   demand(Array.isArray(snapshot!.records),"invalid_snapshot","snapshot records are required",400);
-  const reservedSequences=Object.values(s.incoming).filter(other=>other!==stage && other.ready_token && !other.activated && !other.aborted).reduce((total,other)=>total+(other.snapshot?.records.length??0),0);
-  const nextSequence=s.next_seq+reservedSequences+snapshot!.records.length;
-  demand(m.generation<Number.MAX_SAFE_INTEGER && Number.isSafeInteger(s.next_seq) && s.next_seq>=1 && Number.isSafeInteger(nextSequence) && nextSequence<=Number.MAX_SAFE_INTEGER,"migration_capacity","destination sequence or generation capacity exhausted",507);
+  // The imported company gets its own record sequence, so other companies' counters and other staged imports do not limit it.
+  demand(m.generation<Number.MAX_SAFE_INTEGER && snapshot!.records.length<Number.MAX_SAFE_INTEGER,"migration_capacity","destination sequence or generation capacity exhausted",507);
   demand(!s.organizations[m.organization_id], "conflict", "company exists at destination", 409);
   await validateSnapshot(snapshot!, m);
   stage.snapshot = structuredClone(snapshot!);

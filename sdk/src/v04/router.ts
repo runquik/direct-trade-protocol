@@ -30,8 +30,6 @@ export async function handle(req:Request,deps:Dependencies):Promise<Response>{
       // all intervening writes must preserve this per-handoff safety margin.
       const readyStages=Object.values(state.incoming).filter(stage=>stage.ready_token&&!stage.activated&&!stage.aborted);
       const reserved=readyStages.length*65536;
-      const reservedSequences=readyStages.reduce((n,stage)=>n+(stage.snapshot?.records.length??0),0);
-      if(!Number.isSafeInteger(state.next_seq)||state.next_seq<1||reservedSequences>Number.MAX_SAFE_INTEGER-state.next_seq)throw new DtpError("capacity","record sequence capacity reserved for migration",507);
       const serialized=JSON.stringify(state);if(new TextEncoder().encode(serialized).length+reserved>(deps.maxStateBytes??128*1024*1024))throw new DtpError("capacity","candidate storage capacity or migration reservation exceeded",507);
       // Bind the already serialized value as text. postgres.js otherwise infers
       // JSONB and JSON.stringify's the string again, storing a JSON scalar.

@@ -17,7 +17,8 @@ import { verifyBytes, decodeSignature } from "../keys.ts";
 export function buildSnapshot(s: State, organizationId: string, ctx: Context): Snapshot {
   const organization = s.organizations[organizationId]; demand(organization, "not_found", "company unavailable", 404);
   const policies = Object.values(s.policies).filter(p => p.organization_id === organizationId);
-  const records = Object.values(s.records).filter(r => r.organization_id === organizationId).sort((a,b) => a.seq-b.seq);
+  // Renumbered 1..n in order: a record stored before per-organization sequences would otherwise carry gaps that count other companies' writes.
+  const records = Object.values(s.records).filter(r => r.organization_id === organizationId).sort((a,b) => a.seq-b.seq).map((r,i) => ({ ...r, seq: i+1 }));
   const releases = [...new Set([...Object.values(organization.installations).map(i => i.release_digest), ...Object.values(s.releases).filter(r => r.publisher_id === organizationId).map(r => r.digest)])].sort().map(d => s.releases[d]);
   demand(releases.every(Boolean), "invalid_snapshot", "installed release is missing");
   const profileIds = new Set([...records.map(r => r.profile_digest), ...releases.flatMap(r => r.profiles), ...Object.values(s.profiles).filter(p => p.publisher_id === organizationId).map(p => p.digest)]);
@@ -381,7 +382,10 @@ export async function applySnapshot(s: State, snap: Snapshot) {
   for (const p of snap.profiles) s.profiles[p.digest] = structuredClone(p);
   for (const p of snap.policies) s.policies[p.id] = structuredClone(p);
   for (const r of snap.releases) s.releases[r.digest] = structuredClone(r);
-  for (const r of snap.records) s.records[r.id] = { ...structuredClone(r), seq: s.next_seq++ };
+  // The company's records are numbered afresh in its own sequence; source-host numbers carry no meaning here.
+  let seq = 1;
+  for (const r of snap.records) s.records[r.id] = { ...structuredClone(r), seq: seq++ };
+  (s.record_seq ??= {})[snap.organization.id] = seq;
   const org = structuredClone(snap.organization); org.status = "active"; org.generation++;
   for (const installation of Object.values(org.installations)) installation.active = false;
   s.organizations[org.id] = org;
