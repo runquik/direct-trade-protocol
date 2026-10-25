@@ -61,10 +61,10 @@ test("inventory-v2 in the reference host: a ledger opens from the product head, 
     // A pack conversion the product never published is refused before the reducer sees it.
     const forged = structuredClone(f.facts[0].fact); forged.observation = { source_id: "wms", sequence: 500 }; forged.expected_revision = ledger.revision; forged.moves[0].quantity.unit = { system: "packaging", code: null, packaging_id: "case-12", version: "1", base_units_per_pack: "13" };
     const pinned = await client.act(owner, "record.append", org, record(org, pol, product_id, stockProfile, forged)); assert.equal(pinned.error.code, "unknown_packaging");
-    // A member without a grant on the product resource neither reads the ledger nor opens one.
+    // A member without a grant on the product resource neither reads the ledger nor opens one, and is not told the policy exists (#89).
     const staff = await person(client); await member(client, owner, org, staff);
     assert.equal((await client.act(staff, "inventory.ledger", org, { policy_id: pol, product_id })).status, 404);
-    assert.equal((await client.act(staff, "inventory.open", org, { policy_id: pol, product_id })).status, 403);
+    assert.equal((await client.act(staff, "inventory.open", org, { policy_id: pol, product_id })).status, 404);
   } finally { await store.close(); }
 });
 
