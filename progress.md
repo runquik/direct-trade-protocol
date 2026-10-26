@@ -84,7 +84,7 @@ The owner took decisions P1 to P14 of the [business-fact profiles proposal](docs
 
 Every profile has a document under `spec/profiles/<name>/<major>.md`, an exact contract and generated fixtures beside it, a portable validator or reducer reachable from both preview entries, host semantics enforced on write and on snapshot import, and a reader in `sdk/tests/interop` that agrees with the reference field by field. The readers are the same author's separately coded consumer agreement, not independent authorship; the promotion rule's two independent implementations, independent review and a second builder remain open.
 
-Findings recorded, not fixed: the v1 pool state keys reservations and observations by `JSON.stringify`, so a v1 pool carries member names with quotation marks that the repository's safe JSON parser refuses on the wire. (Corrected October 1: the v2 ledger itself is safe, but the host's `facts` map around it had the same fault; see the entry above.) The `H1/H2` items the implementer cited still exist under no such label.
+Findings recorded, not fixed: the v1 pool state keys reservations and observations by `JSON.stringify`, so a v1 pool carries member names with quotation marks that the repository's safe JSON parser refuses on the wire. (Corrected October 1: the v2 ledger itself is safe, but the host's `facts` map around it had the same fault. Both are fixed: since [#38](https://github.com/runquik/direct-trade-protocol/issues/38) every such map, the v1 pool's included, is keyed by digest; see the entry above.) The `H1/H2` items the implementer cited still exist under no such label.
 
 ## September 23: second implementer gap batch merged
 
