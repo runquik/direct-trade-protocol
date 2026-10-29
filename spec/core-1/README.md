@@ -58,7 +58,7 @@ An identity is not a verified legal person. It is self-certifying control over k
 - **A record** is a `Signed<Record>` under `DTP-RECORD-1`. Its body names its issuer (a person, or a person acting for an organisation), the identity-log head it was signed under, its profile by content digest (what kind of document it is), the record it supersedes if any (by digest, with the next sequence), and its payload. Core-1 checks the structure and the profile digest. What a payload means is the profile's business, not Core-1's.
 - **An exchange bundle** carries a record together with everything needed to verify it offline: the issuer's identity log up to and including the head the record names, and for a record issued for an organisation, the organisation's governance log showing the signer was a controller at that head. A recipient verifies the bundle with no network access and no host. A host may still add a short-lived freshness or delivery token, but no host token is needed to know who signed what, and for whom.
 
-**Open question for the bundle pull request: backdating.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both.
+**Open question for the bundle pull request: backdating.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both. Proposed answer, not decided: both, as S1 and S2 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), with the host's counter-signature as a signed log head (`DTP-LOG-HEAD-1`).
 
 ## The business vocabulary on top of Core-1
 
@@ -92,7 +92,7 @@ Each item is its own pull request with vectors, labelled `needs-owner`. Sequenci
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).
 3. **Identity** — the attestation and log rules above (hosts MUST attest, relying parties MUST keep the last log, format 1 withdrawn), with vectors.
-4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles.
+4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles. If S1, S2 and S20 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md) are decided, this step also carries the host receipt and the `stale_head` rule, and the signing-domain target becomes nine.
 5. **v0.4 on Core-1** — v0.4 hosts admit identities from logs and carry commands and tokens in the Core-1 envelope; the retired formats are removed.
 6. **Extensions and experimental** — move the optional layers out of the stable path and archive the legacy code; one README entry point.
 7. **Independent implementation** of Core-1 in a second language.
