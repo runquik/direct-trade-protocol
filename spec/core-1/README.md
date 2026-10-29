@@ -1,6 +1,6 @@
 # DTP Core-1
 
-**Status: approved by the owner on October 22, 2026, with two amendments (business vocabulary, time in business payloads); not released.** Core-1 is the smallest part of DTP that every implementation must have and that is enough for two parties who have never met to create identities and exchange a signed record each can verify, with no host in the loop. Everything else in DTP becomes an optional, separately versioned extension on top of it.
+**Status: approved by the owner on October 22, 2026, with two amendments (business vocabulary, time in business payloads) and, on October 29, 2026, a third (backdating and the signing-domain target, from the data-layer security proposal); not released.** Core-1 is the smallest part of DTP that every implementation must have and that is enough for two parties who have never met to create identities and exchange a signed record each can verify, with no host in the loop. Everything else in DTP becomes an optional, separately versioned extension on top of it.
 
 This document defines what Core-1 is and how today's layers converge on it. Each part lands in its own pull request with conformance vectors; the list at the end says which.
 
@@ -58,7 +58,7 @@ An identity is not a verified legal person. It is self-certifying control over k
 - **A record** is a `Signed<Record>` under `DTP-RECORD-1`. Its body names its issuer (a person, or a person acting for an organisation), the identity-log head it was signed under, its profile by content digest (what kind of document it is), the record it supersedes if any (by digest, with the next sequence), and its payload. Core-1 checks the structure and the profile digest. What a payload means is the profile's business, not Core-1's.
 - **An exchange bundle** carries a record together with everything needed to verify it offline: the issuer's identity log up to and including the head the record names, and for a record issued for an organisation, the organisation's governance log showing the signer was a controller at that head. A recipient verifies the bundle with no network access and no host. A host may still add a short-lived freshness or delivery token, but no host token is needed to know who signed what, and for whom.
 
-**Open question for the bundle pull request: backdating.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both.
+**Backdating, settled in the bundle pull request.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both. Decided by the owner on October 29, 2026: both, as S1 and S2 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), with the host's counter-signature as a signed log head (`DTP-LOG-HEAD-1`) carried in the bundle as the record's receipt, and the recipient rule refusing a stale head without one (`stale_head`).
 
 ## The business vocabulary on top of Core-1
 
@@ -83,7 +83,7 @@ Nothing here has been released, so these go without a migration: the v0.2 record
 
 - **The specification stands alone.** An implementer passes the Core-1 vectors from this document and the documents it links, without reading the reference SDK. Where the SDK and the text disagree, that is a defect.
 - **An independent implementation.** Before release, at least one implementation in a language other than TypeScript passes every Core-1 vector.
-- **Measures, tracked in each pull request:** words an implementer must read to pass the vectors (target under 8,000); Core-1 signing domains (target 8 or fewer: the seven above and `DTP-RECORD-1`); exported symbols of the stable SDK (target under 60).
+- **Measures, tracked in each pull request:** words an implementer must read to pass the vectors (target under 8,000); Core-1 signing domains (target 9 or fewer: the seven above, `DTP-RECORD-1` and `DTP-LOG-HEAD-1`; raised from 8 by S20 on October 29, 2026); exported symbols of the stable SDK (target under 60).
 
 ## Order of work
 
@@ -92,7 +92,7 @@ Each item is its own pull request with vectors, labelled `needs-owner`. Sequenci
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).
 3. **Identity** — the attestation and log rules above (hosts MUST attest, relying parties MUST keep the last log, format 1 withdrawn), with vectors.
-4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles.
+4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles. It also carries the host receipt (`DTP-LOG-HEAD-1`) and the `stale_head` rule (S1, S2 and S20 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), decided October 29, 2026).
 5. **v0.4 on Core-1** — v0.4 hosts admit identities from logs and carry commands and tokens in the Core-1 envelope; the retired formats are removed.
 6. **Extensions and experimental** — move the optional layers out of the stable path and archive the legacy code; one README entry point.
 7. **Independent implementation** of Core-1 in a second language.
