@@ -12,7 +12,7 @@ Pin the commit named in [Changes to the packed SDK since the first pin](#changes
 |---|---|---|
 | Specification | The 0.4 reference candidate: signed commands, people and companies, policies and grants, profiles and module releases, records and reads, bounds and error classes | [`spec/v0.4/SPEC.md`](../spec/v0.4/SPEC.md) sections 2 to 6 and 9; the command vocabulary in [`command.schema.json`](../spec/v0.4/command.schema.json) |
 | Wire conformance | Canonical JSON, safe-integer numbers, member-name rule, Ed25519 keys and signatures, the fixed signing vector | [`signing-vector.json`](../spec/v0.4/signing-vector.json), [`spec/vectors/canonicalization.json`](../spec/vectors/canonicalization.json), [`spec/vectors/unsafe-json.json`](../spec/vectors/unsafe-json.json), [`docs/security/json-member-names.md`](security/json-member-names.md) |
-| Domain contract | The registered protocol kinds `dtp/product@1` and `dtp/inventory@2` (and, registered but outside the first slice, `dtp/party@1`, `dtp/order@1`, `dtp/forecast@1`) | [`spec/profiles/index.json`](../spec/profiles/index.json) pins the exact contract digests; documents and fixtures under [`spec/profiles/`](../spec/profiles/) |
+| Domain contract | The registered protocol kinds `dtp/product@1` and `dtp/inventory@2` (and, registered but outside the first slice, `dtp/party@1`, `dtp/order@1`, `dtp/forecast@1`, `dtp/object@1`, `dtp/flow@1`) | [`spec/profiles/index.json`](../spec/profiles/index.json) pins the exact contract digests; documents and fixtures under [`spec/profiles/`](../spec/profiles/) |
 | SDK | `@dtp/sdk` 0.2.0, packed from the current pin; entries `@dtp/sdk`, `@dtp/sdk/preview/foundation`, `@dtp/sdk/preview` | section 2 |
 | Runtime | Node 22.23.2 ([`.node-version`](../.node-version)); the package's `engines` allows 22.23.2 up to, not including, 23 | |
 | Reference host | The disposable candidate host on embedded Postgres, configured from a file | [`sdk/scripts/dtp-v04-dev-server.ts`](../sdk/scripts/dtp-v04-dev-server.ts); section 3 |
@@ -54,7 +54,7 @@ cd sdk && npm ci && npm pack
 | Entry | Needs | Contents |
 |---|---|---|
 | `@dtp/sdk` | nothing | canonical JSON and SHA-256, Ed25519 keys and encodings, envelope signing, the safe JSON parser |
-| `@dtp/sdk/preview/foundation` | nothing | the above as namespaces, plus the profile validators and reducers (`product`, `inventory2`, `party`, `order`, `forecast`), the foundation libraries, the onboarding client |
+| `@dtp/sdk/preview/foundation` | nothing | the above as namespaces, plus the Core-1 sign and verify (`core1`), the profile validators and reducers (`product`, `inventory2`, `party`, `order`, `forecast`, `object`, `flow`, and the shared `act`), the foundation libraries, the onboarding client |
 | `@dtp/sdk/preview` | `@cfworker/json-schema` | the above plus the 0.4 candidate client side: `v04Wire` (id derivation, drafting, signing, digests), `v04Client` (`DtpClient`, `DtpResponseError`), `v04Profiles`, `v04Model`, `v04Permissions` |
 | `@dtp/sdk/preview/host` | a database, the repository | the host side; source only, not packed for consumers |
 
