@@ -1,6 +1,6 @@
 # Data-layer security: design proposal
 
-October 29, 2026. Status: **proposed, not decided.** Nothing here is implemented, reserved or normative. Section 11 lists the decisions (S1 to S20) with a recommendation for each; section 12 is the build order that would follow from them. S1 and S2 are proposed as the answer to the backdating question that [Core-1](../../spec/core-1/README.md) leaves open for its step 4 (records and bundles).
+October 29, 2026. Status: **decided, not implemented.** The owner took every decision in section 11 (S1 to S20) on October 29, 2026, as recommended. Nothing here is implemented, reserved or normative yet; section 11 is now the decision record and section 12 the build order that follows from it. S1 and S2 are the answer to the backdating question that [Core-1](../../spec/core-1/README.md) left open for its step 4 (records and bundles).
 
 ## 1. Where this comes from
 
@@ -134,7 +134,7 @@ Core-1 step 4 defines `DTP-RECORD-1` and the exchange bundle and must settle bac
 
 What this does and does not stop. A thief holding a rotated-out key, alone, cannot get a backdated record accepted: no honest host will accept it after `E[n+1]`, and a recipient without a receipt refuses it. A thief **and** a colluding host can sign a receipt with an early `accepted_at`, but must either append it after a head signed later than that time (refused by the time order in 5.2) or fork the log before that head (a fork any holder of the later head detects, S6). The remaining window is the time since the last head anyone outside the host holds. Because heads are re-signed and anchored every interval (S9), that window is at most one interval.
 
-**Measures.** S1 adds one signing domain, `DTP-LOG-HEAD-1`, and the RFC 9162 inclusion check to Core-1. Core-1's target is eight domains or fewer, and it has eight; S1 asks the owner to raise the target to nine (S20). The alternative, a per-record receipt domain now and a log head domain later, gives two receipt formats and the same count eventually.
+**Measures.** S1 adds one signing domain, `DTP-LOG-HEAD-1`, and the RFC 9162 inclusion check to Core-1. Core-1's target is eight domains or fewer, and it has eight; S20 raises the target to nine (decided October 29, 2026). The alternative, a per-record receipt domain now and a log head domain later, gives two receipt formats and the same count eventually.
 
 ### 5.4 The host signs what it computed (S4)
 
@@ -242,9 +242,9 @@ Running reducers in attested confidential-computing enclaves would protect plain
 
 ## 11. Decision record
 
-None of these is decided. The recommendation column is the proposal.
+Every row was decided by the owner on October 29, 2026, as recommended. The recommendation column is kept as the rationale.
 
-| # | Decision | Recommended |
+| # | Decision | Decided |
 |---|---|---|
 | S1 | A host signs every record it accepts as a `DTP-LOG-HEAD-1` log head at the size that first included it; the exchange bundle carries that receipt. Lands in Core-1 step 4. | Yes. |
 | S2 | Backdating: a receipt's `accepted_at` must precede the issuer's next head's effective instant; without a receipt, a recipient refuses a record naming a head older than one it has already admitted (`stale_head`). Lands in Core-1 step 4. | Yes. |
