@@ -375,7 +375,9 @@ export function projectInventory2(book: FlowBook, product_id: string) {
   for (const [k, p] of Object.entries(ledger.positions)) {
     if (p.position.owner !== null) continue;
     const position = { lot_id: p.position.lot_id, location_id: spell(p.position), status: p.position.status }, key = keyV2(position.lot_id, position.location_id, position.status);
-    positions[key] = { position, quantity: p.quantity, serials: [...p.serials] }; moved[k] = key;
+    const same = positions[key]; moved[k] = key;
+    // Positions that differ only in a location's record_id spell the same inventory@2 position: sum them, never overwrite (#133).
+    positions[key] = same ? { position, quantity: formatDecimal(parseDecimal(same.quantity, scaleOf(ledger), true) + parseDecimal(p.quantity, scaleOf(ledger), true), scaleOf(ledger)), serials: [...same.serials, ...p.serials].sort() } : { position, quantity: p.quantity, serials: [...p.serials] };
   }
   const reservations: Record<string, { position: string; quantity: string; party: string | null }> = {};
   for (const [id, r] of Object.entries(ledger.reservations)) if (moved[r.position]) reservations[id] = { position: moved[r.position], quantity: r.quantity, party: r.party?.minted_by === null ? r.party.root : null };
