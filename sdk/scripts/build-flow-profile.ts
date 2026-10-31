@@ -16,6 +16,7 @@ const BOOK = '0e0e0e0e-0e0e-4e0e-8e0e-0e0e0e0e0e0e', TOOLS = '0f0f0f0f-0f0f-4f0f
 const id = (n: number) => `${String(n).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const PEPPERS = id(1), VINEGAR = id(2), JARS = id(3), SAUCE = id(4), FERMENTER = id(5);
 const DOCK = id(11), SHELF = id(12), OPERATING = id(13), CREDIT_LINE = id(14), TRAILER = id(15), RETAILER_DC = id(16), RECIPE = id(17), KETTLE = id(18);
+const SHELF_REVISION = id(19);
 const INVOICE = id(21), SUPPLIER_BILL = id(22), PROMO_OWED = id(23), PROMO_DEDUCTION = id(24), RETAILER_PARTY = id(25), SUPPLIER_PARTY = id(26);
 const own = (root: string): ObjectRef => ({ minted_by: null, root, record_id: null });
 const theirs = (minted_by: string, root: string): ObjectRef => ({ minted_by, root, record_id: null });
@@ -104,6 +105,7 @@ const toolsSteps: [string, (b: FlowBook) => FlowFact][] = [
   ['reserve the company\'s own unit on the shelf: its position is now fully reserved', b => draft(b, { verb: 'move', source: 'orders', sequence: 1, ledgers: [G(FERMENTER)], reservations: [{ kind: 'reserve', reservation_id: 'so-77', asset: goods(FERMENTER), position: at(own(SHELF), 'B1'), quantity: q('1', ucum('{unit}')), party: own(RETAILER_PARTY) }] })],
   ['REFUSED insufficient_stock: shipping the reserved unit without settling its claim', b => draft(b, { verb: 'move', source: 'wms', sequence: 4, ledgers: [G(FERMENTER)], legs: [leg(goods(FERMENTER), at(own(SHELF), 'B1'), outside('~customer'), q('1', ucum('{unit}')), { serial_ids: ['FX-2'] })] })],
   ['ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)', b => draft(b, { verb: 'move', source: 'orders', sequence: 2, ledgers: [G(FERMENTER)], legs: [leg(goods(FERMENTER), at(own(SHELF), 'B1'), outside('~customer'), q('1', ucum('{unit}')), { serial_ids: ['FX-2'] })], reservations: [{ kind: 'release', reservation_id: 'so-77', asset: goods(FERMENTER), position: at(own(SHELF), 'B1'), quantity: q('1', ucum('{unit}')), party: null }] })],
+  ['receive two fermenters at the shelf in one fact, one leg naming the shelf and one an exact revision of it: two flow positions that the inventory@2 projection sums into one (#133)', b => draft(b, { verb: 'move', source: 'wms', sequence: 4, ledgers: [G(FERMENTER)], legs: [leg(goods(FERMENTER), outside('~supplier'), at(own(SHELF), 'B2'), q('1', ucum('{unit}')), { serial_ids: ['FX-4'] }), leg(goods(FERMENTER), outside('~supplier'), at({ minted_by: null, root: SHELF, record_id: SHELF_REVISION }, 'B2'), q('1', ucum('{unit}')), { serial_ids: ['FX-3'] })] })],
 ];
 const tools: Flow = { why: 'a serialized product in a second book: units by serial, consignment as a title transfer that leaves the goods in place', book_id: TOOLS, bridge: FERMENTER, openings: [{ kind: 'goods', product_id: FERMENTER, product: product('{unit}', 'serial') }], steps: () => [] };
 

@@ -3754,6 +3754,123 @@
             "ok": true,
             "duplicate": false
           }
+        },
+        {
+          "why": "receive two fermenters at the shelf in one fact, one leg naming the shelf and one an exact revision of it: two flow positions that the inventory@2 projection sums into one (#133)",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "observation": {
+                "source_id": "wms",
+                "sequence": 4
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
+                "expected_revision": 5,
+                "expected_digest": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-4"
+                ],
+                "reason": null
+              },
+              {
+                "asset": {
+                  "product": "00000005-0000-4000-8000-000000000005",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": null,
+                  "location": {
+                    "ref": null,
+                    "virtual": "~supplier"
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "B2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": "00000019-0000-4000-8000-000000000019"
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{unit}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": [
+                  "FX-3"
+                ],
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
         }
       ],
       "final": {
@@ -3770,8 +3887,8 @@
             "unit": "{unit}",
             "tracking": "serial",
             "balance": "nonnegative",
-            "revision": 5,
-            "head": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507",
+            "revision": 6,
+            "head": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718",
             "positions": {
               "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
                 "position": {
@@ -3795,6 +3912,44 @@
                 "serials": [
                   "FX-1"
                 ]
+              },
+              "1885992fbfbc40366aa4ade7084cbcf6ce62610fc9862fd95fa1fad981d12eb9": {
+                "position": {
+                  "lot_id": "B2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "1",
+                "serials": [
+                  "FX-4"
+                ]
+              },
+              "429a69a79c79ff99f696226f9471ca7d07c55527ed7aca7ce0053e95ba433590": {
+                "position": {
+                  "lot_id": "B2",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": "00000019-0000-4000-8000-000000000019"
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": "1",
+                "serials": [
+                  "FX-3"
+                ]
               }
             },
             "reservations": {}
@@ -3802,11 +3957,12 @@
         },
         "sources": {
           "wms": {
-            "high_water": 3,
+            "high_water": 4,
             "recent": {
               "1": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15",
               "2": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a",
-              "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+              "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b",
+              "4": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718"
             }
           },
           "orders": {
@@ -3830,8 +3986,21 @@
             "code": "{unit}"
           },
           "tracking": "serial",
-          "revision": 5,
-          "positions": {},
+          "revision": 6,
+          "positions": {
+            "7cb92f78198b1389f92d6be753b7389ca6ded71a6a3232bd5c8ada7bddfbe13d": {
+              "position": {
+                "lot_id": "B2",
+                "location_id": "00000012-0000-4000-8000-000000000012",
+                "status": "available"
+              },
+              "quantity": "2",
+              "serials": [
+                "FX-3",
+                "FX-4"
+              ]
+            }
+          },
           "reservations": {}
         }
       }
