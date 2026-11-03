@@ -39,6 +39,7 @@ jobs:
       - run: npx --yes deno@2.9.6 run --config ../supabase/functions/pbp-store/deno.json scripts/dtp-v04-runtime-probe.ts
       - run: npm run typecheck
       - run: npm test
+      - run: node --test ../scripts/merge-gate.test.mjs
       - run: npm run test:dtp-v04
       - run: npm run test:foundation
       - run: npm run test:onboarding
