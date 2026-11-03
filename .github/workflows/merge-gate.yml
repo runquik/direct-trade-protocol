@@ -10,6 +10,9 @@
 #
 # The job checks out main and never a pull request's code: pull_request_target runs with this repository's secrets,
 # and the gate only talks to the API.
+#
+# Each action is pinned to a full commit, its tag beside it: this job holds the App's key, so a tag moved upstream
+# must not change what runs here. To update one, resolve the new tag to its commit and replace both.
 name: Merge gate
 
 on:
@@ -39,17 +42,17 @@ jobs:
     env:
       GATE_APP_ID: ${{ secrets.GATE_APP_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: main
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .node-version
       - name: Mint the gate's token from its GitHub App
         id: app
         if: env.GATE_APP_ID != ''
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
           app-id: ${{ secrets.GATE_APP_ID }}
           private-key: ${{ secrets.GATE_APP_PRIVATE_KEY }}
