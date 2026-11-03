@@ -1,0 +1,63 @@
+# Merges what the owner decided or the red team reviewed (scripts/merge-gate.mjs, rules in teams/README.md, Merging),
+# within minutes of Protocol conformance going green: after every CI run, when a pull request is labelled
+# owner-approved or reviewed, gets commits or leaves draft, and every 15 minutes as a floor.
+#
+# Needs the owner's GitHub App `dtp-gate`, installed on this repository only, with Contents, Pull requests and Issues
+# read and write and Actions and Metadata read, as two repository secrets: GATE_APP_ID and GATE_APP_PRIVATE_KEY.
+# Each run mints a token that lives an hour and acts only here; merges show as dtp-gate[bot] and, unlike merges made
+# with the workflow's own token, start the push run of Protocol conformance on main. Until the secrets exist, each run
+# says so and merges nothing.
+#
+# The job checks out main and never a pull request's code: pull_request_target runs with this repository's secrets,
+# and the gate only talks to the API.
+name: Merge gate
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize, ready_for_review]
+  workflow_run:
+    workflows: [Protocol conformance]
+    types: [completed]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One sweep at a time: two could both decide to merge the same pull request (GitHub refuses the second, but needlessly).
+concurrency:
+  group: merge-gate
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    # A label other than these two changes nothing the gate decides on.
+    if: github.event_name != 'pull_request_target' || github.event.action != 'labeled' || github.event.label.name == 'owner-approved' || github.event.label.name == 'reviewed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GATE_APP_ID: ${{ secrets.GATE_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Mint the gate's token from its GitHub App
+        id: app
+        if: env.GATE_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.GATE_APP_ID }}
+          private-key: ${{ secrets.GATE_APP_PRIVATE_KEY }}
+      - name: Merge what is decided or reviewed
+        if: steps.app.outputs.token != ''
+        env:
+          GATE_TOKEN: ${{ steps.app.outputs.token }}
+        run: node scripts/merge-gate.mjs
+      - name: Say that nothing can merge yet
+        if: steps.app.outputs.token == ''
+        run: echo "::warning::GATE_APP_ID and GATE_APP_PRIVATE_KEY are not set (Settings → Secrets and variables → Actions). The merge gate merges nothing until the owner adds them."
