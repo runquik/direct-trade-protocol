@@ -19,7 +19,7 @@ const forecast = load('../../../spec/profiles/forecast/1/fixtures.json'), foreca
 
 test('order@1 fixtures: bodies, genesis statuses and continuity pairs are judged exactly; the contract and generator are reproducible', () => {
   assert.equal(order.kind, ORDER_KIND); assert.equal(order.profile, ORDER_PROFILE); assert.equal(order.semantics, ORDER_SEMANTICS);
-  assert.ok(order.accept.length >= 5 && order.reject.length >= 22 && order.continuity.accept.length >= 7 && order.continuity.reject.length >= 11);
+  assert.ok(order.accept.length >= 5 && order.reject.length >= 22 && order.continuity.accept.length >= 12 && order.continuity.reject.length >= 16);
   checkSchema(orderContract.schema);
   for (const v of order.accept) { assert.ok(validateShape(orderContract.schema, v.body), v.why); assert.deepEqual(validateOrder(v.body), [], v.why); }
   for (const v of order.reject) assert.ok(validateOrder(v.body).length > 0, v.why);
@@ -27,9 +27,9 @@ test('order@1 fixtures: bodies, genesis statuses and continuity pairs are judged
   for (const v of order.genesis.reject) assert.ok(checkOrderGenesis(v.body).length > 0, v.why);
   for (const v of order.continuity.accept) assert.deepEqual(checkOrderContinuity(v.previous, v.next), [], v.why);
   for (const v of order.continuity.reject) assert.ok(checkOrderContinuity(v.previous, v.next).length > 0, v.why);
-  // Every transition in the table is exercised by an accepted pair, and terminal states have no exits.
-  const exercised = new Set(order.continuity.accept.map((v: any) => `${v.previous.status}>${v.next.status}`).filter((t: string) => !t.startsWith('placed>placed')));
-  for (const [from, tos] of Object.entries(ORDER_TRANSITIONS)) for (const to of tos) if (to !== from) assert.ok(exercised.has(`${from}>${to}`), `${from} -> ${to} is exercised`);
+  // Every revision in the table, those that keep the status included, is exercised by an accepted pair, and terminal states have no exits.
+  const exercised = new Set(order.continuity.accept.map((v: any) => `${v.previous.status}>${v.next.status}`));
+  for (const [from, tos] of Object.entries(ORDER_TRANSITIONS)) for (const to of tos) assert.ok(exercised.has(`${from}>${to}`), `${from} -> ${to} is exercised`);
   for (const terminal of ['rejected', 'cancelled', 'closed']) assert.deepEqual(ORDER_TRANSITIONS[terminal], []);
   assert.deepEqual(orderContract, { publisher_id: 'dtp', name: 'order', version: '1.0.0', schema: ORDER_SCHEMA, semantics: ORDER_SEMANTICS, dependencies: [] });
   assert.equal(createHash('sha256').update(canonicalize(orderContract), 'utf8').digest('hex'), order.contract_digest);
