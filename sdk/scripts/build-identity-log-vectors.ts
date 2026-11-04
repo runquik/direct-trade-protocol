@@ -4,11 +4,12 @@
 // Format and rules: docs/foundation/identity-log.md.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { sha256Sync } from '../src/sha256.ts';
-import { canonicalBytes } from '../src/canonical.ts';
+import { canonicalBytes, sha256Hex } from '../src/canonical.ts';
 import { encodeKeyId, encodeSecretKey, encodeSignature, signBytes } from '../src/keys.ts';
 import type { KeyPair } from '../src/keys.ts';
 import { createIdentity, signIdentity, CLOCK_MARGIN_MS, LEASE_MS } from '../src/foundation/identity.ts';
-import type { Rehome, Signed, Transition } from '../src/foundation/identity.ts';
+import type { Control, Rehome, Resolution, Signed, Transition } from '../src/foundation/identity.ts';
+import { checkResolutionHead } from '../src/foundation/person-authentication.ts';
 import { attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, refuseRehome, verifyIdentityLog, verifyRehomeRefusal,
   HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, LEGACY_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, RehomeRefusal, ResolverPin } from '../src/foundation/identity-log.ts';
@@ -248,6 +249,21 @@ const refusalReject: Refusal[] = [
   ['a refusal with an extra member', theRehome, await rawRefusal({ ...refusal.body, note: 'x' } as unknown as RehomeRefusal, k['resolver-b'])],
   ['a refusal with two signatures', theRehome, { ...refusal, signatures: [refusal.signatures[0], (await rawRefusal(refusal.body, k.stranger)).signatures[0]] }],
 ];
+// The wallet's signing rule (#83): a wallet holding a log signs a person operation only over a resolution of the head it holds.
+const resolutionOver = async (head: Control, by: KeyPair, resolver_id: string, resolver_epoch: number, at = T + 1_000_000): Promise<Signed<Resolution>> =>
+  signIdentity<Resolution>('DTP-IDENTITY-RESOLUTION-1', { identity_id: id, audience: 'https://workspace.example', challenge: 'c'.repeat(64), resolver_id, resolver_epoch, head,
+    head_digest: await sha256Hex(canonicalBytes(head)), issued_at: at, expires_at: at + LEASE_MS }, [by]);
+const forged = (sequence: number): Control => ({ ...clone(bareHeads[bareHeads.length - 1].head), sequence, previous_digest: 'a'.repeat(64) });
+type Signing = [string, IdentityLog, Signed<Resolution>, boolean];
+const signing: Signing[] = [
+  ['a resolution over the head the wallet holds: sign', bare, await resolutionOver(bareHeads[3].head, k.resolver, resolverId, 0), true],
+  ['a resolution over a head far ahead that the owner never signed, keeping the owner\'s keys: refuse', bare, await resolutionOver(forged(1_000_000), k.resolver, resolverId, 0), false],
+  ['a resolution over a fabricated head at the next sequence: refuse', bare, await resolutionOver(forged(4), k.resolver, resolverId, 0), false],
+  ['a resolution over an earlier head of the wallet\'s own log: refuse', bare, await resolutionOver(bareHeads[2].head, k.resolver, resolverId, 0), false],
+  ['after a move, a resolution from the new resolver over the moved head: sign', moved, await resolutionOver(movedV.heads[5].head, k['resolver-b'], resolverB, 1), true],
+  ['after a move, the former resolver resolving the head before the move: refuse', moved, await resolutionOver(bareHeads[3].head, k.resolver, resolverId, 0), false],
+];
+
 type Contradiction = [string, Signed<RehomeRefusal>, IdentityLog, 'unrelated' | 'consistent' | 'equivocation'];
 const contradictions: Contradiction[] = [
   ['the refused rehome produced a head the destination attested: the destination equivocated, and the pair proves it', refusal, moved, 'equivocation'],
@@ -257,7 +273,7 @@ const contradictions: Contradiction[] = [
 ];
 
 const out = {
-  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
+  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
   format: IDENTITY_LOG_FORMAT, legacy_format: LEGACY_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
@@ -282,7 +298,13 @@ const out = {
     reject: refusalReject.map(([why, rehome, refusal]) => ({ why, rehome, refusal })),
     contradictions: contradictions.map(([why, refusal, log, expect]) => ({ why, refusal, log, expect })),
   },
+  signing: signing.map(([why, log, resolution, sign]) => ({ why, log, resolution, sign })),
 };
+for (const [why, log, resolution, sign] of signing) {
+  const held = await verifyIdentityLog(clone(log), { require_attestation: false });
+  const signed = await checkResolutionHead(clone(resolution), { head: held.head, head_digest: held.head_digest }).then(() => true, () => false);
+  if (signed !== sign) throw new Error(`generator: signing "${why}" gave ${signed}`);
+}
 for (const [why, rehome, bad] of refusalReject) {
   const refused = await verifyRehomeRefusal(clone(bad), clone(rehome)).then(() => false, () => true);
   if (!refused) throw new Error(`generator: the reference verifier accepted the refusal "${why}"`);
@@ -310,4 +332,4 @@ if (!process.argv.includes('--check')) writeFileSync(target, text);
 // A checkout may have converted line endings; the content is what must not drift.
 else if (readFileSync(target, 'utf8').replaceAll('\r\n', '\n') !== text) { console.error('spec/vectors/identity-log.json is stale; rerun this script without --check'); process.exit(1); }
 console.log('vectors:', out.accept.length, 'accept,', out.reject.length, 'reject,', out.precedence.length, 'precedence pairs,', out.admission.length, 'admissions,', out.push.length, 'pushes,',
-  out.refusals.accept.length + out.refusals.reject.length, 'refusals,', out.refusals.contradictions.length, 'contradictions');
+  out.refusals.accept.length + out.refusals.reject.length, 'refusals,', out.refusals.contradictions.length, 'contradictions,', out.signing.length, 'signing cases');
