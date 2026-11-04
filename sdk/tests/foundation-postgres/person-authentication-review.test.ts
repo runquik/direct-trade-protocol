@@ -58,7 +58,7 @@ test('person PostgreSQL independent: one durable person checkpoint serializes au
   const intent = other.request().intent as unknown as OperationIntent;
   const c = await db.transaction(tx => f.auth.issueChallenge(tx, { organization_id: other.organization_id, person_id: f.actor.id, intent, grant_id: grant.id }));
   const proof = (await issueResolution(f.identity, { identity_id: f.actor.id, audience: f.audience, challenge: c.nonce }, f.resolver, Date.now())).proof;
-  const request = await signPersonOperation({ intent, actor: f.actor, grant_id: grant.id, challenge: c, resolution: proof }, [f.operational]);
+  const request = await signPersonOperation({ intent, actor: f.actor, grant_id: grant.id, challenge: c, resolution: proof }, [f.operational], f.identity);
   let release!: () => void, entered!: () => void; const barrier = new Promise<void>(r => { release = r; }), reached = new Promise<void>(r => { entered = r; });
   const lock = db.transaction(async tx => { await tx.query('select sequence from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2 for update', [f.host_id, f.actor.id]); entered(); await barrier; }); void lock.catch(() => {});
   const marker = `person_scope_${crypto.randomUUID().replaceAll('-', '')}`;
