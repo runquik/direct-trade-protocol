@@ -38,7 +38,7 @@ async function setup() {
   const authenticate = async (state: IdentityState, key: KeyPair, signers: KeyPair[] = [f.ordinary], adapter = f.adapter, store = f.store) => {
     const i = f.intent(), challenge = await f.db.transaction(tx => adapter.issueChallenge(tx, { organization_id: f.organization_id, person_id: f.person.id, intent: i, grant_id: f.personGrant.id }));
     const resolution = (await issueResolution(state, { identity_id: f.person.id, audience: f.config.audience, challenge: challenge.nonce }, key, Date.now())).proof;
-    return store.execute(f.organization_id, await signPersonOperation({ intent: i, actor: f.person, grant_id: f.personGrant.id, challenge, resolution }, signers) as unknown as JsonObject);
+    return store.execute(f.organization_id, await signPersonOperation({ intent: i, actor: f.person, grant_id: f.personGrant.id, challenge, resolution }, signers, state) as unknown as JsonObject);
   };
   const admit = (log: IdentityLog, require_attestation = false, adapter = f.adapter, person_id = f.person.id) => f.db.transaction(tx => adapter.admitIdentityMove(tx, { person_id, log, require_attestation }));
   const row = async () => { const r = (await f.db.query<{ resolver_id: string; resolver_epoch: string; sequence: string; digest: string }>('select resolver_id,resolver_epoch,sequence,digest from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]))[0]; return { resolver_id: r.resolver_id, epoch: Number(r.resolver_epoch), sequence: Number(r.sequence), digest: r.digest }; };
