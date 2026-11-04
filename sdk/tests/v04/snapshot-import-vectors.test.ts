@@ -25,6 +25,7 @@ test("snapshot-import vectors: the base imports and the destination reproduces i
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(vectors.base.projections.inventory));
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(snap.inventory[org]), "the carried inventory is what replay produces");
   const kinds = new Set(snap.profiles.map(p => p.id));
+  assert.deepEqual(Object.keys(snap).sort(), ["inventory", "organization", "persons", "policies", "profiles", "records", "releases", "source", "version"], "the snapshot carries owned state only (#107)");
   for (const kind of ["dtp/product@1.0.0", "dtp/inventory@2.0.0", "dtp/party@1.0.0", "dtp/order@1.0.0", "dtp/forecast@1.0.0", "dtp/object@1.0.0", "dtp/flow@1.0.0"]) assert.ok(kinds.has(kind), `the base carries ${kind}`);
 });
 
@@ -44,6 +45,7 @@ const reasons: Record<string, RegExp> = {
   "object-class-changed": /object continuity violated/,
   "flow-fact-unpublished-pack": /flow fact pins a packaging revision the product had not published/,
   "flow-book-differs": /inventory projection differs from signed events/,
+  "carries-remote-authorities": /unexpected or missing snapshot members/,
 };
 
 test("snapshot-import vectors: every case is refused with invalid_snapshot, for the rule it names", async () => {

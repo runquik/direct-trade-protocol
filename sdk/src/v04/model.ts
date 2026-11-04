@@ -31,7 +31,7 @@ export interface SignedToken { body: Record<string, any>; key_id: string; signat
 export interface RemoteAuthority { token: SignedToken }
 export interface Snapshot { version: "0.4"; source: string; organization: Organization; persons: Person[];
   policies: Policy[]; profiles: Profile[]; releases: Release[]; records: BusinessRecord[];
-  remote_authorities: SignedToken[]; inventory: Record<string, any> }
+  inventory: Record<string, any> }
 export interface MigrationManifest { migration_id: string; organization_id: string; generation: number;
   source: { audience: string; key_id: string }; destination: { audience: string; key_id: string };
   snapshot_hash: string; byte_length: number; chunk_hashes: string[]; expires_at: string }
