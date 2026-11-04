@@ -324,6 +324,8 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       exact(p,["policy_id","product_id"]);id(p.product_id);const o=currentOrg();demand(can(p.policy_id,p.product_id,"write"),"forbidden","ledger write permission required");
       const product=Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===p.product_id&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1");
       demand(product&&can(product.policy_id,product.resource_id,"read")&&understands(product.profile_digest),"not_found","product unavailable",404);
+      // #130: the ledger belongs to the product's own policy, refused before the 409 so a refusal never reveals a ledger.
+      demand(product.policy_id===p.policy_id,"forbidden","a product's ledger opens under the product's policy");
       const company=inventoryState(s,o.id);if(previous){result=previous.result;break;}
       demand(!company.ledgers[p.product_id],"conflict","ledger exists",409);
       try{company.ledgers[p.product_id]={...openInventoryLedger(o.id,p.product_id,product.body as any),policy_id:p.policy_id};}catch{demand(false,"invalid_inventory","product cannot anchor a ledger",422);}

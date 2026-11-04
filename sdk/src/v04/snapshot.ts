@@ -222,6 +222,8 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       // The product's base unit and tracking are immutable, so any head of it anchors the same ledger.
       const product = snap.records.find(r => r.root_id === productId && r.is_head && candidate.profiles[r.profile_digest]?.semantics === "product-v1");
       demand(product, "invalid_snapshot", "ledger opened for a product the snapshot does not carry");
+      // #130: a product's ledger is opened under the product's own policy, which record continuity keeps fixed.
+      demand(product.policy_id === p.policy_id, "invalid_snapshot", "ledger opened under a policy other than its product's");
       try { rebuiltInventory.ledgers[productId] = {...openInventoryLedger(snap.organization.id,productId,product.body as any),policy_id:p.policy_id}; } catch { demand(false,"invalid_snapshot","product cannot anchor a ledger"); }
       rebuiltInventory.openings[productId] = structuredClone(opening);
     }
