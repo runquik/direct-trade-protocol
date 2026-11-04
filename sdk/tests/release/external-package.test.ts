@@ -3,10 +3,10 @@
 // by the same author, not independent conformance evidence.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { generateKeyPair } from '../../src/keys.ts';
 import { personId, draftCommand, signCommand } from '../../src/v04/wire.ts';
@@ -23,19 +23,59 @@ const run = (cwd: string, args: string[], env: Record<string, string> = {}) => n
   child.on('close', status => { clearTimeout(timer); resolve({ status, stdout, stderr }); });
 });
 
+// npm ships beside node; calling its CLI through process.execPath avoids depending on PATH or a shell.
+const npmCli = join(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js');
+
+/** Package names (not subpaths) of every bare import in the JavaScript under a directory. */
+function bareImports(dir: string): Set<string> {
+  const names = new Set<string>();
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) { for (const n of bareImports(path)) names.add(n); continue; }
+    if (!name.endsWith('.js')) continue;
+    const text = readFileSync(path, 'utf8');
+    const statics = text.matchAll(/^\s*(?:import|export)\b[^'"]*?\bfrom\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']/gm);
+    for (const match of [...statics, ...text.matchAll(/\bimport\(\s*["']([^"']+)["']\s*\)/g)]) {
+      const spec = match[1] ?? match[2];
+      if (spec.startsWith('.') || spec.startsWith('node:')) continue;
+      names.add(spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0]);
+    }
+  }
+  return names;
+}
+
+/** Copies the declared runtime dependencies, transitively, from the SDK's own node_modules into a consumer's. */
+function installDeclared(manifest: { dependencies?: Record<string, string> }, modules: string) {
+  for (const name of Object.keys(manifest.dependencies ?? {})) {
+    const target = join(modules, name);
+    if (existsSync(target)) continue;
+    cpSync(join(sdk, 'node_modules', name), target, { recursive: true });
+    installDeclared(JSON.parse(readFileSync(join(target, 'package.json'), 'utf8')), modules);
+  }
+}
+
 test('the packed SDK loads from a consumer node_modules and the external module example runs against a file-configured host', async () => {
   const root = mkdtempSync(join(tmpdir(), 'dtp-external-package-'));
   try {
-    // 1. Emit the package exactly as `npm pack` does (its prepack hook runs build:package).
-    const build = await run(sdk, [join(sdk, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.build.json', '--outDir', join(root, 'dist')]);
-    assert.equal(build.status, 0, build.stdout + build.stderr);
+    // 1. Pack the real artifact with `npm pack` (its prepack hook runs build:package) and unpack it into a consumer's
+    // node_modules, so the shipped manifest and its `files` list are what the consumer gets. Packing needs no network.
+    const pack = await run(sdk, [npmCli, 'pack', '--json', '--pack-destination', root]);
+    assert.equal(pack.status, 0, pack.stdout + pack.stderr);
+    const [{ filename }] = JSON.parse(pack.stdout.slice(pack.stdout.indexOf('[')));
     const pkg = join(root, 'node_modules/@dtp/sdk');
     mkdirSync(pkg, { recursive: true });
-    cpSync(join(root, 'dist'), join(pkg, 'dist'), { recursive: true });
-    const manifest = JSON.parse(readFileSync(join(sdk, 'package.json'), 'utf8'));
-    writeFileSync(join(pkg, 'package.json'), JSON.stringify({ name: manifest.name, version: manifest.version, type: 'module', exports: manifest.exports }));
-    cpSync(join(sdk, 'node_modules/@cfworker'), join(root, 'node_modules/@cfworker'), { recursive: true });
-    for (const entry of ['index', 'preview', 'preview-foundation']) for (const ext of ['.js', '.d.ts']) readFileSync(join(pkg, 'dist', entry + ext));
+    const untar = spawnSync('tar', ['-xzf', join(root, filename), '-C', pkg, '--strip-components=1'], { encoding: 'utf8' });
+    assert.equal(untar.status, 0, untar.stderr);
+    const manifest = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8'));
+    for (const entry of ['index', 'preview', 'preview-foundation']) for (const ext of ['.js', '.d.ts'])
+      assert.ok(existsSync(join(pkg, 'dist', entry + ext)), `the tarball ships dist/${entry}${ext}`);
+    // Every package the shipped JavaScript imports is a runtime dependency of the shipped manifest, not a devDependency.
+    const declared = Object.keys(manifest.dependencies ?? {});
+    const imported = bareImports(join(pkg, 'dist'));
+    assert.ok(imported.size > 0, 'control: the walk finds the package the preview entry imports');
+    for (const specifier of imported) assert.ok(declared.includes(specifier), `${specifier} is imported by dist/ but not declared in dependencies`);
+    // Only what the manifest declares (and what those packages declare) is installed, as `npm install <tgz>` would.
+    installDeclared(manifest, join(root, 'node_modules'));
 
     // 2. Every portable entry loads by bare specifier from node_modules on this runtime: no type stripping, no repository paths.
     writeFileSync(join(root, 'probe.mjs'), [
