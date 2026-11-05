@@ -25,7 +25,7 @@ test("snapshot-import vectors: the base imports and the destination reproduces i
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(vectors.base.projections.inventory));
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(snap.inventory[org]), "the carried inventory is what replay produces");
   const kinds = new Set(snap.profiles.map(p => p.id));
-  for (const kind of ["dtp/product@1.0.0", "dtp/inventory@2.0.0", "dtp/party@1.0.0", "dtp/order@1.0.0", "dtp/forecast@1.0.0"]) assert.ok(kinds.has(kind), `the base carries ${kind}`);
+  for (const kind of ["dtp/product@1.0.0", "dtp/inventory@2.0.0", "dtp/party@1.0.0", "dtp/order@1.0.0", "dtp/forecast@1.0.0", "dtp/object@1.0.0", "dtp/flow@1.0.0"]) assert.ok(kinds.has(kind), `the base carries ${kind}`);
 });
 
 // The reference refusal for each case: the code is normative, the message pins that the case breaks the rule it names
@@ -41,6 +41,9 @@ const reasons: Record<string, RegExp> = {
   "party-kind-changed": /party continuity violated/,
   "person-party-business-policy": /person party outside a personnel policy/,
   "ledger-projection-differs": /inventory projection differs from signed events/,
+  "object-class-changed": /object continuity violated/,
+  "flow-fact-unpublished-pack": /flow fact pins a packaging revision the product had not published/,
+  "flow-book-differs": /inventory projection differs from signed events/,
 };
 
 test("snapshot-import vectors: every case is refused with invalid_snapshot, for the rule it names", async () => {

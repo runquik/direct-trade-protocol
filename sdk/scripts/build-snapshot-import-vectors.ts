@@ -1,5 +1,5 @@
 // Builds spec/vectors/snapshot-import.json (#63): whole, signed v0.4 snapshots a conforming host MUST import or MUST
-// refuse at `migration.ready`. One base snapshot carries one company with the five registered business-fact kinds;
+// refuse at `migration.ready`. One base snapshot carries one company with the seven registered business-fact kinds;
 // each case is the same company with exactly one host import rule broken and every affected command re-signed, so a
 // consumer runs its real import path and never has to sign anything. Keys, instants and IDs are fixed and Ed25519
 // signatures are deterministic, so rerunning this must leave the file unchanged; `--check` compares without writing.
@@ -20,6 +20,8 @@ import { ORDER_PROFILE } from '../src/profiles/order.ts';
 import { FORECAST_PROFILE } from '../src/profiles/forecast.ts';
 import { PARTY_PROFILE } from '../src/profiles/party.ts';
 import { INVENTORY2_PROFILE } from '../src/profiles/inventory2.ts';
+import { OBJECT_PROFILE } from '../src/profiles/object.ts';
+import { FLOW_PROFILE, applyFlowFact, goodsLedgerKey } from '../src/profiles/flow.ts';
 import { loadProtocolProfiles } from './dtp-v04-dev-server.ts';
 
 const PKCS8 = [0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20];
@@ -37,12 +39,12 @@ const ORG = await organizationId(owner.id, NONCE);
 /** Fixed IDs: one namespace per role, so a case that adds a record never renumbers the base. */
 const fixedId = (role: number, n: number) => `${role.toString(16).padStart(8, '0')}-0000-4000-8000-${n.toString(16).padStart(12, '0')}`;
 const POLICY = fixedId(1, 1), PRODUCT = fixedId(2, 1), PRODUCT_V2 = fixedId(2, 2), PARTY = fixedId(3, 1), ORDER = fixedId(4, 1), ORDER_ACK = fixedId(4, 2);
-const FORECAST = fixedId(5, 1), FACT_1 = fixedId(6, 1), FACT_2 = fixedId(6, 2);
+const FORECAST = fixedId(5, 1), FACT_1 = fixedId(6, 1), FACT_2 = fixedId(6, 2), DOCK = fixedId(7, 1), BOOK = fixedId(8, 1), FLOW_FACT = fixedId(9, 1);
 
 const protocol = await loadProtocolProfiles();
 const fixtures = (p: string) => JSON.parse(readFileSync(new URL(`../../spec/profiles/${p}/fixtures.json`, import.meta.url), 'utf8'));
 const contract = { product: fixtures('product/1').contract_digest, inventory: fixtures('inventory/2').contract_digest, party: fixtures('party/1').contract_digest,
-  order: fixtures('order/1').contract_digest, forecast: fixtures('forecast/1').contract_digest } as const;
+  order: fixtures('order/1').contract_digest, forecast: fixtures('forecast/1').contract_digest, object: fixtures('object/1').contract_digest, flow: fixtures('flow/1').contract_digest } as const;
 for (const d of Object.values(contract)) if (!protocol.protocolProfiles[d]) throw new Error(`registered contract ${d} is missing`);
 
 // Bodies. Every body passes its profile; the cases below change one thing.
@@ -67,9 +69,21 @@ const orderBody = (status: string, lines?: unknown[]) => ({ buyer: { self: true,
 const FORECAST_BODY = { subject: { product_id: PRODUCT, description: null }, party_id: PARTY, direction: 'demand', horizon: { start: '2026-10-01', end: '2026-12-31' },
   as_of: '2026-09-01T06:00:00.000Z', method: 'trailing 12-week average', quantity: { amount: '600', unit: { system: 'ucum', code: '{jar}', packaging_id: null, version: null, base_units_per_pack: null } },
   confidence: 60, scenario: 'base', status: 'draft' };
+const DOCK_BODY = { class: 'dtp/location', label: 'Synthetic dock', identifiers: [], status: 'active', retired: null, evidence: [] };
+const GOODS = goodsLedgerKey(PRODUCT);
+const ucumJar = { system: 'ucum', code: '{jar}', packaging_id: null, version: null, base_units_per_pack: null };
+const flowFact = (sequence: number, expected_revision: number, expected_digest: string | null, amount: string, unit: unknown) => ({
+  act: { verb: 'move', occurred_at: new Date(T + (10 + sequence) * 3_600_000).toISOString(), observation: { source_id: 'dock-scanner', sequence }, basis: 'measured', references: [], evidence: [] },
+  ledgers: [{ key: GOODS, expected_revision, expected_digest }],
+  legs: [{ asset: { product: PRODUCT, currency: null }, from: { lot_id: null, location: { ref: null, virtual: '~supplier' }, status: 'available', owner: null },
+    to: { lot_id: 'LOT-B', location: { ref: { minted_by: null, root: DOCK, record_id: null }, virtual: null }, status: 'available', owner: null },
+    quantity: { amount, unit }, serial_ids: null, reason: null }],
+  reservations: [], transform: null, rights: null, settles: [] });
+const FLOW_FACT_BODY = flowFact(1, 0, null, '3', ucumJar);
 
 type Variant = 'base' | 'fact-unpublished-pack' | 'fact-pack-before-published' | 'product-drops-packaging' | 'product-alters-packaging' | 'order-born-acknowledged'
-  | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs';
+  | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs'
+  | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs';
 
 /** Runs the company's history on a source host. A case writes one record the way a host that skipped the rule would. */
 async function source(variant: Variant): Promise<Snapshot> {
@@ -88,13 +102,20 @@ async function source(variant: Variant): Promise<Snapshot> {
   /** Writes a signed record without the host rule under test, keeping every projection the rule does not cover consistent. */
   const inject = async (...a: Parameters<typeof payload>) => {
     const p = payload(...a), command = await signed('record.append', ORG, p);
-    let validation: any = { profile: { [contract.product]: PRODUCT_PROFILE, [contract.order]: ORDER_PROFILE, [contract.forecast]: FORECAST_PROFILE, [contract.party]: PARTY_PROFILE }[p.profile_digest], level: 'business-rules', business_verified: false };
+    let validation: any = { profile: { [contract.product]: PRODUCT_PROFILE, [contract.order]: ORDER_PROFILE, [contract.forecast]: FORECAST_PROFILE, [contract.party]: PARTY_PROFILE, [contract.object]: OBJECT_PROFILE }[p.profile_digest], level: 'business-rules', business_verified: false };
     if (p.profile_digest === contract.inventory) {
       const company = s.inventory[ORG]!, change = applyInventoryFact(company.ledgers[PRODUCT], p.body as any);
       if (!change.ok) throw new Error(`${variant}: the reducer refuses the injected fact`);
       company.ledgers[PRODUCT] = { ...change.state, policy_id: POLICY };
       const b = p.body as any; company.facts[inventoryKey(b.product_id, b.observation.source_id, b.observation.sequence)] = { hash: await digest(b), record_id: p.id, policy_id: POLICY, profile_digest: p.profile_digest };
       validation = { profile: INVENTORY2_PROFILE, revision: change.state.revision, physical_stock_verified: false };
+    }
+    if (p.profile_digest === contract.flow) {
+      const company = s.inventory[ORG]!, { policy_id, ...book } = company.books[p.resource_id], change = applyFlowFact(book as any, p.body as any);
+      if (!change.ok || change.duplicate) throw new Error(`${variant}: the reducer refuses the injected flow fact`);
+      company.books[p.resource_id] = { ...change.state, policy_id };
+      const b = p.body as any; company.flow_facts[inventoryKey(p.resource_id, b.act.observation.source_id, b.act.observation.sequence)] = { hash: await digest(b), record_id: p.id, policy_id: POLICY, profile_digest: p.profile_digest };
+      validation = { profile: FLOW_PROFILE, revisions: Object.fromEntries(b.ledgers.map((l: any) => [l.key, change.state.ledgers[l.key].revision])), physical_stock_verified: false };
     }
     if (p.supersedes) s.records[p.supersedes].is_head = false;
     s.records[p.id] = { ...structuredClone(p), command, seq: s.next_seq++, is_head: true, accepted_at: new Date(ctx.now).toISOString(), validation } as BusinessRecord;
@@ -137,11 +158,27 @@ async function source(variant: Variant): Promise<Snapshot> {
   if (variant === 'forecast-subject-changed')
     await inject(fixedId(5, 2), FORECAST, FORECAST, contract.forecast, FORECAST, { ...FORECAST_BODY, subject: { product_id: null, description: 'Synthetic Sauce, all sizes' }, as_of: '2026-09-02T06:00:00.000Z' });
 
+  await append(DOCK, DOCK, null, contract.object, DOCK, DOCK_BODY);
+  if (variant === 'object-class-changed') await inject(fixedId(7, 2), DOCK, DOCK, contract.object, DOCK, { ...DOCK_BODY, class: 'dtp/vehicle' });
+
+  await call('flow.open', ORG, { policy_id: POLICY, book_id: BOOK });
+  await call('flow.ledger.open', ORG, { policy_id: POLICY, book_id: BOOK, asset: { product: PRODUCT, currency: null }, account: null, balance: 'nonnegative' });
+  await append(FLOW_FACT, FLOW_FACT, null, contract.flow, BOOK, FLOW_FACT_BODY);
+  if (variant === 'flow-fact-unpublished-pack') {
+    const ledger = s.inventory[ORG]!.books[BOOK].ledgers[GOODS];
+    await inject(fixedId(9, 2), fixedId(9, 2), null, contract.flow, BOOK, flowFact(2, ledger.revision, ledger.head, '1', packUnit('1', '600000.000')));
+  }
+
   const snapshot = buildSnapshot(s, ORG, ctx);
   // Not a signed record: the carried ledger claims stock its signed facts do not produce.
   if (variant === 'ledger-projection-differs') {
     const ledger = snapshot.inventory[ORG].ledgers[PRODUCT], position = Object.values(ledger.positions as Record<string, { quantity: string }>)[0];
     position.quantity = (Number(position.quantity) + 1).toFixed(3);
+  }
+  // Not a signed record: the carried flow book claims goods its signed facts do not produce.
+  if (variant === 'flow-book-differs') {
+    const ledger = snapshot.inventory[ORG].books[BOOK].ledgers[GOODS], position = Object.values(ledger.positions as Record<string, { quantity: string }>)[0];
+    position.quantity = String(Number(position.quantity) + 1);
   }
   return snapshot;
 }
@@ -157,6 +194,9 @@ const CASES: [Variant, string, string][] = [
   ['party-kind-changed', 'party continuity', 'a party revision that changes its kind from organization to unit'],
   ['person-party-business-policy', 'personnel classification', 'a person party held under a business-classified policy'],
   ['ledger-projection-differs', 'inventory replay', 'the carried inventory@2 ledger holds one more jar than replaying its signed facts produces; no signature is changed'],
+  ['object-class-changed', 'object continuity', 'an object@1 revision that changes its class from dtp/location to dtp/vehicle'],
+  ['flow-fact-unpublished-pack', 'packaging pin (#59)', 'a flow@1 fact pins a pack conversion (600000 base units per case-6 v1) that no product revision published'],
+  ['flow-book-differs', 'flow replay', 'the carried flow@1 book holds one more jar than replaying its signed openings and facts produces; no signature is changed'],
 ];
 
 const refusal = async (snap: Snapshot) => { try { await applySnapshot(emptyState(), structuredClone(snap)); return null; } catch (e: any) { return e?.code ?? String(e); } };
@@ -172,7 +212,7 @@ for (const [name, rule, why] of CASES) {
 }
 
 const out = {
-  description: 'v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the five registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order and a forecast. A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.',
+  description: 'v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location. A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.',
   rule: 'Import replays every signed command and record; it refuses with invalid_snapshot any record a live host would have refused when it was recorded, and any carried projection that replay does not reproduce.',
   keys: { owner: { key_id: ownerKey.keyId, secret_key: ownerKey.secretKey }, source_host: { key_id: storeKey.keyId } },
   base: { expect: 'import', projections: { heads, inventory: dest.inventory[ORG] }, snapshot: base },
