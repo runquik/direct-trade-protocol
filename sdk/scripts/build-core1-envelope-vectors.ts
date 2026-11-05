@@ -18,9 +18,13 @@ let s = 0n; for (let i = 63; i >= 32; i--) s = (s << 8n) + BigInt(raw[i]);
 const bumped = s + L, highS = raw.slice();
 for (let i = 32, v = bumped; i < 64; i++, v >>= 8n) highS[i] = Number(v & 0xffn);
 
+// Core-1 part 1: a signed body nests at most 48 levels; the body is level 0 and each array adds one.
+const nested = (depth: number): unknown => { let v: unknown = 0; for (let i = 0; i < depth; i++) v = [v]; return v; };
+
 const accept = [
   { why: "a record signed by one key", domain: "DTP-RECORD-1", envelope: signed, signers: [keyId] },
   { why: "an identity genesis body under its domain", domain: "DTP-PERSON-GENESIS-1", envelope: await signEnvelope("DTP-PERSON-GENESIS-1", { identity_hint: "", operational: { keys: [keyId], threshold: 1 }, created_at: 1760000000000 }, [secret]), signers: [keyId] },
+  { why: "a body nested exactly 48 levels deep, the Core-1 limit", domain: "DTP-RECORD-1", envelope: await signEnvelope("DTP-RECORD-1", nested(48), [secret]), signers: [keyId] },
 ];
 const reject = [
   { why: "verified under another domain than it was signed under", domain: "DTP-PERSON-GENESIS-1", envelope: signed, code: "invalid_signature" },
@@ -35,6 +39,9 @@ const reject = [
   { why: "a body holding a number with a fraction", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, sequence: 1.5 } }, code: "invalid_envelope" },
   { why: "a body holding an integer beyond 2^53-1", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, sequence: 2 ** 53 } }, code: "invalid_envelope" },
   { why: "a body holding a lone surrogate in a string value", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, payload: { ...record.payload, note: "caf\ud800" } } }, code: "invalid_envelope" },
+  // The reference cannot sign this body (signing refuses it too), so the signature is the base record's: the depth
+  // is checked before any signature, and a verifier that skipped the check would answer invalid_signature instead.
+  { why: "a body nested 49 levels deep, one past the Core-1 limit", domain: "DTP-RECORD-1", envelope: { body: nested(49), signatures: signed.signatures }, code: "invalid_envelope" },
 ];
 
 mkdirSync(new URL("../../spec/core-1/vectors/", import.meta.url), { recursive: true });

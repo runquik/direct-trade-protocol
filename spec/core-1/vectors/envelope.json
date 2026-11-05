@@ -49,6 +49,118 @@
       "signers": [
         "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
       ]
+    },
+    {
+      "why": "a body nested exactly 48 levels deep, the Core-1 limit",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        0
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                ]
+                                                                                              ]
+                                                                                            ]
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                    ]
+                                                                                  ]
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:3rkskY8fLGbBrD4DJ9no7Uu1XJqNx6K9LUpd9JStBUGNTAytFEHhKG5VWBqXmfwN6uqoeGmsL5TJibcT2ac7nrvX"
+          }
+        ]
+      },
+      "signers": [
+        "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+      ]
     }
   ],
   "reject": [
@@ -308,6 +420,118 @@
             "amount": "12.50"
           }
         },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a body nested 49 levels deep, one past the Core-1 limit",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        [
+                                                                                                          0
+                                                                                                        ]
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                ]
+                                                                                              ]
+                                                                                            ]
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                    ]
+                                                                                  ]
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
         "signatures": [
           {
             "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
