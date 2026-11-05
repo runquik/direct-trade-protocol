@@ -52,7 +52,7 @@
     "sign": "node scripts/sign.ts"
   },
   "dependencies": {
-    "@cfworker/json-schema": "^4.1.1"
+    "@cfworker/json-schema": "4.1.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
