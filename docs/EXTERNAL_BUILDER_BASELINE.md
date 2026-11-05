@@ -49,7 +49,7 @@ Until this change, the package's entries pointed at TypeScript sources, which No
 cd sdk && npm ci && npm pack
 ```
 
-`npm pack` runs the `prepack` hook, which builds `dist/` with [`tsconfig.build.json`](../sdk/tsconfig.build.json) and produces `dtp-sdk-0.2.0.tgz`. Record the integrity hash npm prints beside the commit; that pair is the version of the artifact. A consumer installs it by path (`npm install ../path/to/dtp-sdk-0.2.0.tgz`), which also installs the one runtime dependency of the `preview` entry, `@cfworker/json-schema`.
+`npm pack` runs the `prepack` hook, which builds `dist/` with [`tsconfig.build.json`](../sdk/tsconfig.build.json) and produces `dtp-sdk-0.2.0.tgz`. Record the integrity hash npm prints beside the commit; that pair is the version of the artifact. A consumer installs it by path (`npm install ../path/to/dtp-sdk-0.2.0.tgz`), which also installs the one runtime dependency of the `preview` entry, `@cfworker/json-schema`. The tarball carries no lockfile and its integrity hash does not cover that dependency, so `package.json` pins it to an exact version (4.1.1, the one the conformance suite runs) and [`dependency-pin.test.ts`](../sdk/tests/release/dependency-pin.test.ts) keeps the pin and the lockfile in step; moving it is a reviewed baseline change.
 
 | Entry | Needs | Contents |
 |---|---|---|
