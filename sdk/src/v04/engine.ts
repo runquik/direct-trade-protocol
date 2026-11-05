@@ -286,6 +286,8 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         demand(!flowUnpublishedPackaging(fact,productHead),"unknown_packaging","pack conversion is not a published packaging revision of the product",422);
         const obs=observationKey(p.resource_id,fact?.act?.observation?.source_id,fact?.act?.observation?.sequence),factHash=await digest(fact),old=obs===null?undefined:company.flow_facts[obs];
         if(old){demand(old.hash===factHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}
+        // The order between a fact and a ledger's opening is the commands' issued_at, the one order snapshot import can see (#119).
+        for(const l of Array.isArray(fact?.ledgers)?fact.ledgers:[]){const key=observationKey(p.resource_id,l?.key),opening=key===null?undefined:company.ledger_openings[key];demand(!opening||opening.issued_at<=c.issued_at,"conflict","flow fact precedes its ledger opening",409);}
         const {policy_id:bookPolicy,...state}=book,change=applyFlowFact(state,fact);demand(change.ok,change.ok?"invalid_flow":change.code,change.ok?"invalid flow":change.message,409);demand(obs!==null,"invalid_flow","invalid observation identity",422);
         company.books[p.resource_id]={...change.state,policy_id:bookPolicy};company.flow_facts[obs]={hash:factHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};
         validation={profile:FLOW_PROFILE,revisions:Object.fromEntries(fact.ledgers.map((l:any)=>[l.key,change.state.ledgers[l.key].revision])),physical_stock_verified:false};

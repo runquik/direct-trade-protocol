@@ -83,25 +83,26 @@ const FLOW_FACT_BODY = flowFact(1, 0, null, '3', ucumJar);
 
 type Variant = 'base' | 'fact-unpublished-pack' | 'fact-pack-before-published' | 'product-drops-packaging' | 'product-alters-packaging' | 'order-born-acknowledged'
   | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs'
-  | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs';
+  | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs' | 'flow-fact-before-opening';
 
 /** Runs the company's history on a source host. A case writes one record the way a host that skipped the rule would. */
 async function source(variant: Variant): Promise<Snapshot> {
   const s: State = emptyState();
   const ctx: Context = { audience: AUDIENCE, storeKey, pins: {}, now: T, kinds: protocol.kinds, protocolProfiles: protocol.protocolProfiles };
   let n = 0;
-  const signed = async (action: string, org: string | null, payload: Record<string, unknown>) => {
+  // `backdate` signs the command that long before the host clock, inside the command window.
+  const signed = async (action: string, org: string | null, payload: Record<string, unknown>, backdate = 0) => {
     ctx.now += 60_000;
-    const c = draftCommand(AUDIENCE, owner, action, org, payload, ctx.now); c.request_id = fixedId(0xc, ++n);
+    const c = draftCommand(AUDIENCE, owner, action, org, payload, ctx.now - backdate); c.request_id = fixedId(0xc, ++n);
     return signCommand(c, [owner.key]);
   };
-  const call = async (action: string, org: string | null, payload: Record<string, unknown>) => execute(s, await signed(action, org, payload), ctx);
+  const call = async (action: string, org: string | null, payload: Record<string, unknown>, backdate = 0) => execute(s, await signed(action, org, payload, backdate), ctx);
   const payload = (id: string, root_id: string, supersedes: string | null, profile_digest: string, resource_id: string, body: unknown) =>
     ({ id, root_id, supersedes, organization_id: ORG, policy_id: POLICY, resource_id, profile_digest, counterparty_ids: [], body });
   const append = (...a: Parameters<typeof payload>) => call('record.append', ORG, payload(...a));
   /** Writes a signed record without the host rule under test, keeping every projection the rule does not cover consistent. */
-  const inject = async (...a: Parameters<typeof payload>) => {
-    const p = payload(...a), command = await signed('record.append', ORG, p);
+  const inject = async (...a: [...Parameters<typeof payload>, number?]) => {
+    const p = payload(...(a.slice(0, 6) as Parameters<typeof payload>)), command = await signed('record.append', ORG, p, a[6] ?? 0);
     let validation: any = { profile: { [contract.product]: PRODUCT_PROFILE, [contract.order]: ORDER_PROFILE, [contract.forecast]: FORECAST_PROFILE, [contract.party]: PARTY_PROFILE, [contract.object]: OBJECT_PROFILE }[p.profile_digest], level: 'business-rules', business_verified: false };
     if (p.profile_digest === contract.inventory) {
       const company = s.inventory[ORG]!, change = applyInventoryFact(company.ledgers[PRODUCT], p.body as any);
@@ -163,7 +164,13 @@ async function source(variant: Variant): Promise<Snapshot> {
 
   await call('flow.open', ORG, { policy_id: POLICY, book_id: BOOK });
   await call('flow.ledger.open', ORG, { policy_id: POLICY, book_id: BOOK, asset: { product: PRODUCT, currency: null }, account: null, balance: 'nonnegative' });
-  await append(FLOW_FACT, FLOW_FACT, null, contract.flow, BOOK, FLOW_FACT_BODY);
+  // Signed at the same instant as its ledger opening: equal issued_at is not "before" (#119), so the base imports.
+  await call('record.append', ORG, payload(FLOW_FACT, FLOW_FACT, null, contract.flow, BOOK, FLOW_FACT_BODY), 60_000);
+  if (variant === 'flow-fact-before-opening') {
+    // Signed one minute before its ledger's opening, inside the command window; a live host refuses it (#119).
+    const ledger = s.inventory[ORG]!.books[BOOK].ledgers[GOODS];
+    await inject(fixedId(9, 2), fixedId(9, 2), null, contract.flow, BOOK, flowFact(2, ledger.revision, ledger.head, '1', ucumJar), 180_000);
+  }
   if (variant === 'flow-fact-unpublished-pack') {
     const ledger = s.inventory[ORG]!.books[BOOK].ledgers[GOODS];
     await inject(fixedId(9, 2), fixedId(9, 2), null, contract.flow, BOOK, flowFact(2, ledger.revision, ledger.head, '1', packUnit('1', '600000.000')));
@@ -196,6 +203,7 @@ const CASES: [Variant, string, string][] = [
   ['ledger-projection-differs', 'inventory replay', 'the carried inventory@2 ledger holds one more jar than replaying its signed facts produces; no signature is changed'],
   ['object-class-changed', 'object continuity', 'an object@1 revision that changes its class from dtp/location to dtp/vehicle'],
   ['flow-fact-unpublished-pack', 'packaging pin (#59)', 'a flow@1 fact pins a pack conversion (600000 base units per case-6 v1) that no product revision published'],
+  ['flow-fact-before-opening', 'flow ordering (#119)', 'a flow@1 fact whose command issued_at is one minute earlier than the issued_at of the opening of the ledger it changes; the base fact, signed at the same instant as its opening, imports'],
   ['flow-book-differs', 'flow replay', 'the carried flow@1 book holds one more jar than replaying its signed openings and facts produces; no signature is changed'],
 ];
 
@@ -212,7 +220,7 @@ for (const [name, rule, why] of CASES) {
 }
 
 const out = {
-  description: 'v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location. A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.',
+  description: 'v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location, signed with the same issued_at as the ledger opening (an equal issued_at does not predate the opening). A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.',
   rule: 'Import replays every signed command and record; it refuses with invalid_snapshot any record a live host would have refused when it was recorded, and any carried projection that replay does not reproduce.',
   keys: { owner: { key_id: ownerKey.keyId, secret_key: ownerKey.secretKey }, source_host: { key_id: storeKey.keyId } },
   base: { expect: 'import', projections: { heads, inventory: dest.inventory[ORG] }, snapshot: base },
