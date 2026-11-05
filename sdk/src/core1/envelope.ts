@@ -8,7 +8,7 @@
 // supplied by the verifier from context, never read from the message. Several signatures over the same input
 // express a threshold; who must sign is the caller's rule (see meetsQuorum), not the envelope's.
 
-import { canonicalBytes } from "../canonical.ts";
+import { CanonicalizationError, FloatNotAllowedError, canonicalBytes } from "../canonical.ts";
 import { decodeKeyId, decodeSignature, encodeSignature, keyPairFromSecret, signBytes, verifyBytes } from "../keys.ts";
 import { assertSafeMemberNames } from "../safe-json.ts";
 
@@ -74,7 +74,9 @@ export async function signEnvelope<T>(domain: string, body: T, secretKeys: strin
 /**
  * Verifies an envelope under the domain the caller expects. Returns the key ids that signed. Refuses the whole
  * envelope, rather than ignoring a part, if it has any other member, if a signature entry has any other member, if a
- * key signs twice, if any signature fails strict Ed25519 verification, or if the signing input exceeds `maxBytes`.
+ * key signs twice, if any signature fails strict Ed25519 verification, if the signing input exceeds `maxBytes`, or if
+ * the body is not I-JSON (a number that is not a safe integer, or a lone surrogate in a string). Every refusal is an
+ * EnvelopeError: a body that cannot be canonicalized is `invalid_envelope`, never a canonicalization error.
  */
 export async function verifyEnvelope<T = unknown>(domain: string, signed: unknown, { maxBytes = 65_536, maxSignatures = 24 } = {}): Promise<{ body: T; signers: Set<string> }> {
   if (!isObject(signed)) refuse("an envelope is an object");
@@ -82,7 +84,11 @@ export async function verifyEnvelope<T = unknown>(domain: string, signed: unknow
   exactly(envelope, ["body", "signatures"], "an envelope");
   const list = envelope.signatures;
   if (!Array.isArray(list) || list.length === 0 || list.length > maxSignatures) refuse(`an envelope carries 1 to ${maxSignatures} signatures`);
-  const bytes = signingInput(domain, envelope.body);
+  let bytes: Uint8Array;
+  try { bytes = signingInput(domain, envelope.body); } catch (error) {
+    if (error instanceof FloatNotAllowedError || error instanceof CanonicalizationError) refuse(`the body is not I-JSON: ${error.message}`);
+    throw error;
+  }
   if (bytes.length > maxBytes) refuse(`the signing input exceeds ${maxBytes} bytes`);
   const signers = new Set<string>();
   for (const entry of list as unknown[]) {

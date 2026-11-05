@@ -32,6 +32,9 @@ const reject = [
   { why: "no signatures", domain: "DTP-RECORD-1", envelope: { ...signed, signatures: [] }, code: "invalid_envelope" },
   { why: "a key id that is not a key", domain: "DTP-RECORD-1", envelope: { ...signed, signatures: [{ key_id: "ed25519:not-a-key", signature: signed.signatures[0].signature }] }, code: "invalid_envelope" },
   { why: "a domain that names no format version", domain: "DTP-RECORD", envelope: signed, code: "invalid_envelope" },
+  { why: "a body holding a number with a fraction", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, sequence: 1.5 } }, code: "invalid_envelope" },
+  { why: "a body holding an integer beyond 2^53-1", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, sequence: 2 ** 53 } }, code: "invalid_envelope" },
+  { why: "a body holding a lone surrogate in a string value", domain: "DTP-RECORD-1", envelope: { ...signed, body: { ...record, payload: { ...record.payload, note: "caf\ud800" } } }, code: "invalid_envelope" },
 ];
 
 mkdirSync(new URL("../../spec/core-1/vectors/", import.meta.url), { recursive: true });

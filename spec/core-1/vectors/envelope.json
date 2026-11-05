@@ -250,6 +250,72 @@
         ]
       },
       "code": "invalid_envelope"
+    },
+    {
+      "why": "a body holding a number with a fraction",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1.5,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a body holding an integer beyond 2^53-1",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 9007199254740992,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
+    },
+    {
+      "why": "a body holding a lone surrogate in a string value",
+      "domain": "DTP-RECORD-1",
+      "envelope": {
+        "body": {
+          "issuer": "0b6f1d2e-4c3a-4e8b-9f10-2a3b4c5d6e7f",
+          "profile": "sha256:abababababababababababababababababababababababababababababababab",
+          "sequence": 1,
+          "payload": {
+            "note": "caf\ud800",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV",
+            "signature": "ed25519:5yipMH3RN8cmYwUWA62VD4WrfUJUDMH49j8sxoxX7QtpSxGjnvgXDujwkDTKA1cTdDDhXdXDHCPDPCwV88Q7HVeq"
+          }
+        ]
+      },
+      "code": "invalid_envelope"
     }
   ]
 }
