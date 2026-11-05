@@ -63,6 +63,10 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
   const asController = (o = currentOrg()) => { controller(s,o,c,signed); return o; };
   const policy = (policyId: any, o = currentOrg()) => { id(policyId); const result = s.policies[policyId]; demand(result?.organization_id === o.id,"not_found","policy unavailable",404); return result; };
   const can = (policyId: string, resource: string, action: "read"|"write"|"export") => dataAllowed(s,currentOrg(),policy(policyId),resource,action,c,ctx);
+  // A refusal must not tell the caller whether a compartment it cannot read exists (section 4): one it can read answers
+  // forbidden, any other answers exactly as an absent policy does.
+  const visible = (policyId: string, resource: string) => demand(can(policyId,resource,"read"),"not_found","policy unavailable",404);
+  const writable = (policyId: string, resource: string, message: string) => { if (!can(policyId,resource,"write")) { visible(policyId,resource); demand(false,"forbidden",message); } };
   const understands = (profileDigest:string) => c.actor.kind === "person" || s.releases[currentOrg().installations[c.actor.id].release_digest].profiles.includes(profileDigest);
   const viewRecord = (r:BusinessRecord) => {
     const view:any=structuredClone(r);
@@ -213,12 +217,13 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     }
     case "record.append": {
       const o=currentOrg();exact(p,["id","root_id","supersedes","organization_id","policy_id","resource_id","profile_digest","counterparty_ids","body"]);[p.id,p.root_id,p.organization_id,p.policy_id,p.resource_id].forEach(id);if(p.supersedes!==null)id(p.supersedes);ids(p.counterparty_ids,0,16);
-      demand(p.organization_id===o.id&&!p.counterparty_ids.includes(o.id)&&can(p.policy_id,p.resource_id,"write"),"forbidden","record write permission required");
+      demand(p.organization_id===o.id&&!p.counterparty_ids.includes(o.id),"forbidden","record write permission required");writable(p.policy_id,p.resource_id,"record write permission required");
       demand(isDigest(p.profile_digest)&&Object.hasOwn(s.profiles,p.profile_digest),"unsupported_profile","pinned profile unavailable",422);const profile=s.profiles[p.profile_digest];demand(accessibleProfile(profile,o.id),"unsupported_profile","pinned profile unavailable",422);
       if(c.actor.kind==="installation")demand(s.releases[o.installations[c.actor.id].release_digest].profiles.includes(p.profile_digest),"forbidden","module does not declare this profile");
       if(previous){result=previous.result;break;}demand(!s.records[p.id]&&!migration.migrationResourceReserved(s,"records",p.id),"conflict","record ID exists or reserved",409);
-      const before=p.supersedes?s.records[p.supersedes]:null;
-      if(before)demand(before.is_head&&before.root_id===p.root_id&&before.organization_id===o.id&&before.policy_id===p.policy_id&&before.resource_id===p.resource_id&&before.profile_digest===p.profile_digest&&same(before.counterparty_ids,p.counterparty_ids)&&can(before.policy_id,before.resource_id,"read"),"conflict","record continuity failed",409);
+      // A predecessor the writer cannot read answers exactly as an absent one, so supersedes is no existence oracle.
+      const prior=p.supersedes?s.records[p.supersedes]:undefined,before=prior&&prior.organization_id===o.id&&can(prior.policy_id,prior.resource_id,"read")?prior:null;
+      if(before)demand(before.is_head&&before.root_id===p.root_id&&before.policy_id===p.policy_id&&before.resource_id===p.resource_id&&before.profile_digest===p.profile_digest&&same(before.counterparty_ids,p.counterparty_ids),"conflict","record continuity failed",409);
       else demand(p.supersedes===null&&p.id===p.root_id,"conflict","predecessor missing or genesis invalid",409);
       for(const party of p.counterparty_ids)if(s.organizations[party]?.status!=="active")await requireRemoteAuthority(s,party,ctx);
       demand(validateShape(profile.schema,p.body),"invalid_body","record does not conform to pinned schema",422);
@@ -314,14 +319,14 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       const page=rows.slice(0,p.limit);result={organization:{id:o.id,name:o.name,generation:o.generation},profile_digests:accepted,records:page.map(viewRecord),next_cursor:rows.length>p.limit?page.at(-1)!.seq:null};break;
     }
     case "inventory.create": {
-      exact(p,["policy_id","pool_id","product_id","base_unit"]);id(p.pool_id);id(p.product_id);demand(can(p.policy_id,p.pool_id,"write"),"forbidden","stock pool write permission required");
+      exact(p,["policy_id","pool_id","product_id","base_unit"]);id(p.pool_id);id(p.product_id);writable(p.policy_id,p.pool_id,"stock pool write permission required");
       const company=s.inventory[currentOrg().id]??={pools:{},observations:{},creations:{}};if(previous){result=previous.result;break;}
       demand(!company.pools[p.pool_id],"conflict","pool exists",409);
       try{company.pools[p.pool_id]={...createInventoryState(currentOrg().id,p.pool_id,p.product_id,p.base_unit),policy_id:p.policy_id};}catch{demand(false,"invalid_inventory","invalid product or base unit",422);}
       company.creations[p.pool_id]=structuredClone(c);result={pool_id:p.pool_id};break;
     }
     case "inventory.open": {
-      exact(p,["policy_id","product_id"]);id(p.product_id);const o=currentOrg();demand(can(p.policy_id,p.product_id,"write"),"forbidden","ledger write permission required");
+      exact(p,["policy_id","product_id"]);id(p.product_id);const o=currentOrg();writable(p.policy_id,p.product_id,"ledger write permission required");
       const product=Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===p.product_id&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1");
       demand(product&&can(product.policy_id,product.resource_id,"read")&&understands(product.profile_digest),"not_found","product unavailable",404);
       const company=inventoryState(s,o.id);if(previous){result=previous.result;break;}
@@ -336,13 +341,13 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       demand(ledger&&ledger.policy_id===p.policy_id&&can(p.policy_id,p.product_id,"read")&&consumer&&understandsLedger,"not_found","ledger unavailable",404);result=structuredClone(ledger);break;
     }
     case "flow.open": {
-      exact(p,["policy_id","book_id"]);id(p.book_id);const o=currentOrg();demand(can(p.policy_id,p.book_id,"write"),"forbidden","book write permission required");
+      exact(p,["policy_id","book_id"]);id(p.book_id);const o=currentOrg();writable(p.policy_id,p.book_id,"book write permission required");
       const company=flowState(s,o.id);if(previous){result=previous.result;break;}
       demand(!company.books[p.book_id],"conflict","book exists",409);
       company.books[p.book_id]={...openFlowBook(o.id,p.book_id),policy_id:p.policy_id};company.book_openings[p.book_id]=structuredClone(c);result={book_id:p.book_id};break;
     }
     case "flow.ledger.open": {
-      exact(p,["policy_id","book_id","asset","account","balance"]);id(p.book_id);const o=currentOrg();demand(can(p.policy_id,p.book_id,"write"),"forbidden","book write permission required");
+      exact(p,["policy_id","book_id","asset","account","balance"]);id(p.book_id);const o=currentOrg();writable(p.policy_id,p.book_id,"book write permission required");
       const company=flowState(s,o.id),book=company.books[p.book_id];demand(book&&book.policy_id===p.policy_id,"not_found","book unavailable",404);
       if(previous){result=previous.result;break;}
       const head=(root:unknown,semantics:string)=>Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===root&&r.is_head&&s.profiles[r.profile_digest]?.semantics===semantics);
@@ -396,7 +401,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       demand(new TextEncoder().encode(JSON.stringify(body)).length<=512*1024,"evidence_too_large","evidence exceeds 512 KiB",413);
       id(body.source_organization);text(body.purpose,200);[body.recipient.organization_id,body.recipient.policy_id,body.recipient.resource_id].forEach(id);
       demand(instant(body.expires_at)-instant(body.issued_at)<=60000&&body.recipient.organization_id===o.id&&body.recipient.audience===ctx.audience,"forbidden","evidence is bound to a different recipient or lifetime");
-      demand(can(body.recipient.policy_id,body.recipient.resource_id,"read"),"forbidden","recipient compartment read permission required");
+      visible(body.recipient.policy_id,body.recipient.resource_id);
       demand(Array.isArray(body.records)&&body.records.length>0&&body.records.length<=20&&Array.isArray(body.profiles)&&body.profiles.length<=32&&Array.isArray(p.accepted_profiles)&&p.accepted_profiles.length<=32,"invalid_evidence","bounded evidence selection required",400);
       for(const pr of body.profiles){exact(pr,["id","publisher_id","name","version","digest","schema","semantics","dependencies","visibility","readers","command"]);demand(isDigest(pr.digest),"invalid_evidence","invalid profile digest",400);}
       demand(new Set(body.profiles.map((pr:Profile)=>pr.digest)).size===body.profiles.length,"invalid_evidence","duplicate profiles",400);
