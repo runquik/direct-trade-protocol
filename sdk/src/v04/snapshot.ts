@@ -58,9 +58,23 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     }
   }
   const seen = new Set<string>();
-  const keyOwners = new Map<string, string>();
-  for (const person of Object.values(s.persons)) for (const key of [...person.keys, ...person.retired_keys]) keyOwners.set(key, person.id);
-  for (const org of Object.values(s.organizations)) for (const inst of Object.values(org.installations)) keyOwners.set(inst.key_id, `installation:${inst.id}`);
+  // Key uniqueness (#137). Inside the snapshot every key belongs to exactly one identity. Against the destination,
+  // only a key that can still act for the company must be free: a person's current key, or an active installation's.
+  // A retired key or a revoked installation's key is historical only: import checks the snapshot's signatures against
+  // the snapshot's own key sets, so someone outside the company who registered it at the destination first cannot
+  // block the move. A refusal names the company's identity that collides, never the destination's.
+  const hostOwners = new Map<string, string>(), snapshotOwners = new Map<string, string>();
+  for (const person of Object.values(s.persons)) for (const key of [...person.keys, ...person.retired_keys]) hostOwners.set(key, person.id);
+  for (const org of Object.values(s.organizations)) for (const inst of Object.values(org.installations)) hostOwners.set(inst.key_id, `installation:${inst.id}`);
+  const claimKey = (key: string, owner: string, current: boolean, who: string, message: string) => {
+    demand(!snapshotOwners.has(key) || snapshotOwners.get(key) === owner, "conflict", `${message}: ${who} shares key ${key} with another identity in the snapshot`, 409);
+    demand(!current || !hostOwners.has(key) || hostOwners.get(key) === owner, "conflict", `${message}: the current key ${key} of ${who} is already bound at the destination to another identity`, 409);
+    snapshotOwners.set(key, owner);
+  };
+  // A controller, an active member or a pending invitee can still act for the company under their person ID.
+  const currentPerson = (id: string) => (Array.isArray(snap.organization.controllers) && snap.organization.controllers.includes(id))
+    || snap.organization.members?.[id]?.active === true
+    || Object.values(snap.organization.invitations ?? {}).some(i => i?.person_id === id && i.active && !i.accepted);
   for (const p of snap.persons) {
     demand(p && !seen.has(p.id) && Array.isArray(p.history) && p.history.length > 0, "invalid_snapshot", "invalid person history"); seen.add(p.id);
     exact(p, ["id", "keys", "retired_keys", "history"]); demand(uuid(p.id), "invalid_snapshot", "invalid person ID");
@@ -81,8 +95,14 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(keys.length > 0 && keys.length <= 8 && new Set(keys).size === keys.length, "invalid_snapshot", "invalid current keys");
     }
     demand(same(p.keys, keys) && same(p.retired_keys, retired), "invalid_snapshot", "key projection differs from signed history");
-    for (const key of [...keys, ...retired]) { validKey(key); demand(!keyOwners.has(key) || keyOwners.get(key) === p.id, "conflict", "personal key aliases another identity", 409); keyOwners.set(key, p.id); }
-    const existing = s.persons[p.id]; demand(!existing || (same(existing.keys, p.keys) && same(existing.retired_keys, p.retired_keys)), "conflict", "destination identity diverged", 409);
+    for (const key of keys) { validKey(key); claimKey(key, p.id, true, `person ${p.id}`, "personal key aliases another identity"); }
+    for (const key of retired) { validKey(key); claimKey(key, p.id, false, `person ${p.id}`, "personal key aliases another identity"); }
+    // The same person ID with another key history at the destination is a fork from one genesis key (a retired genesis
+    // key registered there by whoever holds it). A person who can no longer act for the company keeps the destination's
+    // record; import does not overwrite it. A current one is refused, because the company would then trust that fork.
+    const existing = s.persons[p.id];
+    demand(!existing || (same(existing.keys, p.keys) && same(existing.retired_keys, p.retired_keys)) || !currentPerson(p.id), "conflict",
+      `destination identity diverged: person ${p.id} has another key history at the destination and is still a controller, member or invitee of the company; at the source, revoke the membership or replace the controller, enrol a fresh identity, and move again`, 409);
   }
   const people = Object.fromEntries(snap.persons.map(p => [p.id,p]));
   const signedBy = (id: string, proofs: Set<string>) => people[id] && [...people[id].keys,...people[id].retired_keys].some(k => proofs.has(k));
@@ -133,7 +153,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       const release = snap.releases.find(r => r.digest === p.release_digest);
       demand(uuid(p.installation_id) && !installations[p.installation_id] && release && signed.has(p.key_id), "invalid_snapshot", "invalid signed installation genesis"); validKey(p.key_id);
       demand(!Object.values(s.organizations).some(org => Object.hasOwn(org.installations,p.installation_id)), "conflict", "installation ID already exists or is reserved",409);
-      demand(!keyOwners.has(p.key_id), "conflict", "installation key aliases another identity",409); keyOwners.set(p.key_id,`installation:${p.installation_id}`);
+      claimKey(p.key_id, `installation:${p.installation_id}`, snap.organization.installations?.[p.installation_id]?.active !== false, `installation ${p.installation_id}`, "installation key aliases another identity");
       demand(Array.isArray(p.policy_ids) && p.policy_ids.length > 0 && p.policy_ids.every((id:string) => snap.policies.some(pol => pol.id === id)) && Array.isArray(p.actions) && p.actions.length > 0 && p.actions.every((a:any) => release.actions.includes(a)) && ["automation","interactive"].includes(p.mode), "invalid_snapshot", "invalid installation scopes"); instant(p.expires_at);
       installations[p.installation_id] = {id:p.installation_id,module_id:release.module_id,release_digest:p.release_digest,key_id:p.key_id,policy_ids:[...p.policy_ids],actions:[...p.actions],sponsor_id:c.actor.id,expires_at:p.expires_at,active:true,mode:p.mode};
     } else if (c.action === "installation.revoke") {

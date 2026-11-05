@@ -1,0 +1,2763 @@
+{
+  "description": "v0.4 candidate: key collisions at migration import (spec/v0.4/SPEC.md sections 3 and 8, #137). Each case is a whole, signed company snapshot and the persons the destination host already holds, each with its signed history at the destination. A conforming host that holds exactly those persons MUST import every case marked \"import\", leave each listed destination person unchanged and end with exactly the persons under \"after\"; it MUST refuse every case marked \"conflict\" with 409 conflict, and the refusal MUST name the company identity under \"collides\" (a person ID or installation ID). A consumer establishes the destination persons by replaying their histories at the destination, or by seeding the equivalent records. The keys are published on purpose: never use them for anything real.",
+  "rule": "At import, a key the snapshot binds must not be bound at the destination to another identity when it can still act for the company: a person's current key or an active installation's key. A retired key or a revoked installation's key is historical only and does not block the import. A person ID the destination holds with another key history is kept as the destination holds it when that person is not a controller, member or pending invitee of the company; otherwise the import is refused. Every such refusal names the company's colliding person or installation.",
+  "keys": {
+    "owner": {
+      "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+      "secret_key": "ed25519:127mUXWcryPvLYQ6TCsoFoz7vZek2rn2UY285mnrNawycVg9mQXp4dFeJWYP4Di1qG7Pgtdq4QKGWnMKHKrGER2v"
+    },
+    "member": {
+      "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+      "secret_key": "ed25519:4CzVDTKfUuetydtNTU5xDTTW3vHc4KB8TvLnL8qWapr1QGFyi7kTqiuKyqKZyY4BT3aeeiYJCtZN6wS5YchWfkpA"
+    },
+    "memberSecond": {
+      "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz",
+      "secret_key": "ed25519:qQewa7mhZnTojuwPPN7BDfXPnVkzCAJtyUkkviQVmFTsjWGCKmodLewctXnLvyVDeqJc5eMfoFPE83oew684ELS"
+    },
+    "memberFresh": {
+      "key_id": "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu",
+      "secret_key": "ed25519:jxhH8XBGpdqLXjkJv9Pg3tXfsFhZjQez8a7hPuY37Gtksu4rBJMZmKJ2iTW4B835JJbicPYqepSFfyTBRXVavE7"
+    },
+    "vendor": {
+      "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+      "secret_key": "ed25519:Q3SBRV6sUzR4gHQq2UCN1y7xoNJZxgBvDG22ToSfxy6Fx5VEtSbcByneiERXwdBVBbdVjTYptXhzyBN2uVPYfFS"
+    },
+    "squatter": {
+      "key_id": "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX",
+      "secret_key": "ed25519:3PQcUS2GB3RnPfg5vkjQeGMpBV5L2aZTifqyfSN5EPM5G4tMDsDeAD2VuxLRTq1s7Dd9ErxvYzhDg1RjhByn8MDV"
+    },
+    "sourceHost": {
+      "key_id": "ed25519:EfYwzD2Hg3YXtWtCoB7svqs3TQbmZYV1oZbMrzDu28oG",
+      "secret_key": "ed25519:3KoSKG5fqujh3tZtcE6aQogxGoqGReHDrNL5xFiXvzhdXRfgmzyEpqQmcYVcH4b9wqZET2vVmba1qMaVmTTLgBjk"
+    },
+    "destinationHost": {
+      "key_id": "ed25519:1G6AAa5yy3s4HnheyWDxFAbK2Yu6TcdoGmaapbr2R6D",
+      "secret_key": "ed25519:WPBLXGTUkC9KjbDxiC5Mj47x9soR4W7vcDLacdYetdLYfLQU6pBxnD51ejKBesCQL5qV4LieLcNuYZptspE1Ggd"
+    },
+    "assessor": {
+      "key_id": "ed25519:7NyoghRa2pTJG5UqZiNETRPjBLKFYbEtHYXafFPFm2m7",
+      "secret_key": "ed25519:46FRaFdJBRbGjSidcSZ3eQdeMJm9eMnDDEeW4TZMDH4bEEzHyUvdbx9B8qH4tAJ7ZTZQugpfnmL9HvVdzwE35Kb7"
+    }
+  },
+  "cases": [
+    {
+      "name": "revoked-installation-key-registered",
+      "why": "the company revoked a module installation; its vendor registered the installation key as a person at the destination",
+      "expect": "import",
+      "destination": {
+        "persons": [
+          {
+            "id": "4d846906-24ed-8616-66dd-3a281be55461",
+            "keys": [
+              "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "4d846906-24ed-8616-66dd-3a281be55461",
+                  "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+                },
+                "requested_by": "4d846906-24ed-8616-66dd-3a281be55461",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                    "signature": "ed25519:4F7ZzxrEKrEPoJ7ACSM2PV9e8WxA57fQTLA9XCwVWJuzgjHD4yFmLswPeFPT3qZZjdukgjw2JZhnMxfxGVoZbW2d"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {},
+          "invitations": {},
+          "installations": {
+            "00000003-0000-4000-8000-000000000001": {
+              "id": "00000003-0000-4000-8000-000000000001",
+              "module_id": "00000004-0000-4000-8000-000000000001",
+              "release_digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+              "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+              "policy_ids": [
+                "00000001-0000-4000-8000-000000000001"
+              ],
+              "actions": [
+                "read"
+              ],
+              "sponsor_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": false,
+              "mode": "interactive"
+            }
+          },
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "installation.create",
+              "payload": {
+                "installation_id": "00000003-0000-4000-8000-000000000001",
+                "release_digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+                "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                "policy_ids": [
+                  "00000001-0000-4000-8000-000000000001"
+                ],
+                "actions": [
+                  "read"
+                ],
+                "mode": "interactive",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2JFDciKLE6VS9QnqhjLVMcxNYEiyocfbLrGQ7aoghZVEBQwFm7Y9HRBicDcRq3ybPhF8dQVVSbqCCjUhj6oHL1EY"
+                },
+                {
+                  "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                  "signature": "ed25519:3cSsCZLzm3vxWWh4dNkAaRyFRkNbPdCoK7Pt84m7jsVcDt1PgzLocsFDqxUr9JhA5PME9o7AKJfbLC6JCeeKuTn9"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000007",
+              "issued_at": "2026-09-01T08:07:00.000Z",
+              "expires_at": "2026-09-01T08:09:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "installation.revoke",
+              "payload": {
+                "installation_id": "00000003-0000-4000-8000-000000000001"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2QoV2LVnaukj3kcHP9Q7sVrkuWM7sZDywv9dJZasVASyAipiwjcsjXW5WNcb2gPq3sQ1y5Esqzrymyxza5UpeJM9"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [
+          {
+            "name": "synthetic-note",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "note": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "note"
+              ],
+              "additionalProperties": false
+            },
+            "semantics": "structural",
+            "dependencies": [],
+            "digest": "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107",
+            "visibility": "private",
+            "readers": [],
+            "publisher_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "id": "95fbe974-8791-5797-aaac-f243742964de/synthetic-note@1.0.0",
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000004",
+              "issued_at": "2026-09-01T08:04:00.000Z",
+              "expires_at": "2026-09-01T08:06:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "profile.publish",
+              "payload": {
+                "name": "synthetic-note",
+                "version": "1.0.0",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "note": {
+                      "type": "string",
+                      "maxLength": 120
+                    }
+                  },
+                  "required": [
+                    "note"
+                  ],
+                  "additionalProperties": false
+                },
+                "semantics": "structural",
+                "dependencies": [],
+                "digest": "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107",
+                "visibility": "private",
+                "readers": []
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2VKB6pRqysy67rrafiNBeBdTJGbV72awNXwjMqMeYgBsNjJDHM8Jci7nT6E1oeWxXUKc7uRxNPXbNTcARgVKXhLJ"
+                }
+              ]
+            }
+          }
+        ],
+        "releases": [
+          {
+            "module_id": "00000004-0000-4000-8000-000000000001",
+            "version": "1.0.0",
+            "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "profiles": [
+              "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107"
+            ],
+            "actions": [
+              "read"
+            ],
+            "visibility": "private",
+            "assessment": {
+              "body": {
+                "kind": "module-assessment",
+                "issuer": "https://assessor.example",
+                "issued_at": "2026-09-01T08:00:00.000Z",
+                "expires_at": "2027-06-28T08:00:00.000Z",
+                "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "outcome": "approved"
+              },
+              "key_id": "ed25519:7NyoghRa2pTJG5UqZiNETRPjBLKFYbEtHYXafFPFm2m7",
+              "signature": "ed25519:5MS2J5RCLJhgEjnHmGmU5emh1JohuabZDh9BNWtP12K7eKeNLHFoq6TqGzUZjirHn12GXCndQE3Qbj7vkuNwYX5H"
+            },
+            "publisher_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "release.publish",
+              "payload": {
+                "module_id": "00000004-0000-4000-8000-000000000001",
+                "version": "1.0.0",
+                "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "profiles": [
+                  "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107"
+                ],
+                "actions": [
+                  "read"
+                ],
+                "visibility": "private",
+                "assessment": {
+                  "body": {
+                    "kind": "module-assessment",
+                    "issuer": "https://assessor.example",
+                    "issued_at": "2026-09-01T08:00:00.000Z",
+                    "expires_at": "2027-06-28T08:00:00.000Z",
+                    "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "outcome": "approved"
+                  },
+                  "key_id": "ed25519:7NyoghRa2pTJG5UqZiNETRPjBLKFYbEtHYXafFPFm2m7",
+                  "signature": "ed25519:5MS2J5RCLJhgEjnHmGmU5emh1JohuabZDh9BNWtP12K7eKeNLHFoq6TqGzUZjirHn12GXCndQE3Qbj7vkuNwYX5H"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:64V3SuxxvkByQ8Sf5UD7efccXWZHYPPDAwfrzjv1BAz5PXL2RdtYtkBUp3pvrVQTX3nLiWquPTsNGSpNJtdKXK53"
+                }
+              ]
+            }
+          }
+        ],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      },
+      "after": {
+        "persons": [
+          {
+            "id": "4d846906-24ed-8616-66dd-3a281be55461",
+            "keys": [
+              "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+            ],
+            "retired_keys": []
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "retired-key-registered",
+      "why": "a member retired a second key; whoever holds it registered it at the destination as a new identity",
+      "expect": "import",
+      "destination": {
+        "persons": [
+          {
+            "id": "5581c2e0-bd66-1db4-860f-214940a0e005",
+            "keys": [
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "5581c2e0-bd66-1db4-860f-214940a0e005",
+                  "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                },
+                "requested_by": "5581c2e0-bd66-1db4-860f-214940a0e005",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz",
+                    "signature": "ed25519:59A9mzDg9Qz5j4SetdTJiwN5Hte3jaFMG9Lun7vonDBpLiDxhJkSadTodpL1B61UFWmTo31wj7EEJM9LrU4xsbyp"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {
+            "6a5641f4-71e8-fc4b-0855-abce93b81ba6": {
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "invitations": {
+            "00000002-0000-4000-8000-000000000001": {
+              "id": "00000002-0000-4000-8000-000000000001",
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "accepted": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.invite",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001",
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "permissions": [],
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:5XNHFkGfv3wxNxidvCRjpBBqxZXxRVKqxkB6kicASS4eRz7bXkbarVeKi2A4vqDoQDX3fKW1qWobDLDTAuc51DWj"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+              },
+              "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "action": "membership.accept",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                  "signature": "ed25519:5FW9KKV8KhWHZ18PtjhmBVA5pLQUWicayXBeMFTExynjJ8PmPygWLFUJeHivaDzvSN6c7Kbb3Ve7RwAfNMbV3LaR"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "retired_keys": [
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000004",
+                "issued_at": "2026-09-01T08:04:00.000Z",
+                "expires_at": "2026-09-01T08:06:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3fhcEHpvLCW8xg9JjSisSroxGoZs8N1sw38KsdZNEEVxb2SsFSx5EMsN3weQua4s5oozXkXn1g5XuETRpbkMP5Dt"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000007",
+                "issued_at": "2026-09-01T08:07:00.000Z",
+                "expires_at": "2026-09-01T08:09:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                  ],
+                  "revoke": []
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:2z9oBJddh8hNrnGzCw57mZbu37QemUdpuhfK3gfHEqktWXW9Mrg6pi8HCyxhwp3nreYXxBQ5T5ujhSSSq5ix6dC"
+                  },
+                  {
+                    "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz",
+                    "signature": "ed25519:3fdSRdyAdZnUchE1hkJG3SeumykkcBBCEuNj1bJnrAETucERokAmegDbF4GywK9Qok4hUyChApAwiZbYDKr5CpL4"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000008",
+                "issued_at": "2026-09-01T08:08:00.000Z",
+                "expires_at": "2026-09-01T08:10:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [],
+                  "revoke": [
+                    "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:4vRm2twEZj7xHnPK8LT7RPRzDcvATELNRXUdm29ufd4zYvGhF47VMBu3sBqBGW7n3QPLsSrWbpBQ2Ssv7hNAYqT"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [],
+        "releases": [],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      },
+      "after": {
+        "persons": [
+          {
+            "id": "5581c2e0-bd66-1db4-860f-214940a0e005",
+            "keys": [
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ],
+            "retired_keys": []
+          },
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "retired_keys": [
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "former-member-forked",
+      "why": "a member rotated away their genesis key and was then revoked; whoever holds the genesis key registered it at the destination (the same person ID) and rotated to a key of their own. The destination keeps its own record for that person ID",
+      "expect": "import",
+      "destination": {
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:5YjtgjnDiQdo8PxB1uzScq6qmkiRHYa3Dd5SQtSKq4dd4qUSk8o5NHvf28soNdUvA51zw18jicBMN3T7Mh6dcWEn"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000002",
+                "issued_at": "2026-09-02T08:02:00.000Z",
+                "expires_at": "2026-09-02T08:04:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:4znTf81hfkYiiWDMtY8s1YQomPg99AjYL2JqKrt6LEprDwS8mWrPW2K7brHxmT2e2j16CTa87YB54rQtDXAE2yJs"
+                  },
+                  {
+                    "key_id": "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX",
+                    "signature": "ed25519:57PfCd5PLSTQsyw1SrjYa6FQRRN1KD4nePAvxHq6vFf1yCDFDS9wA5EjDBNTnJmFER9RQRgi2u9C9wkzhWN1DDEj"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {
+            "6a5641f4-71e8-fc4b-0855-abce93b81ba6": {
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": false,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "invitations": {
+            "00000002-0000-4000-8000-000000000001": {
+              "id": "00000002-0000-4000-8000-000000000001",
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": false,
+              "accepted": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.invite",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001",
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "permissions": [],
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:5XNHFkGfv3wxNxidvCRjpBBqxZXxRVKqxkB6kicASS4eRz7bXkbarVeKi2A4vqDoQDX3fKW1qWobDLDTAuc51DWj"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+              },
+              "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "action": "membership.accept",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                  "signature": "ed25519:5FW9KKV8KhWHZ18PtjhmBVA5pLQUWicayXBeMFTExynjJ8PmPygWLFUJeHivaDzvSN6c7Kbb3Ve7RwAfNMbV3LaR"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000008",
+              "issued_at": "2026-09-01T08:08:00.000Z",
+              "expires_at": "2026-09-01T08:10:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.revoke",
+              "payload": {
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:w9H16dB6cJ84oeQnaQCG3yHiSBJt1RvkpKPubxmyncsT8ZssD5S33pLWPb3bH2Qg4PHoGnxiGbEXsznsaHmAor8"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000004",
+                "issued_at": "2026-09-01T08:04:00.000Z",
+                "expires_at": "2026-09-01T08:06:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3fhcEHpvLCW8xg9JjSisSroxGoZs8N1sw38KsdZNEEVxb2SsFSx5EMsN3weQua4s5oozXkXn1g5XuETRpbkMP5Dt"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000007",
+                "issued_at": "2026-09-01T08:07:00.000Z",
+                "expires_at": "2026-09-01T08:09:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3391Gx59Yig61xx5b6k2zvGexWsM4VVwmKAJytGxMHXFHvYbnDAP5zguBrYyTijcFmMHqtHngJt7hzMLBX39qFQW"
+                  },
+                  {
+                    "key_id": "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu",
+                    "signature": "ed25519:5xeYfwfUz3jrBCDsvAmCMMwLMsQ2Vn1x1C3fx1xyRZg2kyWgyR4t6KjGBgfh6tSsH8rsbuCQabwzdCccETMCQmmQ"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [],
+        "releases": [],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      },
+      "after": {
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "active-installation-key-registered",
+      "why": "the installation is still active and its key is registered at the destination as a person",
+      "expect": "conflict",
+      "collides": {
+        "installation_id": "00000003-0000-4000-8000-000000000001"
+      },
+      "destination": {
+        "persons": [
+          {
+            "id": "4d846906-24ed-8616-66dd-3a281be55461",
+            "keys": [
+              "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "4d846906-24ed-8616-66dd-3a281be55461",
+                  "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+                },
+                "requested_by": "4d846906-24ed-8616-66dd-3a281be55461",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                    "signature": "ed25519:4F7ZzxrEKrEPoJ7ACSM2PV9e8WxA57fQTLA9XCwVWJuzgjHD4yFmLswPeFPT3qZZjdukgjw2JZhnMxfxGVoZbW2d"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {},
+          "invitations": {},
+          "installations": {
+            "00000003-0000-4000-8000-000000000001": {
+              "id": "00000003-0000-4000-8000-000000000001",
+              "module_id": "00000004-0000-4000-8000-000000000001",
+              "release_digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+              "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+              "policy_ids": [
+                "00000001-0000-4000-8000-000000000001"
+              ],
+              "actions": [
+                "read"
+              ],
+              "sponsor_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "mode": "interactive"
+            }
+          },
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "installation.create",
+              "payload": {
+                "installation_id": "00000003-0000-4000-8000-000000000001",
+                "release_digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+                "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                "policy_ids": [
+                  "00000001-0000-4000-8000-000000000001"
+                ],
+                "actions": [
+                  "read"
+                ],
+                "mode": "interactive",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2JFDciKLE6VS9QnqhjLVMcxNYEiyocfbLrGQ7aoghZVEBQwFm7Y9HRBicDcRq3ybPhF8dQVVSbqCCjUhj6oHL1EY"
+                },
+                {
+                  "key_id": "ed25519:G3ExJRDeLzva5J2S4eNnKbY4aFoUBUh3bzu5VYycJ8nG",
+                  "signature": "ed25519:3cSsCZLzm3vxWWh4dNkAaRyFRkNbPdCoK7Pt84m7jsVcDt1PgzLocsFDqxUr9JhA5PME9o7AKJfbLC6JCeeKuTn9"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [
+          {
+            "name": "synthetic-note",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "note": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "note"
+              ],
+              "additionalProperties": false
+            },
+            "semantics": "structural",
+            "dependencies": [],
+            "digest": "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107",
+            "visibility": "private",
+            "readers": [],
+            "publisher_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "id": "95fbe974-8791-5797-aaac-f243742964de/synthetic-note@1.0.0",
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000004",
+              "issued_at": "2026-09-01T08:04:00.000Z",
+              "expires_at": "2026-09-01T08:06:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "profile.publish",
+              "payload": {
+                "name": "synthetic-note",
+                "version": "1.0.0",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "note": {
+                      "type": "string",
+                      "maxLength": 120
+                    }
+                  },
+                  "required": [
+                    "note"
+                  ],
+                  "additionalProperties": false
+                },
+                "semantics": "structural",
+                "dependencies": [],
+                "digest": "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107",
+                "visibility": "private",
+                "readers": []
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2VKB6pRqysy67rrafiNBeBdTJGbV72awNXwjMqMeYgBsNjJDHM8Jci7nT6E1oeWxXUKc7uRxNPXbNTcARgVKXhLJ"
+                }
+              ]
+            }
+          }
+        ],
+        "releases": [
+          {
+            "module_id": "00000004-0000-4000-8000-000000000001",
+            "version": "1.0.0",
+            "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "profiles": [
+              "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107"
+            ],
+            "actions": [
+              "read"
+            ],
+            "visibility": "private",
+            "assessment": {
+              "body": {
+                "kind": "module-assessment",
+                "issuer": "https://assessor.example",
+                "issued_at": "2026-09-01T08:00:00.000Z",
+                "expires_at": "2027-06-28T08:00:00.000Z",
+                "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "outcome": "approved"
+              },
+              "key_id": "ed25519:7NyoghRa2pTJG5UqZiNETRPjBLKFYbEtHYXafFPFm2m7",
+              "signature": "ed25519:5MS2J5RCLJhgEjnHmGmU5emh1JohuabZDh9BNWtP12K7eKeNLHFoq6TqGzUZjirHn12GXCndQE3Qbj7vkuNwYX5H"
+            },
+            "publisher_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "digest": "824dda46551c70321497e6641f8e90856e9f9fdb29204df4ced3ae2540c084d9",
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "release.publish",
+              "payload": {
+                "module_id": "00000004-0000-4000-8000-000000000001",
+                "version": "1.0.0",
+                "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "profiles": [
+                  "090f28134a854d1de499c55ed557c1de1bfac69e8e18960de351a6467b16e107"
+                ],
+                "actions": [
+                  "read"
+                ],
+                "visibility": "private",
+                "assessment": {
+                  "body": {
+                    "kind": "module-assessment",
+                    "issuer": "https://assessor.example",
+                    "issued_at": "2026-09-01T08:00:00.000Z",
+                    "expires_at": "2027-06-28T08:00:00.000Z",
+                    "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "outcome": "approved"
+                  },
+                  "key_id": "ed25519:7NyoghRa2pTJG5UqZiNETRPjBLKFYbEtHYXafFPFm2m7",
+                  "signature": "ed25519:5MS2J5RCLJhgEjnHmGmU5emh1JohuabZDh9BNWtP12K7eKeNLHFoq6TqGzUZjirHn12GXCndQE3Qbj7vkuNwYX5H"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:64V3SuxxvkByQ8Sf5UD7efccXWZHYPPDAwfrzjv1BAz5PXL2RdtYtkBUp3pvrVQTX3nLiWquPTsNGSpNJtdKXK53"
+                }
+              ]
+            }
+          }
+        ],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      }
+    },
+    {
+      "name": "current-key-registered",
+      "why": "a member's current second key is registered at the destination as a new identity",
+      "expect": "conflict",
+      "collides": {
+        "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6"
+      },
+      "destination": {
+        "persons": [
+          {
+            "id": "5581c2e0-bd66-1db4-860f-214940a0e005",
+            "keys": [
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "5581c2e0-bd66-1db4-860f-214940a0e005",
+                  "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                },
+                "requested_by": "5581c2e0-bd66-1db4-860f-214940a0e005",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz",
+                    "signature": "ed25519:59A9mzDg9Qz5j4SetdTJiwN5Hte3jaFMG9Lun7vonDBpLiDxhJkSadTodpL1B61UFWmTo31wj7EEJM9LrU4xsbyp"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {
+            "6a5641f4-71e8-fc4b-0855-abce93b81ba6": {
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "invitations": {
+            "00000002-0000-4000-8000-000000000001": {
+              "id": "00000002-0000-4000-8000-000000000001",
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "accepted": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.invite",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001",
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "permissions": [],
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:5XNHFkGfv3wxNxidvCRjpBBqxZXxRVKqxkB6kicASS4eRz7bXkbarVeKi2A4vqDoQDX3fKW1qWobDLDTAuc51DWj"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+              },
+              "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "action": "membership.accept",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                  "signature": "ed25519:5FW9KKV8KhWHZ18PtjhmBVA5pLQUWicayXBeMFTExynjJ8PmPygWLFUJeHivaDzvSN6c7Kbb3Ve7RwAfNMbV3LaR"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+              "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000004",
+                "issued_at": "2026-09-01T08:04:00.000Z",
+                "expires_at": "2026-09-01T08:06:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3fhcEHpvLCW8xg9JjSisSroxGoZs8N1sw38KsdZNEEVxb2SsFSx5EMsN3weQua4s5oozXkXn1g5XuETRpbkMP5Dt"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000007",
+                "issued_at": "2026-09-01T08:07:00.000Z",
+                "expires_at": "2026-09-01T08:09:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz"
+                  ],
+                  "revoke": []
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:2z9oBJddh8hNrnGzCw57mZbu37QemUdpuhfK3gfHEqktWXW9Mrg6pi8HCyxhwp3nreYXxBQ5T5ujhSSSq5ix6dC"
+                  },
+                  {
+                    "key_id": "ed25519:6Xt3ARBSagV4sCtb95hcFJ1TbN7hS45zisx3xeYQAynz",
+                    "signature": "ed25519:3fdSRdyAdZnUchE1hkJG3SeumykkcBBCEuNj1bJnrAETucERokAmegDbF4GywK9Qok4hUyChApAwiZbYDKr5CpL4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [],
+        "releases": [],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      }
+    },
+    {
+      "name": "member-forked",
+      "why": "as former-member-forked, but the member's membership is still active",
+      "expect": "conflict",
+      "collides": {
+        "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6"
+      },
+      "destination": {
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:5YjtgjnDiQdo8PxB1uzScq6qmkiRHYa3Dd5SQtSKq4dd4qUSk8o5NHvf28soNdUvA51zw18jicBMN3T7Mh6dcWEn"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000002",
+                "issued_at": "2026-09-02T08:02:00.000Z",
+                "expires_at": "2026-09-02T08:04:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:4znTf81hfkYiiWDMtY8s1YQomPg99AjYL2JqKrt6LEprDwS8mWrPW2K7brHxmT2e2j16CTa87YB54rQtDXAE2yJs"
+                  },
+                  {
+                    "key_id": "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX",
+                    "signature": "ed25519:57PfCd5PLSTQsyw1SrjYa6FQRRN1KD4nePAvxHq6vFf1yCDFDS9wA5EjDBNTnJmFER9RQRgi2u9C9wkzhWN1DDEj"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {
+            "6a5641f4-71e8-fc4b-0855-abce93b81ba6": {
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "invitations": {
+            "00000002-0000-4000-8000-000000000001": {
+              "id": "00000002-0000-4000-8000-000000000001",
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "accepted": true,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.invite",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001",
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "permissions": [],
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:5XNHFkGfv3wxNxidvCRjpBBqxZXxRVKqxkB6kicASS4eRz7bXkbarVeKi2A4vqDoQDX3fKW1qWobDLDTAuc51DWj"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+              },
+              "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "action": "membership.accept",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                  "signature": "ed25519:5FW9KKV8KhWHZ18PtjhmBVA5pLQUWicayXBeMFTExynjJ8PmPygWLFUJeHivaDzvSN6c7Kbb3Ve7RwAfNMbV3LaR"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000004",
+                "issued_at": "2026-09-01T08:04:00.000Z",
+                "expires_at": "2026-09-01T08:06:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3fhcEHpvLCW8xg9JjSisSroxGoZs8N1sw38KsdZNEEVxb2SsFSx5EMsN3weQua4s5oozXkXn1g5XuETRpbkMP5Dt"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000007",
+                "issued_at": "2026-09-01T08:07:00.000Z",
+                "expires_at": "2026-09-01T08:09:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3391Gx59Yig61xx5b6k2zvGexWsM4VVwmKAJytGxMHXFHvYbnDAP5zguBrYyTijcFmMHqtHngJt7hzMLBX39qFQW"
+                  },
+                  {
+                    "key_id": "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu",
+                    "signature": "ed25519:5xeYfwfUz3jrBCDsvAmCMMwLMsQ2Vn1x1C3fx1xyRZg2kyWgyR4t6KjGBgfh6tSsH8rsbuCQabwzdCccETMCQmmQ"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [],
+        "releases": [],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      }
+    },
+    {
+      "name": "invitee-forked",
+      "why": "as former-member-forked, but the person holds a pending invitation and no membership",
+      "expect": "conflict",
+      "collides": {
+        "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6"
+      },
+      "destination": {
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-02T08:01:00.000Z",
+                "expires_at": "2026-09-02T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:5YjtgjnDiQdo8PxB1uzScq6qmkiRHYa3Dd5SQtSKq4dd4qUSk8o5NHvf28soNdUvA51zw18jicBMN3T7Mh6dcWEn"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://destination-host.example",
+                "request_id": "0000000d-0000-4000-8000-000000000002",
+                "issued_at": "2026-09-02T08:02:00.000Z",
+                "expires_at": "2026-09-02T08:04:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:4znTf81hfkYiiWDMtY8s1YQomPg99AjYL2JqKrt6LEprDwS8mWrPW2K7brHxmT2e2j16CTa87YB54rQtDXAE2yJs"
+                  },
+                  {
+                    "key_id": "ed25519:DspErMXzLPMonEe2QCv5BqtZggP6YrgE2AmSs3RXwTxX",
+                    "signature": "ed25519:57PfCd5PLSTQsyw1SrjYa6FQRRN1KD4nePAvxHq6vFf1yCDFDS9wA5EjDBNTnJmFER9RQRgi2u9C9wkzhWN1DDEj"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "95fbe974-8791-5797-aaac-f243742964de",
+          "name": "Synthetic Portable Co",
+          "controllers": [
+            "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {},
+          "invitations": {
+            "00000002-0000-4000-8000-000000000001": {
+              "id": "00000002-0000-4000-8000-000000000001",
+              "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+              "permissions": [],
+              "expires_at": "2027-06-28T08:00:00.000Z",
+              "active": true,
+              "accepted": false,
+              "authorized_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            }
+          },
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Portable Co",
+                "nonce": "5b5b5b5b-0000-4000-8000-000000000001",
+                "controllers": [
+                  "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:2TMHvR5gRw3TEvd186q88vRKYU5nqGjjV6xAESYn7mJBWNxWHkZiuCYvjSUqn6yv5JsJJGaRVoLUHbg5fUARv9P"
+                }
+              ]
+            },
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+              "actor": {
+                "kind": "person",
+                "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+              },
+              "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+              "action": "membership.invite",
+              "payload": {
+                "invitation_id": "00000002-0000-4000-8000-000000000001",
+                "person_id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "permissions": [],
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                  "signature": "ed25519:5XNHFkGfv3wxNxidvCRjpBBqxZXxRVKqxkB6kicASS4eRz7bXkbarVeKi2A4vqDoQDX3fKW1qWobDLDTAuc51DWj"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+            "keys": [
+              "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+            ],
+            "retired_keys": [
+              "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000004",
+                "issued_at": "2026-09-01T08:04:00.000Z",
+                "expires_at": "2026-09-01T08:06:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:3fhcEHpvLCW8xg9JjSisSroxGoZs8N1sw38KsdZNEEVxb2SsFSx5EMsN3weQua4s5oozXkXn1g5XuETRpbkMP5Dt"
+                  }
+                ]
+              },
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000006",
+                "issued_at": "2026-09-01T08:06:00.000Z",
+                "expires_at": "2026-09-01T08:08:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                  "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                },
+                "requested_by": "6a5641f4-71e8-fc4b-0855-abce93b81ba6",
+                "action": "person.rotate",
+                "payload": {
+                  "add": [
+                    "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu"
+                  ],
+                  "revoke": [
+                    "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:3ZMPNAqM9Mft478dikpfYfS3JXvUwTbvXaz6KRC3RF9t",
+                    "signature": "ed25519:5TV41rnur77SHgYNf3L73ber8MyQKZfJUtr6ufg4MPbcA3s1GvzcwBZ8e6FsuopZvLhEkMxsS6XhdKSgmYBrbMDf"
+                  },
+                  {
+                    "key_id": "ed25519:DwgxfFcTH3XRVPU2FTfpVf1AtPjGKxi3XqpCdQaetbRu",
+                    "signature": "ed25519:xtA9TuATMYfRj2ZK14S6aec4AWCpgHSF8rFViSeinXfmtq6RPNzvr3FsnJXMR4R8Wzj8gfn7B28K2jCCbYr28Qz"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+            "keys": [
+              "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:3zecF2atgDc8JKxJU6WTtWt5VrmD9BXKCpUmFebggwv3Zi2kFJgiWAyLtaEwyj52Lq8xJoyz9EGyWN2EnPvbtVkV"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-06-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "95fbe974-8791-5797-aaac-f243742964de",
+                "actor": {
+                  "kind": "person",
+                  "id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                  "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi"
+                },
+                "requested_by": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "72ce0ccd-62c8-edac-458c-f4c00ca4e25f"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "72ce0ccd-62c8-edac-458c-f4c00ca4e25f",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-06-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:8mPH7ipeY9a6WrCPFNqy52SLtmKeLEmwbLXRbdpeXYvi",
+                    "signature": "ed25519:WYS1BXcCDiajPWGpViLwQbZQgMs5chTGEsw5JYSFMKJX2eXa2Uoo8dgs4LjPvyDDHJxpYm79ehoiVxZzKcpCzGS"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [],
+        "releases": [],
+        "records": [],
+        "remote_authorities": [],
+        "inventory": {}
+      }
+    }
+  ]
+}
