@@ -20,6 +20,8 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-11-02** · [#108](https://github.com/runquik/direct-trade-protocol/issues/108) · That code is `nul_character`, for commands and for snapshot import. Canonicalization does not change: the refusal is a host admission rule, and RFC 8785 output and existing vectors stay as they are.
 - **2026-10-22** · [#92](https://github.com/runquik/direct-trade-protocol/issues/92) · Time is integer milliseconds in envelope and identity primitives; business bodies keep ISO-8601 UTC millisecond strings.
 - **2026-11-02** · [#124](https://github.com/runquik/direct-trade-protocol/issues/124), [#125](https://github.com/runquik/direct-trade-protocol/issues/125) · Core-1 `verifyEnvelope` keeps its two codes: a body that is not I-JSON is refused `invalid_envelope`, before any signature is checked. Signing is unchanged: a producer cannot sign such a body.
+- **2026-11-04** · [#149](https://github.com/runquik/direct-trade-protocol/issues/149) · Core-1 part 1 sets a nesting limit of 48 (the v0.4 bound); a value nested deeper is refused `invalid_envelope` before canonicalization, whatever the verifier's stack size, with vectors.
+- **2026-11-04** · [#132](https://github.com/runquik/direct-trade-protocol/issues/132) · `spec/README.md` indexes the Core-1 envelope vectors; nothing normative changes.
 
 ## Core-1, the verb layer and data-layer security
 
@@ -45,8 +47,11 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-10-22** · [#98](https://github.com/runquik/direct-trade-protocol/issues/98) · `membership.revoke` ends a person's policy grants; a re-invited person has no data access until a steward grants it again.
 - **2026-11-02** · [#114](https://github.com/runquik/direct-trade-protocol/issues/114) · How: a grant counts only from a policy revision signed after the person's latest revocation; a revocation is refused `409 conflict` while a later-signed grant to the person is current (a same-instant tie ends the grant); a policy command granting a person revoked at or after it is refused `400 invalid`; any later steward revision listing the grant re-grants it.
 - **2026-10-22** · [#88](https://github.com/runquik/direct-trade-protocol/issues/88) · A policy whose non-controller stewards are inactive: document the risk now; then the controller quorum may replace the inactive stewards after a waiting period with notice to the remaining ones, and the replacement gives controllers no data access.
+- **2026-11-04** · [#109](https://github.com/runquik/direct-trade-protocol/issues/109) · Part (c) is documented: a policy that loses its active stewards freezes and blocks the company's migration.
 - **2026-11-02** · [#127](https://github.com/runquik/direct-trade-protocol/issues/127) · Governance-log replay: document the limit beside the "without trusting the host" guarantee now. A governance pin with fail-closed admission comes as its own proposal. Severity stays medium.
+- **2026-11-04** · [#142](https://github.com/runquik/direct-trade-protocol/issues/142) · The docs build of that limit is approved.
 - **2026-11-02** · [#130](https://github.com/runquik/direct-trade-protocol/issues/130) · An `inventory@2` ledger opens only under the product's own policy, by a caller holding `write` there; a mismatch is refused `forbidden` before the 409, and snapshot import refuses a mismatched opening `invalid_snapshot`; with a reject vector.
+- **2026-11-04** · [#137](https://github.com/runquik/direct-trade-protocol/issues/137) · Migration key collisions: a key that is historical only (a revoked installation key, a member's retired key) no longer blocks import (A1); a forked person who is no longer a controller or member keeps the destination's record, and a current one is refused, naming the person and the remedy (B1); every remaining collision refusal names who collides (C).
 
 ## Privacy and error semantics
 
@@ -54,7 +59,8 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-11-02** · [#116](https://github.com/runquik/direct-trade-protocol/issues/116) · How: a refused write answers `404 not_found` unless the caller can read the resource in that policy, and only then `403 forbidden`. It covers `record.append`, `inventory.create`, `inventory.open`, `flow.open`, `flow.ledger.open` and the recipient compartment of `evidence.inspect`. An unreadable or foreign `supersedes` target is refused exactly as an absent one. Object-id existence (`409 … exists`) is a separate open question on #89.
 - **2026-10-22** · [#71](https://github.com/runquik/direct-trade-protocol/issues/71) · Records are numbered per organization, not host-wide, and the remaining cross-compartment signal is documented.
 - **2026-11-02** · [#118](https://github.com/runquik/direct-trade-protocol/issues/118) · How: a snapshot export numbers its records 1 to n; an import starts the company's own sequence and reserves no host-wide capacity; exhausting a company's sequence is refused `507 capacity`; normative text and a regression test, no new vector.
-- **2026-11-02** · [#110](https://github.com/runquik/direct-trade-protocol/issues/110) · "As recommended": option 1, document that a private profile's `readers` list and its signed publishing command are visible to every listed reader and to evidence recipients whose closure includes it (SPEC §5 and §7). A new evidence form that hides the list comes only as a separate proposal. **Needs confirming:** the decision comment glosses option 1 as "minimise what `profile.get` returns", which is the triage's option 2; until the owner confirms which, nothing is built on #110.
+- **2026-11-02** · [#110](https://github.com/runquik/direct-trade-protocol/issues/110) · "As recommended": option 1, document that a private profile's `readers` list and its signed publishing command are visible to every listed reader and to evidence recipients whose closure includes it (SPEC §5 and §7). A new evidence form that hides the list comes only as a separate proposal.
+- **2026-11-04** · [#110](https://github.com/runquik/direct-trade-protocol/issues/110) · Confirmed: option 1, document only. `profile.get` is not minimised; this corrects the "minimise what `profile.get` returns" wording of the 2026-11-02 decision comment.
 
 ## Business-fact profiles
 
@@ -65,6 +71,11 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-10-22** · [#99](https://github.com/runquik/direct-trade-protocol/issues/99) · `base_units_per_pack` is matched by decimal value, not spelling (`"12.000"` matches `"12"`); spellings of 0–3 places stay accepted; in `inventory@2` and `flow@1`.
 - **2026-10-22** · [#94](https://github.com/runquik/direct-trade-protocol/issues/94); **2026-11-02** · [#115](https://github.com/runquik/direct-trade-protocol/issues/115) · `party@1` `country` is checked for shape only: exactly two upper-case ASCII letters (`ZZ` accepted, `us` refused). Checking assigned ISO 3166-1 codes is host policy, not conformance.
 - **2026-11-02** · [#119](https://github.com/runquik/direct-trade-protocol/issues/119) · `flow@1`: a fact's `issued_at` may not precede the `issued_at` of the opening of any ledger it changes. The live write path refuses it (`409 conflict`) as snapshot import already does, so both accept the same books; vectors both ways (earlier refused, equal accepted). A book committed before the change with such a fact still cannot be imported.
+- **2026-11-04** · [#143](https://github.com/runquik/direct-trade-protocol/issues/143) · The build of that rule is approved as written: the live path refuses with `409 conflict` and accepts an equal `issued_at`.
+- **2026-11-04** · [#144](https://github.com/runquik/direct-trade-protocol/issues/144) · `inventory@2` and `flow@1` observation window: the reference's window stands (with mark M, M−63 … M are inside; an unseen M−64 is refused `stale_observation`). The profile states it as an exact inequality, with boundary fixtures; no behaviour change.
+- **2026-11-04** · [#145](https://github.com/runquik/direct-trade-protocol/issues/145) · `inventory@2` and `flow@1`: a `reserve` on an existing `reservation_id` tops up the claim only for the same party; a different party is refused `invalid`; `release` and `fulfill` must name the claim's party, or are refused `invalid`. With fixtures.
+- **2026-11-04** · [#135](https://github.com/runquik/direct-trade-protocol/issues/135) · `flow@1`: an offset nets at least two distinct claims; one naming fewer (for example the same claim twice) is refused `invalid`, with a fixture.
+- **2026-11-04** · [#136](https://github.com/runquik/direct-trade-protocol/issues/136) · `flow@1`: the `inventory@2` projection of a book sums positions that differ only in their location reference's `record_id`; the book and the contract are unchanged.
 
 ## Hosts, snapshots and migration
 
@@ -74,13 +85,17 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-10-22** · [#65](https://github.com/runquik/direct-trade-protocol/issues/65) · The first set keeps its 10 cases and leaves out inventory-v1, invoices and private profiles.
 - **2026-11-02** · [#123](https://github.com/runquik/direct-trade-protocol/issues/123) · The cases for `object@1` and `flow@1` are normative for v0.4 too.
 - **2026-11-02** · [#107](https://github.com/runquik/direct-trade-protocol/issues/107) · The migration snapshot no longer carries the counterparty-authority cache.
+- **2026-11-04** · [#151](https://github.com/runquik/direct-trade-protocol/issues/151) · A snapshot that still carries the counterparty-authority cache is refused `invalid_snapshot`.
 
 ## Packaging and releases
 
 - **2026-10-22** · [#73](https://github.com/runquik/direct-trade-protocol/issues/73) · The `@dtp/sdk` version is bumped on every behaviour change, starting with the next release.
+- **2026-11-04** · [#73](https://github.com/runquik/direct-trade-protocol/issues/73) · The first bump uses the label `0.2.1-dev.N`, with a changelog entry for each behaviour change.
+- **2026-11-04** · [#140](https://github.com/runquik/direct-trade-protocol/issues/140) · The packed SDK pins its one runtime dependency to the exact version the conformance suite runs.
 - Standing practice since **2026-10-02** ([#45](https://github.com/runquik/direct-trade-protocol/issues/45), [#53](https://github.com/runquik/direct-trade-protocol/issues/53), [#59](https://github.com/runquik/direct-trade-protocol/issues/59), [#63](https://github.com/runquik/direct-trade-protocol/issues/63)) · The owner re-runs gate evidence after a merge the gates fingerprint; a team adds gate checks but never marks a gate.
 
 ## How the teams work
 
 - **2026-10-22** · [#34](https://github.com/runquik/direct-trade-protocol/issues/34) · Example hosts in documentation use reserved names such as `example.test`.
 - **2026-11-02** · All 19 decisions then pending were taken as recommended; `owner-approved` replaces `needs-owner` on a decided item and stays on it as the record. Decided pull requests merge through the merge gate.
+- **2026-11-04** · [#152](https://github.com/runquik/direct-trade-protocol/issues/152) · All 14 items of the 2026-11-04 decision list were answered as recommended (#110 confirmed as option 1, document only).
