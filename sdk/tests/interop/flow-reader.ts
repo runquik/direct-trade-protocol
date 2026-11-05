@@ -219,7 +219,10 @@ export function readProjection(book: Book, product: string) {
   for (const [k, p] of Object.entries(g.positions)) {
     if (p.position.owner !== null) continue;
     const r = p.position.location.ref!, location_id = r.minted_by === null ? r.root : `${r.minted_by}/${r.root}`, nk = readerDigest([p.position.lot_id, location_id, p.position.status]);
-    positions[nk] = { position: { lot_id: p.position.lot_id, location_id, status: p.position.status }, quantity: p.quantity, serials: [...p.serials] }; rename[k] = nk;
+    const was = positions[nk]; rename[k] = nk;
+    positions[nk] = was
+      ? { ...was, quantity: show(fixed(was.quantity, places(g), true) + fixed(p.quantity, places(g), true), places(g)), serials: [...was.serials, ...p.serials].sort() }
+      : { position: { lot_id: p.position.lot_id, location_id, status: p.position.status }, quantity: p.quantity, serials: [...p.serials] };
   }
   for (const [id, r] of Object.entries(g.reservations)) if (rename[r.position]) reservations[id] = { position: rename[r.position], quantity: r.quantity, party: r.party && r.party.minted_by === null ? r.party.root : null };
   return { profile: 'dtp.inventory/2', derived: true, organization_id: book.organization_id, product_id: product, base_unit: { system: 'ucum', code: g.unit }, tracking: g.tracking, revision: g.revision, positions, reservations };
