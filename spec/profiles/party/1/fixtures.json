@@ -178,6 +178,57 @@
         "parent": null,
         "status": "inactive"
       }
+    },
+    {
+      "why": "a country of two upper-case letters that ISO 3166-1 has not assigned: the shape is checked, the code list is not (#94)",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "ZZ"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
     }
   ],
   "reject": [
@@ -681,6 +732,57 @@
               "region": "OR",
               "postal_code": "97201",
               "country": "USA"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a country in lower case",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "Bluebird Supply Co.",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "us"
             },
             "gln": "0614141000012"
           }
