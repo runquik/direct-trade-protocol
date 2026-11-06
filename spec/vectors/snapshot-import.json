@@ -1,5 +1,5 @@
 {
-  "description": "v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location. A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.",
+  "description": "v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location, signed with the same issued_at as the ledger opening (an equal issued_at does not predate the opening). A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.",
   "rule": "Import replays every signed command and record; it refuses with invalid_snapshot any record a live host would have refused when it was recorded, and any carried projection that replay does not reproduce.",
   "keys": {
     "owner": {
@@ -3935,8 +3935,8 @@
             "version": "0.4",
             "audience": "https://source-host.example",
             "request_id": "0000000c-0000-4000-8000-000000000017",
-            "issued_at": "2026-09-01T08:23:00.000Z",
-            "expires_at": "2026-09-01T08:25:00.000Z",
+            "issued_at": "2026-09-01T08:22:00.000Z",
+            "expires_at": "2026-09-01T08:24:00.000Z",
             "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
             "actor": {
               "kind": "person",
@@ -4024,7 +4024,7 @@
             "signatures": [
               {
                 "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
               }
             ]
           },
@@ -8090,8 +8090,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -8179,7 +8179,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -12122,8 +12122,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -12211,7 +12211,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -16133,8 +16133,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -16222,7 +16222,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -20158,8 +20158,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -20247,7 +20247,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -24026,8 +24026,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000016",
-              "issued_at": "2026-09-01T08:22:00.000Z",
-              "expires_at": "2026-09-01T08:24:00.000Z",
+              "issued_at": "2026-09-01T08:21:00.000Z",
+              "expires_at": "2026-09-01T08:23:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -24115,7 +24115,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:2dgBMhTybz55deCJoWnBihVyNNUZAZN8dQpV43XJTLqDzxRvPQe5Uvt4Tq1D7fxg46y4ngtMxi8Mw2bfiYp5CLbP"
+                  "signature": "ed25519:5ZZ9Dk5pMtz785ZbHnPFWfvcvaGR89ZNdE7myGCp6FQUG3TqRzMM1zbaQPdvqziTxndtKMzS4gg5tJC6UzXJBTQA"
                 }
               ]
             },
@@ -28208,8 +28208,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -28297,7 +28297,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -32336,8 +32336,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -32425,7 +32425,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -36444,8 +36444,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -36533,7 +36533,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -40552,8 +40552,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -40641,7 +40641,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -44577,8 +44577,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -44666,7 +44666,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -48667,8 +48667,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000018",
-              "issued_at": "2026-09-01T08:24:00.000Z",
-              "expires_at": "2026-09-01T08:26:00.000Z",
+              "issued_at": "2026-09-01T08:23:00.000Z",
+              "expires_at": "2026-09-01T08:25:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -48756,7 +48756,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:65ybqHnJfmc5HQYC7qvzSomzt5Myf1caFfFHr42ku1Raiv9s2oLfyWvEFqPRRFxrt6j1CNqRjQBXh99h8cNX6XkD"
+                  "signature": "ed25519:2mPozV4tLGPmhhvGNstDo9VgDUPvkFb83c1cpnncyb4DfudT2m1CzAv4bhbz9e63PjJtiK63SChy73sC59P7762E"
                 }
               ]
             },
@@ -52692,8 +52692,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -52781,7 +52781,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -53181,6 +53181,4221 @@
               },
               "5ea293c595249dd293f0b8c75582c8ba39190c350d52799c371c59155d50e742": {
                 "hash": "a56c4032f474cba02706f0c607391b7d16f48ecca5c67c2306340d4ed0b747ec",
+                "record_id": "00000009-0000-4000-8000-000000000002",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "flow-fact-before-opening",
+      "rule": "flow ordering (#119)",
+      "why": "a flow@1 fact whose command issued_at is one minute earlier than the issued_at of the opening of the ledger it changes; the base fact, signed at the same instant as its opening, imports",
+      "expect": "invalid_snapshot",
+      "snapshot": {
+        "version": "0.4",
+        "source": "https://source-host.example",
+        "organization": {
+          "id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+          "name": "Synthetic Import Co",
+          "controllers": [
+            "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75"
+          ],
+          "threshold": 1,
+          "generation": 1,
+          "status": "active",
+          "members": {},
+          "invitations": {},
+          "installations": {},
+          "history": [
+            {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000002",
+              "issued_at": "2026-09-01T08:02:00.000Z",
+              "expires_at": "2026-09-01T08:04:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "organization.create",
+              "payload": {
+                "name": "Synthetic Import Co",
+                "nonce": "5a5a5a5a-0000-4000-8000-000000000001",
+                "controllers": [
+                  "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75"
+                ],
+                "threshold": 1
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5fTrNGEGhJawLRM2KXZQaQk4Bc8JejhhQfmn8e95mfKzHQg6GNGNWUtmDDrRy6h9N3NWqjLEHMQQFRRW522KWtZU"
+                }
+              ]
+            }
+          ]
+        },
+        "persons": [
+          {
+            "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+            "keys": [
+              "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+            ],
+            "retired_keys": [],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000001",
+                "issued_at": "2026-09-01T08:01:00.000Z",
+                "expires_at": "2026-09-01T08:03:00.000Z",
+                "organization_id": null,
+                "actor": {
+                  "kind": "person",
+                  "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                },
+                "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "action": "person.register",
+                "payload": {
+                  "keys": [
+                    "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                    "signature": "ed25519:5D6jFUChaSX32pqeQ4rG7S3rVuWFZavTD3F5xfyLzdw89beHA6Q3aZnkakfjzTCAMvVyHiXGWcVhtYKbdqQGaSv6"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "00000001-0000-4000-8000-000000000001",
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "revision": 1,
+            "classification": "business",
+            "stewards": [
+              "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75"
+            ],
+            "threshold": 1,
+            "grants": [
+              {
+                "person_id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "actions": [
+                  "read",
+                  "write",
+                  "export"
+                ],
+                "resource_ids": "*",
+                "expires_at": "2027-02-28T08:00:00.000Z"
+              }
+            ],
+            "history": [
+              {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000003",
+                "issued_at": "2026-09-01T08:03:00.000Z",
+                "expires_at": "2026-09-01T08:05:00.000Z",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "actor": {
+                  "kind": "person",
+                  "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                },
+                "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "action": "policy.create",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "expected_revision": 0,
+                  "classification": "business",
+                  "stewards": [
+                    "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75"
+                  ],
+                  "threshold": 1,
+                  "grants": [
+                    {
+                      "person_id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                      "actions": [
+                        "read",
+                        "write",
+                        "export"
+                      ],
+                      "resource_ids": "*",
+                      "expires_at": "2027-02-28T08:00:00.000Z"
+                    }
+                  ]
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                    "signature": "ed25519:36NkMJgmt8rFiTwLc7h1SuaFaVANjcBpioDMeC7MDh7ZATuv6xF7PdF4v81PDDwNqvsmXgbTrdTMJs9iCz3Sdtjf"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "profiles": [
+          {
+            "publisher_id": "dtp",
+            "name": "inventory",
+            "version": "2.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "product_id",
+                "observation",
+                "occurred_at",
+                "expected_revision",
+                "moves",
+                "reservations"
+              ],
+              "properties": {
+                "product_id": {
+                  "type": "string",
+                  "maxLength": 36
+                },
+                "observation": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source_id",
+                    "sequence"
+                  ],
+                  "properties": {
+                    "source_id": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "sequence": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    }
+                  }
+                },
+                "occurred_at": {
+                  "type": "string",
+                  "maxLength": 24
+                },
+                "expected_revision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "moves": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "from",
+                      "to",
+                      "quantity",
+                      "serial_ids",
+                      "reason",
+                      "links"
+                    ],
+                    "properties": {
+                      "from": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location_id",
+                          "status"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location_id": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          }
+                        }
+                      },
+                      "to": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location_id",
+                          "status"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location_id": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          }
+                        }
+                      },
+                      "quantity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "unit"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 24
+                          },
+                          "unit": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "system",
+                              "code",
+                              "packaging_id",
+                              "version",
+                              "base_units_per_pack"
+                            ],
+                            "properties": {
+                              "system": {
+                                "type": "string",
+                                "maxLength": 9,
+                                "enum": [
+                                  "ucum",
+                                  "packaging"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "maxLength": 32,
+                                "nullable": true
+                              },
+                              "packaging_id": {
+                                "type": "string",
+                                "maxLength": 80,
+                                "nullable": true
+                              },
+                              "version": {
+                                "type": "string",
+                                "maxLength": 40,
+                                "nullable": true
+                              },
+                              "base_units_per_pack": {
+                                "type": "string",
+                                "maxLength": 24,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "serial_ids": {
+                        "type": "array",
+                        "maxItems": 256,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "nullable": true
+                      },
+                      "reason": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                      },
+                      "links": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "transformation_id",
+                          "order_id"
+                        ],
+                        "properties": {
+                          "transformation_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "order_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "reservations": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "kind",
+                      "reservation_id",
+                      "position",
+                      "quantity",
+                      "party"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 7,
+                        "enum": [
+                          "reserve",
+                          "release",
+                          "fulfill"
+                        ]
+                      },
+                      "reservation_id": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "position": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location_id",
+                          "status"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location_id": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          }
+                        }
+                      },
+                      "quantity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "unit"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 24
+                          },
+                          "unit": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "system",
+                              "code",
+                              "packaging_id",
+                              "version",
+                              "base_units_per_pack"
+                            ],
+                            "properties": {
+                              "system": {
+                                "type": "string",
+                                "maxLength": 9,
+                                "enum": [
+                                  "ucum",
+                                  "packaging"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "maxLength": 32,
+                                "nullable": true
+                              },
+                              "packaging_id": {
+                                "type": "string",
+                                "maxLength": 80,
+                                "nullable": true
+                              },
+                              "version": {
+                                "type": "string",
+                                "maxLength": 40,
+                                "nullable": true
+                              },
+                              "base_units_per_pack": {
+                                "type": "string",
+                                "maxLength": 24,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "party": {
+                        "type": "string",
+                        "maxLength": 36,
+                        "nullable": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "semantics": "inventory-v2",
+            "dependencies": [],
+            "id": "dtp/inventory@2.0.0",
+            "digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000005",
+              "issued_at": "2026-09-01T08:05:00.000Z",
+              "expires_at": "2026-09-01T08:07:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:NudzDf2fNutoHyuuB2kx8oT1ipBjQEZHSisLGV7xTbGrxZ2b66VvHYZh5SkdZGY4Qxof8KN1foWDxgavAGjk4U7"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "order",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "buyer",
+                "seller",
+                "placed_at",
+                "currency",
+                "external",
+                "lines",
+                "status",
+                "terms",
+                "replaces"
+              ],
+              "properties": {
+                "buyer": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "self",
+                    "party_id",
+                    "revision"
+                  ],
+                  "properties": {
+                    "self": {
+                      "type": "boolean"
+                    },
+                    "party_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "revision": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  }
+                },
+                "seller": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "self",
+                    "party_id",
+                    "revision"
+                  ],
+                  "properties": {
+                    "self": {
+                      "type": "boolean"
+                    },
+                    "party_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "revision": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    }
+                  }
+                },
+                "placed_at": {
+                  "type": "string",
+                  "maxLength": 24
+                },
+                "currency": {
+                  "type": "string",
+                  "maxLength": 8
+                },
+                "external": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "scheme",
+                      "value"
+                    ],
+                    "properties": {
+                      "scheme": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "value": {
+                        "type": "string",
+                        "maxLength": 128
+                      }
+                    }
+                  }
+                },
+                "lines": {
+                  "type": "array",
+                  "maxItems": 256,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "line_id",
+                      "product",
+                      "quantity",
+                      "price",
+                      "requested",
+                      "links"
+                    ],
+                    "properties": {
+                      "line_id": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "product": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "product_id",
+                          "revision",
+                          "description"
+                        ],
+                        "properties": {
+                          "product_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "revision": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "description": {
+                            "type": "string",
+                            "maxLength": 500,
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "quantity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "unit"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 24
+                          },
+                          "unit": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "system",
+                              "code",
+                              "packaging_id",
+                              "version",
+                              "base_units_per_pack"
+                            ],
+                            "properties": {
+                              "system": {
+                                "type": "string",
+                                "maxLength": 9,
+                                "enum": [
+                                  "ucum",
+                                  "packaging"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "maxLength": 32,
+                                "nullable": true
+                              },
+                              "packaging_id": {
+                                "type": "string",
+                                "maxLength": 80,
+                                "nullable": true
+                              },
+                              "version": {
+                                "type": "string",
+                                "maxLength": 40,
+                                "nullable": true
+                              },
+                              "base_units_per_pack": {
+                                "type": "string",
+                                "maxLength": 24,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "price": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "currency"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 28
+                          },
+                          "currency": {
+                            "type": "string",
+                            "maxLength": 8
+                          }
+                        },
+                        "nullable": true
+                      },
+                      "requested": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "start",
+                          "end"
+                        ],
+                        "properties": {
+                          "start": {
+                            "type": "string",
+                            "maxLength": 10
+                          },
+                          "end": {
+                            "type": "string",
+                            "maxLength": 10
+                          }
+                        },
+                        "nullable": true
+                      },
+                      "links": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "contract_id"
+                        ],
+                        "properties": {
+                          "contract_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 20,
+                  "enum": [
+                    "placed",
+                    "acknowledged",
+                    "rejected",
+                    "partially_fulfilled",
+                    "fulfilled",
+                    "cancelled",
+                    "closed"
+                  ]
+                },
+                "terms": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "payment_net_days",
+                    "incoterm"
+                  ],
+                  "properties": {
+                    "payment_net_days": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 365,
+                      "nullable": true
+                    },
+                    "incoterm": {
+                      "type": "string",
+                      "maxLength": 3,
+                      "nullable": true
+                    }
+                  }
+                },
+                "replaces": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                }
+              }
+            },
+            "semantics": "order-v1",
+            "dependencies": [],
+            "id": "dtp/order@1.0.0",
+            "digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000007",
+              "issued_at": "2026-09-01T08:07:00.000Z",
+              "expires_at": "2026-09-01T08:09:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:3ebDYjZSGLf5u3AGRFUcN8DZUPxzvLQQuHHh4a1LSTtLQzKZn6yaRzyUvB2EJV3BpUCtfkSLPqB4ccpyNrEohTV6"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "flow",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "act",
+                "ledgers",
+                "legs",
+                "reservations",
+                "transform",
+                "rights",
+                "settles"
+              ],
+              "properties": {
+                "act": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "verb",
+                    "occurred_at",
+                    "observation",
+                    "basis",
+                    "references",
+                    "evidence"
+                  ],
+                  "properties": {
+                    "verb": {
+                      "type": "string",
+                      "maxLength": 9,
+                      "enum": [
+                        "move",
+                        "transform",
+                        "transfer",
+                        "assign",
+                        "observe",
+                        "value"
+                      ]
+                    },
+                    "occurred_at": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "observation": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_id",
+                        "sequence"
+                      ],
+                      "properties": {
+                        "source_id": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "sequence": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        }
+                      }
+                    },
+                    "basis": {
+                      "type": "string",
+                      "maxLength": 8,
+                      "enum": [
+                        "asserted",
+                        "measured",
+                        "inferred"
+                      ]
+                    },
+                    "references": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "minted_by",
+                          "root",
+                          "record_id"
+                        ],
+                        "properties": {
+                          "minted_by": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "root": {
+                            "type": "string",
+                            "maxLength": 36
+                          },
+                          "record_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "ref",
+                          "document"
+                        ],
+                        "properties": {
+                          "ref": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "minted_by",
+                              "root",
+                              "record_id"
+                            ],
+                            "properties": {
+                              "minted_by": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              },
+                              "root": {
+                                "type": "string",
+                                "maxLength": 36
+                              },
+                              "record_id": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              }
+                            },
+                            "nullable": true
+                          },
+                          "document": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "digest",
+                              "media_type",
+                              "description"
+                            ],
+                            "nullable": true,
+                            "properties": {
+                              "digest": {
+                                "type": "string",
+                                "maxLength": 64
+                              },
+                              "media_type": {
+                                "type": "string",
+                                "maxLength": 100
+                              },
+                              "description": {
+                                "type": "string",
+                                "maxLength": 200,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "ledgers": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "expected_revision",
+                      "expected_digest"
+                    ],
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "expected_revision": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "expected_digest": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "legs": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "asset",
+                      "from",
+                      "to",
+                      "quantity",
+                      "serial_ids",
+                      "reason"
+                    ],
+                    "properties": {
+                      "asset": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "product",
+                          "currency"
+                        ],
+                        "properties": {
+                          "product": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "currency": {
+                            "type": "string",
+                            "maxLength": 8,
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "from": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location",
+                          "status",
+                          "owner"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "ref",
+                              "virtual"
+                            ],
+                            "properties": {
+                              "ref": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "minted_by",
+                                  "root",
+                                  "record_id"
+                                ],
+                                "properties": {
+                                  "minted_by": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  },
+                                  "root": {
+                                    "type": "string",
+                                    "maxLength": 36
+                                  },
+                                  "record_id": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  }
+                                },
+                                "nullable": true
+                              },
+                              "virtual": {
+                                "type": "string",
+                                "maxLength": 16,
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          },
+                          "owner": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "minted_by",
+                              "root",
+                              "record_id"
+                            ],
+                            "properties": {
+                              "minted_by": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              },
+                              "root": {
+                                "type": "string",
+                                "maxLength": 36
+                              },
+                              "record_id": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              }
+                            },
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "to": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location",
+                          "status",
+                          "owner"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "ref",
+                              "virtual"
+                            ],
+                            "properties": {
+                              "ref": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "minted_by",
+                                  "root",
+                                  "record_id"
+                                ],
+                                "properties": {
+                                  "minted_by": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  },
+                                  "root": {
+                                    "type": "string",
+                                    "maxLength": 36
+                                  },
+                                  "record_id": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  }
+                                },
+                                "nullable": true
+                              },
+                              "virtual": {
+                                "type": "string",
+                                "maxLength": 16,
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          },
+                          "owner": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "minted_by",
+                              "root",
+                              "record_id"
+                            ],
+                            "properties": {
+                              "minted_by": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              },
+                              "root": {
+                                "type": "string",
+                                "maxLength": 36
+                              },
+                              "record_id": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              }
+                            },
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "quantity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "unit"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 28
+                          },
+                          "unit": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "system",
+                              "code",
+                              "packaging_id",
+                              "version",
+                              "base_units_per_pack"
+                            ],
+                            "properties": {
+                              "system": {
+                                "type": "string",
+                                "maxLength": 9,
+                                "enum": [
+                                  "ucum",
+                                  "packaging",
+                                  "currency"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "maxLength": 32,
+                                "nullable": true
+                              },
+                              "packaging_id": {
+                                "type": "string",
+                                "maxLength": 80,
+                                "nullable": true
+                              },
+                              "version": {
+                                "type": "string",
+                                "maxLength": 40,
+                                "nullable": true
+                              },
+                              "base_units_per_pack": {
+                                "type": "string",
+                                "maxLength": 24,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "serial_ids": {
+                        "type": "array",
+                        "maxItems": 256,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "nullable": true
+                      },
+                      "reason": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "reservations": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "kind",
+                      "reservation_id",
+                      "asset",
+                      "position",
+                      "quantity",
+                      "party"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 7,
+                        "enum": [
+                          "reserve",
+                          "release",
+                          "fulfill"
+                        ]
+                      },
+                      "reservation_id": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "asset": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "product",
+                          "currency"
+                        ],
+                        "properties": {
+                          "product": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "currency": {
+                            "type": "string",
+                            "maxLength": 8,
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "position": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lot_id",
+                          "location",
+                          "status",
+                          "owner"
+                        ],
+                        "properties": {
+                          "lot_id": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "location": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "ref",
+                              "virtual"
+                            ],
+                            "properties": {
+                              "ref": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "minted_by",
+                                  "root",
+                                  "record_id"
+                                ],
+                                "properties": {
+                                  "minted_by": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  },
+                                  "root": {
+                                    "type": "string",
+                                    "maxLength": 36
+                                  },
+                                  "record_id": {
+                                    "type": "string",
+                                    "maxLength": 36,
+                                    "nullable": true
+                                  }
+                                },
+                                "nullable": true
+                              },
+                              "virtual": {
+                                "type": "string",
+                                "maxLength": 16,
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 10,
+                            "enum": [
+                              "available",
+                              "quarantine",
+                              "damaged",
+                              "expired",
+                              "in_transit"
+                            ]
+                          },
+                          "owner": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "minted_by",
+                              "root",
+                              "record_id"
+                            ],
+                            "properties": {
+                              "minted_by": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              },
+                              "root": {
+                                "type": "string",
+                                "maxLength": 36
+                              },
+                              "record_id": {
+                                "type": "string",
+                                "maxLength": 36,
+                                "nullable": true
+                              }
+                            },
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "quantity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "amount",
+                          "unit"
+                        ],
+                        "properties": {
+                          "amount": {
+                            "type": "string",
+                            "maxLength": 28
+                          },
+                          "unit": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "system",
+                              "code",
+                              "packaging_id",
+                              "version",
+                              "base_units_per_pack"
+                            ],
+                            "properties": {
+                              "system": {
+                                "type": "string",
+                                "maxLength": 9,
+                                "enum": [
+                                  "ucum",
+                                  "packaging",
+                                  "currency"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "maxLength": 32,
+                                "nullable": true
+                              },
+                              "packaging_id": {
+                                "type": "string",
+                                "maxLength": 80,
+                                "nullable": true
+                              },
+                              "version": {
+                                "type": "string",
+                                "maxLength": 40,
+                                "nullable": true
+                              },
+                              "base_units_per_pack": {
+                                "type": "string",
+                                "maxLength": 24,
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "party": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "minted_by",
+                          "root",
+                          "record_id"
+                        ],
+                        "properties": {
+                          "minted_by": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "root": {
+                            "type": "string",
+                            "maxLength": 36
+                          },
+                          "record_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        },
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "transform": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "recipe",
+                    "yield_loss",
+                    "equipment"
+                  ],
+                  "nullable": true,
+                  "properties": {
+                    "recipe": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "minted_by",
+                        "root",
+                        "record_id"
+                      ],
+                      "properties": {
+                        "minted_by": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        },
+                        "root": {
+                          "type": "string",
+                          "maxLength": 36
+                        },
+                        "record_id": {
+                          "type": "string",
+                          "maxLength": 36,
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "yield_loss": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "product",
+                          "quantity",
+                          "reason"
+                        ],
+                        "properties": {
+                          "product": {
+                            "type": "string",
+                            "maxLength": 36
+                          },
+                          "quantity": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "amount",
+                              "unit"
+                            ],
+                            "properties": {
+                              "amount": {
+                                "type": "string",
+                                "maxLength": 28
+                              },
+                              "unit": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "system",
+                                  "code",
+                                  "packaging_id",
+                                  "version",
+                                  "base_units_per_pack"
+                                ],
+                                "properties": {
+                                  "system": {
+                                    "type": "string",
+                                    "maxLength": 9,
+                                    "enum": [
+                                      "ucum",
+                                      "packaging",
+                                      "currency"
+                                    ]
+                                  },
+                                  "code": {
+                                    "type": "string",
+                                    "maxLength": 32,
+                                    "nullable": true
+                                  },
+                                  "packaging_id": {
+                                    "type": "string",
+                                    "maxLength": 80,
+                                    "nullable": true
+                                  },
+                                  "version": {
+                                    "type": "string",
+                                    "maxLength": 40,
+                                    "nullable": true
+                                  },
+                                  "base_units_per_pack": {
+                                    "type": "string",
+                                    "maxLength": 24,
+                                    "nullable": true
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "reason": {
+                            "type": "string",
+                            "maxLength": 200
+                          }
+                        }
+                      }
+                    },
+                    "equipment": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "minted_by",
+                          "root",
+                          "record_id"
+                        ],
+                        "properties": {
+                          "minted_by": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "root": {
+                            "type": "string",
+                            "maxLength": 36
+                          },
+                          "record_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "rights": {
+                  "type": "array",
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 7,
+                    "enum": [
+                      "title",
+                      "custody"
+                    ]
+                  },
+                  "nullable": true
+                },
+                "settles": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "claim",
+                      "kind",
+                      "amount",
+                      "currency",
+                      "reverses"
+                    ],
+                    "properties": {
+                      "claim": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "minted_by",
+                          "root",
+                          "record_id"
+                        ],
+                        "properties": {
+                          "minted_by": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          },
+                          "root": {
+                            "type": "string",
+                            "maxLength": 36
+                          },
+                          "record_id": {
+                            "type": "string",
+                            "maxLength": 36,
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 8,
+                        "enum": [
+                          "payment",
+                          "offset",
+                          "reversal"
+                        ]
+                      },
+                      "amount": {
+                        "type": "string",
+                        "maxLength": 28
+                      },
+                      "currency": {
+                        "type": "string",
+                        "maxLength": 8
+                      },
+                      "reverses": {
+                        "type": "string",
+                        "maxLength": 36,
+                        "nullable": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "semantics": "flow-v1",
+            "dependencies": [],
+            "id": "dtp/flow@1.0.0",
+            "digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-00000000000a",
+              "issued_at": "2026-09-01T08:10:00.000Z",
+              "expires_at": "2026-09-01T08:12:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5pVzFyBz5FpMikxhuNmaDBYC3NBzm9oeopvmjycNvEfCXZ2gHrUXfW3nSB3sFr1xNfxDXetTDmgDi7PPHL6QePD"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "forecast",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "subject",
+                "party_id",
+                "direction",
+                "horizon",
+                "as_of",
+                "method",
+                "quantity",
+                "confidence",
+                "scenario",
+                "status"
+              ],
+              "properties": {
+                "subject": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "product_id",
+                    "description"
+                  ],
+                  "properties": {
+                    "product_id": {
+                      "type": "string",
+                      "maxLength": 36,
+                      "nullable": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "nullable": true
+                    }
+                  }
+                },
+                "party_id": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "direction": {
+                  "type": "string",
+                  "maxLength": 6,
+                  "enum": [
+                    "demand",
+                    "supply"
+                  ]
+                },
+                "horizon": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "properties": {
+                    "start": {
+                      "type": "string",
+                      "maxLength": 10
+                    },
+                    "end": {
+                      "type": "string",
+                      "maxLength": 10
+                    }
+                  }
+                },
+                "as_of": {
+                  "type": "string",
+                  "maxLength": 24
+                },
+                "method": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "quantity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "amount",
+                    "unit"
+                  ],
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "unit": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "system",
+                        "code",
+                        "packaging_id",
+                        "version",
+                        "base_units_per_pack"
+                      ],
+                      "properties": {
+                        "system": {
+                          "type": "string",
+                          "maxLength": 9,
+                          "enum": [
+                            "ucum",
+                            "packaging"
+                          ]
+                        },
+                        "code": {
+                          "type": "string",
+                          "maxLength": 32,
+                          "nullable": true
+                        },
+                        "packaging_id": {
+                          "type": "string",
+                          "maxLength": 80,
+                          "nullable": true
+                        },
+                        "version": {
+                          "type": "string",
+                          "maxLength": 40,
+                          "nullable": true
+                        },
+                        "base_units_per_pack": {
+                          "type": "string",
+                          "maxLength": 24,
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                },
+                "confidence": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "nullable": true
+                },
+                "scenario": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 9,
+                  "enum": [
+                    "draft",
+                    "published",
+                    "withdrawn"
+                  ]
+                }
+              }
+            },
+            "semantics": "forecast-v1",
+            "dependencies": [],
+            "id": "dtp/forecast@1.0.0",
+            "digest": "7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000008",
+              "issued_at": "2026-09-01T08:08:00.000Z",
+              "expires_at": "2026-09-01T08:10:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5JtDPDJyXiwWngH9MoaSB1oa5iNdRcEL96hFj7ZB3bD16HrH2YAcuEbJLXfmgN3xnmunkhMmipA1TUuPidaMQWgf"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "product",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "names",
+                "description",
+                "brand",
+                "category",
+                "identifiers",
+                "base_unit",
+                "packaging",
+                "tracking",
+                "shelf_life_days",
+                "replaces",
+                "status"
+              ],
+              "properties": {
+                "names": {
+                  "type": "array",
+                  "maxItems": 8,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name",
+                      "language"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "language": {
+                        "type": "string",
+                        "maxLength": 35,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 4000,
+                  "nullable": true
+                },
+                "brand": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "nullable": true
+                },
+                "category": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "nullable": true
+                },
+                "identifiers": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "scheme",
+                      "value"
+                    ],
+                    "properties": {
+                      "scheme": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "value": {
+                        "type": "string",
+                        "maxLength": 128
+                      }
+                    }
+                  }
+                },
+                "base_unit": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "system",
+                    "code"
+                  ],
+                  "properties": {
+                    "system": {
+                      "type": "string",
+                      "maxLength": 4,
+                      "enum": [
+                        "ucum"
+                      ]
+                    },
+                    "code": {
+                      "type": "string",
+                      "maxLength": 32
+                    }
+                  }
+                },
+                "packaging": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "packaging_id",
+                      "version",
+                      "name",
+                      "base_units_per_pack",
+                      "gtin"
+                    ],
+                    "properties": {
+                      "packaging_id": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "version": {
+                        "type": "string",
+                        "maxLength": 40
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "base_units_per_pack": {
+                        "type": "string",
+                        "maxLength": 24
+                      },
+                      "gtin": {
+                        "type": "string",
+                        "maxLength": 14,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "string",
+                  "maxLength": 6,
+                  "enum": [
+                    "none",
+                    "lot",
+                    "serial"
+                  ]
+                },
+                "shelf_life_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 36500,
+                  "nullable": true
+                },
+                "replaces": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 12,
+                  "enum": [
+                    "active",
+                    "discontinued"
+                  ]
+                }
+              }
+            },
+            "semantics": "product-v1",
+            "dependencies": [],
+            "id": "dtp/product@1.0.0",
+            "digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000004",
+              "issued_at": "2026-09-01T08:04:00.000Z",
+              "expires_at": "2026-09-01T08:06:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:2KM3DCRM6k6odtPyzdfBE9C8pPeydSy5GXUCDaA7frRWWvgMchDYiAg7W9CNg27ezt8VuLmEtD7Pc6jEiw1XvFyt"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "object",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "class",
+                "label",
+                "identifiers",
+                "status",
+                "retired",
+                "evidence"
+              ],
+              "properties": {
+                "class": {
+                  "type": "string",
+                  "maxLength": 117
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "nullable": true
+                },
+                "identifiers": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "scheme",
+                      "value"
+                    ],
+                    "properties": {
+                      "scheme": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "value": {
+                        "type": "string",
+                        "maxLength": 128
+                      }
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 7,
+                  "enum": [
+                    "active",
+                    "retired"
+                  ]
+                },
+                "retired": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "reason",
+                    "note"
+                  ],
+                  "nullable": true,
+                  "properties": {
+                    "reason": {
+                      "type": "string",
+                      "maxLength": 8,
+                      "enum": [
+                        "scrapped",
+                        "lost",
+                        "consumed",
+                        "ended",
+                        "other"
+                      ]
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "nullable": true
+                    }
+                  }
+                },
+                "evidence": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "minted_by",
+                      "root",
+                      "record_id"
+                    ],
+                    "properties": {
+                      "minted_by": {
+                        "type": "string",
+                        "maxLength": 36,
+                        "nullable": true
+                      },
+                      "root": {
+                        "type": "string",
+                        "maxLength": 36
+                      },
+                      "record_id": {
+                        "type": "string",
+                        "maxLength": 36,
+                        "nullable": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "semantics": "object-v1",
+            "dependencies": [],
+            "id": "dtp/object@1.0.0",
+            "digest": "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000009",
+              "issued_at": "2026-09-01T08:09:00.000Z",
+              "expires_at": "2026-09-01T08:11:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:4pq5QfvZEr4vJmancNtCLWHAsMksZRR5BCRCP9Vf5VMfimJqaUSbssH1LRnxgZVRjNAVqKyPAem77gLpNzfhkb7j"
+                }
+              ]
+            }
+          },
+          {
+            "publisher_id": "dtp",
+            "name": "party",
+            "version": "1.0.0",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "names",
+                "identifiers",
+                "protocol_identity",
+                "roles",
+                "locations",
+                "parent",
+                "status"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "maxLength": 12,
+                  "enum": [
+                    "organization",
+                    "person",
+                    "unit"
+                  ]
+                },
+                "names": {
+                  "type": "array",
+                  "maxItems": 8,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name",
+                      "language"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "language": {
+                        "type": "string",
+                        "maxLength": 35,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "identifiers": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "scheme",
+                      "value"
+                    ],
+                    "properties": {
+                      "scheme": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "value": {
+                        "type": "string",
+                        "maxLength": 128
+                      }
+                    }
+                  }
+                },
+                "protocol_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "organization_id"
+                  ],
+                  "properties": {
+                    "organization_id": {
+                      "type": "string",
+                      "maxLength": 36
+                    }
+                  },
+                  "nullable": true
+                },
+                "roles": {
+                  "type": "array",
+                  "maxItems": 8,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "enum": [
+                      "customer",
+                      "supplier",
+                      "carrier",
+                      "financer",
+                      "service_provider",
+                      "manufacturer",
+                      "broker",
+                      "other"
+                    ]
+                  }
+                },
+                "locations": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "location_id",
+                      "name",
+                      "address",
+                      "gln"
+                    ],
+                    "properties": {
+                      "location_id": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                      },
+                      "address": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "lines",
+                          "locality",
+                          "region",
+                          "postal_code",
+                          "country"
+                        ],
+                        "properties": {
+                          "lines": {
+                            "type": "array",
+                            "maxItems": 4,
+                            "items": {
+                              "type": "string",
+                              "maxLength": 200
+                            }
+                          },
+                          "locality": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "region": {
+                            "type": "string",
+                            "maxLength": 120,
+                            "nullable": true
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "maxLength": 32,
+                            "nullable": true
+                          },
+                          "country": {
+                            "type": "string",
+                            "maxLength": 2
+                          }
+                        }
+                      },
+                      "gln": {
+                        "type": "string",
+                        "maxLength": 13,
+                        "nullable": true
+                      }
+                    }
+                  }
+                },
+                "parent": {
+                  "type": "string",
+                  "maxLength": 36,
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 8,
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              }
+            },
+            "semantics": "party-v1",
+            "dependencies": [],
+            "id": "dtp/party@1.0.0",
+            "digest": "e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e",
+            "visibility": "community",
+            "readers": [],
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000006",
+              "issued_at": "2026-09-01T08:06:00.000Z",
+              "expires_at": "2026-09-01T08:08:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "profile.admit",
+              "payload": {
+                "digest": "e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e"
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5LGQyRM9c5tiD4v7vW2ZgPkHZSaeiZYZZqyDeXdTc36p9Gz7TmcCaABh55nfPAvS19q45SPpdd3TBBo5CZr5u9sQ"
+                }
+              ]
+            }
+          }
+        ],
+        "releases": [],
+        "records": [
+          {
+            "id": "00000002-0000-4000-8000-000000000001",
+            "root_id": "00000002-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000002-0000-4000-8000-000000000001",
+            "profile_digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986",
+            "counterparty_ids": [],
+            "body": {
+              "names": [
+                {
+                  "name": "Synthetic Sauce 500 g",
+                  "language": "en"
+                }
+              ],
+              "description": null,
+              "brand": null,
+              "category": null,
+              "identifiers": [],
+              "base_unit": {
+                "system": "ucum",
+                "code": "{jar}"
+              },
+              "packaging": [
+                {
+                  "packaging_id": "case-6",
+                  "version": "1",
+                  "name": "Case of 6 jars, v1",
+                  "base_units_per_pack": "6.000",
+                  "gtin": null
+                }
+              ],
+              "tracking": "lot",
+              "shelf_life_days": null,
+              "replaces": null,
+              "status": "active"
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-00000000000b",
+              "issued_at": "2026-09-01T08:11:00.000Z",
+              "expires_at": "2026-09-01T08:13:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000002-0000-4000-8000-000000000001",
+                "root_id": "00000002-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000002-0000-4000-8000-000000000001",
+                "profile_digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986",
+                "counterparty_ids": [],
+                "body": {
+                  "names": [
+                    {
+                      "name": "Synthetic Sauce 500 g",
+                      "language": "en"
+                    }
+                  ],
+                  "description": null,
+                  "brand": null,
+                  "category": null,
+                  "identifiers": [],
+                  "base_unit": {
+                    "system": "ucum",
+                    "code": "{jar}"
+                  },
+                  "packaging": [
+                    {
+                      "packaging_id": "case-6",
+                      "version": "1",
+                      "name": "Case of 6 jars, v1",
+                      "base_units_per_pack": "6.000",
+                      "gtin": null
+                    }
+                  ],
+                  "tracking": "lot",
+                  "shelf_life_days": null,
+                  "replaces": null,
+                  "status": "active"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5F8shFU9N4WURerebhsBErTg8wW5mQzq2fe4iRc4nQBdnTAYnHRMmzX4LELu3A1wmAyeJxrN1FarjF2vqsYRVZ4W"
+                }
+              ]
+            },
+            "seq": 1,
+            "is_head": false,
+            "accepted_at": "2026-09-01T08:11:00.000Z",
+            "validation": {
+              "profile": "dtp.product/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000006-0000-4000-8000-000000000001",
+            "root_id": "00000006-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000002-0000-4000-8000-000000000001",
+            "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb",
+            "counterparty_ids": [],
+            "body": {
+              "product_id": "00000002-0000-4000-8000-000000000001",
+              "observation": {
+                "source_id": "wms-1",
+                "sequence": 1
+              },
+              "occurred_at": "2026-09-01T09:00:00.000Z",
+              "expected_revision": 0,
+              "moves": [
+                {
+                  "from": {
+                    "lot_id": null,
+                    "location_id": "~supplier",
+                    "status": "available"
+                  },
+                  "to": {
+                    "lot_id": "LOT-A",
+                    "location_id": "DOCK",
+                    "status": "available"
+                  },
+                  "quantity": {
+                    "amount": "2.000",
+                    "unit": {
+                      "system": "packaging",
+                      "code": null,
+                      "packaging_id": "case-6",
+                      "version": "1",
+                      "base_units_per_pack": "6.000"
+                    }
+                  },
+                  "serial_ids": null,
+                  "reason": null,
+                  "links": {
+                    "transformation_id": null,
+                    "order_id": null
+                  }
+                }
+              ],
+              "reservations": []
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-00000000000d",
+              "issued_at": "2026-09-01T08:13:00.000Z",
+              "expires_at": "2026-09-01T08:15:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000006-0000-4000-8000-000000000001",
+                "root_id": "00000006-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000002-0000-4000-8000-000000000001",
+                "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb",
+                "counterparty_ids": [],
+                "body": {
+                  "product_id": "00000002-0000-4000-8000-000000000001",
+                  "observation": {
+                    "source_id": "wms-1",
+                    "sequence": 1
+                  },
+                  "occurred_at": "2026-09-01T09:00:00.000Z",
+                  "expected_revision": 0,
+                  "moves": [
+                    {
+                      "from": {
+                        "lot_id": null,
+                        "location_id": "~supplier",
+                        "status": "available"
+                      },
+                      "to": {
+                        "lot_id": "LOT-A",
+                        "location_id": "DOCK",
+                        "status": "available"
+                      },
+                      "quantity": {
+                        "amount": "2.000",
+                        "unit": {
+                          "system": "packaging",
+                          "code": null,
+                          "packaging_id": "case-6",
+                          "version": "1",
+                          "base_units_per_pack": "6.000"
+                        }
+                      },
+                      "serial_ids": null,
+                      "reason": null,
+                      "links": {
+                        "transformation_id": null,
+                        "order_id": null
+                      }
+                    }
+                  ],
+                  "reservations": []
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:3pU8TUWRhBfTC1uLb3p47UZ3gMbt93Mu2xwFcJnKxbRJUEt3Zgt9ciKkgHxbxruHkhT5Yhmdd7K1vYmFg4VFZuTt"
+                }
+              ]
+            },
+            "seq": 2,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:13:00.000Z",
+            "validation": {
+              "profile": "dtp.inventory/2",
+              "revision": 1,
+              "physical_stock_verified": false
+            }
+          },
+          {
+            "id": "00000002-0000-4000-8000-000000000002",
+            "root_id": "00000002-0000-4000-8000-000000000001",
+            "supersedes": "00000002-0000-4000-8000-000000000001",
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000002-0000-4000-8000-000000000001",
+            "profile_digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986",
+            "counterparty_ids": [],
+            "body": {
+              "names": [
+                {
+                  "name": "Synthetic Sauce 500 g",
+                  "language": "en"
+                }
+              ],
+              "description": null,
+              "brand": null,
+              "category": null,
+              "identifiers": [],
+              "base_unit": {
+                "system": "ucum",
+                "code": "{jar}"
+              },
+              "packaging": [
+                {
+                  "packaging_id": "case-6",
+                  "version": "1",
+                  "name": "Case of 6 jars, v1",
+                  "base_units_per_pack": "6.000",
+                  "gtin": null
+                },
+                {
+                  "packaging_id": "case-6",
+                  "version": "2",
+                  "name": "Case of 12 jars, v2",
+                  "base_units_per_pack": "12.000",
+                  "gtin": null
+                }
+              ],
+              "tracking": "lot",
+              "shelf_life_days": null,
+              "replaces": null,
+              "status": "active"
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-00000000000e",
+              "issued_at": "2026-09-01T08:14:00.000Z",
+              "expires_at": "2026-09-01T08:16:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000002-0000-4000-8000-000000000002",
+                "root_id": "00000002-0000-4000-8000-000000000001",
+                "supersedes": "00000002-0000-4000-8000-000000000001",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000002-0000-4000-8000-000000000001",
+                "profile_digest": "864130d61c38ba6268b0e0f77c75d47ac0772be6cebf2a18da3aca7385a46986",
+                "counterparty_ids": [],
+                "body": {
+                  "names": [
+                    {
+                      "name": "Synthetic Sauce 500 g",
+                      "language": "en"
+                    }
+                  ],
+                  "description": null,
+                  "brand": null,
+                  "category": null,
+                  "identifiers": [],
+                  "base_unit": {
+                    "system": "ucum",
+                    "code": "{jar}"
+                  },
+                  "packaging": [
+                    {
+                      "packaging_id": "case-6",
+                      "version": "1",
+                      "name": "Case of 6 jars, v1",
+                      "base_units_per_pack": "6.000",
+                      "gtin": null
+                    },
+                    {
+                      "packaging_id": "case-6",
+                      "version": "2",
+                      "name": "Case of 12 jars, v2",
+                      "base_units_per_pack": "12.000",
+                      "gtin": null
+                    }
+                  ],
+                  "tracking": "lot",
+                  "shelf_life_days": null,
+                  "replaces": null,
+                  "status": "active"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:51VxcLLdRp4wR5pEuqvKN2CLYutibUwMmTyTeugrLFTgV9Rrrd9QHsERVsmXX4EQwVjbVSV5389KkHQ5W6HBCkSt"
+                }
+              ]
+            },
+            "seq": 3,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:14:00.000Z",
+            "validation": {
+              "profile": "dtp.product/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000006-0000-4000-8000-000000000002",
+            "root_id": "00000006-0000-4000-8000-000000000002",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000002-0000-4000-8000-000000000001",
+            "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb",
+            "counterparty_ids": [],
+            "body": {
+              "product_id": "00000002-0000-4000-8000-000000000001",
+              "observation": {
+                "source_id": "wms-1",
+                "sequence": 2
+              },
+              "occurred_at": "2026-09-01T10:00:00.000Z",
+              "expected_revision": 1,
+              "moves": [
+                {
+                  "from": {
+                    "lot_id": null,
+                    "location_id": "~supplier",
+                    "status": "available"
+                  },
+                  "to": {
+                    "lot_id": "LOT-A",
+                    "location_id": "DOCK",
+                    "status": "available"
+                  },
+                  "quantity": {
+                    "amount": "1.000",
+                    "unit": {
+                      "system": "packaging",
+                      "code": null,
+                      "packaging_id": "case-6",
+                      "version": "2",
+                      "base_units_per_pack": "12.000"
+                    }
+                  },
+                  "serial_ids": null,
+                  "reason": null,
+                  "links": {
+                    "transformation_id": null,
+                    "order_id": null
+                  }
+                }
+              ],
+              "reservations": []
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-00000000000f",
+              "issued_at": "2026-09-01T08:15:00.000Z",
+              "expires_at": "2026-09-01T08:17:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000006-0000-4000-8000-000000000002",
+                "root_id": "00000006-0000-4000-8000-000000000002",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000002-0000-4000-8000-000000000001",
+                "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb",
+                "counterparty_ids": [],
+                "body": {
+                  "product_id": "00000002-0000-4000-8000-000000000001",
+                  "observation": {
+                    "source_id": "wms-1",
+                    "sequence": 2
+                  },
+                  "occurred_at": "2026-09-01T10:00:00.000Z",
+                  "expected_revision": 1,
+                  "moves": [
+                    {
+                      "from": {
+                        "lot_id": null,
+                        "location_id": "~supplier",
+                        "status": "available"
+                      },
+                      "to": {
+                        "lot_id": "LOT-A",
+                        "location_id": "DOCK",
+                        "status": "available"
+                      },
+                      "quantity": {
+                        "amount": "1.000",
+                        "unit": {
+                          "system": "packaging",
+                          "code": null,
+                          "packaging_id": "case-6",
+                          "version": "2",
+                          "base_units_per_pack": "12.000"
+                        }
+                      },
+                      "serial_ids": null,
+                      "reason": null,
+                      "links": {
+                        "transformation_id": null,
+                        "order_id": null
+                      }
+                    }
+                  ],
+                  "reservations": []
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:4PziDE7HGUKEF1SPfQPBxFDrd5m2zbtRhWQAfQfQzQUF2P7UaFLUf4cCiBykaPxoEEyeV7sefhqaEbHmPnuVwide"
+                }
+              ]
+            },
+            "seq": 4,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:15:00.000Z",
+            "validation": {
+              "profile": "dtp.inventory/2",
+              "revision": 2,
+              "physical_stock_verified": false
+            }
+          },
+          {
+            "id": "00000003-0000-4000-8000-000000000001",
+            "root_id": "00000003-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000003-0000-4000-8000-000000000001",
+            "profile_digest": "e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e",
+            "counterparty_ids": [],
+            "body": {
+              "kind": "organization",
+              "names": [
+                {
+                  "name": "Synthetic Supplier",
+                  "language": "en"
+                }
+              ],
+              "identifiers": [],
+              "protocol_identity": null,
+              "roles": [
+                "supplier"
+              ],
+              "locations": [],
+              "parent": null,
+              "status": "active"
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000010",
+              "issued_at": "2026-09-01T08:16:00.000Z",
+              "expires_at": "2026-09-01T08:18:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000003-0000-4000-8000-000000000001",
+                "root_id": "00000003-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000003-0000-4000-8000-000000000001",
+                "profile_digest": "e662791473a645b7c49fc0b3d4f2182ebb85578c49673cd703240aa37453ac8e",
+                "counterparty_ids": [],
+                "body": {
+                  "kind": "organization",
+                  "names": [
+                    {
+                      "name": "Synthetic Supplier",
+                      "language": "en"
+                    }
+                  ],
+                  "identifiers": [],
+                  "protocol_identity": null,
+                  "roles": [
+                    "supplier"
+                  ],
+                  "locations": [],
+                  "parent": null,
+                  "status": "active"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:4z6Wm4geiGYyMJA3cpBHKPBhBPCjxKrZSQ2GyctEwDQszYBFaZoKz3bgHSqYz1Kgw75CamRDPaTcSqtob21w8Kfm"
+                }
+              ]
+            },
+            "seq": 5,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:16:00.000Z",
+            "validation": {
+              "profile": "dtp.party/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000004-0000-4000-8000-000000000001",
+            "root_id": "00000004-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000004-0000-4000-8000-000000000001",
+            "profile_digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+            "counterparty_ids": [],
+            "body": {
+              "buyer": {
+                "self": true,
+                "party_id": null,
+                "revision": null
+              },
+              "seller": {
+                "self": false,
+                "party_id": "00000003-0000-4000-8000-000000000001",
+                "revision": null
+              },
+              "placed_at": "2026-09-01T09:00:00.000Z",
+              "currency": "USD",
+              "external": [
+                {
+                  "scheme": "buyer.po",
+                  "value": "PO-0001"
+                }
+              ],
+              "lines": [
+                {
+                  "line_id": "1",
+                  "product": {
+                    "product_id": "00000002-0000-4000-8000-000000000001",
+                    "revision": "00000002-0000-4000-8000-000000000001",
+                    "description": null
+                  },
+                  "quantity": {
+                    "amount": "10",
+                    "unit": {
+                      "system": "packaging",
+                      "code": null,
+                      "packaging_id": "case-6",
+                      "version": "1",
+                      "base_units_per_pack": "6.000"
+                    }
+                  },
+                  "price": {
+                    "amount": "30.000000",
+                    "currency": "USD"
+                  },
+                  "requested": null,
+                  "links": {
+                    "contract_id": null
+                  }
+                }
+              ],
+              "status": "placed",
+              "terms": {
+                "payment_net_days": 30,
+                "incoterm": null
+              },
+              "replaces": null
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000011",
+              "issued_at": "2026-09-01T08:17:00.000Z",
+              "expires_at": "2026-09-01T08:19:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000004-0000-4000-8000-000000000001",
+                "root_id": "00000004-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000004-0000-4000-8000-000000000001",
+                "profile_digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+                "counterparty_ids": [],
+                "body": {
+                  "buyer": {
+                    "self": true,
+                    "party_id": null,
+                    "revision": null
+                  },
+                  "seller": {
+                    "self": false,
+                    "party_id": "00000003-0000-4000-8000-000000000001",
+                    "revision": null
+                  },
+                  "placed_at": "2026-09-01T09:00:00.000Z",
+                  "currency": "USD",
+                  "external": [
+                    {
+                      "scheme": "buyer.po",
+                      "value": "PO-0001"
+                    }
+                  ],
+                  "lines": [
+                    {
+                      "line_id": "1",
+                      "product": {
+                        "product_id": "00000002-0000-4000-8000-000000000001",
+                        "revision": "00000002-0000-4000-8000-000000000001",
+                        "description": null
+                      },
+                      "quantity": {
+                        "amount": "10",
+                        "unit": {
+                          "system": "packaging",
+                          "code": null,
+                          "packaging_id": "case-6",
+                          "version": "1",
+                          "base_units_per_pack": "6.000"
+                        }
+                      },
+                      "price": {
+                        "amount": "30.000000",
+                        "currency": "USD"
+                      },
+                      "requested": null,
+                      "links": {
+                        "contract_id": null
+                      }
+                    }
+                  ],
+                  "status": "placed",
+                  "terms": {
+                    "payment_net_days": 30,
+                    "incoterm": null
+                  },
+                  "replaces": null
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:Zd6Kfo6yqsBMqgvYxDb5dERJADR8NP8672Vm2uwXAMbThg4UwkzF5vxDgPQfhYRV2w7TseZ2p2MvxELDR4DNBCw"
+                }
+              ]
+            },
+            "seq": 6,
+            "is_head": false,
+            "accepted_at": "2026-09-01T08:17:00.000Z",
+            "validation": {
+              "profile": "dtp.order/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000004-0000-4000-8000-000000000002",
+            "root_id": "00000004-0000-4000-8000-000000000001",
+            "supersedes": "00000004-0000-4000-8000-000000000001",
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000004-0000-4000-8000-000000000001",
+            "profile_digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+            "counterparty_ids": [],
+            "body": {
+              "buyer": {
+                "self": true,
+                "party_id": null,
+                "revision": null
+              },
+              "seller": {
+                "self": false,
+                "party_id": "00000003-0000-4000-8000-000000000001",
+                "revision": null
+              },
+              "placed_at": "2026-09-01T09:00:00.000Z",
+              "currency": "USD",
+              "external": [
+                {
+                  "scheme": "buyer.po",
+                  "value": "PO-0001"
+                }
+              ],
+              "lines": [
+                {
+                  "line_id": "1",
+                  "product": {
+                    "product_id": "00000002-0000-4000-8000-000000000001",
+                    "revision": "00000002-0000-4000-8000-000000000001",
+                    "description": null
+                  },
+                  "quantity": {
+                    "amount": "10",
+                    "unit": {
+                      "system": "packaging",
+                      "code": null,
+                      "packaging_id": "case-6",
+                      "version": "1",
+                      "base_units_per_pack": "6.000"
+                    }
+                  },
+                  "price": {
+                    "amount": "30.000000",
+                    "currency": "USD"
+                  },
+                  "requested": null,
+                  "links": {
+                    "contract_id": null
+                  }
+                }
+              ],
+              "status": "acknowledged",
+              "terms": {
+                "payment_net_days": 30,
+                "incoterm": null
+              },
+              "replaces": null
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000012",
+              "issued_at": "2026-09-01T08:18:00.000Z",
+              "expires_at": "2026-09-01T08:20:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000004-0000-4000-8000-000000000002",
+                "root_id": "00000004-0000-4000-8000-000000000001",
+                "supersedes": "00000004-0000-4000-8000-000000000001",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000004-0000-4000-8000-000000000001",
+                "profile_digest": "2fd92b94bfce66eb251fc98bd1c28ffabf3e52013f3259ba9670a25deebda4c6",
+                "counterparty_ids": [],
+                "body": {
+                  "buyer": {
+                    "self": true,
+                    "party_id": null,
+                    "revision": null
+                  },
+                  "seller": {
+                    "self": false,
+                    "party_id": "00000003-0000-4000-8000-000000000001",
+                    "revision": null
+                  },
+                  "placed_at": "2026-09-01T09:00:00.000Z",
+                  "currency": "USD",
+                  "external": [
+                    {
+                      "scheme": "buyer.po",
+                      "value": "PO-0001"
+                    }
+                  ],
+                  "lines": [
+                    {
+                      "line_id": "1",
+                      "product": {
+                        "product_id": "00000002-0000-4000-8000-000000000001",
+                        "revision": "00000002-0000-4000-8000-000000000001",
+                        "description": null
+                      },
+                      "quantity": {
+                        "amount": "10",
+                        "unit": {
+                          "system": "packaging",
+                          "code": null,
+                          "packaging_id": "case-6",
+                          "version": "1",
+                          "base_units_per_pack": "6.000"
+                        }
+                      },
+                      "price": {
+                        "amount": "30.000000",
+                        "currency": "USD"
+                      },
+                      "requested": null,
+                      "links": {
+                        "contract_id": null
+                      }
+                    }
+                  ],
+                  "status": "acknowledged",
+                  "terms": {
+                    "payment_net_days": 30,
+                    "incoterm": null
+                  },
+                  "replaces": null
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5NSCFXJBjwVa9o1NHR7q6ppZeAcz19Avp9rPTeAJCcRwTkfwCHg1Ee5Bi8uw49q3eXyE51KPLjUxuiXe3AsL8WrG"
+                }
+              ]
+            },
+            "seq": 7,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:18:00.000Z",
+            "validation": {
+              "profile": "dtp.order/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000005-0000-4000-8000-000000000001",
+            "root_id": "00000005-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000005-0000-4000-8000-000000000001",
+            "profile_digest": "7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7",
+            "counterparty_ids": [],
+            "body": {
+              "subject": {
+                "product_id": "00000002-0000-4000-8000-000000000001",
+                "description": null
+              },
+              "party_id": "00000003-0000-4000-8000-000000000001",
+              "direction": "demand",
+              "horizon": {
+                "start": "2026-10-01",
+                "end": "2026-12-31"
+              },
+              "as_of": "2026-09-01T06:00:00.000Z",
+              "method": "trailing 12-week average",
+              "quantity": {
+                "amount": "600",
+                "unit": {
+                  "system": "ucum",
+                  "code": "{jar}",
+                  "packaging_id": null,
+                  "version": null,
+                  "base_units_per_pack": null
+                }
+              },
+              "confidence": 60,
+              "scenario": "base",
+              "status": "draft"
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000013",
+              "issued_at": "2026-09-01T08:19:00.000Z",
+              "expires_at": "2026-09-01T08:21:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000005-0000-4000-8000-000000000001",
+                "root_id": "00000005-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000005-0000-4000-8000-000000000001",
+                "profile_digest": "7dd6e1725720c8e5242690fe19013f851543ade242bd8a7b4976147b38b06fe7",
+                "counterparty_ids": [],
+                "body": {
+                  "subject": {
+                    "product_id": "00000002-0000-4000-8000-000000000001",
+                    "description": null
+                  },
+                  "party_id": "00000003-0000-4000-8000-000000000001",
+                  "direction": "demand",
+                  "horizon": {
+                    "start": "2026-10-01",
+                    "end": "2026-12-31"
+                  },
+                  "as_of": "2026-09-01T06:00:00.000Z",
+                  "method": "trailing 12-week average",
+                  "quantity": {
+                    "amount": "600",
+                    "unit": {
+                      "system": "ucum",
+                      "code": "{jar}",
+                      "packaging_id": null,
+                      "version": null,
+                      "base_units_per_pack": null
+                    }
+                  },
+                  "confidence": 60,
+                  "scenario": "base",
+                  "status": "draft"
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:4wBCCsauXTbxZqfHPDD7i2ajZVwZamb3MQFPmQAa6heLFbqwZTrtgAHRajMVsWnGk4ptaArEEXrUbc3Ge12kc5F1"
+                }
+              ]
+            },
+            "seq": 8,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:19:00.000Z",
+            "validation": {
+              "profile": "dtp.forecast/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000007-0000-4000-8000-000000000001",
+            "root_id": "00000007-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000007-0000-4000-8000-000000000001",
+            "profile_digest": "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2",
+            "counterparty_ids": [],
+            "body": {
+              "class": "dtp/location",
+              "label": "Synthetic dock",
+              "identifiers": [],
+              "status": "active",
+              "retired": null,
+              "evidence": []
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000014",
+              "issued_at": "2026-09-01T08:20:00.000Z",
+              "expires_at": "2026-09-01T08:22:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000007-0000-4000-8000-000000000001",
+                "root_id": "00000007-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000007-0000-4000-8000-000000000001",
+                "profile_digest": "94aa00d62859f5387a23f2138c0f1a6f6875a94863b1c38ddb18195991bd66c2",
+                "counterparty_ids": [],
+                "body": {
+                  "class": "dtp/location",
+                  "label": "Synthetic dock",
+                  "identifiers": [],
+                  "status": "active",
+                  "retired": null,
+                  "evidence": []
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:5mgvaWshpDQ2VpJdzxj7Q6sLzgc21YebV4sK7FFqkuoArhZrDLKS7njVf8oVnV2iixLRYUkUXQG66GQ4mPThSJRD"
+                }
+              ]
+            },
+            "seq": 9,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:20:00.000Z",
+            "validation": {
+              "profile": "dtp.object/1",
+              "level": "business-rules",
+              "business_verified": false
+            }
+          },
+          {
+            "id": "00000009-0000-4000-8000-000000000001",
+            "root_id": "00000009-0000-4000-8000-000000000001",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000008-0000-4000-8000-000000000001",
+            "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+            "counterparty_ids": [],
+            "body": {
+              "act": {
+                "verb": "move",
+                "occurred_at": "2026-09-01T19:00:00.000Z",
+                "observation": {
+                  "source_id": "dock-scanner",
+                  "sequence": 1
+                },
+                "basis": "measured",
+                "references": [],
+                "evidence": []
+              },
+              "ledgers": [
+                {
+                  "key": "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051",
+                  "expected_revision": 0,
+                  "expected_digest": null
+                }
+              ],
+              "legs": [
+                {
+                  "asset": {
+                    "product": "00000002-0000-4000-8000-000000000001",
+                    "currency": null
+                  },
+                  "from": {
+                    "lot_id": null,
+                    "location": {
+                      "ref": null,
+                      "virtual": "~supplier"
+                    },
+                    "status": "available",
+                    "owner": null
+                  },
+                  "to": {
+                    "lot_id": "LOT-B",
+                    "location": {
+                      "ref": {
+                        "minted_by": null,
+                        "root": "00000007-0000-4000-8000-000000000001",
+                        "record_id": null
+                      },
+                      "virtual": null
+                    },
+                    "status": "available",
+                    "owner": null
+                  },
+                  "quantity": {
+                    "amount": "3",
+                    "unit": {
+                      "system": "ucum",
+                      "code": "{jar}",
+                      "packaging_id": null,
+                      "version": null,
+                      "base_units_per_pack": null
+                    }
+                  },
+                  "serial_ids": null,
+                  "reason": null
+                }
+              ],
+              "reservations": [],
+              "transform": null,
+              "rights": null,
+              "settles": []
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000017",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000009-0000-4000-8000-000000000001",
+                "root_id": "00000009-0000-4000-8000-000000000001",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000008-0000-4000-8000-000000000001",
+                "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+                "counterparty_ids": [],
+                "body": {
+                  "act": {
+                    "verb": "move",
+                    "occurred_at": "2026-09-01T19:00:00.000Z",
+                    "observation": {
+                      "source_id": "dock-scanner",
+                      "sequence": 1
+                    },
+                    "basis": "measured",
+                    "references": [],
+                    "evidence": []
+                  },
+                  "ledgers": [
+                    {
+                      "key": "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051",
+                      "expected_revision": 0,
+                      "expected_digest": null
+                    }
+                  ],
+                  "legs": [
+                    {
+                      "asset": {
+                        "product": "00000002-0000-4000-8000-000000000001",
+                        "currency": null
+                      },
+                      "from": {
+                        "lot_id": null,
+                        "location": {
+                          "ref": null,
+                          "virtual": "~supplier"
+                        },
+                        "status": "available",
+                        "owner": null
+                      },
+                      "to": {
+                        "lot_id": "LOT-B",
+                        "location": {
+                          "ref": {
+                            "minted_by": null,
+                            "root": "00000007-0000-4000-8000-000000000001",
+                            "record_id": null
+                          },
+                          "virtual": null
+                        },
+                        "status": "available",
+                        "owner": null
+                      },
+                      "quantity": {
+                        "amount": "3",
+                        "unit": {
+                          "system": "ucum",
+                          "code": "{jar}",
+                          "packaging_id": null,
+                          "version": null,
+                          "base_units_per_pack": null
+                        }
+                      },
+                      "serial_ids": null,
+                      "reason": null
+                    }
+                  ],
+                  "reservations": [],
+                  "transform": null,
+                  "rights": null,
+                  "settles": []
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
+                }
+              ]
+            },
+            "seq": 10,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:23:00.000Z",
+            "validation": {
+              "profile": "dtp.flow/1",
+              "revisions": {
+                "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051": 1
+              },
+              "physical_stock_verified": false
+            }
+          },
+          {
+            "id": "00000009-0000-4000-8000-000000000002",
+            "root_id": "00000009-0000-4000-8000-000000000002",
+            "supersedes": null,
+            "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+            "policy_id": "00000001-0000-4000-8000-000000000001",
+            "resource_id": "00000008-0000-4000-8000-000000000001",
+            "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+            "counterparty_ids": [],
+            "body": {
+              "act": {
+                "verb": "move",
+                "occurred_at": "2026-09-01T20:00:00.000Z",
+                "observation": {
+                  "source_id": "dock-scanner",
+                  "sequence": 2
+                },
+                "basis": "measured",
+                "references": [],
+                "evidence": []
+              },
+              "ledgers": [
+                {
+                  "key": "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051",
+                  "expected_revision": 1,
+                  "expected_digest": "7c728d6f066704a24786ed60a2ccbe5d79f268c0abd1d0de294ed7c921438365"
+                }
+              ],
+              "legs": [
+                {
+                  "asset": {
+                    "product": "00000002-0000-4000-8000-000000000001",
+                    "currency": null
+                  },
+                  "from": {
+                    "lot_id": null,
+                    "location": {
+                      "ref": null,
+                      "virtual": "~supplier"
+                    },
+                    "status": "available",
+                    "owner": null
+                  },
+                  "to": {
+                    "lot_id": "LOT-B",
+                    "location": {
+                      "ref": {
+                        "minted_by": null,
+                        "root": "00000007-0000-4000-8000-000000000001",
+                        "record_id": null
+                      },
+                      "virtual": null
+                    },
+                    "status": "available",
+                    "owner": null
+                  },
+                  "quantity": {
+                    "amount": "1",
+                    "unit": {
+                      "system": "ucum",
+                      "code": "{jar}",
+                      "packaging_id": null,
+                      "version": null,
+                      "base_units_per_pack": null
+                    }
+                  },
+                  "serial_ids": null,
+                  "reason": null
+                }
+              ],
+              "reservations": [],
+              "transform": null,
+              "rights": null,
+              "settles": []
+            },
+            "command": {
+              "version": "0.4",
+              "audience": "https://source-host.example",
+              "request_id": "0000000c-0000-4000-8000-000000000018",
+              "issued_at": "2026-09-01T08:21:00.000Z",
+              "expires_at": "2026-09-01T08:23:00.000Z",
+              "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+              "actor": {
+                "kind": "person",
+                "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+              },
+              "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+              "action": "record.append",
+              "payload": {
+                "id": "00000009-0000-4000-8000-000000000002",
+                "root_id": "00000009-0000-4000-8000-000000000002",
+                "supersedes": null,
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "resource_id": "00000008-0000-4000-8000-000000000001",
+                "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763",
+                "counterparty_ids": [],
+                "body": {
+                  "act": {
+                    "verb": "move",
+                    "occurred_at": "2026-09-01T20:00:00.000Z",
+                    "observation": {
+                      "source_id": "dock-scanner",
+                      "sequence": 2
+                    },
+                    "basis": "measured",
+                    "references": [],
+                    "evidence": []
+                  },
+                  "ledgers": [
+                    {
+                      "key": "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051",
+                      "expected_revision": 1,
+                      "expected_digest": "7c728d6f066704a24786ed60a2ccbe5d79f268c0abd1d0de294ed7c921438365"
+                    }
+                  ],
+                  "legs": [
+                    {
+                      "asset": {
+                        "product": "00000002-0000-4000-8000-000000000001",
+                        "currency": null
+                      },
+                      "from": {
+                        "lot_id": null,
+                        "location": {
+                          "ref": null,
+                          "virtual": "~supplier"
+                        },
+                        "status": "available",
+                        "owner": null
+                      },
+                      "to": {
+                        "lot_id": "LOT-B",
+                        "location": {
+                          "ref": {
+                            "minted_by": null,
+                            "root": "00000007-0000-4000-8000-000000000001",
+                            "record_id": null
+                          },
+                          "virtual": null
+                        },
+                        "status": "available",
+                        "owner": null
+                      },
+                      "quantity": {
+                        "amount": "1",
+                        "unit": {
+                          "system": "ucum",
+                          "code": "{jar}",
+                          "packaging_id": null,
+                          "version": null,
+                          "base_units_per_pack": null
+                        }
+                      },
+                      "serial_ids": null,
+                      "reason": null
+                    }
+                  ],
+                  "reservations": [],
+                  "transform": null,
+                  "rights": null,
+                  "settles": []
+                }
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                  "signature": "ed25519:2RvVWtafSHuxMSVtch4gaNoY1meCWjFdoRY2tMLzUB7KWnHRzg194npDxaDkDz61WXvWurAXWBpinpCtDEMfVPG5"
+                }
+              ]
+            },
+            "seq": 11,
+            "is_head": true,
+            "accepted_at": "2026-09-01T08:24:00.000Z",
+            "validation": {
+              "profile": "dtp.flow/1",
+              "revisions": {
+                "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051": 2
+              },
+              "physical_stock_verified": false
+            }
+          }
+        ],
+        "inventory": {
+          "52f5daa8-9f41-4831-dcbf-f50c9b852234": {
+            "pools": {},
+            "observations": {},
+            "creations": {},
+            "ledgers": {
+              "00000002-0000-4000-8000-000000000001": {
+                "profile": "dtp.inventory/2",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "product_id": "00000002-0000-4000-8000-000000000001",
+                "base_unit": {
+                  "system": "ucum",
+                  "code": "{jar}"
+                },
+                "tracking": "lot",
+                "revision": 2,
+                "positions": {
+                  "0a90e630a7b8f0461306ebe26cb5bcd4350c158e67a0b6447b6aa589124772f7": {
+                    "position": {
+                      "lot_id": "LOT-A",
+                      "location_id": "DOCK",
+                      "status": "available"
+                    },
+                    "quantity": "24",
+                    "serials": []
+                  }
+                },
+                "reservations": {},
+                "sources": {
+                  "wms-1": {
+                    "high_water": 2,
+                    "recent": {
+                      "1": "32646255128edd5a7e09e0149dd7adbfd88ab3d57f2bc268f1e3f50044a12480",
+                      "2": "84c9d0be1da434266de1a514258d591a90d18d0e01fbc7d3e403321d6108aca9"
+                    }
+                  }
+                },
+                "policy_id": "00000001-0000-4000-8000-000000000001"
+              }
+            },
+            "openings": {
+              "00000002-0000-4000-8000-000000000001": {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-00000000000c",
+                "issued_at": "2026-09-01T08:12:00.000Z",
+                "expires_at": "2026-09-01T08:14:00.000Z",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "actor": {
+                  "kind": "person",
+                  "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                },
+                "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "action": "inventory.open",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "product_id": "00000002-0000-4000-8000-000000000001"
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                    "signature": "ed25519:46KxbPVSmgxRXGPtopw2yg4Fv3gQk9DXC5xgnxshncFWuTsMdhhU9bdEtSpFpc2NDnAujKHuZxMQrgEhAtjXZWM6"
+                  }
+                ]
+              }
+            },
+            "facts": {
+              "faef4821c8e9f68608552a64fc7910723de91137756c229c905cc431572ca9ca": {
+                "hash": "32646255128edd5a7e09e0149dd7adbfd88ab3d57f2bc268f1e3f50044a12480",
+                "record_id": "00000006-0000-4000-8000-000000000001",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"
+              },
+              "e3434bafa7704636d9464cfdd0f829e7a0685e971952c02108f61d6b716e2a0d": {
+                "hash": "84c9d0be1da434266de1a514258d591a90d18d0e01fbc7d3e403321d6108aca9",
+                "record_id": "00000006-0000-4000-8000-000000000002",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "profile_digest": "01db4c97806f9a34542874a5553f773b465543279508795fb684efa18a79d0cb"
+              }
+            },
+            "books": {
+              "00000008-0000-4000-8000-000000000001": {
+                "profile": "dtp.flow/1",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "book_id": "00000008-0000-4000-8000-000000000001",
+                "ledgers": {
+                  "41fc311201f737c58f9892eaa6742b6adcfed2a9548b280a24271bead2069051": {
+                    "asset": {
+                      "product": "00000002-0000-4000-8000-000000000001",
+                      "currency": null
+                    },
+                    "account": null,
+                    "unit": "{jar}",
+                    "tracking": "lot",
+                    "balance": "nonnegative",
+                    "revision": 2,
+                    "head": "63ca5f9372d2971b293c5524775e5cf32353152c7890f5520892439cea238dd7",
+                    "positions": {
+                      "f12527c867c5e9bbf5c701a0f407a656e4723d16c26751d09b79f6fd520ed2bf": {
+                        "position": {
+                          "lot_id": "LOT-B",
+                          "location": {
+                            "ref": {
+                              "minted_by": null,
+                              "root": "00000007-0000-4000-8000-000000000001",
+                              "record_id": null
+                            },
+                            "virtual": null
+                          },
+                          "status": "available",
+                          "owner": null
+                        },
+                        "quantity": "4",
+                        "serials": []
+                      }
+                    },
+                    "reservations": {}
+                  }
+                },
+                "sources": {
+                  "dock-scanner": {
+                    "high_water": 2,
+                    "recent": {
+                      "1": "7c728d6f066704a24786ed60a2ccbe5d79f268c0abd1d0de294ed7c921438365",
+                      "2": "63ca5f9372d2971b293c5524775e5cf32353152c7890f5520892439cea238dd7"
+                    }
+                  }
+                },
+                "policy_id": "00000001-0000-4000-8000-000000000001"
+              }
+            },
+            "book_openings": {
+              "00000008-0000-4000-8000-000000000001": {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000015",
+                "issued_at": "2026-09-01T08:21:00.000Z",
+                "expires_at": "2026-09-01T08:23:00.000Z",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "actor": {
+                  "kind": "person",
+                  "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                },
+                "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "action": "flow.open",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "book_id": "00000008-0000-4000-8000-000000000001"
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                    "signature": "ed25519:52Gq6nhMSC2LwwHKgSuEhytnpJza3rsZB2tmeHkyCSPH8QK5hh7CgX1HtbQfCDBgseheQmT2AnTxei8vbysmwMbT"
+                  }
+                ]
+              }
+            },
+            "ledger_openings": {
+              "3259edca2591242a646b9688d3cd07e0f1400b55365302875862a62f6098db34": {
+                "version": "0.4",
+                "audience": "https://source-host.example",
+                "request_id": "0000000c-0000-4000-8000-000000000016",
+                "issued_at": "2026-09-01T08:22:00.000Z",
+                "expires_at": "2026-09-01T08:24:00.000Z",
+                "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
+                "actor": {
+                  "kind": "person",
+                  "id": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                  "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA"
+                },
+                "requested_by": "311dccb1-0c3d-8a8f-d8b0-d3832ea95b75",
+                "action": "flow.ledger.open",
+                "payload": {
+                  "policy_id": "00000001-0000-4000-8000-000000000001",
+                  "book_id": "00000008-0000-4000-8000-000000000001",
+                  "asset": {
+                    "product": "00000002-0000-4000-8000-000000000001",
+                    "currency": null
+                  },
+                  "account": null,
+                  "balance": "nonnegative"
+                },
+                "signatures": [
+                  {
+                    "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
+                    "signature": "ed25519:3M56KZGqb1xizqP8Phg1VWKdRrW1abM3dQ3WC5JQXd693LScaeniMBNbjcW2XTTpbaEEwaQ1632tcn6qovch35ix"
+                  }
+                ]
+              }
+            },
+            "flow_facts": {
+              "6632130ffe2c728e49e998dad37385b0f429b5e65e30ed8d1d7ac5eeada24c9d": {
+                "hash": "7c728d6f066704a24786ed60a2ccbe5d79f268c0abd1d0de294ed7c921438365",
+                "record_id": "00000009-0000-4000-8000-000000000001",
+                "policy_id": "00000001-0000-4000-8000-000000000001",
+                "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763"
+              },
+              "5ea293c595249dd293f0b8c75582c8ba39190c350d52799c371c59155d50e742": {
+                "hash": "63ca5f9372d2971b293c5524775e5cf32353152c7890f5520892439cea238dd7",
                 "record_id": "00000009-0000-4000-8000-000000000002",
                 "policy_id": "00000001-0000-4000-8000-000000000001",
                 "profile_digest": "49ac4316fddd6e6d01e67b5c38a1c64cedd9db1fd1686d97669c8184c2c65763"
@@ -56907,8 +61122,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -56996,7 +61211,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },
@@ -60932,8 +65147,8 @@
               "version": "0.4",
               "audience": "https://source-host.example",
               "request_id": "0000000c-0000-4000-8000-000000000017",
-              "issued_at": "2026-09-01T08:23:00.000Z",
-              "expires_at": "2026-09-01T08:25:00.000Z",
+              "issued_at": "2026-09-01T08:22:00.000Z",
+              "expires_at": "2026-09-01T08:24:00.000Z",
               "organization_id": "52f5daa8-9f41-4831-dcbf-f50c9b852234",
               "actor": {
                 "kind": "person",
@@ -61021,7 +65236,7 @@
               "signatures": [
                 {
                   "key_id": "ed25519:Dg6eeLMqRekMyMmm1cgB4qLx9afFghtjixgdyApCqzCA",
-                  "signature": "ed25519:5QDdPTuvh96qjowPCqAigSJrRVufMNP8L1wbMMjwjcidybfy83yKibCfMrC7HVRNurqED2gQiY7Y4JfayZbdVHbn"
+                  "signature": "ed25519:3tsdgJ5S3bJBgwvJaESP4hANRQ9aWqNpVXFc33mmCMDCkosmDx3iYQ1hc1fyYmkmJHxiaVxYaNGh7zgDfyHxiWhF"
                 }
               ]
             },

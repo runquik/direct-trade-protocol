@@ -26,6 +26,10 @@ test("snapshot-import vectors: the base imports and the destination reproduces i
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(snap.inventory[org]), "the carried inventory is what replay produces");
   const kinds = new Set(snap.profiles.map(p => p.id));
   assert.deepEqual(Object.keys(snap).sort(), ["inventory", "organization", "persons", "policies", "profiles", "records", "releases", "source", "version"], "the snapshot carries owned state only (#107)");
+  // #119: the base flow fact is signed at the same instant as its ledger opening, and that is not "before".
+  const opening = Object.values(snap.inventory[org].ledger_openings as Record<string, { issued_at: string }>)[0];
+  const flowFact = snap.records.find(r => r.resource_id === Object.keys(snap.inventory[org].books)[0])!;
+  assert.equal(flowFact.command.issued_at, opening.issued_at, "the base pins the equal-issued_at boundary");
   for (const kind of ["dtp/product@1.0.0", "dtp/inventory@2.0.0", "dtp/party@1.0.0", "dtp/order@1.0.0", "dtp/forecast@1.0.0", "dtp/object@1.0.0", "dtp/flow@1.0.0"]) assert.ok(kinds.has(kind), `the base carries ${kind}`);
 });
 
@@ -44,6 +48,7 @@ const reasons: Record<string, RegExp> = {
   "ledger-projection-differs": /inventory projection differs from signed events/,
   "object-class-changed": /object continuity violated/,
   "flow-fact-unpublished-pack": /flow fact pins a packaging revision the product had not published/,
+  "flow-fact-before-opening": /flow fact precedes its ledger opening/,
   "flow-book-differs": /inventory projection differs from signed events/,
   "carries-remote-authorities": /unexpected or missing snapshot members/,
 };

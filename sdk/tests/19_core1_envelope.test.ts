@@ -16,13 +16,21 @@ const vectors = parseUntrustedJson(readFileSync(new URL("../../spec/core-1/vecto
 const keys = JSON.parse(readFileSync(new URL("../../spec/vectors/keys.json", import.meta.url), "utf8"));
 
 test("conformance vectors: every accepted envelope verifies with its signers, every refused one with its code", async () => {
-  assert.ok(vectors.accept.length >= 2 && vectors.reject.length >= 9);
+  assert.ok(vectors.accept.length >= 2 && vectors.reject.length >= 12);
   for (const v of vectors.accept) {
     const { signers } = await verifyEnvelope(v.domain, v.envelope);
     assert.deepEqual([...signers].sort(), [...v.signers].sort(), v.why);
   }
   for (const v of vectors.reject) {
     await assert.rejects(verifyEnvelope(v.domain, v.envelope), (error: unknown) => error instanceof EnvelopeError && error.code === v.code, v.why);
+  }
+});
+
+test("a body that is not I-JSON is refused as invalid_envelope, not with a canonicalization error (#124)", async () => {
+  const signed = await signEnvelope("DTP-RECORD-1", { a: 1 }, [keys.secret_key]);
+  for (const body of [{ amount: 1.5 }, { n: 2 ** 53 }, { n: -(2 ** 53) }, { s: "\ud800" }, { s: "\udc00x" }, { nested: [{ n: Infinity }] }]) {
+    await assert.rejects(verifyEnvelope("DTP-RECORD-1", { body, signatures: signed.signatures }),
+      (error: unknown) => error instanceof EnvelopeError && error.code === "invalid_envelope", JSON.stringify(body));
   }
 });
 

@@ -8,7 +8,7 @@
 // supplied by the verifier from context, never read from the message. Several signatures over the same input
 // express a threshold; who must sign is the caller's rule (see meetsQuorum), not the envelope's.
 
-import { canonicalBytes } from "../canonical.ts";
+import { CanonicalizationError, FloatNotAllowedError, canonicalBytes } from "../canonical.ts";
 import { decodeKeyId, decodeSignature, encodeSignature, keyPairFromSecret, signBytes, verifyBytes } from "../keys.ts";
 import { assertSafeMemberNames } from "../safe-json.ts";
 
@@ -47,6 +47,22 @@ const exactly = (value: Record<string, unknown>, members: string[], what: string
   if (names.length !== members.length || !members.every(m => Object.hasOwn(value, m))) refuse(`${what} must have exactly the members ${members.join(", ")}`);
 };
 
+/** Core-1 part 1: a signed body nests at most this many levels. The body itself is level 0; each array or object adds one. */
+export const MAX_DEPTH = 48;
+
+/**
+ * Refuses a body that nests deeper than MAX_DEPTH, without recursion, so the answer depends on the value alone and never
+ * on the stack. Runs before canonicalization on both the signing and the verifying side.
+ */
+function assertDepth(body: unknown): void {
+  const pending: [unknown, number][] = [[body, 0]];
+  while (pending.length) {
+    const [value, depth] = pending.pop()!;
+    if (depth > MAX_DEPTH) refuse(`the body nests deeper than ${MAX_DEPTH} levels`);
+    if (value !== null && typeof value === "object") for (const child of Object.values(value)) pending.push([child, depth + 1]);
+  }
+}
+
 /** The bytes every signer signs and every verifier checks, for one domain and one body. */
 export function signingInput(domain: string, body: unknown): Uint8Array {
   if (typeof domain !== "string" || !DOMAIN.test(domain)) refuse(`not a domain: ${String(domain)}`);
@@ -59,6 +75,7 @@ export function signingInput(domain: string, body: unknown): Uint8Array {
  */
 export async function signEnvelope<T>(domain: string, body: T, secretKeys: string[]): Promise<Signed<T>> {
   if (!Array.isArray(secretKeys) || secretKeys.length === 0) refuse("at least one key signs");
+  assertDepth(body);
   const copied = structuredClone(body);
   assertSafeMemberNames(copied);
   const bytes = signingInput(domain, copied);
@@ -74,7 +91,9 @@ export async function signEnvelope<T>(domain: string, body: T, secretKeys: strin
 /**
  * Verifies an envelope under the domain the caller expects. Returns the key ids that signed. Refuses the whole
  * envelope, rather than ignoring a part, if it has any other member, if a signature entry has any other member, if a
- * key signs twice, if any signature fails strict Ed25519 verification, or if the signing input exceeds `maxBytes`.
+ * key signs twice, if any signature fails strict Ed25519 verification, if the signing input exceeds `maxBytes`, if the
+ * body nests deeper than MAX_DEPTH levels (checked first, before canonicalization), or if the body is not I-JSON (a number that is not a safe integer, or a lone surrogate in a string). Every refusal is an
+ * EnvelopeError: a body that cannot be canonicalized is `invalid_envelope`, never a canonicalization error.
  */
 export async function verifyEnvelope<T = unknown>(domain: string, signed: unknown, { maxBytes = 65_536, maxSignatures = 24 } = {}): Promise<{ body: T; signers: Set<string> }> {
   if (!isObject(signed)) refuse("an envelope is an object");
@@ -82,7 +101,12 @@ export async function verifyEnvelope<T = unknown>(domain: string, signed: unknow
   exactly(envelope, ["body", "signatures"], "an envelope");
   const list = envelope.signatures;
   if (!Array.isArray(list) || list.length === 0 || list.length > maxSignatures) refuse(`an envelope carries 1 to ${maxSignatures} signatures`);
-  const bytes = signingInput(domain, envelope.body);
+  assertDepth(envelope.body);
+  let bytes: Uint8Array;
+  try { bytes = signingInput(domain, envelope.body); } catch (error) {
+    if (error instanceof FloatNotAllowedError || error instanceof CanonicalizationError) refuse(`the body is not I-JSON: ${error.message}`);
+    throw error;
+  }
   if (bytes.length > maxBytes) refuse(`the signing input exceeds ${maxBytes} bytes`);
   const signers = new Set<string>();
   for (const entry of list as unknown[]) {
