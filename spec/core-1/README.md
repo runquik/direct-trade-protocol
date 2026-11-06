@@ -17,6 +17,7 @@ What DTP signs is **I-JSON** ([RFC 7493](https://www.rfc-editor.org/rfc/rfc7493)
 - **Member names need no escape.** A name contains no quotation mark, reverse solidus or control character, so it is never written with an escape sequence. A receiver checks this on the received text **before** parsing, and refuses the whole text (`unsafe_member_name`). Rationale: [docs/security/json-member-names.md](../../docs/security/json-member-names.md).
 - **No member is named twice**, at any depth; refused in the same pre-parse check (`duplicate_member_name`).
 - **Numbers are integers** within ±(2^53−1). Decimal amounts are strings.
+- **Nesting is at most 48 levels.** A signed body is level 0, and each array or object adds one level to the values inside it; a value deeper than level 48 is refused. A verifier checks this before canonicalizing, so whether a body is valid depends on its bytes alone, never on the verifier's stack. The bound is v0.4's transport bound, which every v0.4 command already meets (owner decision of 2026-11-04 on #149). An envelope that breaks it is `invalid_envelope` (part 3).
 
 Canonical form is RFC 8785 (JCS) over that JSON. Canonicalization refuses anything a receiver would refuse, so nothing a receiver refuses can be signed. Vectors: `spec/vectors/unsafe-json.json`, `spec/vectors/canonicalization.json` (cases and `refuse`).
 
@@ -39,7 +40,7 @@ Signed<T> = { "body": T, "signatures": [ { "key_id": "ed25519:…", "signature":
 signing input = canonical({ "domain": <domain>, "body": <body> })
 ```
 
-The **domain** names what the body is and its format version, such as `DTP-PERSON-GENESIS-1`. Domains are permanent: a domain never changes meaning, and a new format is a new domain. It is never derived from a software release number. A verifier knows from context which domain to expect and never takes it from the message. Several signatures over the same input express a threshold. This is the foundation layer's form today, close to JWS general serialization and COSE_Sign.
+The **domain** names what the body is and its format version, such as `DTP-PERSON-GENESIS-1`. Domains are permanent: a domain never changes meaning, and a new format is a new domain. It is never derived from a software release number. A verifier knows from context which domain to expect and never takes it from the message. Several signatures over the same input express a threshold. A verifier refuses the whole envelope, with one of two codes: `invalid_signature` when a signature is malformed or does not verify, and `invalid_envelope` for anything else, including a body that is not the JSON of part 1 (a number that is not a safe integer, or a lone surrogate in a string), which cannot be canonicalized. This is the foundation layer's form today, close to JWS general serialization and COSE_Sign.
 
 The Core-1 domains are those of parts 4 and 5. A verifier implements only those. Reference: `sdk/src/core1/envelope.ts` (`signEnvelope`, `verifyEnvelope`, `meetsQuorum`, `CORE1_DOMAINS`). Vectors: `spec/core-1/vectors/envelope.json` (regenerate with `node sdk/scripts/build-core1-envelope-vectors.ts`).
 

@@ -123,7 +123,7 @@ export async function migrationReady(s: State, migrationId: string, ctx: Context
   for (let i = 0; i < m.chunk_hashes.length; i++) { const part = decode(stage.chunks[String(i)]); demand(await sha256Hex(part) === m.chunk_hashes[i], "invalid_chunk", "staged chunk is corrupt", 400); bytes.set(part, offset); offset += part.length; }
   demand(offset === m.byte_length, "invalid_manifest", "assembled size differs", 400);
   let snapshot: Snapshot;
-  try { snapshot = parseUntrustedJsonBytes(bytes) as Snapshot; } catch { demand(false, "invalid_snapshot", "invalid snapshot encoding", 400); }
+  try { snapshot = parseUntrustedJsonBytes(bytes, { integerNumbers: true }) as Snapshot; } catch { demand(false, "invalid_snapshot", "invalid snapshot encoding", 400); }
   const queue: { value: unknown; depth: number }[] = [{ value: snapshot!, depth: 0 }];
   while (queue.length) {
     const { value, depth } = queue.pop()!; demand(depth <= 48, "invalid_snapshot", "snapshot nesting exceeds 48 levels", 400);

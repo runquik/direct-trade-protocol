@@ -20,8 +20,16 @@
 // or fail. A signature is checked over the canonical form of what this side parsed, so a text
 // with a duplicate name could verify here and mean something else to the next reader. Because
 // names carry no escapes, two names are the same exactly when their raw text is the same.
+//
+// On request (`integerNumbers`), the same pass also refuses a number written with a fraction or
+// an exponent. v0.4 JSON carries integers only, and parsers disagree about `1.0`, `1e0` and
+// `1.0000000000000001`: an exact-decimal parser reads a non-integer where binary64 reads 1. The
+// rule is therefore lexical: an integer is an optional minus sign and digits, nothing else (#97).
 
-export type UnsafeJsonCode = "unsafe_member_name" | "duplicate_member_name";
+export type UnsafeJsonCode = "unsafe_member_name" | "duplicate_member_name" | "non_integer_number";
+
+/** `integerNumbers`: also refuse any number written with a fraction or an exponent (code `non_integer_number`). */
+export interface SafeJsonOptions { integerNumbers?: boolean }
 
 export class UnsafeJsonError extends Error {
   readonly code: UnsafeJsonCode;
@@ -36,6 +44,7 @@ export class UnsafeJsonError extends Error {
 
 const QUOTE = 0x22, REVERSE_SOLIDUS = 0x5c, COMMA = 0x2c, COLON = 0x3a;
 const OPEN_OBJECT = 0x7b, CLOSE_OBJECT = 0x7d, OPEN_ARRAY = 0x5b, CLOSE_ARRAY = 0x5d;
+const MINUS = 0x2d, PLUS = 0x2b, FULL_STOP = 0x2e, SMALL_E = 0x65, CAPITAL_E = 0x45, DIGIT_0 = 0x30, DIGIT_9 = 0x39;
 
 /**
  * Throws UnsafeJsonError if any object member name in `text` is written with an escape
@@ -44,8 +53,9 @@ const OPEN_OBJECT = 0x7b, CLOSE_OBJECT = 0x7d, OPEN_ARRAY = 0x5b, CLOSE_ARRAY = 
  * JSON.parse still runs afterwards and rejects malformed text. It only has to agree with a
  * conforming parser about which strings are member names in the valid prefix of the text,
  * because a parser stops at the first syntax error and never reads a name beyond it.
+ * With `integerNumbers`, it also refuses a number written with a fraction or an exponent.
  */
-export function assertSafeJsonText(text: string): void {
+export function assertSafeJsonText(text: string, options: SafeJsonOptions = {}): void {
   const objectContext: boolean[] = [];
   const names: (Set<string> | null)[] = []; // the names seen so far in each open object; null for an array
   let expectName = false;
@@ -75,19 +85,29 @@ export function assertSafeJsonText(text: string): void {
     else if (c === CLOSE_OBJECT || c === CLOSE_ARRAY) { objectContext.pop(); names.pop(); expectName = false; }
     else if (c === COMMA) expectName = objectContext.length > 0 && objectContext[objectContext.length - 1];
     else if (c === COLON) expectName = false;
+    else if (options.integerNumbers && (c === MINUS || (c >= DIGIT_0 && c <= DIGIT_9))) {
+      // A number token; outside strings, only numbers contain these characters.
+      let j = i + 1;
+      for (; j < text.length; j++) {
+        const d = text.charCodeAt(j);
+        if (d === FULL_STOP || d === SMALL_E || d === CAPITAL_E) throw new UnsafeJsonError("numbers must be written as integers, without a fraction or an exponent", i, "non_integer_number");
+        if (!(d === PLUS || d === MINUS || (d >= DIGIT_0 && d <= DIGIT_9))) break;
+      }
+      i = j - 1;
+    }
   }
 }
 
 /** Parse JSON text from an untrusted source. Use this instead of JSON.parse at every boundary. */
-export function parseUntrustedJson(text: string): unknown {
+export function parseUntrustedJson(text: string, options: SafeJsonOptions = {}): unknown {
   if (typeof text !== "string") throw new TypeError("JSON text must be a string");
-  assertSafeJsonText(text);
+  assertSafeJsonText(text, options);
   return JSON.parse(text);
 }
 
 /** As parseUntrustedJson, for bytes. Invalid UTF-8 is rejected rather than replaced. */
-export function parseUntrustedJsonBytes(bytes: Uint8Array): unknown {
-  return parseUntrustedJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+export function parseUntrustedJsonBytes(bytes: Uint8Array, options: SafeJsonOptions = {}): unknown {
+  return parseUntrustedJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), options);
 }
 
 /** Read and parse a fetch Response body without handing the text to the engine unguarded. */
