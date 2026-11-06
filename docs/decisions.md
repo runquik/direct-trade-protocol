@@ -21,6 +21,7 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-10-22** · [#92](https://github.com/runquik/direct-trade-protocol/issues/92) · Time is integer milliseconds in envelope and identity primitives; business bodies keep ISO-8601 UTC millisecond strings.
 - **2026-11-02** · [#124](https://github.com/runquik/direct-trade-protocol/issues/124), [#125](https://github.com/runquik/direct-trade-protocol/issues/125) · Core-1 `verifyEnvelope` keeps its two codes: a body that is not I-JSON is refused `invalid_envelope`, before any signature is checked. Signing is unchanged: a producer cannot sign such a body.
 - **2026-11-04** · [#149](https://github.com/runquik/direct-trade-protocol/issues/149) · Core-1 part 1 sets a nesting limit of 48 (the v0.4 bound); a value nested deeper is refused `invalid_envelope` before canonicalization, whatever the verifier's stack size, with vectors.
+- **2026-11-06** · [#156](https://github.com/runquik/direct-trade-protocol/issues/156) · The build of that limit is approved as built, at head 3e6fd5f: signing and verification refuse a body nested deeper than 48 levels `invalid_envelope` before canonicalization, with accept and reject vectors; the shared canonicalizer stays unbounded.
 - **2026-11-04** · [#132](https://github.com/runquik/direct-trade-protocol/issues/132) · `spec/README.md` indexes the Core-1 envelope vectors; nothing normative changes.
 
 ## Core-1, the verb layer and data-layer security
@@ -52,7 +53,9 @@ Links point to `https://github.com/runquik/direct-trade-protocol/issues/<n>`, wh
 - **2026-11-02** · [#127](https://github.com/runquik/direct-trade-protocol/issues/127) · Governance-log replay: document the limit beside the "without trusting the host" guarantee now. A governance pin with fail-closed admission comes as its own proposal. Severity stays medium.
 - **2026-11-04** · [#142](https://github.com/runquik/direct-trade-protocol/issues/142) · The docs build of that limit is approved.
 - **2026-11-02** · [#130](https://github.com/runquik/direct-trade-protocol/issues/130) · An `inventory@2` ledger opens only under the product's own policy, by a caller holding `write` there; a mismatch is refused `forbidden` before the 409, and snapshot import refuses a mismatched opening `invalid_snapshot`; with a reject vector.
+- **2026-11-06** · [#153](https://github.com/runquik/direct-trade-protocol/issues/153) · For that rule, the opener's `write` grant must cover the product root (the resource every later stock fact is written under); no further grant on the product record's own `resource_id` is required (A).
 - **2026-11-04** · [#137](https://github.com/runquik/direct-trade-protocol/issues/137) · Migration key collisions: a key that is historical only (a revoked installation key, a member's retired key) no longer blocks import (A1); a forked person who is no longer a controller or member keeps the destination's record, and a current one is refused, naming the person and the remedy (B1); every remaining collision refusal names who collides (C).
+- **2026-11-06** · [#155](https://github.com/runquik/direct-trade-protocol/issues/155) · For B1, a person is current if they are a controller, an active member, or hold a live unaccepted invitation; a forked person who holds only a pending invitation therefore refuses the import (option 1).
 
 ## Privacy and error semantics
 
