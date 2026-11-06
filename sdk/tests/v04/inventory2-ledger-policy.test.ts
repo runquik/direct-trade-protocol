@@ -33,9 +33,10 @@ test("a product's stock ledger opens only under the product's own policy; a read
     const product_id = productRecord.root_id;
     const fact = { ...structuredClone(fixtures.flows[0].facts[0].fact), product_id }; assert.ok(fixtures.flows[0].facts[0].expect.ok);
 
-    // The clerk may read the product but not write it, so it cannot open the ledger in the product's policy.
+    // The clerk may read the product record but holds nothing on the ledger's resource (the product root) in the
+    // product's policy, so it cannot open the ledger there; SPEC section 4 (#89) answers that as an absent policy, 404.
     assert.ok(await client.ok(clerk, "record.get", org, { id: productRecord.id, profile_digest: productProfile }));
-    assert.equal((await client.act(clerk, "inventory.open", org, { policy_id: ops, product_id })).error.code, "forbidden");
+    assert.equal((await client.act(clerk, "inventory.open", org, { policy_id: ops, product_id })).error.code, "not_found");
 
     // Nor under a policy it stewards and can write: the ledger is not the opener's to place.
     const side = await policy(client, clerk, org, [grant(clerk)]);
