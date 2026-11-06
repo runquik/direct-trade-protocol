@@ -1,7 +1,7 @@
 {
-  "description": "Portable identity log. A verifier MUST accept every log under \"accept\" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under \"reject\". A relying party holding the pin under \"admission\" (and, where \"pinned\" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under \"refusals\" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each \"push\" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under \"refusals.accept\", refuse every one under \"refusals.reject\", and reach the expected comparison under \"refusals.contradictions\". A wallet holding the log under \"signing\" MUST sign a person operation over the resolution there exactly when \"sign\" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.",
+  "description": "Portable identity log. A verifier MUST accept every log under \"accept\" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under \"reject\", including every log in the withdrawn format 1 (\"withdrawn_format\"). A relying party holding the pin under \"admission\" (and, where \"pinned\" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under \"refusals\" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each \"push\" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under \"refusals.accept\", refuse every one under \"refusals.reject\", and reach the expected comparison under \"refusals.contradictions\". A wallet holding the log under \"signing\" MUST sign a person operation over the resolution there exactly when \"sign\" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.",
   "format": "dtp-identity-log-2",
-  "legacy_format": "dtp-identity-log-1",
+  "withdrawn_format": "dtp-identity-log-1",
   "attestation_domain": "DTP-IDENTITY-LOG-HEAD-1",
   "rehome_domain": "DTP-IDENTITY-REHOME-1",
   "lease_ms": 30000,
@@ -2132,303 +2132,6 @@
             "head_digest": "0538addd7faf3d6d492f694f23f83f8d91df66155ece5b84c9da3d2887ac52cb",
             "effective_at": 1800000900000,
             "epoch": 1,
-            "attested": true
-          }
-        ],
-        "operational": {
-          "keys": [
-            "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ"
-          ],
-          "threshold": 1
-        },
-        "recovery": {
-          "keys": [
-            "ed25519:Ehs7meLZDBJM2ogTW7zFKriSn3yb4CHN1JzAo7RP6qBR"
-          ],
-          "threshold": 1
-        },
-        "retired_keys": [
-          "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
-          "ed25519:B5ZYXmxxy4U6PGbxsmxf7jNicmJkbcsu8PvMPXAiLiGs",
-          "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
-        ],
-        "unattested": []
-      }
-    },
-    {
-      "why": "the format 1 encoding of a history without moves",
-      "require_attestation": true,
-      "log": {
-        "format": "dtp-identity-log-1",
-        "genesis": {
-          "body": {
-            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
-            "operational": {
-              "keys": [
-                "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ"
-              ],
-              "threshold": 1
-            },
-            "recovery": {
-              "keys": [
-                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
-              ],
-              "threshold": 1
-            }
-          },
-          "signatures": [
-            {
-              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
-              "signature": "ed25519:58sNP4i8wspzXaFpeB64DJ4dqXeS4MsRmJXWnZz4Sh5szALaEbi2D1FcbRu45K5amJmz27vjYWufaD7GFhjdLKYA"
-            },
-            {
-              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
-              "signature": "ed25519:oMXmkJ1MwFhqnhdghfkoZ8urVfE1mD7QPG29Nhh4rkresNavWsz811Fdf1ztP3x9SEK1TN9FGp6SoRSSF6K5pLx"
-            }
-          ]
-        },
-        "enrollment": {
-          "body": {
-            "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-            "genesis_digest": "5f723e1df34388cbc48d1eb5cfb613b758dfcecd4a7052820c16caa072996d7f",
-            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
-            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-            "audience": "https://resolver.example",
-            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            "issued_at": 1800000000000,
-            "expires_at": 1800000300000
-          },
-          "signatures": [
-            {
-              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
-              "signature": "ed25519:5chsKkenhQqbVqYfxh3tuULkYQ8P4WjfryAy2CFeqpu2aLuDsTHFVNSpBuuM7dtijjU4R7ZXimAYnrSxje6sZXFf"
-            },
-            {
-              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
-              "signature": "ed25519:uxAinkv96969LQN5idurjgCoCC1h9wUWF2D52t7LiNDtUPCHiYGhkAckb4NJ9BAY1cVjJhVdbD4VanRmRzyeKW7"
-            }
-          ]
-        },
-        "entries": [
-          {
-            "effective_at": 1800000002000,
-            "transition": null,
-            "attestation": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
-                "resolver_epoch": 0,
-                "sequence": 0,
-                "head_digest": "85126b6216030c32e023c9116660c46f3a904c43b966e0fb625ce9f1a4d51bd1",
-                "effective_at": 1800000002000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-                  "signature": "ed25519:5r3sVS2JdqLreG3TuY7mMcqPRZpnxN2DJhDY1hK2kwDBQmqX2TeESk5Z5m5q1wC1g5T3YjM6UJgP49Q7cFWhwyJx"
-                }
-              ]
-            }
-          },
-          {
-            "effective_at": 1800000095000,
-            "transition": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "expected_digest": "85126b6216030c32e023c9116660c46f3a904c43b966e0fb625ce9f1a4d51bd1",
-                "sequence": 1,
-                "kind": "rotate",
-                "operational": {
-                  "keys": [
-                    "ed25519:B5ZYXmxxy4U6PGbxsmxf7jNicmJkbcsu8PvMPXAiLiGs"
-                  ],
-                  "threshold": 1
-                },
-                "recovery": {
-                  "keys": [
-                    "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
-                  ],
-                  "threshold": 1
-                },
-                "issued_at": 1800000061000,
-                "expires_at": 1800000361000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
-                  "signature": "ed25519:3dqmToBMRQBwJ3rCn36bettZ3BXca5Cyb5Ma4h3ZR2jYnKJZEMzaBgLHCHcLpaxX24HySJ5hSwbmhvzSzVuTLa4S"
-                },
-                {
-                  "key_id": "ed25519:B5ZYXmxxy4U6PGbxsmxf7jNicmJkbcsu8PvMPXAiLiGs",
-                  "signature": "ed25519:5aqgsuQN8LQbHM95EDFmPkjCyCKCD7v52NEQF41TnocKBucAgxZDggJ2KJQgasCTDUiTmGAk8yf7q3LLPqFMcABG"
-                }
-              ]
-            },
-            "attestation": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
-                "resolver_epoch": 0,
-                "sequence": 1,
-                "head_digest": "63665c16c158f1037ed641c5d3c8177ef6a83b1ce95e8fbf028da17e38c08ba1",
-                "effective_at": 1800000095000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-                  "signature": "ed25519:57FDgVMjjnDE6dLyoHKhtUSHuA7J4L4S67W7UvGqC7Qx8mhRXjX4nYuwZAQmKRoE9264pCJaqxcSS7BCPAD3j185"
-                }
-              ]
-            }
-          },
-          {
-            "effective_at": 1800000200750,
-            "transition": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "expected_digest": "63665c16c158f1037ed641c5d3c8177ef6a83b1ce95e8fbf028da17e38c08ba1",
-                "sequence": 2,
-                "kind": "recover",
-                "operational": {
-                  "keys": [
-                    "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ"
-                  ],
-                  "threshold": 1
-                },
-                "recovery": {
-                  "keys": [
-                    "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
-                  ],
-                  "threshold": 1
-                },
-                "issued_at": 1800000200000,
-                "expires_at": 1800000500000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
-                  "signature": "ed25519:oUQLKm3DhxWgvr5VUyTGE3kQeqMh2k4vK8fEh8LM9dgsCBkBUYETWwXQoGnwypJZhf6BuXrmjFVdQhFHMueQ18B"
-                },
-                {
-                  "key_id": "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ",
-                  "signature": "ed25519:5ScYuzBLHfpRVz7SjiDHMkTLrVAqWsRBzLEe48XnkVRrioZ15sPsMDCqCW5zG4z5f92aPZQXyLBCXyM3Dmz4XLka"
-                }
-              ]
-            },
-            "attestation": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
-                "resolver_epoch": 0,
-                "sequence": 2,
-                "head_digest": "531e3f8ad68da87d106692509d59c846df7bcce39f366bfd97346321995178cb",
-                "effective_at": 1800000200750
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-                  "signature": "ed25519:mH3ref6ZPzjJjmsK9TuALEhEASt4j3xr8yJkCyW8pGubykf4RVKJZr3u9qtPbPqCDsyi9s4ciqSV4QHQrf1WMYo"
-                }
-              ]
-            }
-          },
-          {
-            "effective_at": 1800000435000,
-            "transition": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "expected_digest": "531e3f8ad68da87d106692509d59c846df7bcce39f366bfd97346321995178cb",
-                "sequence": 3,
-                "kind": "recovery-policy",
-                "operational": {
-                  "keys": [
-                    "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ"
-                  ],
-                  "threshold": 1
-                },
-                "recovery": {
-                  "keys": [
-                    "ed25519:Ehs7meLZDBJM2ogTW7zFKriSn3yb4CHN1JzAo7RP6qBR"
-                  ],
-                  "threshold": 1
-                },
-                "issued_at": 1800000400000,
-                "expires_at": 1800000700000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
-                  "signature": "ed25519:58mtCffbYv9qgEaHgzfBQJm6ApRfWE9Ejsa7H4aYhvwci93JfSTXjZqzbCEjWsmUf5po4Hqw5DJD4hS8HnQxWJzi"
-                },
-                {
-                  "key_id": "ed25519:Ehs7meLZDBJM2ogTW7zFKriSn3yb4CHN1JzAo7RP6qBR",
-                  "signature": "ed25519:3vi4EWfuDFm6MbraAay8jeDJKbBK4BfCv7kPmjyKd6SUXUBCt4xvE6xerXicRnxpaG6UcULo5DUZwGApXAuzQ3uF"
-                }
-              ]
-            },
-            "attestation": {
-              "body": {
-                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
-                "resolver_epoch": 0,
-                "sequence": 3,
-                "head_digest": "5bd84d40cc32c064b02a2c31438fcd9b663abfe1b35a61722f4f94bbbf055358",
-                "effective_at": 1800000435000
-              },
-              "signatures": [
-                {
-                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-                  "signature": "ed25519:2dy3e4SNjPpu3dag3BNK774udqidiPAPf8a7Me5hNDMW1X9LDx7eNqd3fvfCppF97N7KHWUzz8VTNw6BtKpBBso6"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "expect": {
-        "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
-        "genesis_digest": "5f723e1df34388cbc48d1eb5cfb613b758dfcecd4a7052820c16caa072996d7f",
-        "resolver": {
-          "epoch": 0,
-          "id": "5e5e5e5e-0000-4000-8000-00000000000a",
-          "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-          "audience": "https://resolver.example"
-        },
-        "resolvers": [
-          {
-            "epoch": 0,
-            "id": "5e5e5e5e-0000-4000-8000-00000000000a",
-            "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
-            "audience": "https://resolver.example"
-          }
-        ],
-        "heads": [
-          {
-            "sequence": 0,
-            "head_digest": "85126b6216030c32e023c9116660c46f3a904c43b966e0fb625ce9f1a4d51bd1",
-            "effective_at": 1800000002000,
-            "epoch": 0,
-            "attested": true
-          },
-          {
-            "sequence": 1,
-            "head_digest": "63665c16c158f1037ed641c5d3c8177ef6a83b1ce95e8fbf028da17e38c08ba1",
-            "effective_at": 1800000095000,
-            "epoch": 0,
-            "attested": true
-          },
-          {
-            "sequence": 2,
-            "head_digest": "531e3f8ad68da87d106692509d59c846df7bcce39f366bfd97346321995178cb",
-            "effective_at": 1800000200750,
-            "epoch": 0,
-            "attested": true
-          },
-          {
-            "sequence": 3,
-            "head_digest": "5bd84d40cc32c064b02a2c31438fcd9b663abfe1b35a61722f4f94bbbf055358",
-            "effective_at": 1800000435000,
-            "epoch": 0,
             "attested": true
           }
         ],
@@ -12033,6 +11736,237 @@
                 {
                   "key_id": "ed25519:9TAutURzmetQzfCRabw8CspuKGYoq4P6GNgYC4HDFA9N",
                   "signature": "ed25519:3Ja4bBVfChpycPpuaiCDWyeijTo3gizhqw1W8VMf9Bfxj8Uzca4a28X4Hemmq2KyXDfpJg3Cqvsdd78HMoJyJzbD"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "why": "the format 1 encoding of a history without moves, every head attested: format 1 is withdrawn (Core-1, part 4), so a verifier refuses it whatever its contents",
+      "require_attestation": true,
+      "log": {
+        "format": "dtp-identity-log-1",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020100",
+            "operational": {
+              "keys": [
+                "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:58sNP4i8wspzXaFpeB64DJ4dqXeS4MsRmJXWnZz4Sh5szALaEbi2D1FcbRu45K5amJmz27vjYWufaD7GFhjdLKYA"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:oMXmkJ1MwFhqnhdghfkoZ8urVfE1mD7QPG29Nhh4rkresNavWsz811Fdf1ztP3x9SEK1TN9FGp6SoRSSF6K5pLx"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+            "genesis_digest": "5f723e1df34388cbc48d1eb5cfb613b758dfcecd4a7052820c16caa072996d7f",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:5chsKkenhQqbVqYfxh3tuULkYQ8P4WjfryAy2CFeqpu2aLuDsTHFVNSpBuuM7dtijjU4R7ZXimAYnrSxje6sZXFf"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:uxAinkv96969LQN5idurjgCoCC1h9wUWF2D52t7LiNDtUPCHiYGhkAckb4NJ9BAY1cVjJhVdbD4VanRmRzyeKW7"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000002000,
+            "transition": null,
+            "attestation": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+                "resolver_epoch": 0,
+                "sequence": 0,
+                "head_digest": "85126b6216030c32e023c9116660c46f3a904c43b966e0fb625ce9f1a4d51bd1",
+                "effective_at": 1800000002000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+                  "signature": "ed25519:5r3sVS2JdqLreG3TuY7mMcqPRZpnxN2DJhDY1hK2kwDBQmqX2TeESk5Z5m5q1wC1g5T3YjM6UJgP49Q7cFWhwyJx"
+                }
+              ]
+            }
+          },
+          {
+            "effective_at": 1800000095000,
+            "transition": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "expected_digest": "85126b6216030c32e023c9116660c46f3a904c43b966e0fb625ce9f1a4d51bd1",
+                "sequence": 1,
+                "kind": "rotate",
+                "operational": {
+                  "keys": [
+                    "ed25519:B5ZYXmxxy4U6PGbxsmxf7jNicmJkbcsu8PvMPXAiLiGs"
+                  ],
+                  "threshold": 1
+                },
+                "recovery": {
+                  "keys": [
+                    "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+                  ],
+                  "threshold": 1
+                },
+                "issued_at": 1800000061000,
+                "expires_at": 1800000361000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+                  "signature": "ed25519:3dqmToBMRQBwJ3rCn36bettZ3BXca5Cyb5Ma4h3ZR2jYnKJZEMzaBgLHCHcLpaxX24HySJ5hSwbmhvzSzVuTLa4S"
+                },
+                {
+                  "key_id": "ed25519:B5ZYXmxxy4U6PGbxsmxf7jNicmJkbcsu8PvMPXAiLiGs",
+                  "signature": "ed25519:5aqgsuQN8LQbHM95EDFmPkjCyCKCD7v52NEQF41TnocKBucAgxZDggJ2KJQgasCTDUiTmGAk8yf7q3LLPqFMcABG"
+                }
+              ]
+            },
+            "attestation": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+                "resolver_epoch": 0,
+                "sequence": 1,
+                "head_digest": "63665c16c158f1037ed641c5d3c8177ef6a83b1ce95e8fbf028da17e38c08ba1",
+                "effective_at": 1800000095000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+                  "signature": "ed25519:57FDgVMjjnDE6dLyoHKhtUSHuA7J4L4S67W7UvGqC7Qx8mhRXjX4nYuwZAQmKRoE9264pCJaqxcSS7BCPAD3j185"
+                }
+              ]
+            }
+          },
+          {
+            "effective_at": 1800000200750,
+            "transition": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "expected_digest": "63665c16c158f1037ed641c5d3c8177ef6a83b1ce95e8fbf028da17e38c08ba1",
+                "sequence": 2,
+                "kind": "recover",
+                "operational": {
+                  "keys": [
+                    "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ"
+                  ],
+                  "threshold": 1
+                },
+                "recovery": {
+                  "keys": [
+                    "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+                  ],
+                  "threshold": 1
+                },
+                "issued_at": 1800000200000,
+                "expires_at": 1800000500000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+                  "signature": "ed25519:oUQLKm3DhxWgvr5VUyTGE3kQeqMh2k4vK8fEh8LM9dgsCBkBUYETWwXQoGnwypJZhf6BuXrmjFVdQhFHMueQ18B"
+                },
+                {
+                  "key_id": "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ",
+                  "signature": "ed25519:5ScYuzBLHfpRVz7SjiDHMkTLrVAqWsRBzLEe48XnkVRrioZ15sPsMDCqCW5zG4z5f92aPZQXyLBCXyM3Dmz4XLka"
+                }
+              ]
+            },
+            "attestation": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+                "resolver_epoch": 0,
+                "sequence": 2,
+                "head_digest": "531e3f8ad68da87d106692509d59c846df7bcce39f366bfd97346321995178cb",
+                "effective_at": 1800000200750
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+                  "signature": "ed25519:mH3ref6ZPzjJjmsK9TuALEhEASt4j3xr8yJkCyW8pGubykf4RVKJZr3u9qtPbPqCDsyi9s4ciqSV4QHQrf1WMYo"
+                }
+              ]
+            }
+          },
+          {
+            "effective_at": 1800000435000,
+            "transition": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "expected_digest": "531e3f8ad68da87d106692509d59c846df7bcce39f366bfd97346321995178cb",
+                "sequence": 3,
+                "kind": "recovery-policy",
+                "operational": {
+                  "keys": [
+                    "ed25519:xRJhcFphQXYrLGBsa4G2tyvv65hMbqqLHPoUDdyYqCJ"
+                  ],
+                  "threshold": 1
+                },
+                "recovery": {
+                  "keys": [
+                    "ed25519:Ehs7meLZDBJM2ogTW7zFKriSn3yb4CHN1JzAo7RP6qBR"
+                  ],
+                  "threshold": 1
+                },
+                "issued_at": 1800000400000,
+                "expires_at": 1800000700000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+                  "signature": "ed25519:58mtCffbYv9qgEaHgzfBQJm6ApRfWE9Ejsa7H4aYhvwci93JfSTXjZqzbCEjWsmUf5po4Hqw5DJD4hS8HnQxWJzi"
+                },
+                {
+                  "key_id": "ed25519:Ehs7meLZDBJM2ogTW7zFKriSn3yb4CHN1JzAo7RP6qBR",
+                  "signature": "ed25519:3vi4EWfuDFm6MbraAay8jeDJKbBK4BfCv7kPmjyKd6SUXUBCt4xvE6xerXicRnxpaG6UcULo5DUZwGApXAuzQ3uF"
+                }
+              ]
+            },
+            "attestation": {
+              "body": {
+                "identity_id": "5f723e1d-f343-88cb-c48d-1eb5cfb613b7",
+                "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+                "resolver_epoch": 0,
+                "sequence": 3,
+                "head_digest": "5bd84d40cc32c064b02a2c31438fcd9b663abfe1b35a61722f4f94bbbf055358",
+                "effective_at": 1800000435000
+              },
+              "signatures": [
+                {
+                  "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+                  "signature": "ed25519:2dy3e4SNjPpu3dag3BNK774udqidiPAPf8a7Me5hNDMW1X9LDx7eNqd3fvfCppF97N7KHWUzz8VTNw6BtKpBBso6"
                 }
               ]
             }
