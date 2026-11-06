@@ -128,6 +128,11 @@ function run(flow: Flow, steps: [string, (b: FlowBook) => FlowFact][], extra: (b
   if (flow === plant) {
     apply('DUPLICATE: the first receipt presented again, byte for byte', results[0].fact);
     apply('REFUSED observation_conflict: the same source and sequence with a different fact', { ...results[0].fact, legs: [leg(goods(PEPPERS), outside('~supplier'), at(own(DOCK), 'P1'), q('49', ucum('kg')))] });
+    // The window boundary (#144): with the audit source's mark at 100, a sequence is stale exactly when it is <= 100 - 64.
+    const boundary = (sequence: number) => draft(book, { verb: 'move', source: 'audit', sequence, ledgers: [G(SAUCE)], legs: [leg(goods(SAUCE), at(own(SHELF), 'S1'), at(own(DOCK), 'S1'), q('1', ucum('{jar}')))] });
+    apply('REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window', boundary(36));
+    apply('sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted', boundary(37));
+    apply('DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised', results[results.length - 1].fact);
   }
   return { why: flow.why, book_id: flow.book_id, openings: flow.openings, facts: results, final: book, bridge: flow.bridge === null ? null : { product_id: flow.bridge, projection: projectInventory2(book, flow.bridge) } };
 }

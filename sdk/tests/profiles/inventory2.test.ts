@@ -10,6 +10,7 @@ import { checkSchema, validateShape } from '../../src/v04/profiles.ts';
 import { INVENTORY2_KIND, INVENTORY2_PROFILE, INVENTORY2_SCHEMA, INVENTORY2_SEMANTICS, OBSERVATION_WINDOW, applyInventoryFact, openInventoryLedger, projectInventoryV1 } from '../../src/profiles/inventory2.ts';
 import type { InventoryFact, InventoryLedger } from '../../src/profiles/inventory2.ts';
 import type { ProductBody } from '../../src/profiles/product.ts';
+import { windowDisagreements } from './observation-window.ts';
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const fixtures = parseUntrustedJson(readFileSync(here('../../../spec/profiles/inventory/2/fixtures.json'), 'utf8')) as {
@@ -49,12 +50,19 @@ test('inventory@2 invariants: the sum over positions plus what left is what came
   const flow = fixtures.flows[0], ledger = flow.final;
   const thousandths = (v: string) => { const [w, f = ''] = v.split('.'); return BigInt(w) * 1000n + BigInt(f.padEnd(3, '0')); };
   const onHand = Object.values(ledger.positions).reduce((n, p) => n + thousandths(p.quantity), 0n);
-  // 120 received + 1 + 1 (audit) + 7 (L3) + 12 (one case spelled "12.000") in; 10 fulfilled + 5 adjusted + 10 produced + 29 shipped out.
-  assert.equal(onHand, (120n + 1n + 1n + 7n + 12n - 10n - 5n - 10n - 29n) * 1000n);
+  // 120 received + 1 + 1 + 1 (audit: sequences 100, 40 and 37) + 7 (L3) + 12 (one case spelled "12.000") in; 10 fulfilled + 5 adjusted + 10 produced + 29 shipped out.
+  assert.equal(onHand, (120n + 1n + 1n + 1n + 7n + 12n - 10n - 5n - 10n - 29n) * 1000n);
   assert.deepEqual(Object.keys(ledger.sources).sort(), ['audit', 'count', 'mes', 'orders', 'wms']);
-  assert.deepEqual(Object.keys(ledger.sources.audit.recent).sort(), ['100', '40'], 'the window keeps only recent sequences');
+  assert.deepEqual(Object.keys(ledger.sources.audit.recent).sort(), ['100', '37', '40'], 'the window keeps only recent sequences: the mark and the 63 below it');
   assert.equal(ledger.sources.audit.high_water, 100);
   assert.ok(Object.values(ledger.positions).every(p => thousandths(p.quantity) > 0n || p.serials.length > 0), 'empty positions are dropped');
   const bad = applyInventoryFact(ledger, { ...flow.facts[0].fact, expected_revision: ledger.revision, observation: { source_id: 'wms', sequence: 999 }, moves: [{ ...flow.facts[0].fact.moves[0], quantity: { amount: '1', unit: { system: 'ucum', code: '{jar}', packaging_id: null, version: null, base_units_per_pack: null } }, from: { lot_id: 'L1', location_id: 'shelf', status: 'available' }, to: { lot_id: 'L1', location_id: 'shelf', status: 'available' } }] });
   assert.equal(bad.ok, false); if (!bad.ok) assert.match(bad.message, /same position/);
+});
+
+test('inventory@2 fixtures pin the observation window exactly (#144): an unseen mark-64 is stale, an unseen mark-63 is new, so a 63- or 65-wide window fails them', () => {
+  const facts = fixtures.flows.flatMap((flow: any) => flow.facts.map((f: any) => ({ observation: f.fact.observation, expect: f.expect })));
+  assert.equal(windowDisagreements(facts, OBSERVATION_WINDOW), 0);
+  assert.ok(windowDisagreements(facts, OBSERVATION_WINDOW - 1) > 0, 'a 63-wide window disagrees with some fixture');
+  assert.ok(windowDisagreements(facts, OBSERVATION_WINDOW + 1) > 0, 'a 65-wide window disagrees with some fixture');
 });

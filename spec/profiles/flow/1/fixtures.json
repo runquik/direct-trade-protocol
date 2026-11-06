@@ -2761,6 +2761,237 @@
             "ok": false,
             "code": "observation_conflict"
           }
+        },
+        {
+          "why": "REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:31:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 36
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 9,
+                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "stale_observation"
+          }
+        },
+        {
+          "why": "sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 37
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 9,
+                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 37
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 9,
+                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": true
+          }
         }
       ],
       "final": {
@@ -2819,8 +3050,8 @@
             "unit": "{jar}",
             "tracking": "lot",
             "balance": "nonnegative",
-            "revision": 9,
-            "head": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa",
+            "revision": 10,
+            "head": "adf504fc88ed72f37251f72f4a2dc80be517907b39e60b0a65425cb73de65f4b",
             "positions": {
               "41949fb41ff82d67400c6dadffcc533f18090564623718b61178955fe67746bc": {
                 "position": {
@@ -2836,7 +3067,7 @@
                   "status": "available",
                   "owner": null
                 },
-                "quantity": "788",
+                "quantity": "789",
                 "serials": []
               },
               "9277970d2fefa7c100af567f44ce24b15fc6ab06094b5e6d8f9a55b4e00bb4d6": {
@@ -2870,7 +3101,7 @@
                   "status": "available",
                   "owner": null
                 },
-                "quantity": "10",
+                "quantity": "9",
                 "serials": []
               }
             },
@@ -2989,6 +3220,7 @@
           "audit": {
             "high_water": 100,
             "recent": {
+              "37": "adf504fc88ed72f37251f72f4a2dc80be517907b39e60b0a65425cb73de65f4b",
               "100": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
             }
           }
@@ -3006,7 +3238,7 @@
             "code": "{jar}"
           },
           "tracking": "lot",
-          "revision": 9,
+          "revision": 10,
           "positions": {
             "857b1262bbe8c9805a62083cbc0c9f30891c4cccc0914355df0d0bd6d1c7f089": {
               "position": {
@@ -3014,7 +3246,7 @@
                 "location_id": "00000011-0000-4000-8000-000000000011",
                 "status": "available"
               },
-              "quantity": "788",
+              "quantity": "789",
               "serials": []
             },
             "54bcead0c7e6266e79e5c72b402985f6668509e72a92b0acf209b9eb8228fde9": {
@@ -3032,7 +3264,7 @@
                 "location_id": "00000012-0000-4000-8000-000000000012",
                 "status": "available"
               },
-              "quantity": "10",
+              "quantity": "9",
               "serials": []
             }
           },
@@ -3062,7 +3294,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:31:00.000Z",
+              "occurred_at": "2026-10-23T08:33:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 1
@@ -3138,7 +3370,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "occurred_at": "2026-10-23T08:34:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3151,7 +3383,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
               }
             ],
             "legs": [
@@ -3213,7 +3445,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:33:00.000Z",
+              "occurred_at": "2026-10-23T08:35:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3226,7 +3458,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
               }
             ],
             "legs": [
@@ -3290,7 +3522,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:34:00.000Z",
+              "occurred_at": "2026-10-23T08:36:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3303,7 +3535,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
               }
             ],
             "legs": [
@@ -3375,7 +3607,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:35:00.000Z",
+              "occurred_at": "2026-10-23T08:37:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 3
@@ -3388,7 +3620,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 2,
-                "expected_digest": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a"
+                "expected_digest": "c39d0aa50f4c852e96c024efb67d4db7c856df177154e81f3f580b21f8ef584f"
               }
             ],
             "legs": [
@@ -3508,7 +3740,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:36:00.000Z",
+              "occurred_at": "2026-10-23T08:38:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 1
@@ -3521,7 +3753,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 3,
-                "expected_digest": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+                "expected_digest": "aed3bba6be0cc303b68c3156aeca90ca445e86a062bb6e00c3ddd83a197311b3"
               }
             ],
             "legs": [],
@@ -3577,7 +3809,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:37:00.000Z",
+              "occurred_at": "2026-10-23T08:39:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -3590,7 +3822,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+                "expected_digest": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20"
               }
             ],
             "legs": [
@@ -3652,7 +3884,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:38:00.000Z",
+              "occurred_at": "2026-10-23T08:40:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 2
@@ -3665,7 +3897,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+                "expected_digest": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20"
               }
             ],
             "legs": [
@@ -3760,7 +3992,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "occurred_at": "2026-10-23T08:41:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -3773,7 +4005,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 5,
-                "expected_digest": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
+                "expected_digest": "959c756ccbb9dbbe1048e87960bf6607c65eba909c7d539640c0281a55c67530"
               }
             ],
             "legs": [
@@ -3888,7 +4120,7 @@
             "tracking": "serial",
             "balance": "nonnegative",
             "revision": 6,
-            "head": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718",
+            "head": "8c16563d813b5bba5766a837064cbc0309d176ce36903f0cc9694eac9550b5c9",
             "positions": {
               "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
                 "position": {
@@ -3959,17 +4191,17 @@
           "wms": {
             "high_water": 4,
             "recent": {
-              "1": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15",
-              "2": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a",
-              "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b",
-              "4": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718"
+              "1": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802",
+              "2": "c39d0aa50f4c852e96c024efb67d4db7c856df177154e81f3f580b21f8ef584f",
+              "3": "aed3bba6be0cc303b68c3156aeca90ca445e86a062bb6e00c3ddd83a197311b3",
+              "4": "8c16563d813b5bba5766a837064cbc0309d176ce36903f0cc9694eac9550b5c9"
             }
           },
           "orders": {
             "high_water": 2,
             "recent": {
-              "1": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40",
-              "2": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
+              "1": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20",
+              "2": "959c756ccbb9dbbe1048e87960bf6607c65eba909c7d539640c0281a55c67530"
             }
           }
         }
