@@ -59,8 +59,8 @@
         }
       ],
       "expected": {
-        "code": "forbidden",
-        "status": 403
+        "code": "not_found",
+        "status": 404
       }
     },
     {
