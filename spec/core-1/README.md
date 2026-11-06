@@ -17,6 +17,7 @@ What DTP signs is **I-JSON** ([RFC 7493](https://www.rfc-editor.org/rfc/rfc7493)
 - **Member names need no escape.** A name contains no quotation mark, reverse solidus or control character, so it is never written with an escape sequence. A receiver checks this on the received text **before** parsing, and refuses the whole text (`unsafe_member_name`). Rationale: [docs/security/json-member-names.md](../../docs/security/json-member-names.md).
 - **No member is named twice**, at any depth; refused in the same pre-parse check (`duplicate_member_name`).
 - **Numbers are integers** within ±(2^53−1). Decimal amounts are strings.
+- **Nesting is at most 48 levels.** A signed body is level 0, and each array or object adds one level to the values inside it; a value deeper than level 48 is refused. A verifier checks this before canonicalizing, so whether a body is valid depends on its bytes alone, never on the verifier's stack. The bound is v0.4's transport bound, which every v0.4 command already meets (owner decision of 2026-11-04 on #149). An envelope that breaks it is `invalid_envelope` (part 3).
 
 Canonical form is RFC 8785 (JCS) over that JSON. Canonicalization refuses anything a receiver would refuse, so nothing a receiver refuses can be signed. Vectors: `spec/vectors/unsafe-json.json`, `spec/vectors/canonicalization.json` (cases and `refuse`).
 
