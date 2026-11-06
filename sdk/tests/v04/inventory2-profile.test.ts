@@ -46,7 +46,7 @@ test("inventory-v2 in the reference host: a ledger opens from the product head, 
     for (const [i, step] of f.facts.entries()) {
       const response = await client.act(owner, "record.append", org, record(org, pol, product_id, stockProfile, step.fact));
       if (step.expect.ok && !step.expect.duplicate) { assert.equal(response.status, 200, `${step.why}: ${JSON.stringify(response.error)}`); receipts[i] = response.result; }
-      else if (step.expect.ok) { assert.equal(response.status, 200, step.why); assert.equal(response.result.duplicate, true, step.why); assert.equal(response.result.id, receipts[1].id, "the duplicate acknowledges the original record"); }
+      else if (step.expect.ok) { assert.equal(response.status, 200, step.why); assert.equal(response.result.duplicate, true, step.why); const original = f.facts.findIndex((s, j) => j < i && s.expect.ok && !s.expect.duplicate && s.fact.observation.source_id === step.fact.observation.source_id && s.fact.observation.sequence === step.fact.observation.sequence); assert.equal(response.result.id, receipts[original].id, "the duplicate acknowledges the original record"); }
       else if (step.expect.code === "wrong_scope") { assert.equal(response.status, 403, step.why); assert.equal(response.error.code, "forbidden", "the host refuses a fact for another product before the reducer sees it"); }
       else { assert.ok([409, 422].includes(response.status), `${step.why}: ${response.status}`); assert.equal(response.error.code, step.expect.code, step.why); }
     }

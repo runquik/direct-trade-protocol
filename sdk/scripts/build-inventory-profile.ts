@@ -64,6 +64,10 @@ S('REFUSED wrong_scope: a fact for another product', fact(SERIALIZED, 'wms', 6, 
 S('a whole fact is refused when one leg fails, so the good leg leaves no trace: invalid', fact(PRODUCT, 'wms', 6, 13, [leg(at(null, '~supplier'), at('L3', 'dock'), q('7')), leg(at('L1', 'shelf'), at(null, '~adjustment'), q('1'))]));
 S('the same good leg alone is accepted, at the same revision, proving the previous fact left nothing behind', fact(PRODUCT, 'wms', 6, 13, [leg(at(null, '~supplier'), at('L3', 'dock'), q('7'))]));
 S('one case received with its pack conversion spelled "12.000" against the product\'s published "12": the same revision, matched by value (#99)', fact(PRODUCT, 'wms', 7, 14, [leg(at(null, '~supplier'), at('L3', 'dock'), q('1', { ...cases, base_units_per_pack: '12.000' }))]));
+// The window boundary (#144): with the audit source's mark at 100, a sequence is stale exactly when it is <= 100 - 64.
+S('REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window', fact(PRODUCT, 'audit', 36, 15, [leg(at(null, '~supplier'), at('L2', 'dock'), q('1'))]));
+const oldestKept = S('sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted', fact(PRODUCT, 'audit', 37, 15, [leg(at(null, '~supplier'), at('L2', 'dock'), q('1'))]));
+S('DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised', oldestKept);
 
 /** Serialized equipment: every unit moves by serial. */
 const units: Step[] = [];

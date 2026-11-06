@@ -138,7 +138,7 @@ The specific questions:
 | Authority-filtered pagination | Authorization and accepted profiles filter before pagination; a page is 1 to 100 rows; `next_cursor` is the last returned sequence only when another page exists, `null` otherwise. Keep the greatest processed sequence; never reset to zero. |
 | Revision conflicts | Inventory facts carry `expected_revision`; a mismatch is `revision_conflict`, and the answer is to reload and decide again. Record supersession has the same shape for state kinds. |
 | Idempotent retries | Resend the identical signed command with the same `request_id`; changed content under the same id conflicts. A fresh id is a new business assertion. |
-| Source deduplication | Per-source high-water mark with a window of 64 sequences: same digest is a duplicate (accepted, no effect), different digest is `observation_conflict`, below the window is `stale_observation`. |
+| Source deduplication | Per-source high-water mark `M` with a window of 64 sequences, `M − 63 … M`: same digest is a duplicate (accepted, no effect), different digest is `observation_conflict`, an unseen sequence `≤ M − 64` is `stale_observation` (#144). |
 | Ordering | Host `seq` is arrival order; `occurred_at` is physical time; keep both, derive with intent. |
 | Snapshot and catch-up | Poll `records.list` from the greatest processed sequence. There is no push, subscription or change feed served by the host; the foundation change-view library exists as a pure oracle and is not served. |
 | Replay | A previously accepted read replayed later is recomputed under current authorization (the example shows it). |
