@@ -325,7 +325,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(r.supersedes === null && book?.policy_id === r.policy_id, "invalid_snapshot", "flow fact scope differs");
       demand(checkFlowOwner(fact as any,r.organization_id).length === 0, "invalid_snapshot", "flow fact spells the writer's own object as foreign");
       demand(!flowUnpublishedPackaging(fact,root => productAt.get(root)), "invalid_snapshot", "flow fact pins a packaging revision the product had not published");
-      // A fact cannot predate the opening of a ledger it changes: a live host would have refused it.
+      // A fact cannot predate (by issued_at) the opening of a ledger it changes: a live host refuses it at write time (#119).
       for (const l of Array.isArray(fact.ledgers) ? fact.ledgers : []) { const opening = rebuiltInventory.ledger_openings[stateKey(r.resource_id,l?.key)]; demand(opening && opening.issued_at <= r.command.issued_at, "invalid_snapshot", "flow fact precedes its ledger opening"); }
       const observation = stateKey(r.resource_id,fact.act?.observation?.source_id,fact.act?.observation?.sequence); demand(!rebuiltInventory.flow_facts[observation], "invalid_snapshot", "duplicate flow fact");
       const { policy_id: bookPolicy, ...state } = book, changed = applyFlowFact(state as any,fact as any); demand(changed.ok && !changed.duplicate, "invalid_snapshot", "flow facts violate profile");

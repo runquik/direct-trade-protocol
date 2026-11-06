@@ -24,6 +24,7 @@ const accept: Case[] = [
   ['a person party: a contact known to the company, under a personnel policy at the host', change(b => { b.kind = 'person'; b.names = [{ name: 'A. Buyer', language: null }]; b.identifiers = []; b.protocol_identity = null; b.roles = ['customer']; b.locations = []; })],
   ['a unit of a parent party: a site', change(b => { b.kind = 'unit'; b.parent = PARENT; b.identifiers = []; b.protocol_identity = null; b.locations[0].gln = null; })],
   ['an inactive party with no protocol identity', change(b => { b.status = 'inactive'; b.protocol_identity = null; })],
+  ['a country of two upper-case letters that ISO 3166-1 has not assigned: the shape is checked, the code list is not (#94)', change(b => { b.locations[0].address.country = 'ZZ'; })],
 ];
 const reject: Case[] = [
   ['an unknown kind', change(b => { (b as any).kind = 'company'; })],
@@ -36,6 +37,7 @@ const reject: Case[] = [
   ['a repeated role', change(b => { b.roles = ['supplier', 'supplier']; })],
   ['a location without a country', change(b => { (b.locations[0].address as any).country = ''; })],
   ['a country that is not alpha-2', change(b => { b.locations[0].address.country = 'USA'; })],
+  ['a country in lower case', change(b => { b.locations[0].address.country = 'us'; })],
   ['five address lines', change(b => { b.locations[0].address.lines = ['a', 'b', 'c', 'd', 'e']; })],
   ['a location GLN with a wrong check digit', change(b => { b.locations[0].gln = '0614141000013'; })],
   ['two locations with one id', change(b => { b.locations.push(clone(b.locations[0])); })],
