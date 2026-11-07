@@ -304,7 +304,7 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": "44444444-4444-4444-8444-444444444444"
               }
             ]
           },
@@ -343,7 +343,7 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": "44444444-4444-4444-8444-444444444444"
               }
             ]
           },
@@ -1693,6 +1693,377 @@
             "ok": true,
             "duplicate": true
           }
+        },
+        {
+          "why": "reserve four on the shelf for a party",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 6
+            },
+            "occurred_at": "2026-09-23T08:33:00.000Z",
+            "expected_revision": 16,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "4",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "the same party tops up the claim by two: one claim of six, still that party",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 7
+            },
+            "occurred_at": "2026-09-23T08:34:00.000Z",
+            "expected_revision": 17,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "2",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED invalid: another party reserves under the same reservation id",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:35:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "77777777-7777-4777-8777-777777777777"
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a reserve with no party on a claim that has one",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:36:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a party reserves under the id of a claim that has no party",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:37:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "res-2",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: another party releases the claim",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:38:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "6",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "77777777-7777-4777-8777-777777777777"
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a release with no party of a claim that has one",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:39:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "6",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: another party fulfils the claim",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:40:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "fulfill",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "77777777-7777-4777-8777-777777777777"
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "the claim's party fulfils one and releases five: the claim is gone",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "orders",
+              "sequence": 8
+            },
+            "occurred_at": "2026-09-23T08:41:00.000Z",
+            "expected_revision": 18,
+            "moves": [],
+            "reservations": [
+              {
+                "kind": "fulfill",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              },
+              {
+                "kind": "release",
+                "reservation_id": "res-4",
+                "position": {
+                  "lot_id": "L1",
+                  "location_id": "shelf",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "5",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": "44444444-4444-4444-8444-444444444444"
+              }
+            ]
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
         }
       ],
       "final": {
@@ -1704,7 +2075,7 @@
           "code": "{jar}"
         },
         "tracking": "lot",
-        "revision": 16,
+        "revision": 19,
         "positions": {
           "8ea7bdd2506286549ce68501fbd9fb9bb4fc716cabfc54561a1c6717f23cd036": {
             "position": {
@@ -1712,7 +2083,7 @@
               "location_id": "shelf",
               "status": "available"
             },
-            "quantity": "46",
+            "quantity": "45",
             "serials": []
           },
           "a0c9320c5f4bd6aee74404f52056705e79472039882aa87f7f76bcd6f880fc1b": {
@@ -1768,13 +2139,16 @@
             }
           },
           "orders": {
-            "high_water": 5,
+            "high_water": 8,
             "recent": {
               "1": "56007ef489ea12af4d38825b0fcb54d588c8866a893af2dd8ee0072d291f893d",
-              "2": "c8936ed5aeac3ce70fd2a89e267d3419d56b498b8a0fa14f4cd445aebc358f89",
-              "3": "27fe5ebf967ede7d042bb61ee95e5c3731456a16513daf1c8ba2afc02c5d99d5",
+              "2": "09d7c640734d73ad23bf5a148f8215d606d40478d56ae14fcc199cb5350d7ab7",
+              "3": "ae68c96abf01979b4023a99b00dcc8c5294f8c90a5a6d7d2dc6dfc1cc04139e2",
               "4": "22449ba2a50f318155ebfe441c9ecb7fb89ef16756dd8f4cfed0d02ed05ad375",
-              "5": "6c59ce788fd80dfd06eff5b41dc660c1211fa5ca91170aaa8050b6203c6c8989"
+              "5": "6c59ce788fd80dfd06eff5b41dc660c1211fa5ca91170aaa8050b6203c6c8989",
+              "6": "00a7501a57177919f233acf9c5c850c4b00860fe8e97acdb382cbe5dcc945883",
+              "7": "b2a98e7abecdaa17693eb6bd008a30de92d50f1876a07ca4d777e773a59dc218",
+              "8": "247b799666a4171f4af7a1fc19d9036747b3cfdbf6cc75eacd0f9dcfd5e8ef05"
             }
           },
           "count": {
@@ -1808,8 +2182,8 @@
           "pool_id": "shelf",
           "product_id": "22222222-2222-4222-8222-222222222222",
           "base_unit": "{jar}",
-          "revision": 16,
-          "on_hand": "46",
+          "revision": 19,
+          "on_hand": "45",
           "reservations": {
             "res-2": "5",
             "res-3": "2"
@@ -1850,7 +2224,7 @@
               "source_id": "wms",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:33:00.000Z",
+            "occurred_at": "2026-09-23T08:42:00.000Z",
             "expected_revision": 0,
             "moves": [
               {
@@ -1901,7 +2275,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:34:00.000Z",
+            "occurred_at": "2026-09-23T08:43:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1950,7 +2324,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:35:00.000Z",
+            "occurred_at": "2026-09-23T08:44:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1999,7 +2373,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:36:00.000Z",
+            "occurred_at": "2026-09-23T08:45:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -2048,7 +2422,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:37:00.000Z",
+            "occurred_at": "2026-09-23T08:46:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -2098,7 +2472,7 @@
               "source_id": "orders",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:38:00.000Z",
+            "occurred_at": "2026-09-23T08:47:00.000Z",
             "expected_revision": 2,
             "moves": [],
             "reservations": [
@@ -2137,7 +2511,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:39:00.000Z",
+            "occurred_at": "2026-09-23T08:48:00.000Z",
             "expected_revision": 3,
             "moves": [],
             "reservations": [
@@ -2159,7 +2533,7 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": "44444444-4444-4444-8444-444444444444"
               }
             ]
           },
@@ -2176,7 +2550,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:40:00.000Z",
+            "occurred_at": "2026-09-23T08:49:00.000Z",
             "expected_revision": 3,
             "moves": [
               {
@@ -2229,7 +2603,7 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": "44444444-4444-4444-8444-444444444444"
               }
             ]
           },
@@ -2246,7 +2620,7 @@
               "source_id": "wms",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:41:00.000Z",
+            "occurred_at": "2026-09-23T08:50:00.000Z",
             "expected_revision": 4,
             "moves": [
               {
@@ -2293,7 +2667,7 @@
               "source_id": "orders",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:42:00.000Z",
+            "occurred_at": "2026-09-23T08:51:00.000Z",
             "expected_revision": 4,
             "moves": [],
             "reservations": [
@@ -2332,7 +2706,7 @@
               "source_id": "wms",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:43:00.000Z",
+            "occurred_at": "2026-09-23T08:52:00.000Z",
             "expected_revision": 5,
             "moves": [
               {
@@ -2381,7 +2755,7 @@
               "source_id": "orders",
               "sequence": 4
             },
-            "occurred_at": "2026-09-23T08:44:00.000Z",
+            "occurred_at": "2026-09-23T08:53:00.000Z",
             "expected_revision": 5,
             "moves": [
               {
@@ -2434,7 +2808,7 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": "44444444-4444-4444-8444-444444444444"
               }
             ]
           },
@@ -2472,17 +2846,17 @@
           "wms": {
             "high_water": 2,
             "recent": {
-              "1": "178c06945de269ab4e1913914478e8e155115c935365abcea20e1e78008a6048",
-              "2": "7f2b704dd75fbefc5dae80a9b7af5d74ab4033104bade8de607bf350ef68cfaf"
+              "1": "a77a5406b72baf22e31202951e48924c266ef1f155a4ce0199a35c4bf997b4cf",
+              "2": "70575d9841ec68d4c2b120c8c93741cb13f2f51f1d89e833dd99f63ea1a347d9"
             }
           },
           "orders": {
             "high_water": 4,
             "recent": {
-              "1": "8c4045661e0942e12dc6e1b14fd3a2bfdc05d7f27d4023f9cfd811992a34257b",
-              "2": "ca435aa45003a879b575a9f9936167efe94cdb2f36846e7f44501781816db407",
-              "3": "33b1a74f681d9cb68c341b7f77b2eb518c1236f025acbccfba9b26b4445342b1",
-              "4": "4e49b9e72ac3001981009e1b6018670bb800d9230b312bc6e719ef5f0939c237"
+              "1": "d8a3ade40ab4e117dff7fe5d969028068577caf0bf1dc183e5c758290efd83f9",
+              "2": "123ee082304fc294a331af0d39bb521f79604bb5dc25b61da06e488c5f07657d",
+              "3": "e04e9175c7bc693db2513f78015950d35a5793c58e29936fb1d2cf22a5f2c52c",
+              "4": "33bb43308e799a3de187a060c5417cb484b0d166bf5e005b944b3f3d62644d7f"
             }
           }
         }

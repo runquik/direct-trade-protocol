@@ -50,8 +50,9 @@ test('inventory@2 invariants: the sum over positions plus what left is what came
   const flow = fixtures.flows[0], ledger = flow.final;
   const thousandths = (v: string) => { const [w, f = ''] = v.split('.'); return BigInt(w) * 1000n + BigInt(f.padEnd(3, '0')); };
   const onHand = Object.values(ledger.positions).reduce((n, p) => n + thousandths(p.quantity), 0n);
-  // 120 received + 1 + 1 + 1 (audit: sequences 100, 40 and 37) + 7 (L3) + 12 (one case spelled "12.000") in; 10 fulfilled + 5 adjusted + 10 produced + 29 shipped out.
-  assert.equal(onHand, (120n + 1n + 1n + 1n + 7n + 12n - 10n - 5n - 10n - 29n) * 1000n);
+  // 120 received + 1 + 1 + 1 (audit: sequences 100, 40 and 37) + 7 (L3) + 12 (one case spelled "12.000") in; 10 + 1 fulfilled (res-1, res-4) + 5 adjusted + 10 produced + 29 shipped out.
+  assert.equal(onHand, (120n + 1n + 1n + 1n + 7n + 12n - 10n - 1n - 5n - 10n - 29n) * 1000n);
+  assert.deepEqual(Object.keys(ledger.reservations).sort(), ['res-2', 'res-3'], 'res-4 was settled in full by its own party (#145)');
   assert.deepEqual(Object.keys(ledger.sources).sort(), ['audit', 'count', 'mes', 'orders', 'wms']);
   assert.deepEqual(Object.keys(ledger.sources.audit.recent).sort(), ['100', '37', '40'], 'the window keeps only recent sequences: the mark and the 63 below it');
   assert.equal(ledger.sources.audit.high_water, 100);
