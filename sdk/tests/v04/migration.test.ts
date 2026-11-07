@@ -13,7 +13,7 @@ async function fixture(size = 0) {
   const a: Context = { audience: "https://a.test", storeKey: ka, pins, now }, b: Context = { audience: "https://b.test", storeKey: kb, pins, now }, c: Context = { audience: "https://c.test", storeKey: kc, pins, now };
   const sa = emptyState(), sb = emptyState(), orgId = crypto.randomUUID(), person = crypto.randomUUID();
   sa.organizations[orgId] = { id: orgId, name: "Synthetic source", controllers: [person], threshold: 1, generation: 1, status: "active", members: {}, invitations: {}, installations: {}, history: [] };
-  const snapshot: Snapshot = { version: "0.4", source: a.audience, organization: structuredClone(sa.organizations[orgId]), persons: [{ id: person, keys: [ka.keyId], retired_keys: [], history: [] }], policies: [], profiles: [], releases: [], records: [], remote_authorities: [], inventory: { synthetic_notes: "x".repeat(size) } };
+  const snapshot: Snapshot = { version: "0.4", source: a.audience, organization: structuredClone(sa.organizations[orgId]), persons: [{ id: person, keys: [ka.keyId], retired_keys: [], history: [] }], policies: [], profiles: [], releases: [], records: [], inventory: { synthetic_notes: "x".repeat(size) } };
   const cmd = draftCommand(a.audience, { id: person, key: ka }, "migration.prepare", orgId, {}, now);
   const token = await migrationPrepare(sa, cmd, a, snapshot, { audience: b.audience, key_id: kb.keyId });
   const mid = token.body.manifest.migration_id as string;
