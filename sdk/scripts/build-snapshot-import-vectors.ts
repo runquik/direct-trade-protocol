@@ -13,7 +13,7 @@ import type { BusinessRecord, Context, Snapshot, State } from '../src/v04/model.
 import { execute } from '../src/v04/engine.ts';
 import { digest, draftCommand, organizationId, personId, signCommand } from '../src/v04/wire.ts';
 import { applySnapshot, buildSnapshot } from '../src/v04/snapshot.ts';
-import { applyInventoryFact } from '../src/profiles/inventory2.ts';
+import { applyInventoryFact, openInventoryLedger } from '../src/profiles/inventory2.ts';
 import { inventoryKey } from '../src/profiles/inventory.ts';
 import { PRODUCT_PROFILE } from '../src/profiles/product.ts';
 import { ORDER_PROFILE } from '../src/profiles/order.ts';
@@ -38,7 +38,7 @@ const NONCE = '5a5a5a5a-0000-4000-8000-000000000001';
 const ORG = await organizationId(owner.id, NONCE);
 /** Fixed IDs: one namespace per role, so a case that adds a record never renumbers the base. */
 const fixedId = (role: number, n: number) => `${role.toString(16).padStart(8, '0')}-0000-4000-8000-${n.toString(16).padStart(12, '0')}`;
-const POLICY = fixedId(1, 1), PRODUCT = fixedId(2, 1), PRODUCT_V2 = fixedId(2, 2), PARTY = fixedId(3, 1), ORDER = fixedId(4, 1), ORDER_ACK = fixedId(4, 2);
+const POLICY = fixedId(1, 1), SIDE_POLICY = fixedId(1, 2), PRODUCT = fixedId(2, 1), PRODUCT_V2 = fixedId(2, 2), PARTY = fixedId(3, 1), ORDER = fixedId(4, 1), ORDER_ACK = fixedId(4, 2);
 const FORECAST = fixedId(5, 1), FACT_1 = fixedId(6, 1), FACT_2 = fixedId(6, 2), DOCK = fixedId(7, 1), BOOK = fixedId(8, 1), FLOW_FACT = fixedId(9, 1);
 
 const protocol = await loadProtocolProfiles();
@@ -83,7 +83,7 @@ const FLOW_FACT_BODY = flowFact(1, 0, null, '3', ucumJar);
 
 type Variant = 'base' | 'fact-unpublished-pack' | 'fact-pack-before-published' | 'product-drops-packaging' | 'product-alters-packaging' | 'order-born-acknowledged'
   | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs'
-  | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs' | 'flow-fact-before-opening';
+  | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs' | 'flow-fact-before-opening' | 'ledger-opened-under-other-policy';
 
 /** Runs the company's history on a source host. A case writes one record the way a host that skipped the rule would. */
 async function source(variant: Variant): Promise<Snapshot> {
@@ -98,7 +98,7 @@ async function source(variant: Variant): Promise<Snapshot> {
   };
   const call = async (action: string, org: string | null, payload: Record<string, unknown>, backdate = 0) => execute(s, await signed(action, org, payload, backdate), ctx);
   const payload = (id: string, root_id: string, supersedes: string | null, profile_digest: string, resource_id: string, body: unknown) =>
-    ({ id, root_id, supersedes, organization_id: ORG, policy_id: POLICY, resource_id, profile_digest, counterparty_ids: [], body });
+    ({ id, root_id, supersedes, organization_id: ORG, policy_id: variant === 'ledger-opened-under-other-policy' && profile_digest === contract.inventory ? SIDE_POLICY : POLICY, resource_id, profile_digest, counterparty_ids: [], body });
   const append = (...a: Parameters<typeof payload>) => call('record.append', ORG, payload(...a));
   /** Writes a signed record without the host rule under test, keeping every projection the rule does not cover consistent. */
   const inject = async (...a: [...Parameters<typeof payload>, number?]) => {
@@ -129,7 +129,15 @@ async function source(variant: Variant): Promise<Snapshot> {
   for (const d of Object.values(contract)) await call('profile.admit', ORG, { digest: d });
 
   await append(PRODUCT, PRODUCT, null, contract.product, PRODUCT, PRODUCT_1);
-  await call('inventory.open', ORG, { policy_id: POLICY, product_id: PRODUCT });
+  if (variant === 'ledger-opened-under-other-policy') {
+    // A host that skipped #130 lets the opener name any policy it can write: here a second policy, with the facts under it.
+    await call('policy.create', ORG, { policy_id: SIDE_POLICY, expected_revision: 0, classification: 'business', stewards: [owner.id], threshold: 1,
+      grants: [{ person_id: owner.id, actions: ['read', 'write', 'export'], resource_ids: '*', expires_at: new Date(T + 180 * 86_400_000).toISOString() }] });
+    const opening = await signed('inventory.open', ORG, { policy_id: SIDE_POLICY, product_id: PRODUCT });
+    const company = s.inventory[ORG] ??= { pools: {}, observations: {}, creations: {} } as any;
+    company.ledgers ??= {}; company.openings ??= {}; company.facts ??= {};
+    company.ledgers[PRODUCT] = { ...openInventoryLedger(ORG, PRODUCT, PRODUCT_1 as any), policy_id: SIDE_POLICY }; company.openings[PRODUCT] = opening;
+  } else await call('inventory.open', ORG, { policy_id: POLICY, product_id: PRODUCT });
   await append(FACT_1, FACT_1, null, contract.inventory, PRODUCT, FACT_1_BODY);
   if (variant === 'fact-pack-before-published') await inject(FACT_2, FACT_2, null, contract.inventory, PRODUCT, FACT_2_BODY);
   if (variant === 'product-drops-packaging') await inject(PRODUCT_V2, PRODUCT, PRODUCT, contract.product, PRODUCT, productBody([packRevision('2', '12.000')]));
@@ -204,6 +212,7 @@ const CASES: [Variant, string, string][] = [
   ['object-class-changed', 'object continuity', 'an object@1 revision that changes its class from dtp/location to dtp/vehicle'],
   ['flow-fact-unpublished-pack', 'packaging pin (#59)', 'a flow@1 fact pins a pack conversion (600000 base units per case-6 v1) that no product revision published'],
   ['flow-fact-before-opening', 'flow ordering (#119)', 'a flow@1 fact whose command issued_at is one minute earlier than the issued_at of the opening of the ledger it changes; the base fact, signed at the same instant as its opening, imports'],
+  ['ledger-opened-under-other-policy', 'ledger policy (#130)', 'the inventory@2 ledger for the product is opened under a second policy the opener can write, not under the product\'s own policy, and its facts are written under that second policy'],
   ['flow-book-differs', 'flow replay', 'the carried flow@1 book holds one more jar than replaying its signed openings and facts produces; no signature is changed'],
 ];
 
@@ -217,6 +226,14 @@ for (const [name, rule, why] of CASES) {
   const outcome = await refusal(snapshot);
   if (outcome !== 'invalid_snapshot') throw new Error(`${name}: the reference import gave ${outcome}, not invalid_snapshot`);
   cases.push({ name, rule, why, expect: 'invalid_snapshot', snapshot });
+}
+// #107: the snapshot carries owned state only. A snapshot from a host that still adds its cached counterparty
+// authority (the earlier `remote_authorities` member, an empty array in every earlier vector) has an unexpected member.
+{
+  const snapshot = { ...structuredClone(base), remote_authorities: [] } as unknown as Snapshot;
+  const outcome = await refusal(snapshot);
+  if (outcome !== 'invalid_snapshot') throw new Error(`carries-remote-authorities: the reference import gave ${outcome}, not invalid_snapshot`);
+  cases.push({ name: 'carries-remote-authorities', rule: 'snapshot members (#107)', why: 'the base with a remote_authorities member added: cached counterparty authority is not owned state, and a snapshot has exactly the members version, source, organization, persons, policies, profiles, releases, records and inventory', expect: 'invalid_snapshot', snapshot });
 }
 
 const out = {
