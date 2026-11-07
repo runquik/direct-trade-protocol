@@ -1,0 +1,1213 @@
+{
+  "description": "Core-1 signed records (spec/core-1/README.md, part 5): Signed<Record> under DTP-RECORD-1. For accept: verify the envelope under DTP-RECORD-1, check the body and the expected profile, check the signers against heads[person] and, when organization is set, heads[organization]; the record digest (SHA-256 of the canonical envelope, signatures included) and the signers must match. For reject: run the same steps, using profile, person and organization when given, and expect the code. For supersession: both records verify; check that next supersedes previous. Keys come from fixed seeds; never use them for anything real.",
+  "keys": [
+    {
+      "label": "alice-op-1",
+      "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+      "secret_key": "ed25519:4a22dsoqpv84Zr67aspWWjoKHW5T9trxwFDYjwzSZUoZA8gdAvChwb9nLwFz3bUFo67qiGpEVPoGZaLX6giJkDK3"
+    },
+    {
+      "label": "alice-op-2",
+      "key_id": "ed25519:Dg1vxX4a6yhVGuvjmQmkTcJeLQhuZ21ojjNL6dceLMRD",
+      "secret_key": "ed25519:ZfMnSExMMSYj2jbEyAVvddMpL6urcYqYWZPg3vX8DwL5AbCVXS2MzXNQP396kMexvL8EVrezbpRxe4Pt1d1vVto"
+    },
+    {
+      "label": "alice-rec",
+      "key_id": "ed25519:71qn7yyUghgBunKzNFDuQiTctam54Brsw79qaCxTbebm",
+      "secret_key": "ed25519:5EP11QYKSNHojQqcK45iYqCrjA2ZZqKB9JwRvzvksYLM6R2Tsm5nL7a88zBrHqdAZYhTUzFPB7CZkTcWEC26urLb"
+    },
+    {
+      "label": "bob-op-1",
+      "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+      "secret_key": "ed25519:4etAnxoKtCKzarakjuRqjvXPy8exF7bTExV6Xrw44N3LAoQsXxcPUKBu4NjvGn6FvrUcnzZrUqA5Vv3EnTomR9Kx"
+    },
+    {
+      "label": "bob-op-2",
+      "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
+      "secret_key": "ed25519:4n1jNhkRkzvRgnJzeecSJEQXmc3bhumSHpqTHpnyk5ySaqg1rEEbncrJTkstGNLWMLFNpZMpG3YEk5XSz3c4NFWv"
+    },
+    {
+      "label": "bob-rec",
+      "key_id": "ed25519:J2Ns28oTr9dxxF5sqyRNiMneansJ5PaszjApgb1Wt5Mj",
+      "secret_key": "ed25519:4YGexxwqcj55CkfrDFCFYxtR4jnv8ViZsVoxyXXZLLZtfFVUF5Ud8Nwpy8umNTQ2PM8kgNzKF9btGEoVGL6C6wMK"
+    },
+    {
+      "label": "stranger",
+      "key_id": "ed25519:K1zTV41eekWEBo6ohEWqGpTPHuHMqrjVwgRWP3dL67V",
+      "secret_key": "ed25519:5UywXH9Bsijxx1SwVKWQ9U4bKoxvXnmgceoZPEMZsRbjzCSPGJeeh3rwQmpqUSHMe9W4cU8Qm7ZMr7rzpP8w9kxb"
+    }
+  ],
+  "heads": {
+    "alice": {
+      "head": {
+        "identity_id": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+        "sequence": 2,
+        "previous_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "operational": {
+          "keys": [
+            "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "ed25519:Dg1vxX4a6yhVGuvjmQmkTcJeLQhuZ21ojjNL6dceLMRD"
+          ],
+          "threshold": 1
+        },
+        "recovery": {
+          "keys": [
+            "ed25519:71qn7yyUghgBunKzNFDuQiTctam54Brsw79qaCxTbebm"
+          ],
+          "threshold": 1
+        },
+        "effective_at": 1762000000000
+      },
+      "head_digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+    },
+    "bob": {
+      "head": {
+        "identity_id": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+        "sequence": 0,
+        "previous_digest": null,
+        "operational": {
+          "keys": [
+            "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+            "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg"
+          ],
+          "threshold": 2
+        },
+        "recovery": {
+          "keys": [
+            "ed25519:J2Ns28oTr9dxxF5sqyRNiMneansJ5PaszjApgb1Wt5Mj"
+          ],
+          "threshold": 1
+        },
+        "effective_at": 1761000000000
+      },
+      "head_digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+    },
+    "org": {
+      "head": {
+        "organization_id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+        "sequence": 1,
+        "previous_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "controllers": [
+          "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10"
+        ],
+        "threshold": 1
+      },
+      "head_digest": "91ff1765f1a11c5d9ff3c0b8dffc37ba0d05851a30b6a5916bfad3521ded49d0"
+    }
+  },
+  "accept": [
+    {
+      "why": "a person's first record, signed by one operational key at the named head",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "person": "alice",
+      "organization": null,
+      "digest": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+      "signers": [
+        "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD"
+      ]
+    },
+    {
+      "why": "a record that supersedes the first, with the next sequence",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 2,
+          "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+          "issued_at": 1762000200000,
+          "payload": {
+            "note": "café",
+            "amount": "13.00"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:3ppDNhKX1RGQaUmasaZaEtXqdgPG23kWhJZTigzcdULSFAkpJ6mW1sJqRNp4H9j4KHRYFpQ2aXiKaGBnzK7vpTXf"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "person": "alice",
+      "organization": null,
+      "digest": "63fb1b2a7c230a53a9b98265c75b13ef5a5d5f9e4b8195de90eee00cafa0d28c",
+      "signers": [
+        "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD"
+      ]
+    },
+    {
+      "why": "a record issued for an organisation by one of its controllers",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": {
+            "id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+            "head": {
+              "sequence": 1,
+              "digest": "91ff1765f1a11c5d9ff3c0b8dffc37ba0d05851a30b6a5916bfad3521ded49d0"
+            }
+          },
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:Dg1vxX4a6yhVGuvjmQmkTcJeLQhuZ21ojjNL6dceLMRD",
+            "signature": "ed25519:243vikh7t6wKcXohq7WnHm5MABB1YG64T3kSVmobqnG3Jxypv69wonga8nNiJwqA1jswAGGLWJmfrJAm3atTkEWe"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "person": "alice",
+      "organization": "org",
+      "digest": "1a8132fa9751da71ef9b52f5dd72ff1927b444ba47e542b3b8fdcb386730c752",
+      "signers": [
+        "ed25519:Dg1vxX4a6yhVGuvjmQmkTcJeLQhuZ21ojjNL6dceLMRD"
+      ]
+    },
+    {
+      "why": "a record whose issuer's threshold is two, signed by both operational keys",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+            "head": {
+              "sequence": 0,
+              "digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+            "signature": "ed25519:21znBVHtrp1onJdopaAZpEzmG2p3E8yqw7Rd9dnBTUqQu2JPSgXH4p15yWYvckvFsDE5mGGQmyybpnrZvSHPEHjV"
+          },
+          {
+            "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
+            "signature": "ed25519:5XFwWMnLVfjtoFT4ch38ZYKQ8RTjGBTqRZfjy8eTPt9ag6eokWkw75L5otYkbq5cPSBHNQqGm1RSAegdfqGAmTxZ"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "person": "bob",
+      "organization": null,
+      "digest": "a70b8332565e83816fbb2eae8be27c624da5b93d940f03e0d36dbbcb5cbb1ec4",
+      "signers": [
+        "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+        "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg"
+      ]
+    }
+  ],
+  "reject": [
+    {
+      "why": "verified under the record domain, but the body changed after signing",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "99.00"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+          }
+        ]
+      },
+      "code": "invalid_signature"
+    },
+    {
+      "why": "a member beside the seven record members",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          },
+          "kind": "note"
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:5tBysMc1SBDAkPMMhNGFi2RF3zBw36pi3YMj8twFBxN3SnxvquEtSKAe65v39eEmtRS1LsaF5oVVKzAkJTvfjiKZ"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "the organization member left out rather than null",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:41MGvV9ybYLm84C7sXq3s3DE8kjwpVNjoBBirotngPi8ELfzk3BvSqjPRoYneNchzBN9VgCKvP3s86YSJMGwqNV4"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "an issuer identity that is not a lower-case UUID",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6A1F0C2E-8D4B-4F3A-9E21-0B7C5D3E2F10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:3Erf2BvUugt1xNkAHWVi6ncTSi9b3cghKYd6KDZoYvmnDpK2nfNPyArfyNvGxFEsoH4Z8S42Xf6AyjQe7pon5nyS"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a head digest that is not lower-case SHA-256 hex",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "sha256:a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:4JMbe1DBHVF2UQewxmscakEoiAAtjBiRa9yLexXfuQpyyb1HmtMzNq2BGt8YJNNEfz1gDnYgSZHVa5DkiHPiRxto"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a profile that is not a digest",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "example.note@1",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:47qb1AfTTM1gwZZDHxXLxg1TEdUom1pFXX7EjT5BWo4rMwc257RHXr7vcJ1pUWzRksJXtU7PSRfs9CvP9GECgECB"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "sequence 0",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 0,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:2QmT33cspUs5eCQMqKqUSevbRY7tAQZPeRPGRGhqQJGbTssPRjfriRi5ScXMyhWfbKfiQHk6tKbETC2om6ReXHsv"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a record that supersedes nothing but has sequence 2",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 2,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:3UuGodqnyFwRyRwUHVdy6abyZguearPYK3A8MdMdQ6nvv2hoV6csGZUtia4LjWwd9A7kLCV4evKeSiLBPjEZbZoj"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a record that supersedes another but has sequence 1",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:3aSywTnRzXBfUkk4m3SvnUnUi8jdR2Lo7s73i86B9mog92zR3dAKi4CsEn3YvxhUTosfYyWe6chEVeZAtGC1PyjH"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a payload that is an array",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": [
+            "café"
+          ]
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:5tSmM4RcvCzau2dVwd1j21PMYHn8AEEfcFhxQcWWAAgEozFPq7T2jiSERw9F9tL9WrtZUVkjKu9YuPk5fwTdJWB7"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "an issued_at that is an ISO-8601 string (Core-1 metadata time is integer ms)",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": "2025-11-01T12:01:40.000Z",
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:2eTupcoN214fQBZjSFgADbEDexHWYHiHUzL4pvHg3G3E5i7j4Z38ox7PyQo5HxtzVXLbvnYfcDr3bHipfwsyrBHN"
+          }
+        ]
+      },
+      "code": "invalid_record"
+    },
+    {
+      "why": "a record of another profile than the verifier expects",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "2b5ba6c2e7e139f53ad62a7731038ee486b59e8bc4e5b64e75f3c4a12a6c5529",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:2J4o7pc4NXb2QzUFtAdtXiyaiHMCnZtt6LZt8Z2UJpJ5Rjwn79om4y6pfKupQTLuXqbHshNuFd2dFxASDhV5GmN5"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "code": "unexpected_profile"
+    },
+    {
+      "why": "a record naming an older head than the one given",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 1,
+              "digest": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:8GAsBtTKLq43VziBi6MEo7Lfjqedj4XuiFF43kVfGJYpePLJ5R3HuhP57YBDPb294PqyFkXEvRPZMpbxTAWncf8"
+          }
+        ]
+      },
+      "person": "alice",
+      "code": "wrong_head"
+    },
+    {
+      "why": "a signer that is not an operational key at the named head (a recovery key)",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:71qn7yyUghgBunKzNFDuQiTctam54Brsw79qaCxTbebm",
+            "signature": "ed25519:52gQ7tXQsa1ZQcXVZcgJjeEuRmpBFaric5s72pfPSbQzvgyxtJJetkdfpMHxHX2jnTQ4Mu5KJMN7NZJbmz9dn8Bz"
+          }
+        ]
+      },
+      "person": "alice",
+      "code": "unauthorized_signer"
+    },
+    {
+      "why": "an operational key with a key from outside the head beside it",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+          },
+          {
+            "key_id": "ed25519:K1zTV41eekWEBo6ohEWqGpTPHuHMqrjVwgRWP3dL67V",
+            "signature": "ed25519:41HxZooHbjvtNdhSfhR8w7GVBSq4PQAXY9R4DnNRjnyPiFMR1DGVkjcqsmpeJbyMBzADEPHjdGWKmnYAVHJJM9r3"
+          }
+        ]
+      },
+      "person": "alice",
+      "code": "unauthorized_signer"
+    },
+    {
+      "why": "one of two keys where the issuer's threshold is two",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+            "head": {
+              "sequence": 0,
+              "digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+            "signature": "ed25519:21znBVHtrp1onJdopaAZpEzmG2p3E8yqw7Rd9dnBTUqQu2JPSgXH4p15yWYvckvFsDE5mGGQmyybpnrZvSHPEHjV"
+          }
+        ]
+      },
+      "person": "bob",
+      "code": "unauthorized_signer"
+    },
+    {
+      "why": "a record for an organisation whose controllers do not include the issuer",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+            "head": {
+              "sequence": 0,
+              "digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+            }
+          },
+          "organization": {
+            "id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+            "head": {
+              "sequence": 1,
+              "digest": "91ff1765f1a11c5d9ff3c0b8dffc37ba0d05851a30b6a5916bfad3521ded49d0"
+            }
+          },
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+            "signature": "ed25519:fRX1qtRhhUnA19UAPJSKH4ZbJuCzVP4L1Ut9SFqZsQKG4v6CRMLBi6s2jQEUqYNoqF1JNSZtGLkaxAtrCyaKyTc"
+          },
+          {
+            "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
+            "signature": "ed25519:4AGnGrN43FEadipfAZM2RgWthXjvteJbdZps3R5Q4kfSPxRa1q28FCrt7Sdkjr2w2RNB3cAr6ytbUayDd3pgxAbn"
+          }
+        ]
+      },
+      "person": "bob",
+      "organization": "org",
+      "code": "unauthorized_signer"
+    },
+    {
+      "why": "a record for an organisation checked without its governance head",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": {
+            "id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+            "head": {
+              "sequence": 1,
+              "digest": "91ff1765f1a11c5d9ff3c0b8dffc37ba0d05851a30b6a5916bfad3521ded49d0"
+            }
+          },
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:Dg1vxX4a6yhVGuvjmQmkTcJeLQhuZ21ojjNL6dceLMRD",
+            "signature": "ed25519:243vikh7t6wKcXohq7WnHm5MABB1YG64T3kSVmobqnG3Jxypv69wonga8nNiJwqA1jswAGGLWJmfrJAm3atTkEWe"
+          }
+        ]
+      },
+      "person": "alice",
+      "code": "wrong_head"
+    },
+    {
+      "why": "a record for an organisation naming another governance head",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+            "head": {
+              "sequence": 2,
+              "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+            }
+          },
+          "organization": {
+            "id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+            "head": {
+              "sequence": 0,
+              "digest": "4444444444444444444444444444444444444444444444444444444444444444"
+            }
+          },
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+            "signature": "ed25519:27kqX4g1aVf7RCZNj2y6XjydvxFQirbBQqTMmDCgMGZjxGfTJSWvhfFF9y9ne3M8zEXMV7W5myMyApixT8XmK1JS"
+          }
+        ]
+      },
+      "person": "alice",
+      "organization": "org",
+      "code": "wrong_head"
+    }
+  ],
+  "supersession": {
+    "accept": [
+      {
+        "why": "the next sequence, the previous digest, the same profile and issuer",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 2,
+            "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+            "issued_at": 1762000200000,
+            "payload": {
+              "note": "café",
+              "amount": "13.00"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:3ppDNhKX1RGQaUmasaZaEtXqdgPG23kWhJZTigzcdULSFAkpJ6mW1sJqRNp4H9j4KHRYFpQ2aXiKaGBnzK7vpTXf"
+            }
+          ]
+        }
+      }
+    ],
+    "reject": [
+      {
+        "why": "names another digest",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 2,
+            "supersedes": "5555555555555555555555555555555555555555555555555555555555555555",
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:3pgyFGiytbiiAuTg42q7AYcJRuH2MiP32mHfWmoVCJLZyBoQTNZYWhcEghx3e3JhdUfxKvZcKAqebogb56TduKor"
+            }
+          ]
+        },
+        "code": "broken_supersession"
+      },
+      {
+        "why": "skips a sequence",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 3,
+            "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:3fYhV9fELKhMEQX3ZqqiyJNrhAWmnamq9LQmfNiN17DpuzdkWPcLjcPXGWXQvzZVgNRe4Xh29LzkzDYGuoeGKD59"
+            }
+          ]
+        },
+        "code": "broken_supersession"
+      },
+      {
+        "why": "changes the profile",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "2b5ba6c2e7e139f53ad62a7731038ee486b59e8bc4e5b64e75f3c4a12a6c5529",
+            "sequence": 2,
+            "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:5ZTpFQA8GGcSRYaesZpdcLqA8vKXHofuGi6382JTPkFZCxRCiBRpgHdwaKyUfv1Eup2Qrd855HFCyRwjvkuyA5uF"
+            }
+          ]
+        },
+        "code": "broken_supersession"
+      },
+      {
+        "why": "another person supersedes it",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+              "head": {
+                "sequence": 0,
+                "digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 2,
+            "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+              "signature": "ed25519:4iC3wQJ25jtkCLfyHENbLXL8Hx3xB5R8MmQBWts9xWqP7weGMYt11ju1Jw5DNhHN8inHt5eHzQ6m3eSPUUnMwNJq"
+            },
+            {
+              "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
+              "signature": "ed25519:LydU4bXhx9st4Dycs2efpajDyW6Z5KY7sYEnzZe7gjYzBc1ErLUdnJA3Y2JwkMa1DBNCGVKRgKzsCPnbvyD1Rox"
+            }
+          ]
+        },
+        "code": "broken_supersession"
+      },
+      {
+        "why": "the same person supersedes a personal record with one issued for an organisation",
+        "previous": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": null,
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 1,
+            "supersedes": null,
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ"
+            }
+          ]
+        },
+        "next": {
+          "body": {
+            "issuer": {
+              "identity": "6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10",
+              "head": {
+                "sequence": 2,
+                "digest": "a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21"
+              }
+            },
+            "organization": {
+              "id": "2e7d9b40-6c1a-4f85-b3e2-81a0f4c6d927",
+              "head": {
+                "sequence": 1,
+                "digest": "91ff1765f1a11c5d9ff3c0b8dffc37ba0d05851a30b6a5916bfad3521ded49d0"
+              }
+            },
+            "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+            "sequence": 2,
+            "supersedes": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+            "issued_at": 1762000100000,
+            "payload": {
+              "note": "café",
+              "amount": "12.50"
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD",
+              "signature": "ed25519:56MwUfYvcDeomK7V9WJ2MdyGRxwKEtMXhgb6nTjeLgLtBRPgKCsUjgcY28HTU5HPkFdLuhv7nTAZM5xkvBub34av"
+            }
+          ]
+        },
+        "code": "broken_supersession"
+      }
+    ]
+  }
+}
