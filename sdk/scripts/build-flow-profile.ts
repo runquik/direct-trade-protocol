@@ -90,6 +90,7 @@ const plantSteps: [string, (b: FlowBook) => FlowFact][] = [
   ['REFUSED unit_mismatch: dollars counted in euros', b => draft(b, { verb: 'move', source: 'bank', sequence: 4, ledgers: [M(OPERATING), M(CREDIT_LINE)], legs: [leg(money, at(own(OPERATING)), at(own(CREDIT_LINE)), q('1', { ...usd, code: 'EUR' }))] })],
   ['an offset with no money: a promotion the company owes nets against the retailer\'s deduction', b => draft(b, { verb: 'transfer', source: 'ar', sequence: 1, rights: ['title'], ledgers: [], settles: [settle(own(PROMO_OWED), 'offset', '3000'), settle(own(PROMO_DEDUCTION), 'offset', '3000')] })],
   ['REFUSED invalid: an offset of a single claim', b => draft(b, { verb: 'transfer', source: 'ar', sequence: 2, rights: ['title'], ledgers: [], settles: [settle(own(PROMO_OWED), 'offset', '1')] })],
+  ['REFUSED invalid: an offset naming the same claim twice (#135)', b => draft(b, { verb: 'transfer', source: 'ar', sequence: 2, rights: ['title'], ledgers: [], settles: [settle(own(PROMO_OWED), 'offset', '1'), settle(own(PROMO_OWED), 'offset', '1')] })],
   ['REFUSED invalid: a payment settlement with no money in its currency', b => draft(b, { verb: 'transfer', source: 'ar', sequence: 2, rights: ['title'], ledgers: [], settles: [settle(own(INVOICE), 'payment', '1')] })],
   ['REFUSED ledger_unavailable: a product with no ledger in this book', b => draft(b, { verb: 'move', source: 'wms', sequence: 1, ledgers: [G(FERMENTER)], legs: [leg(goods(FERMENTER), outside('~supplier'), at(own(DOCK)), q('1', ucum('{unit}')))] })],
   ['a count correction with a reason: two jars broken on the dock', b => draft(b, { verb: 'move', source: 'count', sequence: 1, basis: 'asserted', ledgers: [G(SAUCE)], legs: [leg(goods(SAUCE), at(own(DOCK), 'S1'), outside('~adjustment'), q('2', ucum('{jar}')), { reason: 'cycle count: two jars broken' })] })],
@@ -128,6 +129,11 @@ function run(flow: Flow, steps: [string, (b: FlowBook) => FlowFact][], extra: (b
   if (flow === plant) {
     apply('DUPLICATE: the first receipt presented again, byte for byte', results[0].fact);
     apply('REFUSED observation_conflict: the same source and sequence with a different fact', { ...results[0].fact, legs: [leg(goods(PEPPERS), outside('~supplier'), at(own(DOCK), 'P1'), q('49', ucum('kg')))] });
+    // The window boundary (#144): with the audit source's mark at 100, a sequence is stale exactly when it is <= 100 - 64.
+    const boundary = (sequence: number) => draft(book, { verb: 'move', source: 'audit', sequence, ledgers: [G(SAUCE)], legs: [leg(goods(SAUCE), at(own(SHELF), 'S1'), at(own(DOCK), 'S1'), q('1', ucum('{jar}')))] });
+    apply('REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window', boundary(36));
+    apply('sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted', boundary(37));
+    apply('DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised', results[results.length - 1].fact);
   }
   return { why: flow.why, book_id: flow.book_id, openings: flow.openings, facts: results, final: book, bridge: flow.bridge === null ? null : { product_id: flow.bridge, projection: projectInventory2(book, flow.bridge) } };
 }
