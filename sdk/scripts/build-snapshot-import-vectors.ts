@@ -218,6 +218,14 @@ for (const [name, rule, why] of CASES) {
   if (outcome !== 'invalid_snapshot') throw new Error(`${name}: the reference import gave ${outcome}, not invalid_snapshot`);
   cases.push({ name, rule, why, expect: 'invalid_snapshot', snapshot });
 }
+// #107: the snapshot carries owned state only. A snapshot from a host that still adds its cached counterparty
+// authority (the earlier `remote_authorities` member, an empty array in every earlier vector) has an unexpected member.
+{
+  const snapshot = { ...structuredClone(base), remote_authorities: [] } as unknown as Snapshot;
+  const outcome = await refusal(snapshot);
+  if (outcome !== 'invalid_snapshot') throw new Error(`carries-remote-authorities: the reference import gave ${outcome}, not invalid_snapshot`);
+  cases.push({ name: 'carries-remote-authorities', rule: 'snapshot members (#107)', why: 'the base with a remote_authorities member added: cached counterparty authority is not owned state, and a snapshot has exactly the members version, source, organization, persons, policies, profiles, releases, records and inventory', expect: 'invalid_snapshot', snapshot });
+}
 
 const out = {
   description: 'v0.4 candidate: whole, signed snapshots a conforming host MUST import or MUST refuse when a company moves to it (migration.ready, spec/v0.4/SPEC.md section 8). The base is one company with one business policy and the seven registered business-fact kinds: a product with two revisions (the second adds a packaging revision), an open inventory@2 ledger with two facts, a party, an acknowledged order, a forecast, an object@1 location, and a flow@1 book with one goods ledger and one fact that moves stock into that location, signed with the same issued_at as the ledger opening (an equal issued_at does not predate the opening). A conforming host MUST import it and reproduce its projections exactly. Each case is the base with exactly one host import rule broken and the affected commands re-signed with the published key; a conforming host MUST refuse every case with invalid_snapshot. These rules go beyond the profile reducers and fixtures: they are the checks a destination re-runs on import. The keys are published on purpose: never use them for anything real.',

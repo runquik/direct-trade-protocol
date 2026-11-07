@@ -31,16 +31,15 @@ export function buildSnapshot(s: State, organizationId: string, ctx: Context): S
     if (Array.isArray(c.payload.stewards)) c.payload.stewards.forEach((id: string) => people.add(id));
   }
   demand([...people].every(id => s.persons[id]), "invalid_snapshot", "required personal history is missing");
-  const counterparties = new Set(records.flatMap(r => r.counterparty_ids));
   return structuredClone({ version: "0.4", source: ctx.audience, organization, persons: [...people].sort().map(id => s.persons[id]), policies,
     profiles: [...profileIds].sort().map(d => s.profiles[d]), releases, records,
-    remote_authorities: [...counterparties].flatMap(id => s.remote_authorities[id] ? [s.remote_authorities[id].token] : []),
     inventory: s.inventory[organizationId] ? { [organizationId]: s.inventory[organizationId] } : {} });
 }
 const stateKey = (...parts: unknown[]): string => { try { return inventoryKey(...parts); } catch { return demand(false, "invalid_snapshot", "invalid inventory observation identity") as never; } };
 export async function validateSnapshot(s: State, snap: Snapshot) {
-  exact(snap, ["version", "source", "organization", "persons", "policies", "profiles", "releases", "records", "remote_authorities", "inventory"]);
-  demand(snap.version === "0.4" && typeof snap.source === "string" && snap.organization?.status === "active" && uuid(snap.organization.id) && Number.isSafeInteger(snap.organization.generation) && snap.organization.generation >= 1 && Array.isArray(snap.organization.history) && Array.isArray(snap.persons) && Array.isArray(snap.records) && Array.isArray(snap.policies) && Array.isArray(snap.profiles) && Array.isArray(snap.releases) && Array.isArray(snap.remote_authorities) && snap.inventory && typeof snap.inventory === "object" && !Array.isArray(snap.inventory), "invalid_snapshot", "invalid snapshot collections", 400);
+  // Cached counterparty authority is not owned state and never travels (#107): the top-level members are exactly these.
+  demand(snap && typeof snap === "object" && !Array.isArray(snap) && same(Object.keys(snap).sort(), ["inventory", "organization", "persons", "policies", "profiles", "records", "releases", "source", "version"]), "invalid_snapshot", "unexpected or missing snapshot members", 400);
+  demand(snap.version === "0.4" && typeof snap.source === "string" && snap.organization?.status === "active" && uuid(snap.organization.id) && Number.isSafeInteger(snap.organization.generation) && snap.organization.generation >= 1 && Array.isArray(snap.organization.history) && Array.isArray(snap.persons) && Array.isArray(snap.records) && Array.isArray(snap.policies) && Array.isArray(snap.profiles) && Array.isArray(snap.releases) && snap.inventory && typeof snap.inventory === "object" && !Array.isArray(snap.inventory), "invalid_snapshot", "invalid snapshot collections", 400);
   exact(snap.organization, ["id", "name", "controllers", "threshold", "generation", "status", "members", "invitations", "installations", "history"]);
   demand(Object.keys(snap.inventory).every(id => id === snap.organization.id), "invalid_snapshot", "foreign inventory state in snapshot");
   // Two independently staged companies can collide even while the destination's
