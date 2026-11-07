@@ -88,7 +88,7 @@ Nothing here has been released, so these go without a migration: the v0.2 record
 
 ## Order of work
 
-Each item is its own pull request with vectors, labelled `needs-owner`. Sequencing (owner, October 22, 2026): steps 1 and 2 first; then verb-layer build steps 3 and 4 (`assign@1`, `claim@1`), which the flagship's shadow close needs; then steps 3 to 5 here.
+Each item is its own pull request with vectors, labelled `needs-owner`. Sequencing (owner, November 5, 2026, [#157](https://github.com/runquik/direct-trade-protocol/issues/157), replacing that of October 22, 2026): steps 1 and 2 first; then steps 3 and 4 here (identity, then records and bundles), because a record names an identity-log head and a bundle carries that log; then verb-layer build steps 3 and 4 (`assign@1`, then `claim@1`); then step 5 onward here.
 
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).

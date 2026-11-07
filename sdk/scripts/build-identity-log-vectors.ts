@@ -11,7 +11,7 @@ import { createIdentity, signIdentity, CLOCK_MARGIN_MS, LEASE_MS } from '../src/
 import type { Control, Rehome, Resolution, Signed, Transition } from '../src/foundation/identity.ts';
 import { checkResolutionHead } from '../src/foundation/person-authentication.ts';
 import { attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, refuseRehome, verifyIdentityLog, verifyRehomeRefusal,
-  HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, LEGACY_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../src/foundation/identity-log.ts';
+  HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, WITHDRAWN_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, RehomeRefusal, ResolverPin } from '../src/foundation/identity-log.ts';
 
 const PKCS8 = [0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20];
@@ -71,7 +71,7 @@ const afterMove = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { 
 movedParts.entries.push({ effective_at: moveAt + LEASE_MS + CLOCK_MARGIN_MS, transition: afterMove, rehome: null, attestation: null });
 const moved = await buildIdentityLog(movedParts, k['resolver-b']), movedBare = await buildIdentityLog(movedParts, null);
 const sameResolverNewKey = await buildIdentityLog(await withMove({ ...rehomeBody, to: { ...rehomeBody.to, resolver_id: resolverId, audience } }), k['resolver-b']);
-const legacy = (log: IdentityLog): IdentityLog => ({ ...clone(log), format: LEGACY_IDENTITY_LOG_FORMAT, entries: log.entries.map(({ rehome: _, ...rest }) => rest as never) });
+const withdrawn = (log: IdentityLog): IdentityLog => ({ ...clone(log), format: WITHDRAWN_IDENTITY_LOG_FORMAT as never, entries: log.entries.map(({ rehome: _, ...rest }) => rest as never) });
 // A log whose move is signed material the rules refuse: assembled without verification, since building would refuse it.
 const movedBad = async (body: Rehome, signers?: KeyPair[], at = moveAt): Promise<IdentityLog> =>
   ({ ...clone(movedBare), entries: [...clone(attested.entries), { effective_at: at, transition: null, rehome: await signRehome(body, signers), attestation: null }] });
@@ -99,7 +99,6 @@ const accept: Accept[] = [
   ['a move to a second resolver, signed by the recovery quorum alone, then a recovery there; heads before the move are attested by the first resolver, the move and what follows by the second', moved, true],
   ['the same move with no attestations', movedBare, false],
   ['a resolver key rotation: a move to the same resolver id under a new key', sameResolverNewKey, true],
-  ['the format 1 encoding of a history without moves', legacy(attested), true],
 ];
 const reject: Accept[] = [
   ['unattested heads where the verifier requires attestation', bare, true],
@@ -147,7 +146,8 @@ const reject: Accept[] = [
   ['the move attested by the first resolver, which it leaves', await damaged(moved, async l => { l.entries[4].attestation = await attestHead(movedHead.head, { id: resolverId, epoch: 0 }, k.resolver); }), false],
   ['a head after the move attested by the first resolver', await damaged(moved, async l => { l.entries[5].attestation = await attestHead((await verifyIdentityLog(clone(moved), { require_attestation: true })).heads[5].head, { id: resolverB, epoch: 1 }, k.resolver); }), false],
   ['an entry carrying both a transition and a move', await damaged(moved, l => { l.entries[4].transition = clone(l.entries[5].transition); }), false],
-  ['a format 1 log carrying a move', await damaged(moved, l => { (l as { format: string }).format = LEGACY_IDENTITY_LOG_FORMAT; }), false],
+  ['the format 1 encoding of a history without moves, every head attested: format 1 is withdrawn (Core-1, part 4), so a verifier refuses it whatever its contents', withdrawn(attested), true],
+  ['a format 1 log carrying a move', await damaged(moved, l => { (l as { format: string }).format = WITHDRAWN_IDENTITY_LOG_FORMAT; }), false],
   ['after a move, a rotation signed with keys retired before it', await damaged(movedBare, async l => { l.entries.push({ effective_at: moveAt + 400_000, rehome: null, attestation: null, transition: await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: (await verifyIdentityLog(clone(movedBare), { require_attestation: false })).head_digest, sequence: 6, kind: 'rotate', operational: { keys: [k.stranger.keyId], threshold: 1 }, recovery: { keys: [rec(1).keyId], threshold: 1 }, issued_at: moveAt + 400_000, expires_at: moveAt + 700_000 }, [op(1), k.stranger]) }); }), false],
 ];
 type Pair = [string, IdentityLog, IdentityLog, ReturnType<typeof precedence>];
@@ -274,8 +274,8 @@ const contradictions: Contradiction[] = [
 ];
 
 const out = {
-  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject". A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
-  format: IDENTITY_LOG_FORMAT, legacy_format: LEGACY_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
+  description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject", including every log in the withdrawn format 1 ("withdrawn_format"). A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
+  format: IDENTITY_LOG_FORMAT, withdrawn_format: WITHDRAWN_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
   accept: await Promise.all(accept.map(async ([why, log, require_attestation]) => {

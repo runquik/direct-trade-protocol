@@ -12,8 +12,8 @@ import { CLOCK_MARGIN_MS, LEASE_MS, copyIdentityData, createIdentity, rehomeIden
 import type { Control, Genesis, IdentityState, KeySet, Rehome, ResolverEnrollment, Signed, Transition } from './identity.ts';
 
 export const IDENTITY_LOG_FORMAT = 'dtp-identity-log-2';
-/** Format 1 had no rehome member. It remains valid and is verified by the same rules. */
-export const LEGACY_IDENTITY_LOG_FORMAT = 'dtp-identity-log-1';
+/** Format 1 had no rehome member. It is withdrawn (Core-1, part 4): a verifier refuses it like any unknown format. */
+export const WITHDRAWN_IDENTITY_LOG_FORMAT = 'dtp-identity-log-1';
 export const HEAD_ATTESTATION_DOMAIN = 'DTP-IDENTITY-LOG-HEAD-1';
 export const MAX_LOG_ENTRIES = 4096;
 /** The enrolled resolver's statement that this head, with this instant, is the one it accepted. */
@@ -23,7 +23,7 @@ export interface HeadAttestation {
 /** entries[n] describes head n. `effective_at` is the only host-asserted value in a control head.
  *  Exactly one of `transition` and `rehome` is set for n >= 1; both are null for n = 0. */
 export interface IdentityLogEntry { effective_at: number; transition: Signed<Transition> | null; rehome: Signed<Rehome> | null; attestation: Signed<HeadAttestation> | null }
-export interface IdentityLog { format: typeof IDENTITY_LOG_FORMAT | typeof LEGACY_IDENTITY_LOG_FORMAT; genesis: Signed<Genesis>; enrollment: Signed<ResolverEnrollment>; entries: IdentityLogEntry[] }
+export interface IdentityLog { format: typeof IDENTITY_LOG_FORMAT; genesis: Signed<Genesis>; enrollment: Signed<ResolverEnrollment>; entries: IdentityLogEntry[] }
 export interface ResolverBinding { epoch: number; id: string; key_id: string; audience: string }
 export interface VerifiedHead { head: Control; head_digest: string; epoch: number; attested: boolean }
 export interface VerifiedIdentityLog {
@@ -105,14 +105,14 @@ function window(body: Record<string, any>, at: number, previous: number, what: s
 export async function verifyIdentityLog(input: IdentityLog, policy: { require_attestation: boolean }): Promise<VerifiedIdentityLog> {
   fields(policy, ['require_attestation']); need(typeof policy.require_attestation === 'boolean', 'explicit attestation policy required');
   fields(input, ['format', 'genesis', 'enrollment', 'entries']);
-  const legacy = input.format === LEGACY_IDENTITY_LOG_FORMAT; need(legacy || input.format === IDENTITY_LOG_FORMAT, 'unsupported identity log format');
+  need(input.format === IDENTITY_LOG_FORMAT, 'unsupported identity log format');
   list(input.entries, 1, MAX_LOG_ENTRIES);
   // Detach every part before the first await; each part is bounded by copyIdentityData.
   const genesis = copyIdentityData(input.genesis), enrollment = copyIdentityData(input.enrollment);
   const entries: IdentityLogEntry[] = input.entries.map(raw => {
-    const e = copyIdentityData(raw); fields(e, legacy ? ['effective_at', 'transition', 'attestation'] : ['effective_at', 'transition', 'rehome', 'attestation']);
+    const e = copyIdentityData(raw); fields(e, ['effective_at', 'transition', 'rehome', 'attestation']);
     need(instant(e.effective_at), 'invalid effective instant');
-    return { effective_at: e.effective_at, transition: e.transition, rehome: legacy ? null : e.rehome, attestation: e.attestation };
+    return { effective_at: e.effective_at, transition: e.transition, rehome: e.rehome, attestation: e.attestation };
   });
   fields(enrollment, ['body', 'signatures']); need(enrollment.body && typeof enrollment.body === 'object', 'enrollment body required');
   const bound = enrollment.body, first = entries[0];
