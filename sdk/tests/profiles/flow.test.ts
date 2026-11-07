@@ -7,8 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { canonicalize } from '../../src/canonical.ts';
 import { parseUntrustedJson } from '../../src/safe-json.ts';
 import { checkSchema, validateShape } from '../../src/v04/profiles.ts';
-import { FLOW_KIND, FLOW_PROFILE, FLOW_SCHEMA, FLOW_SEMANTICS, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger, projectInventory2 } from '../../src/profiles/flow.ts';
+import { FLOW_KIND, FLOW_PROFILE, FLOW_SCHEMA, FLOW_SEMANTICS, OBSERVATION_WINDOW, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger, projectInventory2 } from '../../src/profiles/flow.ts';
 import type { FlowBook, FlowFact } from '../../src/profiles/flow.ts';
+import { windowDisagreements } from './observation-window.ts';
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const load = (p: string) => parseUntrustedJson(readFileSync(here(p), 'utf8')) as any;
@@ -54,4 +55,11 @@ test('flow@1 rules beyond the fixtures: every ledger in a fact is chained to the
   assert.equal(flowUnpublishedPackaging(fact, () => undefined), false, 'a base-unit quantity needs no packaging');
   assert.throws(() => openGoodsLedger(after.state, fact.legs[0].asset.product!, { base_unit: { system: 'ucum', code: 'kg' }, tracking: 'lot' }), /exists/);
   assert.equal(goodsLedgerKey(fact.legs[0].asset.product!), fact.ledgers[0].key);
+});
+
+test('flow@1 fixtures pin the observation window exactly (#144): an unseen mark-64 is stale, an unseen mark-63 is new, so a 63- or 65-wide window fails them', () => {
+  for (const flow of fixtures.flows) assert.equal(windowDisagreements(flow.facts.map((f: any) => ({ observation: f.fact.act.observation, expect: f.expect })), OBSERVATION_WINDOW), 0);
+  const plant = fixtures.flows[0].facts.map((f: any) => ({ observation: f.fact.act.observation, expect: f.expect }));
+  assert.ok(windowDisagreements(plant, OBSERVATION_WINDOW - 1) > 0, 'a 63-wide window disagrees with some fixture');
+  assert.ok(windowDisagreements(plant, OBSERVATION_WINDOW + 1) > 0, 'a 65-wide window disagrees with some fixture');
 });

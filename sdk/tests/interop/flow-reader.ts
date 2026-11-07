@@ -161,7 +161,8 @@ export function readFlowFact(state: Book, fact: any): { outcome: Outcome; book: 
       if ((s.kind === 'reversal') !== (s.reverses !== null) || (s.reverses !== null && !UUID.test(s.reverses))) stop('invalid');
       if (s.kind === 'payment' && !paid.has(s.currency)) stop('invalid');
     }
-    if (fact.settles.filter((s: any) => s.kind === 'offset').length === 1) stop('invalid');
+    const offsetClaims = fact.settles.filter((s: any) => s.kind === 'offset').map((s: any) => JSON.stringify([s.claim.minted_by, s.claim.root, s.claim.record_id]));
+    if (offsetClaims.length > 0 && new Set(offsetClaims).size < 2) stop('invalid');
     const listed: string[] = [];
     for (const l of fact.ledgers) {
       if (!plain(l) || !keysAre(l, ['key', 'expected_revision', 'expected_digest']) || typeof l.key !== 'string' || !/^[0-9a-f]{64}$/.test(l.key) || !Number.isSafeInteger(l.expected_revision) || l.expected_revision < 0 || (l.expected_digest !== null && !/^[0-9a-f]{64}$/.test(String(l.expected_digest)))) stop('invalid');

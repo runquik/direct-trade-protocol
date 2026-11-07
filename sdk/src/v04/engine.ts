@@ -1,6 +1,7 @@
 // Deterministic candidate kernel. MUST execute in one transaction; discard state
 // on failure. Data policies are separate from organization administration.
 import type { BusinessRecord, Command, Context, DataAction, Organization, Policy, Profile, Release, State } from "./model.ts";
+import { nextRecordSeq, takeRecordSeq } from "./model.ts";
 import { demand, digest, exact, instant, organizationId, personId, same, uuid, validKey, validateCommand, verifyCommand, verifyAssessment, signToken, verifyToken } from "./wire.ts";
 import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, management, quorum, steward } from "./permissions.ts";
 import { expandKinds, profileContract, validateProfile, validateShape } from "./profiles.ts";
@@ -144,7 +145,10 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     }
     case "membership.revoke": {
       const o=currentOrg();management(s,o,c,"members.manage",ctx);exact(p,["person_id"]);id(p.person_id);demand(!o.controllers.includes(p.person_id),"forbidden","use controller quorum policy");
-      if(previous){result=previous.result;break;}const m=o.members[p.person_id];if(m)m.active=false;for(const i of Object.values(o.invitations))if(i.person_id===p.person_id)i.active=false;
+      if(previous){result=previous.result;break;}
+      // Revocation ends the person's grants by ordering: it must not be signed before a policy revision that grants them (#98).
+      demand(!Object.values(s.policies).some(x=>x.organization_id===o.id&&x.grants.some(g=>g.person_id===p.person_id)&&instant(x.history[x.history.length-1].issued_at)>instant(c.issued_at)),"conflict","a policy revision granting this person is newer than this revocation",409);
+      const m=o.members[p.person_id];if(m)m.active=false;for(const i of Object.values(o.invitations))if(i.person_id===p.person_id)i.active=false;
       history=true;result={revoked:true};break;
     }
     case "policy.create":
@@ -221,6 +225,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       demand(isDigest(p.profile_digest)&&Object.hasOwn(s.profiles,p.profile_digest),"unsupported_profile","pinned profile unavailable",422);const profile=s.profiles[p.profile_digest];demand(accessibleProfile(profile,o.id),"unsupported_profile","pinned profile unavailable",422);
       if(c.actor.kind==="installation")demand(s.releases[o.installations[c.actor.id].release_digest].profiles.includes(p.profile_digest),"forbidden","module does not declare this profile");
       if(previous){result=previous.result;break;}demand(!s.records[p.id]&&!migration.migrationResourceReserved(s,"records",p.id),"conflict","record ID exists or reserved",409);
+      const next=nextRecordSeq(s,o.id);demand(Number.isSafeInteger(next)&&next>=1&&next<Number.MAX_SAFE_INTEGER,"capacity","record sequence capacity exhausted",507);
       // A predecessor the writer cannot read answers exactly as an absent one, so supersedes is no existence oracle.
       const prior=p.supersedes?s.records[p.supersedes]:undefined,before=prior&&prior.organization_id===o.id&&can(prior.policy_id,prior.resource_id,"read")?prior:null;
       if(before)demand(before.is_head&&before.root_id===p.root_id&&before.policy_id===p.policy_id&&before.resource_id===p.resource_id&&before.profile_digest===p.profile_digest&&same(before.counterparty_ids,p.counterparty_ids),"conflict","record continuity failed",409);
@@ -304,7 +309,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         company.pools[event.pool_id]=change.state;company.observations[obs]={hash:eventHash,record_id:p.id,policy_id:p.policy_id,profile_digest:p.profile_digest};validation={profile:"dtp.inventory/1",revision:change.state.revision,physical_stock_verified:false};
       }
       if(before)before.is_head=false;
-      s.records[p.id]={...structuredClone(p),command:structuredClone(c),seq:s.next_seq++,is_head:true,accepted_at:new Date(ctx.now).toISOString(),validation} as BusinessRecord;result={id:p.id,seq:s.records[p.id].seq,duplicate:false};break;
+      s.records[p.id]={...structuredClone(p),command:structuredClone(c),seq:takeRecordSeq(s,o.id),is_head:true,accepted_at:new Date(ctx.now).toISOString(),validation} as BusinessRecord;result={id:p.id,seq:s.records[p.id].seq,duplicate:false};break;
     }
     case "record.get": {
       exact(p,["id","profile_digest"]);id(p.id);const r=s.records[p.id];demand(r&&r.organization_id===currentOrg().id&&can(r.policy_id,r.resource_id,"read")&&understands(r.profile_digest),"not_found","record unavailable",404);

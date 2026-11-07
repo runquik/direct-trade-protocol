@@ -1552,6 +1552,147 @@
             "ok": true,
             "duplicate": false
           }
+        },
+        {
+          "why": "REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "audit",
+              "sequence": 36
+            },
+            "occurred_at": "2026-09-23T08:31:00.000Z",
+            "expected_revision": 15,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": null,
+                  "location_id": "~supplier",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": "L2",
+                  "location_id": "dock",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": null
+                }
+              }
+            ],
+            "reservations": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "stale_observation"
+          }
+        },
+        {
+          "why": "sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "audit",
+              "sequence": 37
+            },
+            "occurred_at": "2026-09-23T08:32:00.000Z",
+            "expected_revision": 15,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": null,
+                  "location_id": "~supplier",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": "L2",
+                  "location_id": "dock",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": null
+                }
+              }
+            ],
+            "reservations": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised",
+          "fact": {
+            "product_id": "22222222-2222-4222-8222-222222222222",
+            "observation": {
+              "source_id": "audit",
+              "sequence": 37
+            },
+            "occurred_at": "2026-09-23T08:32:00.000Z",
+            "expected_revision": 15,
+            "moves": [
+              {
+                "from": {
+                  "lot_id": null,
+                  "location_id": "~supplier",
+                  "status": "available"
+                },
+                "to": {
+                  "lot_id": "L2",
+                  "location_id": "dock",
+                  "status": "available"
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null,
+                "links": {
+                  "transformation_id": null,
+                  "order_id": null
+                }
+              }
+            ],
+            "reservations": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": true
+          }
         }
       ],
       "final": {
@@ -1563,7 +1704,7 @@
           "code": "{jar}"
         },
         "tracking": "lot",
-        "revision": 15,
+        "revision": 16,
         "positions": {
           "8ea7bdd2506286549ce68501fbd9fb9bb4fc716cabfc54561a1c6717f23cd036": {
             "position": {
@@ -1589,7 +1730,7 @@
               "location_id": "dock",
               "status": "available"
             },
-            "quantity": "2",
+            "quantity": "3",
             "serials": []
           },
           "288ff0ae13f1b7056f6a8cc3e189549ade6a017b6bdfb4820e84fe6a0d7e6ae4": {
@@ -1651,6 +1792,7 @@
           "audit": {
             "high_water": 100,
             "recent": {
+              "37": "dc5a283ea543a1e9bf2f945c7d751d83410a51394081dcb3e9fc49896ffc4ecd",
               "40": "a6b2e6f5ffbe1f5775aea9a9910d10c30806645387fc831e61a79b8ae8f0ea03",
               "100": "181ba6b9dbe7d0986853ba48501c70569f14b607e0961e465abd16b85b1a742c"
             }
@@ -1666,7 +1808,7 @@
           "pool_id": "shelf",
           "product_id": "22222222-2222-4222-8222-222222222222",
           "base_unit": "{jar}",
-          "revision": 15,
+          "revision": 16,
           "on_hand": "46",
           "reservations": {
             "res-2": "5",
@@ -1708,7 +1850,7 @@
               "source_id": "wms",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:31:00.000Z",
+            "occurred_at": "2026-09-23T08:33:00.000Z",
             "expected_revision": 0,
             "moves": [
               {
@@ -1759,7 +1901,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:32:00.000Z",
+            "occurred_at": "2026-09-23T08:34:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1808,7 +1950,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:33:00.000Z",
+            "occurred_at": "2026-09-23T08:35:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1857,7 +1999,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:34:00.000Z",
+            "occurred_at": "2026-09-23T08:36:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1906,7 +2048,7 @@
               "source_id": "wms",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:35:00.000Z",
+            "occurred_at": "2026-09-23T08:37:00.000Z",
             "expected_revision": 1,
             "moves": [
               {
@@ -1956,7 +2098,7 @@
               "source_id": "orders",
               "sequence": 1
             },
-            "occurred_at": "2026-09-23T08:36:00.000Z",
+            "occurred_at": "2026-09-23T08:38:00.000Z",
             "expected_revision": 2,
             "moves": [],
             "reservations": [
@@ -1995,7 +2137,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:37:00.000Z",
+            "occurred_at": "2026-09-23T08:39:00.000Z",
             "expected_revision": 3,
             "moves": [],
             "reservations": [
@@ -2034,7 +2176,7 @@
               "source_id": "orders",
               "sequence": 2
             },
-            "occurred_at": "2026-09-23T08:38:00.000Z",
+            "occurred_at": "2026-09-23T08:40:00.000Z",
             "expected_revision": 3,
             "moves": [
               {
@@ -2104,7 +2246,7 @@
               "source_id": "wms",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:39:00.000Z",
+            "occurred_at": "2026-09-23T08:41:00.000Z",
             "expected_revision": 4,
             "moves": [
               {
@@ -2151,7 +2293,7 @@
               "source_id": "orders",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:40:00.000Z",
+            "occurred_at": "2026-09-23T08:42:00.000Z",
             "expected_revision": 4,
             "moves": [],
             "reservations": [
@@ -2190,7 +2332,7 @@
               "source_id": "wms",
               "sequence": 3
             },
-            "occurred_at": "2026-09-23T08:41:00.000Z",
+            "occurred_at": "2026-09-23T08:43:00.000Z",
             "expected_revision": 5,
             "moves": [
               {
@@ -2239,7 +2381,7 @@
               "source_id": "orders",
               "sequence": 4
             },
-            "occurred_at": "2026-09-23T08:42:00.000Z",
+            "occurred_at": "2026-09-23T08:44:00.000Z",
             "expected_revision": 5,
             "moves": [
               {
@@ -2330,17 +2472,17 @@
           "wms": {
             "high_water": 2,
             "recent": {
-              "1": "98b3a1a8417f67d76b56229aba1853f7944af2ea7513d6ab2a20a7f5a6f72d65",
-              "2": "6404a41befd2e17ecb6bb70e751eb6b5b3823b7d75c02e3752c026c8649b3851"
+              "1": "178c06945de269ab4e1913914478e8e155115c935365abcea20e1e78008a6048",
+              "2": "7f2b704dd75fbefc5dae80a9b7af5d74ab4033104bade8de607bf350ef68cfaf"
             }
           },
           "orders": {
             "high_water": 4,
             "recent": {
-              "1": "aef839b48b01d708934911523a9f1df380644ccf25814f697a4d32e59798065a",
-              "2": "3af09f17305d81017afbfd16bcd8dc93b715fdecc70c50b82ac83a52968fc738",
-              "3": "b165758d78369629a2772bd1fe4349e9b6886735fcf5f3f01592ad22b2a5bcf0",
-              "4": "3522e4320f555ea5a9d6bb258b13d8d146ba6a3a1273d415d64d80a7e32f6e89"
+              "1": "8c4045661e0942e12dc6e1b14fd3a2bfdc05d7f27d4023f9cfd811992a34257b",
+              "2": "ca435aa45003a879b575a9f9936167efe94cdb2f36846e7f44501781816db407",
+              "3": "33b1a74f681d9cb68c341b7f77b2eb518c1236f025acbccfba9b26b4445342b1",
+              "4": "4e49b9e72ac3001981009e1b6018670bb800d9230b312bc6e719ef5f0939c237"
             }
           }
         }
