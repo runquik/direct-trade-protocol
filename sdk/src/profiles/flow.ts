@@ -294,7 +294,7 @@ export function applyFlowFact(state: FlowBook, fact: FlowFact): FlowResult {
       if (s.kind === 'payment' && !currencies.has(s.currency)) refuse('invalid', `${path}: a payment settles with money legs in its currency`);
     });
     const offsets = fact.settles.filter(s => s.kind === 'offset');
-    if (offsets.length === 1) refuse('invalid', '$.settles: an offset nets at least two claims');
+    if (offsets.length > 0 && new Set(offsets.map(s => canonicalize(s.claim))).size < 2) refuse('invalid', '$.settles: an offset nets at least two distinct claims');
     // The ledger list names exactly the ledgers touched, each at its current revision and head: one compare-and-set per ledger.
     const listed = new Set<string>();
     fact.ledgers.forEach((l, i) => {

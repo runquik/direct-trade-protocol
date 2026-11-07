@@ -2277,11 +2277,62 @@
           }
         },
         {
-          "why": "REFUSED invalid: a payment settlement with no money in its currency",
+          "why": "REFUSED invalid: an offset naming the same claim twice (#135)",
           "fact": {
             "act": {
               "verb": "transfer",
               "occurred_at": "2026-10-23T08:26:00.000Z",
+              "observation": {
+                "source_id": "ar",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [],
+            "legs": [],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              },
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a payment settlement with no money in its currency",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:27:00.000Z",
               "observation": {
                 "source_id": "ar",
                 "sequence": 2
@@ -2321,7 +2372,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:27:00.000Z",
+              "occurred_at": "2026-10-23T08:28:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 1
@@ -2394,7 +2445,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:28:00.000Z",
+              "occurred_at": "2026-10-23T08:29:00.000Z",
               "observation": {
                 "source_id": "count",
                 "sequence": 1
@@ -2467,7 +2518,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:29:00.000Z",
+              "occurred_at": "2026-10-23T08:30:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 100
@@ -2480,7 +2531,7 @@
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 8,
-                "expected_digest": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+                "expected_digest": "42f126d4a825dcde3608b3aae104b6b7e038cd6f6639de40f125d436bc5fe9b1"
               }
             ],
             "legs": [
@@ -2544,7 +2595,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:30:00.000Z",
+              "occurred_at": "2026-10-23T08:31:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 1
@@ -2557,7 +2608,7 @@
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 9,
-                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+                "expected_digest": "296bcbc288cf86f2ef5f10de60b2c5f046fbe2ffafda10a4eb2f557d5f1d4aac"
               }
             ],
             "legs": [
@@ -2767,7 +2818,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:31:00.000Z",
+              "occurred_at": "2026-10-23T08:32:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 36
@@ -2780,7 +2831,7 @@
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 9,
-                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+                "expected_digest": "296bcbc288cf86f2ef5f10de60b2c5f046fbe2ffafda10a4eb2f557d5f1d4aac"
               }
             ],
             "legs": [
@@ -2844,7 +2895,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "occurred_at": "2026-10-23T08:33:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 37
@@ -2857,7 +2908,7 @@
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 9,
-                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+                "expected_digest": "296bcbc288cf86f2ef5f10de60b2c5f046fbe2ffafda10a4eb2f557d5f1d4aac"
               }
             ],
             "legs": [
@@ -2921,7 +2972,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "occurred_at": "2026-10-23T08:33:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 37
@@ -2934,7 +2985,7 @@
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 9,
-                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+                "expected_digest": "296bcbc288cf86f2ef5f10de60b2c5f046fbe2ffafda10a4eb2f557d5f1d4aac"
               }
             ],
             "legs": [
@@ -3051,7 +3102,7 @@
             "tracking": "lot",
             "balance": "nonnegative",
             "revision": 10,
-            "head": "adf504fc88ed72f37251f72f4a2dc80be517907b39e60b0a65425cb73de65f4b",
+            "head": "0ff55efb4b8d421e0c356a5cabfec8e0171e36e7c17f04a7944352f75573904d",
             "positions": {
               "41949fb41ff82d67400c6dadffcc533f18090564623718b61178955fe67746bc": {
                 "position": {
@@ -3214,14 +3265,14 @@
           "count": {
             "high_water": 1,
             "recent": {
-              "1": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+              "1": "42f126d4a825dcde3608b3aae104b6b7e038cd6f6639de40f125d436bc5fe9b1"
             }
           },
           "audit": {
             "high_water": 100,
             "recent": {
-              "37": "adf504fc88ed72f37251f72f4a2dc80be517907b39e60b0a65425cb73de65f4b",
-              "100": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              "37": "0ff55efb4b8d421e0c356a5cabfec8e0171e36e7c17f04a7944352f75573904d",
+              "100": "296bcbc288cf86f2ef5f10de60b2c5f046fbe2ffafda10a4eb2f557d5f1d4aac"
             }
           }
         }
@@ -3294,7 +3345,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:33:00.000Z",
+              "occurred_at": "2026-10-23T08:34:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 1
@@ -3370,7 +3421,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:34:00.000Z",
+              "occurred_at": "2026-10-23T08:35:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3383,7 +3434,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
+                "expected_digest": "37968be1771d655b6fb0b40fe562eaf2f2d4e38184b96267631ae3ba569cb316"
               }
             ],
             "legs": [
@@ -3445,7 +3496,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:35:00.000Z",
+              "occurred_at": "2026-10-23T08:36:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3458,7 +3509,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
+                "expected_digest": "37968be1771d655b6fb0b40fe562eaf2f2d4e38184b96267631ae3ba569cb316"
               }
             ],
             "legs": [
@@ -3522,7 +3573,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:36:00.000Z",
+              "occurred_at": "2026-10-23T08:37:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3535,7 +3586,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802"
+                "expected_digest": "37968be1771d655b6fb0b40fe562eaf2f2d4e38184b96267631ae3ba569cb316"
               }
             ],
             "legs": [
@@ -3607,7 +3658,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:37:00.000Z",
+              "occurred_at": "2026-10-23T08:38:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 3
@@ -3620,7 +3671,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 2,
-                "expected_digest": "c39d0aa50f4c852e96c024efb67d4db7c856df177154e81f3f580b21f8ef584f"
+                "expected_digest": "ce0763b4c8730f9e37f52211e926408c3a828db8023c986d8e68b5d02975dd6d"
               }
             ],
             "legs": [
@@ -3740,7 +3791,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:38:00.000Z",
+              "occurred_at": "2026-10-23T08:39:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 1
@@ -3753,7 +3804,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 3,
-                "expected_digest": "aed3bba6be0cc303b68c3156aeca90ca445e86a062bb6e00c3ddd83a197311b3"
+                "expected_digest": "329f827c817785d6674a4ed2ba255ef638b566332caab84bcae873f6442a8b5f"
               }
             ],
             "legs": [],
@@ -3809,7 +3860,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "occurred_at": "2026-10-23T08:40:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -3822,7 +3873,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20"
+                "expected_digest": "215718d9ac23edb5edbfcc8592442493627c807d60aec7c6aede6b294eb15db4"
               }
             ],
             "legs": [
@@ -3884,7 +3935,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:40:00.000Z",
+              "occurred_at": "2026-10-23T08:41:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 2
@@ -3897,7 +3948,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20"
+                "expected_digest": "215718d9ac23edb5edbfcc8592442493627c807d60aec7c6aede6b294eb15db4"
               }
             ],
             "legs": [
@@ -3992,7 +4043,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:41:00.000Z",
+              "occurred_at": "2026-10-23T08:42:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -4005,7 +4056,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 5,
-                "expected_digest": "959c756ccbb9dbbe1048e87960bf6607c65eba909c7d539640c0281a55c67530"
+                "expected_digest": "671f6406aa1a692ff0d5d964bd59e3db11d35a34ba97953a454c2645fbf7844b"
               }
             ],
             "legs": [
@@ -4120,7 +4171,7 @@
             "tracking": "serial",
             "balance": "nonnegative",
             "revision": 6,
-            "head": "8c16563d813b5bba5766a837064cbc0309d176ce36903f0cc9694eac9550b5c9",
+            "head": "e53d1b38e3a67c2ec0c8f3b24dfdf92de5dbad3f5327df689029309a844894b4",
             "positions": {
               "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
                 "position": {
@@ -4191,17 +4242,17 @@
           "wms": {
             "high_water": 4,
             "recent": {
-              "1": "8cd52128af8b7b26c33e1c3f15c43572beca5755d892cf18f2ca3f5a43942802",
-              "2": "c39d0aa50f4c852e96c024efb67d4db7c856df177154e81f3f580b21f8ef584f",
-              "3": "aed3bba6be0cc303b68c3156aeca90ca445e86a062bb6e00c3ddd83a197311b3",
-              "4": "8c16563d813b5bba5766a837064cbc0309d176ce36903f0cc9694eac9550b5c9"
+              "1": "37968be1771d655b6fb0b40fe562eaf2f2d4e38184b96267631ae3ba569cb316",
+              "2": "ce0763b4c8730f9e37f52211e926408c3a828db8023c986d8e68b5d02975dd6d",
+              "3": "329f827c817785d6674a4ed2ba255ef638b566332caab84bcae873f6442a8b5f",
+              "4": "e53d1b38e3a67c2ec0c8f3b24dfdf92de5dbad3f5327df689029309a844894b4"
             }
           },
           "orders": {
             "high_water": 2,
             "recent": {
-              "1": "43d126f3a14e1ce3bf67b97b92126928975474e6d2ca695c078d81101dd8da20",
-              "2": "959c756ccbb9dbbe1048e87960bf6607c65eba909c7d539640c0281a55c67530"
+              "1": "215718d9ac23edb5edbfcc8592442493627c807d60aec7c6aede6b294eb15db4",
+              "2": "671f6406aa1a692ff0d5d964bd59e3db11d35a34ba97953a454c2645fbf7844b"
             }
           }
         }
