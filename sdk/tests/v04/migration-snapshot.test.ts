@@ -108,16 +108,16 @@ test("migration capacity: finalize replaces staged payload rather than retaining
   const token:any=await f.call("migration.prepare",f.org,{destination:{audience:ctx.audience,key_id:key.keyId}}),mid=token.body.manifest.migration_id;
   await migrationStage(destination,ctx,token);
   for(let i=0;i<token.body.manifest.chunk_hashes.length;i++)await migrationUpload(destination,mid,i,migrationChunk(f.s,mid,i).data,ctx);
-  destination.next_seq=Number.MAX_SAFE_INTEGER;
-  await assert.rejects(migrationReady(destination,mid,ctx,snap=>validateSnapshot(destination,snap)),(e:any)=>e.code==="migration_capacity");
-  assert.equal(destination.incoming[mid].ready_token,undefined);assert.equal(f.s.organizations[f.org].status,"active");
-  destination.next_seq=1;
+  // Another company's exhausted sequence does not limit the import: the company gets its own.
+  destination.record_seq[crypto.randomUUID()]=Number.MAX_SAFE_INTEGER;
   const ready=await migrationReady(destination,mid,ctx,snap=>validateSnapshot(destination,snap));
   const before=JSON.stringify(destination).length,capacity=before+16384;
   f.ctx.now=ctx.now;const commit=await migrationCommit(f.s,mid,ready,f.ctx,buildSnapshot(f.s,f.org,f.ctx));
   await migrationFinalize(destination,mid,commit,ctx,snap=>applySnapshot(destination,snap));
   assert.ok(JSON.stringify(destination).length<before);assert.ok(JSON.stringify(destination).length<capacity);
-  assert.equal(destination.records[f.record].body.salary,123456);assert.equal(destination.incoming[mid].snapshot,undefined);assert.deepEqual(destination.incoming[mid].chunks,{});
+  assert.equal(destination.records[f.record].body.salary,123456);
+  const imported=Object.values(destination.records).filter(r=>r.organization_id===f.org).map(r=>r.seq).sort((a,b)=>a-b);
+  assert.deepEqual(imported,imported.map((_,i)=>i+1));assert.equal(destination.record_seq[f.org],imported.length+1);assert.equal(destination.incoming[mid].snapshot,undefined);assert.deepEqual(destination.incoming[mid].chunks,{});
   const snapshotOfActive=structuredClone(destination.records);
   await migrationFinalize(destination,mid,commit,{...ctx,now:ctx.now+7200000},()=>{throw Error("cannot apply twice");});
   assert.deepEqual(destination.records,snapshotOfActive);
