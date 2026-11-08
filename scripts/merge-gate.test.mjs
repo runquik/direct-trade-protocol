@@ -65,7 +65,16 @@ test('decide: each rule, in its order', () => {
   assert.equal(decide(passing({ reviewedAt: T0, headCommittedAt: T1 })).action, 'unreview', 'a commit after the review');
   const reserved = decide(passing({ files: ['sdk/tests/v04/x.test.ts', 'spec/vectors/nul-string.json'] }));
   assert.deepEqual([reserved.action, reserved.paths], ['needs-owner', ['spec/vectors/nul-string.json']], 'reviewed is not enough for a reserved path');
-  assert.equal(decide(passing({ labels: [OWNER_APPROVED], approvedAt: T1, reviewedAt: null, files: ['spec/vectors/nul-string.json'] })).action, 'merge');
+  const unreviewed = decide(passing({ labels: [OWNER_APPROVED], approvedAt: T1, reviewedAt: null, files: ['spec/vectors/nul-string.json'] }));
+  assert.deepEqual([unreviewed.action, unreviewed.reason], ['review-again', `touches spec/vectors/nul-string.json; the red team has not reviewed the head ${HEAD.slice(0, 7)}`],
+    'owner-approved is not enough for a reserved path, however late the label came');
+  assert.equal(decide(passing({ labels: [OWNER_APPROVED], approvedAt: T1, reviewedAt: null, headCommittedAt: T0, files: ['spec/vectors/nul-string.json'],
+    comments: [{ createdAt: T2, body: `**Owner decision, 2026-11-02: yes.** Merge at \`${HEAD.slice(0, 7)}\`.` }] })).action, 'review-again',
+    'nor is a decision comment naming the head');
+  assert.equal(decide(passing({ labels: [OWNER_APPROVED, REVIEWED], approvedAt: T1, reviewedAt: T1, files: ['spec/vectors/nul-string.json'] })).action, 'merge',
+    'the owner\'s decision and a review of the head together merge a reserved path');
+  assert.equal(decide(passing({ labels: [OWNER_APPROVED], approvedAt: T1, reviewedAt: null, files: ['docs/decisions.md'] })).action, 'merge',
+    'outside reserved paths the owner\'s approval of the head is still enough');
   assert.equal(decide(passing({ labels: [OWNER_APPROVED], approvedAt: T0, headCommittedAt: T1, reviewedAt: null })).action, 'review-again');
   assert.equal(decide(passing({ labels: [OWNER_APPROVED, REVIEWED], approvedAt: T0, headCommittedAt: T1, reviewedAt: T2, files: ['sdk/src/x.ts'] })).action, 'merge',
     'a fresh review carries the owner\'s decision onto a new head');
@@ -112,14 +121,15 @@ const quiet = { log: () => {} };
 test('a sweep merges a stack bottom first, squashes the rest, hands owner paths over, asks for decisions and takes stale reviews off', async () => {
   const api = fakeGitHub([
     { number: 10, labels: [REVIEWED], head: 'b'.repeat(40), headCommittedAt: T0, events: [reviewed(T1)] },
-    { number: 11, labels: [OWNER_APPROVED], head: 'c'.repeat(40), headCommittedAt: T0, events: [approved(T1)], files: ['sdk/src/v04/wire.ts'] },
-    { number: 12, labels: [OWNER_APPROVED], head: 'd'.repeat(40), headCommittedAt: T0, events: [approved(T1)], body: 'Depends on #11 (merge first)', draft: true, files: ['spec/v0.4/SPEC.md'] },
+    { number: 11, labels: [OWNER_APPROVED, REVIEWED], head: 'c'.repeat(40), headCommittedAt: T0, events: [approved(T1), reviewed(T1)], files: ['sdk/src/v04/wire.ts'] },
+    { number: 12, labels: [OWNER_APPROVED, REVIEWED], head: 'd'.repeat(40), headCommittedAt: T0, events: [approved(T1), reviewed(T1)], body: 'Depends on #11 (merge first)', draft: true, files: ['spec/v0.4/SPEC.md'] },
     { number: 13, labels: [REVIEWED], head: 'e'.repeat(40), headCommittedAt: T0, events: [reviewed(T1)], files: ['teams/maintainer.md'] },
     { number: 14, labels: [REVIEWED], head: 'f'.repeat(40), headCommittedAt: T2, events: [reviewed(T1)] },
     { number: 15, labels: [REVIEWED], head: 'g'.repeat(40), headCommittedAt: T0, events: [reviewed(T1)], ciPassed: false },
     { number: 16, labels: [REVIEWED], head: 'h'.repeat(40), headCommittedAt: T0, events: [reviewed(T1)], files: ['sdk/src/v04/engine.ts'] },
     { number: 17, labels: [OWNER_APPROVED], head: 'i'.repeat(40), headCommittedAt: T2, events: [approved(T1)] },
     { number: 18, labels: [], head: 'j'.repeat(40), headCommittedAt: T0 },
+    { number: 19, labels: [OWNER_APPROVED], head: 'k'.repeat(40), headCommittedAt: T0, events: [approved(T1)], files: ['sdk/src/core1/record.ts'] },
   ]);
   const outcome = await sweep(api, quiet);
   assert.deepEqual(api.done.merges, [[10, 'squash'], [11, 'merge'], [12, 'merge']], 'the bottom first, then the top in the same sweep');
@@ -132,16 +142,18 @@ test('a sweep merges a stack bottom first, squashes the rest, hands owner paths 
   assert.match(api.state.get(14).comments.at(-1).body, /New commits since the red team's review/);
   assert.deepEqual(outcome.needsOwner.map(n => [n.number, n.paths]), [[16, ['sdk/src/v04/engine.ts']]]);
   assert.ok(api.state.get(16).labels.includes(NEEDS_OWNER));
-  assert.deepEqual(outcome.waiting.map(w => w.number), [17]);
+  assert.deepEqual(outcome.waiting.map(w => w.number), [17, 19]);
   assert.deepEqual(api.state.get(17).labels, [OWNER_APPROVED], 'the decision stays recorded');
-  assert.match(api.state.get(17).comments.at(-1).body, /decision stands/);
+  assert.match(api.state.get(17).comments.at(-1).body, /decision stands\. This head \(`iiiiiii`\) came after the decision/);
+  assert.match(api.state.get(19).comments.at(-1).body, /decision stands\. This head \(`kkkkkkk`\) changes what the owner reserves, so it merges once the red team has reviewed it/,
+    'owner-approved on a reserved path waits for the red team, even with the label after the head');
   assert.deepEqual(outcome.skipped.map(s => s.number), [14, 15], 'the unreviewed one is skipped too, and the red one');
   assert.equal(api.state.get(18).comments.length, 0, 'an unlabelled pull request is not touched');
   assert.equal(worthLogging(outcome), true);
 
   const again = await sweep(api, quiet);
   assert.equal(api.done.merges.length, 3, 'nothing merges twice');
-  for (const [n, mark] of [[13, MARK.owner], [16, MARK.reserved], [17, MARK.again('i'.repeat(40))]]) {
+  for (const [n, mark] of [[13, MARK.owner], [16, MARK.reserved], [17, MARK.again('i'.repeat(40))], [19, MARK.again('k'.repeat(40))]]) {
     assert.equal(api.state.get(n).comments.filter(c => c.body.includes(mark)).length, 1, `#${n} is told once`);
   }
   assert.deepEqual(again.owner.map(o => o.handed), [false]);

@@ -59,7 +59,7 @@ The owner answers in one of two ways, and only these count:
 For each answer:
 
 1. Comment on the item: `**Owner decision, <date>:** <the answer, in the owner's words where possible, then in protocol terms>`. If the answer is for a pull request whose head it covers, name the head commit (first 7 characters).
-2. Replace `needs-owner` with `owner-approved` if the answer is yes (as recommended, or with changes the comment states). If the answer is no, remove `needs-owner`, say what happens instead, and close the item if the owner said to.
+2. Replace `needs-owner` with `owner-approved` if the answer is yes (as recommended, or with changes the comment states). On a pull request that changes a reserved path, this alone never merges it: the gate also waits for the red team's `reviewed` on the head, so ask the red team for that review in your nudge. A `team:maintainer` pull request that builds an `owner-approved` issue gets the label from you, never from the maintainer. If the answer is no, remove `needs-owner`, say what happens instead, and close the item if the owner said to.
 3. Add a line to [docs/decisions.md](../docs/decisions.md) in the right section, dated, linked, in protocol terms. Batch the day's lines into one pull request on a `claude/project-lead-decisions-<date>` branch, labelled `team:project-lead`; the red team reviews it and the merge gate merges it.
 
 Never write an `Owner decision` comment or add `owner-approved` for anything the owner did not answer. The merge gate treats both as the owner's word.

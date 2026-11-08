@@ -76,7 +76,7 @@ When an item depends on one of your own pull requests that is not merged yet, bu
 
 The merge gate ([scripts/merge-gate.mjs](../scripts/merge-gate.mjs), run by [.github/workflows/merge-gate.yml](../.github/workflows/merge-gate.yml) after every CI run, on every relevant label or push, and every 15 minutes) merges an open pull request when all of these hold:
 
-1. **It is approved for its head.** Either it carries `owner-approved`, and the owner's approval covers the head (the label was added after the head commit, an owner decision comment names the head commit, or the red team has reviewed the head since); or it changes nothing the [Authority](#authority) list reserves and the red team has reviewed it (`reviewed`, added after the head commit). The reserved paths are listed in the script: `spec/`, `SPEC.md`, `sdk/src/`, the normative and gate documents under `docs/foundation/` and `docs/release/`, the release and foundation gate scripts, and the packed SDK's `package.json` and lock file.
+1. **It is approved for its head.** If it changes anything the [Authority](#authority) list reserves, it needs both: `owner-approved` and the red team's review of its head (`reviewed`, added after the head commit). However late `owner-approved` was added, and whatever head a decision comment names, an unreviewed head that changes a reserved path does not merge. If it changes nothing reserved, either is enough: `reviewed` added after the head commit, or `owner-approved` covering the head (the label was added after the head commit, an owner decision comment names the head commit, or the red team has reviewed the head since). The reserved paths are listed in the script: `spec/`, `SPEC.md`, `sdk/src/`, the normative and gate documents under `docs/foundation/` and `docs/release/`, the release and foundation gate scripts, and the packed SDK's `package.json` and lock file.
 2. **Protocol conformance passed** on the head commit, and GitHub reports it mergeable.
 3. **It is not waiting.** It carries no `needs-owner`, and no pull request named in a `Depends on #N` line is still open.
 4. **`main` is green.** While the last Protocol conformance run on `main` failed, nothing merges.
@@ -104,7 +104,7 @@ The gate acts as the owner's GitHub App `dtp-gate`, installed on this repository
 | `sev:critical` `sev:high` `sev:medium` `sev:low` | Severity, set by whoever files; the maintainer may change it with a reason. |
 | `implementer-report` | Filed by someone building on DTP from outside this repository. |
 | `needs-owner` | A decision only the owner can make, asked in the form in [When you are blocked](#when-you-are-blocked). |
-| `owner-approved` | The owner decided: proceed as recommended (or as the owner's decision comment says). Replaces `needs-owner`. Stays on the item as the record. |
+| `owner-approved` | The owner decided: proceed as recommended (or as the owner's decision comment says). Replaces `needs-owner`. Stays on the item as the record. On a pull request that changes a reserved path it is never enough alone: the red team's `reviewed` on the head is needed too. |
 | `reviewed` | The red team (or, for a gap test, the maintainer) reviewed the current head and found nothing that blocks it. Comes off with a new commit. |
 | `owner-merges` | Set by the merge gate: the pull request touches what the owner merges by hand. |
 | `team:maintainer` `team:red-team` `team:project-lead` | Which team owns or produced the item. |
