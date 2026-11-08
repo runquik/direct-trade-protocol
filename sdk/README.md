@@ -29,7 +29,7 @@ fixtures/dev-keys.json   written by seed (gitignored)
 ```bash
 npm install
 npm run build                 # regenerate from spec/schemas
-npm pack                      # dtp-sdk-0.2.0.tgz for a consumer: prepack emits dist/ (JavaScript + declarations)
+npm pack                      # dtp-sdk-<version>.tgz for a consumer (see CHANGELOG.md): prepack emits dist/ (JavaScript + declarations)
 npm test                      # full suite on an embedded store
 STORE_URL=https://…/functions/v1/dtp-store npm test    # same suite against a deployment
 node scripts/dev-server.ts    # http://127.0.0.1:8787/dtp-store

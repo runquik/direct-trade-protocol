@@ -58,12 +58,17 @@ than guessing a format from convenient metadata or whether some signature verifi
 
 ## Package labels and publication discipline
 
-The current SDK manifest remains `@dtp/sdk` version `0.2.0`, private. Historical
-local/remote MCP manifests retain `0.1.0`/`0.2.0` and are now private archives.
-This policy pass changes no manifest, lockfile, import path or installed artifact.
-Future unpublished development artifacts may use a reviewed label such as
-`0.1.0-dev.N` under an appropriate package identity. That is an explicit packaging
-decision, not a mass replacement of every `0.2`, `0.3`, `0.4` or PBP string.
+The SDK manifest is `@dtp/sdk`, private, at a development version `0.2.1-dev.N`.
+The owner chose that label on 2026-11-04 ([#73](https://github.com/runquik/direct-trade-protocol/issues/73)),
+after deciding on 2026-10-22 that every change to the behaviour of a packed entry
+bumps the version. Each bump raises `N` by one and adds an entry to
+[`sdk/CHANGELOG.md`](../../sdk/CHANGELOG.md) saying what behaviour changed, in the
+same pull request; `sdk/tests/release/version-changelog.test.ts` checks the label,
+the entry, the lockfile and the example's tarball path. `0.2.1-dev.N` sorts after
+the earlier unlabelled `0.2.0` builds and claims no public release: the release
+target below is unchanged. Historical local/remote MCP manifests retain
+`0.1.0`/`0.2.0` and are private archives. The label is a packaging decision, not a
+mass replacement of every `0.2`, `0.3`, `0.4` or PBP string.
 
 The [baseline audit](baseline-audit.md) records dated npm queries returning 404 at
 the exact package names and no discovered public releases/tags. Those observations

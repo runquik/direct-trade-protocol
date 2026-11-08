@@ -33,7 +33,7 @@ test('independent release review: native Ed25519 verifies historical vectors and
 });
 test('independent release review: SDK stays private and historical wire literals remain distinct from public target', () => {
   const pkg = load('../../package.json'), graph = load('../../../docs/foundation/gates.json');
-  assert.equal(pkg.private, true); assert.equal(pkg.version, '0.2.0'); assert.equal(graph.release_target, '0.1.0');
+  assert.equal(pkg.private, true); assert.match(pkg.version, /^0\.2\.1-dev\.[1-9]\d*$/); assert.equal(graph.release_target, '0.1.0');
   const three = load('../../../spec/v0.3/signing-vector.json'), four = load('../../../spec/v0.4/signing-vector.json');
   assert.equal(three.command.version, '0.3'); assert.equal(four.command.version, '0.4');
   assert.match(three.signing_input_utf8, /PBP-COMMAND-0\.3/); assert.match(four.signing_input_utf8, /DTP-COMMAND-0\.4/);
