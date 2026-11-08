@@ -86,7 +86,7 @@ test('GAP: a retired operational key forges a governance history the cold/replay
   const forgedLog: GovernanceLog = { format: GOVERNANCE_LOG_FORMAT, genesis, consents: [forgedGenesisConsent], entries: [e1] };
 
   // A cold verifier trusting no host, only the genuine attested identity logs, accepts the forgery.
-  const replay = controlFromIdentityLogs(await Promise.all([alice.log, mallory.log].map(l => verifyIdentityLog(l, { require_attestation: true }))));
+  const replay = controlFromIdentityLogs(await Promise.all([alice.log, mallory.log].map(l => verifyIdentityLog(l))));
   const verified = await verifyGovernanceLog(forgedLog, replay);
 
   // GAP: the forged history verifies and hands control to the thief, authorized only by a retired key.

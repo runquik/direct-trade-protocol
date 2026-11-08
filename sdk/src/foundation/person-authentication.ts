@@ -5,7 +5,7 @@ import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes }
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
 import type { Control, Signed, Resolution, Signature } from './identity.ts';
-import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal } from './identity-log.ts';
+import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityHistory, verifyRehomeRefusal } from './identity-log.ts';
 import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, PinnedHistory, RehomeRefusal, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
@@ -234,12 +234,12 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  pin without the history behind it, so the fork-point rule cannot be applied and every conflict with it is refused,
      *  a higher-epoch one too (identity-log.md, #50); a fork signed by a retired recovery quorum never supersedes here. The durable row becomes the
      *  effective binding, so resolutions from the former resolver are refused from this commit on, across restarts and
-     *  regardless of the static configuration. Whether unattested heads are acceptable is the caller's explicit policy. */
-    async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog; require_attestation: boolean }) {
-      const v = bounded(input); exact(v, ['person_id', 'log', 'require_attestation']); uuid(v.person_id); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
+     *  regardless of the static configuration. Every head of the log's current epoch must be attested; there is no switch (#159). */
+    async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog }) {
+      const v = bounded(input); exact(v, ['person_id', 'log']); uuid(v.person_id);
       const p = pinFor(v.person_id), head = await checkpoint(tx, p);
       const pin: ResolverPin = { identity_id: p.person_id, resolver_id: head.resolver_id, resolver_key: head.resolver_key, resolver_epoch: Number(head.resolver_epoch), minimum_sequence: Number(head.sequence), minimum_digest: head.digest };
-      const admitted = await admitIdentityLog(pin, v.log, { require_attestation: v.require_attestation }, null, await heldRefusals(tx, p.person_id)), next = admitted.pin;
+      const admitted = await admitIdentityLog(pin, v.log, null, await heldRefusals(tx, p.person_id)), next = admitted.pin;
       if (admitted.outcome !== 'unchanged') {
         const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
           [config.host_id, p.person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
@@ -251,8 +251,8 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  after a move. An identity this host never enrolled is refused as unknown; otherwise the log is judged against
      *  the durable checkpoint exactly as admitIdentityMove would, and an admission is stored the same way. The
      *  answer is a function of the checkpoint and the message, so repeating a push is idempotent. */
-    async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush; require_attestation: boolean }): Promise<IdentityLogPushAck> {
-      const v = bounded(input); exact(v, ['message', 'require_attestation']); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
+    async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush }): Promise<IdentityLogPushAck> {
+      const v = bounded(input); exact(v, ['message']);
       let admitted: PersonResolverPin | null = null;
       const lookup = async (identity_id: string): Promise<PinnedHistory | null> => {
         const p = pins.get(identity_id); if (!p) return null;
@@ -260,7 +260,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
         return { pin: { identity_id: p.person_id, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest },
           log: null, refusals: await heldRefusals(tx, p.person_id) };
       };
-      const { ack, admission } = await receiveIdentityLogPush(v.message, lookup, { require_attestation: v.require_attestation });
+      const { ack, admission } = await receiveIdentityLogPush(v.message, lookup);
       if (admission !== null && admission.outcome !== 'unchanged') {
         need(admitted !== null, 'admission without a checkpoint'); const next = admission.pin;
         const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
@@ -281,7 +281,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  PERSON_MAX_REHOME_REFUSALS are kept per person, and one more is refused. */
     async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean; contradicts_admitted_move: boolean }> {
       const v = bounded(input); exact(v, ['person_id', 'log', 'refusal']); uuid(v.person_id); const p = pinFor(v.person_id);
-      const log = await verifyIdentityLog(v.log, { require_attestation: false }); need(log.identity_id === p.person_id, 'log is for another identity');
+      const log = await verifyIdentityHistory(v.log); need(log.identity_id === p.person_id, 'log is for another identity');
       const named = (v.refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
       let rehome = null, at = -1;
       for (let n = 0; n < v.log.entries.length; n++) { const entry = v.log.entries[n]; if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; at = n; break; } }
