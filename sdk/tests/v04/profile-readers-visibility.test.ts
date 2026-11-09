@@ -1,6 +1,7 @@
-// SPEC section 5 and section 7 (#110, owner decision 2026-11-04, document only): a private profile's full `readers` list and the
-// publisher's signed `profile.publish` command are visible to every listed reader, and travel in every business-evidence token
-// whose closure includes the profile. This pins that behaviour with more than one reader. All data is synthetic.
+// SPEC section 5 and section 7, known limitation (#110; owner decision 2026-11-08 on #164): today a private profile's full
+// `readers` list and the publisher's signed `profile.publish` command are visible to every listed reader, and travel in every
+// business-evidence token whose closure includes the profile. This pins today's behaviour with more than one reader, so the
+// planned fix in #110 (reader list private by default) visibly changes it. All data is synthetic.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPair } from '../../src/keys.ts';
