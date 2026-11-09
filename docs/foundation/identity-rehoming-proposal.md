@@ -123,7 +123,7 @@ Epoch precedence is total and has no time window. `did:plc`'s 72-hour window was
 
 ### 4.7 The log gains an entry kind
 
-Format `dtp-identity-log-2`: an entry carries exactly one of `transition` or `rehome` (both `null` only at entry 0). The resolver binding is per epoch: entry 0's enrollment fixes epoch 0, and each rehome fixes the next. A head attestation must be signed by the resolver key of the epoch its entry belongs to, where the rehome entry itself belongs to the new epoch. Format 1 logs stay valid as format 1. The verifier result gains the list of resolver bindings by epoch.
+Format `dtp-identity-log-2`: an entry carries exactly one of `transition` or `rehome` (both `null` only at entry 0). The resolver binding is per epoch: entry 0's enrollment fixes epoch 0, and each rehome fixes the next. A head attestation must be signed by the resolver key of the epoch its entry belongs to, where the rehome entry itself belongs to the new epoch. Format 1 logs stay valid as format 1 (since withdrawn by Core-1, part 4: a verifier now refuses format 1; see [identity-log.md](identity-log.md)). The verifier result gains the list of resolver bindings by epoch.
 
 ### 4.8 How a relying party learns of the move, and discovery
 

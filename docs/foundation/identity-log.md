@@ -18,13 +18,13 @@ HeadAttestation  { identity_id, resolver_id, resolver_epoch, sequence, head_dige
 
 `entries[n]` describes head `n`. Entry 0 carries neither a transition nor a rehome; every later entry carries exactly one of them: the owner-signed transition or the owner-signed [rehome](identity-rehoming-proposal.md) that produced its head. All objects are closed. There are between 1 and 4096 entries. The log holds public keys and signatures only.
 
-Format 1 (`dtp-identity-log-1`) is the same log without the `rehome` member. It remains valid, is verified by the same rules, and cannot express a move.
+Format 1 (`dtp-identity-log-1`) was the same log without the `rehome` member. It is **withdrawn** ([Core-1](../../spec/core-1/README.md), part 4): it was never released, a verifier MUST refuse it like any other unknown format, and a host MUST NOT emit it. A format 1 log converts to format 2 without new signatures by setting the format string and adding `"rehome": null` to every entry, since no signed document covers the log's own encoding.
 
 ## Normative: verification
 
 A verifier MUST refuse the log unless all of the following hold. It needs no clock and no network.
 
-1. **Shape.** The format string is exactly `dtp-identity-log-2`, or `dtp-identity-log-1` for a log without the `rehome` member; objects have exactly the members above; instants are non-negative safe integers.
+1. **Shape.** The format string is exactly `dtp-identity-log-2`; objects have exactly the members above; instants are non-negative safe integers.
 2. **Genesis.** The genesis verifies under `DTP-PERSON-GENESIS-1` with possession by every genesis key, as the identity contract requires. The identity id is derived from it.
 3. **Enrollment.** The enrollment verifies under `DTP-IDENTITY-ENROLLMENT-1` with both the operational and the recovery quorum of the genesis, and names this identity and genesis digest. It fixes the resolver id, resolver key and audience for the whole log, at resolver epoch 0.
 4. **Head 0** is `{identity_id, 0, null, genesis.operational, genesis.recovery, entries[0].effective_at}`, and `enrollment.issued_at <= entries[0].effective_at < enrollment.expires_at`.
