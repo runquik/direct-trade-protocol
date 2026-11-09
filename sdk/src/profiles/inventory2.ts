@@ -142,12 +142,14 @@ export function applyInventoryFact(state: InventoryLedger, fact: InventoryFact):
       const current = next.reservations[op.reservation_id];
       if (op.kind === 'reserve') {
         if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
+        if (current && current.party !== op.party) refuse('invalid', `${path}: only the claim's party tops up a reservation`);
         const have = parseDecimal(positionAt(next, pos).quantity, 3), reserved = reservedAt(next, key);
         if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
-        next.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, 3) : 0n) + qty, 3), party: current?.party ?? op.party };
+        next.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, 3) : 0n) + qty, 3), party: op.party };
         return;
       }
       if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
+      if (current.party !== op.party) refuse('invalid', `${path}: a release or fulfilment names the claim's party`);
       const held = parseDecimal(current.quantity, 3); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
       if (held === qty) delete next.reservations[op.reservation_id]; else next.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, 3) };
       if (op.kind === 'fulfill') {

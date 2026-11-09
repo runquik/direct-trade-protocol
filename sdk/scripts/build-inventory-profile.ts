@@ -11,7 +11,7 @@ import type { ProductBody } from '../src/profiles/product.ts';
 const contract = profileContract({ publisher_id: 'dtp', name: 'inventory', version: '2.0.0', schema: structuredClone(INVENTORY2_SCHEMA) as Record<string, any>, semantics: INVENTORY2_SEMANTICS, dependencies: [] });
 checkSchema(contract.schema);
 const ORG = '11111111-1111-4111-8111-111111111111', PRODUCT = '22222222-2222-4222-8222-222222222222', SERIALIZED = '33333333-3333-4333-8333-333333333333';
-const PARTY = '44444444-4444-4444-8444-444444444444', TRANSFORMATION = '55555555-5555-4555-8555-555555555555', ORDER = '66666666-6666-4666-8666-666666666666';
+const PARTY = '44444444-4444-4444-8444-444444444444', OTHER_PARTY = '77777777-7777-4777-8777-777777777777', TRANSFORMATION = '55555555-5555-4555-8555-555555555555', ORDER = '66666666-6666-4666-8666-666666666666';
 const product: ProductBody = { names: [{ name: 'Heritage Tomato Sauce 680 g', language: 'en' }], description: null, brand: null, category: null, identifiers: [], base_unit: { system: 'ucum', code: '{jar}' },
   packaging: [{ packaging_id: 'case-12', version: '1', name: 'Case of 12 jars', base_units_per_pack: '12', gtin: null }, { packaging_id: 'odd', version: '1', name: 'Odd pack', base_units_per_pack: '2.5', gtin: null }], tracking: 'lot', shelf_life_days: null, replaces: null, status: 'active' };
 const serialized: ProductBody = { ...product, names: [{ name: 'Fermenter FX-2', language: 'en' }], base_unit: { system: 'ucum', code: '{unit}' }, packaging: [], tracking: 'serial' };
@@ -37,8 +37,8 @@ S('move one hundred jars from the dock to the shelf: an atomic two-leg transfer 
 S('quarantine twenty jars at the dock: a status change is a move between positions that differ only in status', fact(PRODUCT, 'wms', 3, 2, [leg(at('L1', 'dock'), at('L1', 'dock', 'quarantine'), q('20'))]));
 S('reserve thirty on the shelf for a party', fact(PRODUCT, 'orders', 1, 3, [], [res('reserve', 'res-1', at('L1', 'shelf'), q('30'), PARTY)]));
 S('REFUSED insufficient_stock: move eighty from the shelf when only seventy are unreserved', fact(PRODUCT, 'wms', 4, 4, [leg(at('L1', 'shelf'), at('L1', 'dock'), q('80'))]));
-S('fulfil ten of the reservation: the claim shrinks and the stock leaves', fact(PRODUCT, 'orders', 2, 4, [], [res('fulfill', 'res-1', at('L1', 'shelf'), q('10'))]));
-S('release the remaining twenty', fact(PRODUCT, 'orders', 3, 5, [], [res('release', 'res-1', at('L1', 'shelf'), q('20'))]));
+S('fulfil ten of the reservation: the claim shrinks and the stock leaves', fact(PRODUCT, 'orders', 2, 4, [], [res('fulfill', 'res-1', at('L1', 'shelf'), q('10'), PARTY)]));
+S('release the remaining twenty', fact(PRODUCT, 'orders', 3, 5, [], [res('release', 'res-1', at('L1', 'shelf'), q('20'), PARTY)]));
 S('a count correction of minus five with a reason', fact(PRODUCT, 'count', 1, 6, [leg(at('L1', 'shelf'), at(null, '~adjustment'), q('5'), { reason: 'cycle count 2026-09-23: five jars broken' })]));
 S('REFUSED invalid: an adjustment without a reason', fact(PRODUCT, 'count', 2, 7, [leg(at('L1', 'shelf'), at(null, '~adjustment'), q('1'))]));
 S('ten jars consumed by a transformation, linked to it', fact(PRODUCT, 'mes', 1, 7, [leg(at('L1', 'shelf'), at(null, '~production'), q('10'), { links: { transformation_id: TRANSFORMATION, order_id: null } })]));
@@ -68,6 +68,16 @@ S('one case received with its pack conversion spelled "12.000" against the produ
 S('REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window', fact(PRODUCT, 'audit', 36, 15, [leg(at(null, '~supplier'), at('L2', 'dock'), q('1'))]));
 const oldestKept = S('sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted', fact(PRODUCT, 'audit', 37, 15, [leg(at(null, '~supplier'), at('L2', 'dock'), q('1'))]));
 S('DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised', oldestKept);
+// A reservation's party (#145): only the claim's party tops it up, and a release or fulfilment names the claim's party.
+S('reserve four on the shelf for a party', fact(PRODUCT, 'orders', 6, 16, [], [res('reserve', 'res-4', at('L1', 'shelf'), q('4'), PARTY)]));
+S('the same party tops up the claim by two: one claim of six, still that party', fact(PRODUCT, 'orders', 7, 17, [], [res('reserve', 'res-4', at('L1', 'shelf'), q('2'), PARTY)]));
+S('REFUSED invalid: another party reserves under the same reservation id', fact(PRODUCT, 'orders', 8, 18, [], [res('reserve', 'res-4', at('L1', 'shelf'), q('1'), OTHER_PARTY)]));
+S('REFUSED invalid: a reserve with no party on a claim that has one', fact(PRODUCT, 'orders', 8, 18, [], [res('reserve', 'res-4', at('L1', 'shelf'), q('1'))]));
+S('REFUSED invalid: a party reserves under the id of a claim that has no party', fact(PRODUCT, 'orders', 8, 18, [], [res('reserve', 'res-2', at('L1', 'shelf'), q('1'), PARTY)]));
+S('REFUSED invalid: another party releases the claim', fact(PRODUCT, 'orders', 8, 18, [], [res('release', 'res-4', at('L1', 'shelf'), q('6'), OTHER_PARTY)]));
+S('REFUSED invalid: a release with no party of a claim that has one', fact(PRODUCT, 'orders', 8, 18, [], [res('release', 'res-4', at('L1', 'shelf'), q('6'))]));
+S('REFUSED invalid: another party fulfils the claim', fact(PRODUCT, 'orders', 8, 18, [], [res('fulfill', 'res-4', at('L1', 'shelf'), q('1'), OTHER_PARTY)]));
+S('the claim\'s party fulfils one and releases five: the claim is gone', fact(PRODUCT, 'orders', 8, 18, [], [res('fulfill', 'res-4', at('L1', 'shelf'), q('1'), PARTY), res('release', 'res-4', at('L1', 'shelf'), q('5'), PARTY)]));
 
 /** Serialized equipment: every unit moves by serial. */
 const units: Step[] = [];
@@ -79,12 +89,12 @@ U('REFUSED serial_conflict: a serial that is not at the source', fact(SERIALIZED
 U('REFUSED serial_conflict: receiving a serial that already exists in stock', fact(SERIALIZED, 'wms', 2, 1, [leg(at(null, '~supplier'), at('B1', 'dock'), q('1', unit), { serial_ids: ['FX2-002'] })]));
 U('move two units to the floor by serial', fact(SERIALIZED, 'wms', 2, 1, [leg(at('B1', 'dock'), at('B1', 'floor'), q('2', unit), { serial_ids: ['FX2-001', 'FX2-003'] })]));
 U('reserve one on the floor', fact(SERIALIZED, 'orders', 1, 2, [], [res('reserve', 'r-1', at('B1', 'floor'), q('1', unit), PARTY)]));
-U('REFUSED tracking_mismatch: fulfilment of serialized stock must name its serials, so it is a move plus a release', fact(SERIALIZED, 'orders', 2, 3, [], [res('fulfill', 'r-1', at('B1', 'floor'), q('1', unit))]));
-U('ship one by serial and release the claim in one fact', fact(SERIALIZED, 'orders', 2, 3, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-003'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-1', at('B1', 'floor'), q('1', unit))]));
+U('REFUSED tracking_mismatch: fulfilment of serialized stock must name its serials, so it is a move plus a release', fact(SERIALIZED, 'orders', 2, 3, [], [res('fulfill', 'r-1', at('B1', 'floor'), q('1', unit), PARTY)]));
+U('ship one by serial and release the claim in one fact', fact(SERIALIZED, 'orders', 2, 3, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-003'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-1', at('B1', 'floor'), q('1', unit), PARTY)]));
 U('REFUSED tracking_mismatch: a serialized move without serials', fact(SERIALIZED, 'wms', 3, 4, [leg(at('B1', 'floor'), at('B1', 'dock'), q('1', unit))]));
 U('reserve the last unit on the floor: the floor is now fully reserved', fact(SERIALIZED, 'orders', 3, 4, [], [res('reserve', 'r-2', at('B1', 'floor'), q('1', unit), PARTY)]));
 U('REFUSED insufficient_stock: moving the reserved unit without settling its claim', fact(SERIALIZED, 'wms', 3, 5, [leg(at('B1', 'floor'), at('B1', 'dock'), q('1', unit), { serial_ids: ['FX2-001'] })]));
-U('ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)', fact(SERIALIZED, 'orders', 4, 5, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-001'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-2', at('B1', 'floor'), q('1', unit))]));
+U('ship the fully reserved unit by serial and release its claim in one fact: the release settles before the leg (#85)', fact(SERIALIZED, 'orders', 4, 5, [leg(at('B1', 'floor'), at(null, '~customer'), q('1', unit), { serial_ids: ['FX2-001'], links: { transformation_id: null, order_id: ORDER } })], [res('release', 'r-2', at('B1', 'floor'), q('1', unit), PARTY)]));
 
 const flows: Flow[] = [
   { why: 'lot-tracked product: receipts, transfers, status changes, reservations, corrections, production, shipments, duplicates, late and stale observations, refusals that leave no trace', product_id: PRODUCT, product, steps: sauce, bridge_location: 'shelf' },
