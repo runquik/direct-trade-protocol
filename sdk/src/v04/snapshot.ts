@@ -17,7 +17,8 @@ import { verifyBytes, decodeSignature } from "../keys.ts";
 export function buildSnapshot(s: State, organizationId: string, ctx: Context): Snapshot {
   const organization = s.organizations[organizationId]; demand(organization, "not_found", "company unavailable", 404);
   const policies = Object.values(s.policies).filter(p => p.organization_id === organizationId);
-  const records = Object.values(s.records).filter(r => r.organization_id === organizationId).sort((a,b) => a.seq-b.seq);
+  // Renumbered 1..n in order: a record stored before per-organization sequences would otherwise carry gaps that count other companies' writes.
+  const records = Object.values(s.records).filter(r => r.organization_id === organizationId).sort((a,b) => a.seq-b.seq).map((r,i) => ({ ...r, seq: i+1 }));
   const releases = [...new Set([...Object.values(organization.installations).map(i => i.release_digest), ...Object.values(s.releases).filter(r => r.publisher_id === organizationId).map(r => r.digest)])].sort().map(d => s.releases[d]);
   demand(releases.every(Boolean), "invalid_snapshot", "installed release is missing");
   const profileIds = new Set([...records.map(r => r.profile_digest), ...releases.flatMap(r => r.profiles), ...Object.values(s.profiles).filter(p => p.publisher_id === organizationId).map(p => p.digest)]);
@@ -30,16 +31,15 @@ export function buildSnapshot(s: State, organizationId: string, ctx: Context): S
     if (Array.isArray(c.payload.stewards)) c.payload.stewards.forEach((id: string) => people.add(id));
   }
   demand([...people].every(id => s.persons[id]), "invalid_snapshot", "required personal history is missing");
-  const counterparties = new Set(records.flatMap(r => r.counterparty_ids));
   return structuredClone({ version: "0.4", source: ctx.audience, organization, persons: [...people].sort().map(id => s.persons[id]), policies,
     profiles: [...profileIds].sort().map(d => s.profiles[d]), releases, records,
-    remote_authorities: [...counterparties].flatMap(id => s.remote_authorities[id] ? [s.remote_authorities[id].token] : []),
     inventory: s.inventory[organizationId] ? { [organizationId]: s.inventory[organizationId] } : {} });
 }
 const stateKey = (...parts: unknown[]): string => { try { return inventoryKey(...parts); } catch { return demand(false, "invalid_snapshot", "invalid inventory observation identity") as never; } };
 export async function validateSnapshot(s: State, snap: Snapshot) {
-  exact(snap, ["version", "source", "organization", "persons", "policies", "profiles", "releases", "records", "remote_authorities", "inventory"]);
-  demand(snap.version === "0.4" && typeof snap.source === "string" && snap.organization?.status === "active" && uuid(snap.organization.id) && Number.isSafeInteger(snap.organization.generation) && snap.organization.generation >= 1 && Array.isArray(snap.organization.history) && Array.isArray(snap.persons) && Array.isArray(snap.records) && Array.isArray(snap.policies) && Array.isArray(snap.profiles) && Array.isArray(snap.releases) && Array.isArray(snap.remote_authorities) && snap.inventory && typeof snap.inventory === "object" && !Array.isArray(snap.inventory), "invalid_snapshot", "invalid snapshot collections", 400);
+  // Cached counterparty authority is not owned state and never travels (#107): the top-level members are exactly these.
+  demand(snap && typeof snap === "object" && !Array.isArray(snap) && same(Object.keys(snap).sort(), ["inventory", "organization", "persons", "policies", "profiles", "records", "releases", "source", "version"]), "invalid_snapshot", "unexpected or missing snapshot members", 400);
+  demand(snap.version === "0.4" && typeof snap.source === "string" && snap.organization?.status === "active" && uuid(snap.organization.id) && Number.isSafeInteger(snap.organization.generation) && snap.organization.generation >= 1 && Array.isArray(snap.organization.history) && Array.isArray(snap.persons) && Array.isArray(snap.records) && Array.isArray(snap.policies) && Array.isArray(snap.profiles) && Array.isArray(snap.releases) && snap.inventory && typeof snap.inventory === "object" && !Array.isArray(snap.inventory), "invalid_snapshot", "invalid snapshot collections", 400);
   exact(snap.organization, ["id", "name", "controllers", "threshold", "generation", "status", "members", "invitations", "installations", "history"]);
   demand(Object.keys(snap.inventory).every(id => id === snap.organization.id), "invalid_snapshot", "foreign inventory state in snapshot");
   // Two independently staged companies can collide even while the destination's
@@ -58,9 +58,23 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     }
   }
   const seen = new Set<string>();
-  const keyOwners = new Map<string, string>();
-  for (const person of Object.values(s.persons)) for (const key of [...person.keys, ...person.retired_keys]) keyOwners.set(key, person.id);
-  for (const org of Object.values(s.organizations)) for (const inst of Object.values(org.installations)) keyOwners.set(inst.key_id, `installation:${inst.id}`);
+  // Key uniqueness (#137). Inside the snapshot every key belongs to exactly one identity. Against the destination,
+  // only a key that can still act for the company must be free: a person's current key, or an active installation's.
+  // A retired key or a revoked installation's key is historical only: import checks the snapshot's signatures against
+  // the snapshot's own key sets, so someone outside the company who registered it at the destination first cannot
+  // block the move. A refusal names the company's identity that collides, never the destination's.
+  const hostOwners = new Map<string, string>(), snapshotOwners = new Map<string, string>();
+  for (const person of Object.values(s.persons)) for (const key of [...person.keys, ...person.retired_keys]) hostOwners.set(key, person.id);
+  for (const org of Object.values(s.organizations)) for (const inst of Object.values(org.installations)) hostOwners.set(inst.key_id, `installation:${inst.id}`);
+  const claimKey = (key: string, owner: string, current: boolean, who: string, message: string) => {
+    demand(!snapshotOwners.has(key) || snapshotOwners.get(key) === owner, "conflict", `${message}: ${who} shares key ${key} with another identity in the snapshot`, 409);
+    demand(!current || !hostOwners.has(key) || hostOwners.get(key) === owner, "conflict", `${message}: the current key ${key} of ${who} is already bound at the destination to another identity`, 409);
+    snapshotOwners.set(key, owner);
+  };
+  // A controller, an active member or a pending invitee can still act for the company under their person ID.
+  const currentPerson = (id: string) => (Array.isArray(snap.organization.controllers) && snap.organization.controllers.includes(id))
+    || snap.organization.members?.[id]?.active === true
+    || Object.values(snap.organization.invitations ?? {}).some(i => i?.person_id === id && i.active && !i.accepted);
   for (const p of snap.persons) {
     demand(p && !seen.has(p.id) && Array.isArray(p.history) && p.history.length > 0, "invalid_snapshot", "invalid person history"); seen.add(p.id);
     exact(p, ["id", "keys", "retired_keys", "history"]); demand(uuid(p.id), "invalid_snapshot", "invalid person ID");
@@ -81,8 +95,14 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       demand(keys.length > 0 && keys.length <= 8 && new Set(keys).size === keys.length, "invalid_snapshot", "invalid current keys");
     }
     demand(same(p.keys, keys) && same(p.retired_keys, retired), "invalid_snapshot", "key projection differs from signed history");
-    for (const key of [...keys, ...retired]) { validKey(key); demand(!keyOwners.has(key) || keyOwners.get(key) === p.id, "conflict", "personal key aliases another identity", 409); keyOwners.set(key, p.id); }
-    const existing = s.persons[p.id]; demand(!existing || (same(existing.keys, p.keys) && same(existing.retired_keys, p.retired_keys)), "conflict", "destination identity diverged", 409);
+    for (const key of keys) { validKey(key); claimKey(key, p.id, true, `person ${p.id}`, "personal key aliases another identity"); }
+    for (const key of retired) { validKey(key); claimKey(key, p.id, false, `person ${p.id}`, "personal key aliases another identity"); }
+    // The same person ID with another key history at the destination is a fork from one genesis key (a retired genesis
+    // key registered there by whoever holds it). A person who can no longer act for the company keeps the destination's
+    // record; import does not overwrite it. A current one is refused, because the company would then trust that fork.
+    const existing = s.persons[p.id];
+    demand(!existing || (same(existing.keys, p.keys) && same(existing.retired_keys, p.retired_keys)) || !currentPerson(p.id), "conflict",
+      `destination identity diverged: person ${p.id} has another key history at the destination and is still a controller, member or invitee of the company; at the source, revoke the membership or replace the controller, enrol a fresh identity, and move again`, 409);
   }
   const people = Object.fromEntries(snap.persons.map(p => [p.id,p]));
   const signedBy = (id: string, proofs: Set<string>) => people[id] && [...people[id].keys,...people[id].retired_keys].some(k => proofs.has(k));
@@ -133,7 +153,7 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       const release = snap.releases.find(r => r.digest === p.release_digest);
       demand(uuid(p.installation_id) && !installations[p.installation_id] && release && signed.has(p.key_id), "invalid_snapshot", "invalid signed installation genesis"); validKey(p.key_id);
       demand(!Object.values(s.organizations).some(org => Object.hasOwn(org.installations,p.installation_id)), "conflict", "installation ID already exists or is reserved",409);
-      demand(!keyOwners.has(p.key_id), "conflict", "installation key aliases another identity",409); keyOwners.set(p.key_id,`installation:${p.installation_id}`);
+      claimKey(p.key_id, `installation:${p.installation_id}`, snap.organization.installations?.[p.installation_id]?.active !== false, `installation ${p.installation_id}`, "installation key aliases another identity");
       demand(Array.isArray(p.policy_ids) && p.policy_ids.length > 0 && p.policy_ids.every((id:string) => snap.policies.some(pol => pol.id === id)) && Array.isArray(p.actions) && p.actions.length > 0 && p.actions.every((a:any) => release.actions.includes(a)) && ["automation","interactive"].includes(p.mode), "invalid_snapshot", "invalid installation scopes"); instant(p.expires_at);
       installations[p.installation_id] = {id:p.installation_id,module_id:release.module_id,release_digest:p.release_digest,key_id:p.key_id,policy_ids:[...p.policy_ids],actions:[...p.actions],sponsor_id:c.actor.id,expires_at:p.expires_at,active:true,mode:p.mode};
     } else if (c.action === "installation.revoke") {
@@ -223,6 +243,8 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
       // The product's base unit and tracking are immutable, so any head of it anchors the same ledger.
       const product = snap.records.find(r => r.root_id === productId && r.is_head && candidate.profiles[r.profile_digest]?.semantics === "product-v1");
       demand(product, "invalid_snapshot", "ledger opened for a product the snapshot does not carry");
+      // #130: a product's ledger is opened under the product's own policy, which record continuity keeps fixed.
+      demand(product.policy_id === p.policy_id, "invalid_snapshot", "ledger opened under a policy other than its product's");
       try { rebuiltInventory.ledgers[productId] = {...openInventoryLedger(snap.organization.id,productId,product.body as any),policy_id:p.policy_id}; } catch { demand(false,"invalid_snapshot","product cannot anchor a ledger"); }
       rebuiltInventory.openings[productId] = structuredClone(opening);
     }
@@ -381,7 +403,10 @@ export async function applySnapshot(s: State, snap: Snapshot) {
   for (const p of snap.profiles) s.profiles[p.digest] = structuredClone(p);
   for (const p of snap.policies) s.policies[p.id] = structuredClone(p);
   for (const r of snap.releases) s.releases[r.digest] = structuredClone(r);
-  for (const r of snap.records) s.records[r.id] = { ...structuredClone(r), seq: s.next_seq++ };
+  // The company's records are numbered afresh in its own sequence; source-host numbers carry no meaning here.
+  let seq = 1;
+  for (const r of snap.records) s.records[r.id] = { ...structuredClone(r), seq: seq++ };
+  (s.record_seq ??= {})[snap.organization.id] = seq;
   const org = structuredClone(snap.organization); org.status = "active"; org.generation++;
   for (const installation of Object.values(org.installations)) installation.active = false;
   s.organizations[org.id] = org;

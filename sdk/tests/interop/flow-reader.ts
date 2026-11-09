@@ -161,7 +161,8 @@ export function readFlowFact(state: Book, fact: any): { outcome: Outcome; book: 
       if ((s.kind === 'reversal') !== (s.reverses !== null) || (s.reverses !== null && !UUID.test(s.reverses))) stop('invalid');
       if (s.kind === 'payment' && !paid.has(s.currency)) stop('invalid');
     }
-    if (fact.settles.filter((s: any) => s.kind === 'offset').length === 1) stop('invalid');
+    const offsetClaims = fact.settles.filter((s: any) => s.kind === 'offset').map((s: any) => JSON.stringify([s.claim.minted_by, s.claim.root, s.claim.record_id]));
+    if (offsetClaims.length > 0 && new Set(offsetClaims).size < 2) stop('invalid');
     const listed: string[] = [];
     for (const l of fact.ledgers) {
       if (!plain(l) || !keysAre(l, ['key', 'expected_revision', 'expected_digest']) || typeof l.key !== 'string' || !/^[0-9a-f]{64}$/.test(l.key) || !Number.isSafeInteger(l.expected_revision) || l.expected_revision < 0 || (l.expected_digest !== null && !/^[0-9a-f]{64}$/.test(String(l.expected_digest)))) stop('invalid');
@@ -174,11 +175,14 @@ export function readFlowFact(state: Book, fact: any): { outcome: Outcome; book: 
       const g = book.ledgers[ledgerKeyOf(book, r.asset, r.position)], k = posKey(r.position), n = base(g, r.asset, r.quantity), cur = g.reservations[r.reservation_id];
       if (r.kind === 'reserve') {
         if (cur && cur.position !== k) stop('invalid');
+        if (cur && readerCanonical(cur.party) !== readerCanonical(r.party)) stop('invalid');
         if (fixed(slot(g, r.position).quantity, 3, true) - reserved(g, k) < n) stop('insufficient_stock');
-        g.reservations[r.reservation_id] = { position: k, quantity: show((cur ? fixed(cur.quantity, 3) : 0n) + n, 3), party: cur ? cur.party : r.party };
+        g.reservations[r.reservation_id] = { position: k, quantity: show((cur ? fixed(cur.quantity, 3) : 0n) + n, 3), party: r.party };
         return;
       }
-      if (!cur || cur.position !== k || fixed(cur.quantity, 3) < n) stop('insufficient_reservation');
+      if (!cur || cur.position !== k) stop('insufficient_reservation');
+      if (readerCanonical(cur.party) !== readerCanonical(r.party)) stop('invalid');
+      if (fixed(cur.quantity, 3) < n) stop('insufficient_reservation');
       const left = fixed(cur.quantity, 3) - n; if (left === 0n) delete g.reservations[r.reservation_id]; else g.reservations[r.reservation_id] = { ...cur, quantity: show(left, 3) };
       if (r.kind === 'fulfill') { if (g.tracking === 'serial') stop('tracking_mismatch'); const s = slot(g, r.position), have = fixed(s.quantity, 3, true); if (have < n) stop('insufficient_stock'); s.quantity = show(have - n, 3); }
     };

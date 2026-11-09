@@ -1140,7 +1140,7 @@
           }
         },
         {
-          "why": "release the reservation: the order is shipped below",
+          "why": "REFUSED invalid: the supplier reserves under the retailer's reservation id",
           "fact": {
             "act": {
               "verb": "move",
@@ -1158,6 +1158,209 @@
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
                 "expected_revision": 2,
                 "expected_digest": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000026-0000-4000-8000-000000000026",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a reserve with no party on the retailer's claim",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:12:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 2,
+                "expected_digest": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": null
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "the retailer tops up its claim by ten: one claim of three hundred and ten, still the retailer's",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:13:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 2,
+                "expected_digest": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "reserve",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "10",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000025-0000-4000-8000-000000000025",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "REFUSED invalid: the supplier releases the retailer's claim",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:14:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 3,
+                "expected_digest": "a65855b12da892fe488f90f152cc1d8734cc7d4904fe774f65235ca3a8302d45"
               }
             ],
             "legs": [],
@@ -1183,7 +1386,76 @@
                   "owner": null
                 },
                 "quantity": {
-                  "amount": "300",
+                  "amount": "310",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000026-0000-4000-8000-000000000026",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: a release with no party of the retailer's claim",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:15:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 3,
+                "expected_digest": "a65855b12da892fe488f90f152cc1d8734cc7d4904fe774f65235ca3a8302d45"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "310",
                   "unit": {
                     "system": "ucum",
                     "code": "{jar}",
@@ -1200,6 +1472,144 @@
             "settles": []
           },
           "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "REFUSED invalid: the supplier fulfils from the retailer's claim",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:16:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 3,
+                "expected_digest": "a65855b12da892fe488f90f152cc1d8734cc7d4904fe774f65235ca3a8302d45"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "fulfill",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000026-0000-4000-8000-000000000026",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
+          "why": "release the reservation: the order is shipped below",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:17:00.000Z",
+              "observation": {
+                "source_id": "orders",
+                "sequence": 3
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 3,
+                "expected_digest": "a65855b12da892fe488f90f152cc1d8734cc7d4904fe774f65235ca3a8302d45"
+              }
+            ],
+            "legs": [],
+            "reservations": [
+              {
+                "kind": "release",
+                "reservation_id": "po-5512",
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "position": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "310",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "party": {
+                  "minted_by": null,
+                  "root": "00000025-0000-4000-8000-000000000025",
+                  "record_id": null
+                }
+              }
+            ],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
             "ok": true,
             "duplicate": false
           }
@@ -1209,7 +1619,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:12:00.000Z",
+              "occurred_at": "2026-10-23T08:18:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 3
@@ -1221,8 +1631,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 3,
-                "expected_digest": "0edbcf0c66a86c089bdf8a4a9019775084a339c06794fa3b493b7616ae9955fb"
+                "expected_revision": 4,
+                "expected_digest": "2e5af7b86ad30ca55cce51b9049c53fa1e38e3314ae6ecbb77a9e8e19cf661da"
               }
             ],
             "legs": [
@@ -1288,7 +1698,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:13:00.000Z",
+              "occurred_at": "2026-10-23T08:19:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 4
@@ -1300,8 +1710,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 4,
-                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+                "expected_revision": 5,
+                "expected_digest": "ae5e30a52e98c150bb0c2c65d62012186a2bfad0c9aa7b6101d09be313209342"
               }
             ],
             "legs": [
@@ -1367,7 +1777,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:14:00.000Z",
+              "occurred_at": "2026-10-23T08:20:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 4
@@ -1379,8 +1789,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 4,
-                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+                "expected_revision": 5,
+                "expected_digest": "ae5e30a52e98c150bb0c2c65d62012186a2bfad0c9aa7b6101d09be313209342"
               }
             ],
             "legs": [
@@ -1448,7 +1858,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:15:00.000Z",
+              "occurred_at": "2026-10-23T08:21:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 4
@@ -1466,8 +1876,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 4,
-                "expected_digest": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f"
+                "expected_revision": 5,
+                "expected_digest": "ae5e30a52e98c150bb0c2c65d62012186a2bfad0c9aa7b6101d09be313209342"
               }
             ],
             "legs": [
@@ -1538,7 +1948,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:16:00.000Z",
+              "occurred_at": "2026-10-23T08:22:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 5
@@ -1550,8 +1960,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 5,
-                "expected_digest": "95aaae0991e81eec47cebc2d0fe0b1371f846bccc4b17f9842a98801af8e21d1"
+                "expected_revision": 6,
+                "expected_digest": "d36d111a5f91a610bc90a8f07cf35f6f649781289dcc654ad9d23bab30c01a51"
               }
             ],
             "legs": [
@@ -1615,7 +2025,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:17:00.000Z",
+              "occurred_at": "2026-10-23T08:23:00.000Z",
               "observation": {
                 "source_id": "dock",
                 "sequence": 6
@@ -1627,8 +2037,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 6,
-                "expected_digest": "c41aa677881614b463936658d0b5fb60a1894932358a21573f9397c185b51103"
+                "expected_revision": 7,
+                "expected_digest": "82897640a284e8e32ce087c821082a41eb48d1e2d63b05260c0cd0e783b81287"
               }
             ],
             "legs": [
@@ -1692,7 +2102,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:18:00.000Z",
+              "occurred_at": "2026-10-23T08:24:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 1
@@ -1779,7 +2189,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:19:00.000Z",
+              "occurred_at": "2026-10-23T08:25:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 2
@@ -1792,7 +2202,7 @@
               {
                 "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
                 "expected_revision": 1,
-                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+                "expected_digest": "fc105112b1492f1ea8874411491ba8879557b599ae47e1a0a755a8fb26d84ec6"
               }
             ],
             "legs": [
@@ -1852,7 +2262,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:20:00.000Z",
+              "occurred_at": "2026-10-23T08:26:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 2
@@ -1865,7 +2275,7 @@
               {
                 "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
                 "expected_revision": 1,
-                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+                "expected_digest": "fc105112b1492f1ea8874411491ba8879557b599ae47e1a0a755a8fb26d84ec6"
               }
             ],
             "legs": [
@@ -1939,7 +2349,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:21:00.000Z",
+              "occurred_at": "2026-10-23T08:27:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 2
@@ -2026,7 +2436,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:22:00.000Z",
+              "occurred_at": "2026-10-23T08:28:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 3
@@ -2039,12 +2449,12 @@
               {
                 "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
                 "expected_revision": 1,
-                "expected_digest": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d"
+                "expected_digest": "fc105112b1492f1ea8874411491ba8879557b599ae47e1a0a755a8fb26d84ec6"
               },
               {
                 "key": "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0",
                 "expected_revision": 1,
-                "expected_digest": "3baec7d0ca5c8691448117357661eb5c67fea96822162053a3a0ffaf015a478f"
+                "expected_digest": "27a2324cb8a25583b505c7686a6964e92ad4906e3ee43dd03d63aed2afb06d08"
               }
             ],
             "legs": [
@@ -2108,7 +2518,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:23:00.000Z",
+              "occurred_at": "2026-10-23T08:29:00.000Z",
               "observation": {
                 "source_id": "bank",
                 "sequence": 4
@@ -2121,12 +2531,12 @@
               {
                 "key": "0e5fff29d89313ea23c9d34c03b16903028eb2905f809ee3c234ff30ead5b8fa",
                 "expected_revision": 2,
-                "expected_digest": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+                "expected_digest": "a0a86d7c6c59d2534bc574a8e891ea3e443333b6385bfe9a313ff3115aa31bef"
               },
               {
                 "key": "e3a5a6db9a848a52fc596b85bbd7802b46d65fee8a4aca81554a9b6d33d9b2a0",
                 "expected_revision": 2,
-                "expected_digest": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+                "expected_digest": "a0a86d7c6c59d2534bc574a8e891ea3e443333b6385bfe9a313ff3115aa31bef"
               }
             ],
             "legs": [
@@ -2190,7 +2600,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:24:00.000Z",
+              "occurred_at": "2026-10-23T08:30:00.000Z",
               "observation": {
                 "source_id": "ar",
                 "sequence": 1
@@ -2241,7 +2651,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:25:00.000Z",
+              "occurred_at": "2026-10-23T08:31:00.000Z",
               "observation": {
                 "source_id": "ar",
                 "sequence": 2
@@ -2277,11 +2687,62 @@
           }
         },
         {
+          "why": "REFUSED invalid: an offset naming the same claim twice (#135)",
+          "fact": {
+            "act": {
+              "verb": "transfer",
+              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "observation": {
+                "source_id": "ar",
+                "sequence": 2
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [],
+            "legs": [],
+            "reservations": [],
+            "transform": null,
+            "rights": [
+              "title"
+            ],
+            "settles": [
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              },
+              {
+                "claim": {
+                  "minted_by": null,
+                  "root": "00000023-0000-4000-8000-000000000023",
+                  "record_id": null
+                },
+                "kind": "offset",
+                "amount": "1",
+                "currency": "USD",
+                "reverses": null
+              }
+            ]
+          },
+          "expect": {
+            "ok": false,
+            "code": "invalid"
+          }
+        },
+        {
           "why": "REFUSED invalid: a payment settlement with no money in its currency",
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:26:00.000Z",
+              "occurred_at": "2026-10-23T08:33:00.000Z",
               "observation": {
                 "source_id": "ar",
                 "sequence": 2
@@ -2321,7 +2782,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:27:00.000Z",
+              "occurred_at": "2026-10-23T08:34:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 1
@@ -2394,7 +2855,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:28:00.000Z",
+              "occurred_at": "2026-10-23T08:35:00.000Z",
               "observation": {
                 "source_id": "count",
                 "sequence": 1
@@ -2406,8 +2867,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 7,
-                "expected_digest": "5c0849302d4b39a02514872a3fc56e1d90453937c683e412e35a68231b074bb0"
+                "expected_revision": 8,
+                "expected_digest": "3a516a75d52add5713f133d69409813b53d601a41205cb08c29e602db3678d34"
               }
             ],
             "legs": [
@@ -2467,7 +2928,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:29:00.000Z",
+              "occurred_at": "2026-10-23T08:36:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 100
@@ -2479,8 +2940,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 8,
-                "expected_digest": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+                "expected_revision": 9,
+                "expected_digest": "d374e8237e2e055f5b5f2541505f1943cb4431e9c390c7312991bfad61051598"
               }
             ],
             "legs": [
@@ -2544,7 +3005,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:30:00.000Z",
+              "occurred_at": "2026-10-23T08:37:00.000Z",
               "observation": {
                 "source_id": "audit",
                 "sequence": 1
@@ -2556,8 +3017,8 @@
             "ledgers": [
               {
                 "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
-                "expected_revision": 9,
-                "expected_digest": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+                "expected_revision": 10,
+                "expected_digest": "64f30fed6565e8be1e6da1756ef18981ad3ccf82f1d75d4b65abdb6ffcf08aa6"
               }
             ],
             "legs": [
@@ -2761,6 +3222,237 @@
             "ok": false,
             "code": "observation_conflict"
           }
+        },
+        {
+          "why": "REFUSED stale_observation: sequence thirty-six, exactly 64 below the mark of one hundred and unseen, is the newest sequence outside the window",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:38:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 36
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 10,
+                "expected_digest": "64f30fed6565e8be1e6da1756ef18981ad3ccf82f1d75d4b65abdb6ffcf08aa6"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": false,
+            "code": "stale_observation"
+          }
+        },
+        {
+          "why": "sequence thirty-seven, 63 below the mark and unseen, is the oldest sequence inside the window and new: accepted",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 37
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 10,
+                "expected_digest": "64f30fed6565e8be1e6da1756ef18981ad3ccf82f1d75d4b65abdb6ffcf08aa6"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": false
+          }
+        },
+        {
+          "why": "DUPLICATE: sequence thirty-seven presented again, byte for byte: the oldest kept sequence is still recognised",
+          "fact": {
+            "act": {
+              "verb": "move",
+              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "observation": {
+                "source_id": "audit",
+                "sequence": 37
+              },
+              "basis": "measured",
+              "references": [],
+              "evidence": []
+            },
+            "ledgers": [
+              {
+                "key": "487ef857c4ecec9c4bc83158a785ef754159f12aba63c09ea5d239707883f5a2",
+                "expected_revision": 10,
+                "expected_digest": "64f30fed6565e8be1e6da1756ef18981ad3ccf82f1d75d4b65abdb6ffcf08aa6"
+              }
+            ],
+            "legs": [
+              {
+                "asset": {
+                  "product": "00000004-0000-4000-8000-000000000004",
+                  "currency": null
+                },
+                "from": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000012-0000-4000-8000-000000000012",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "to": {
+                  "lot_id": "S1",
+                  "location": {
+                    "ref": {
+                      "minted_by": null,
+                      "root": "00000011-0000-4000-8000-000000000011",
+                      "record_id": null
+                    },
+                    "virtual": null
+                  },
+                  "status": "available",
+                  "owner": null
+                },
+                "quantity": {
+                  "amount": "1",
+                  "unit": {
+                    "system": "ucum",
+                    "code": "{jar}",
+                    "packaging_id": null,
+                    "version": null,
+                    "base_units_per_pack": null
+                  }
+                },
+                "serial_ids": null,
+                "reason": null
+              }
+            ],
+            "reservations": [],
+            "transform": null,
+            "rights": null,
+            "settles": []
+          },
+          "expect": {
+            "ok": true,
+            "duplicate": true
+          }
         }
       ],
       "final": {
@@ -2819,8 +3511,8 @@
             "unit": "{jar}",
             "tracking": "lot",
             "balance": "nonnegative",
-            "revision": 9,
-            "head": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa",
+            "revision": 11,
+            "head": "4f771dda1ab6f917d812632fd5d8d777ca7dbff6dc77d48cff707a84ea22eda8",
             "positions": {
               "41949fb41ff82d67400c6dadffcc533f18090564623718b61178955fe67746bc": {
                 "position": {
@@ -2836,7 +3528,7 @@
                   "status": "available",
                   "owner": null
                 },
-                "quantity": "788",
+                "quantity": "789",
                 "serials": []
               },
               "9277970d2fefa7c100af567f44ce24b15fc6ab06094b5e6d8f9a55b4e00bb4d6": {
@@ -2870,7 +3562,7 @@
                   "status": "available",
                   "owner": null
                 },
-                "quantity": "10",
+                "quantity": "9",
                 "serials": []
               }
             },
@@ -2886,7 +3578,7 @@
             "tracking": "none",
             "balance": "nonnegative",
             "revision": 2,
-            "head": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b",
+            "head": "a0a86d7c6c59d2534bc574a8e891ea3e443333b6385bfe9a313ff3115aa31bef",
             "positions": {
               "7a776f04d6caf6ed63a7bc9a1e941263085d85a34651199954e11f489994e0d1": {
                 "position": {
@@ -2918,7 +3610,7 @@
             "tracking": "none",
             "balance": "signed",
             "revision": 2,
-            "head": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b",
+            "head": "a0a86d7c6c59d2534bc574a8e891ea3e443333b6385bfe9a313ff3115aa31bef",
             "positions": {
               "f61989165a45d18776ac6005a5277a96ef60aee1baceb6a764ff1e5b0395394e": {
                 "position": {
@@ -2947,10 +3639,10 @@
             "recent": {
               "1": "7961df875b76b4a57114c43f500d5c43da3617fc8ac592b7e310898d147804d3",
               "2": "9ac2b1439daa13f4ac66b8d87e293796a846bdbbee3bbe0e9d5b3b36906d3372",
-              "3": "16313fe9a69ed7d5ab2d91525792a7b80db80dac352080d30154219e66d27a1f",
-              "4": "95aaae0991e81eec47cebc2d0fe0b1371f846bccc4b17f9842a98801af8e21d1",
-              "5": "c41aa677881614b463936658d0b5fb60a1894932358a21573f9397c185b51103",
-              "6": "5c0849302d4b39a02514872a3fc56e1d90453937c683e412e35a68231b074bb0"
+              "3": "ae5e30a52e98c150bb0c2c65d62012186a2bfad0c9aa7b6101d09be313209342",
+              "4": "d36d111a5f91a610bc90a8f07cf35f6f649781289dcc654ad9d23bab30c01a51",
+              "5": "82897640a284e8e32ce087c821082a41eb48d1e2d63b05260c0cd0e783b81287",
+              "6": "3a516a75d52add5713f133d69409813b53d601a41205cb08c29e602db3678d34"
             }
           },
           "kettle": {
@@ -2960,36 +3652,38 @@
             }
           },
           "orders": {
-            "high_water": 2,
+            "high_water": 3,
             "recent": {
               "1": "d0104a7bfde1266f4f9e2ec3eb9b96dca37c50a4a018e458a15548d60cd9d5d5",
-              "2": "0edbcf0c66a86c089bdf8a4a9019775084a339c06794fa3b493b7616ae9955fb"
+              "2": "a65855b12da892fe488f90f152cc1d8734cc7d4904fe774f65235ca3a8302d45",
+              "3": "2e5af7b86ad30ca55cce51b9049c53fa1e38e3314ae6ecbb77a9e8e19cf661da"
             }
           },
           "bank": {
             "high_water": 3,
             "recent": {
-              "1": "169a26cba26185ffa20aeec8bbefb2ebba14679ce9e0c26976b8f3271cbae07d",
-              "2": "3baec7d0ca5c8691448117357661eb5c67fea96822162053a3a0ffaf015a478f",
-              "3": "cd6faed04beae820ba2fe33ebe5a861fcb1c8de00de4e9ea7b83c811eb87d65b"
+              "1": "fc105112b1492f1ea8874411491ba8879557b599ae47e1a0a755a8fb26d84ec6",
+              "2": "27a2324cb8a25583b505c7686a6964e92ad4906e3ee43dd03d63aed2afb06d08",
+              "3": "a0a86d7c6c59d2534bc574a8e891ea3e443333b6385bfe9a313ff3115aa31bef"
             }
           },
           "ar": {
             "high_water": 1,
             "recent": {
-              "1": "edc046f172c3afba0da1015bdbb13a6571077f4d0ba53bcea317165099e2504e"
+              "1": "4edcc245d81ca30c1ae2b9e3adcad2c35b0969bc9ecb2abe5b63aaa3c1f658ac"
             }
           },
           "count": {
             "high_water": 1,
             "recent": {
-              "1": "78a50805282440245389260be86516c84462f8edaf251a4b6b7871bb2d729cd9"
+              "1": "d374e8237e2e055f5b5f2541505f1943cb4431e9c390c7312991bfad61051598"
             }
           },
           "audit": {
             "high_water": 100,
             "recent": {
-              "100": "177708c7a315c38c43fcfa209978e1f67dbe8a3288695f0bf98081ddc30f06fa"
+              "37": "4f771dda1ab6f917d812632fd5d8d777ca7dbff6dc77d48cff707a84ea22eda8",
+              "100": "64f30fed6565e8be1e6da1756ef18981ad3ccf82f1d75d4b65abdb6ffcf08aa6"
             }
           }
         }
@@ -3006,7 +3700,7 @@
             "code": "{jar}"
           },
           "tracking": "lot",
-          "revision": 9,
+          "revision": 11,
           "positions": {
             "857b1262bbe8c9805a62083cbc0c9f30891c4cccc0914355df0d0bd6d1c7f089": {
               "position": {
@@ -3014,7 +3708,7 @@
                 "location_id": "00000011-0000-4000-8000-000000000011",
                 "status": "available"
               },
-              "quantity": "788",
+              "quantity": "789",
               "serials": []
             },
             "54bcead0c7e6266e79e5c72b402985f6668509e72a92b0acf209b9eb8228fde9": {
@@ -3032,7 +3726,7 @@
                 "location_id": "00000012-0000-4000-8000-000000000012",
                 "status": "available"
               },
-              "quantity": "10",
+              "quantity": "9",
               "serials": []
             }
           },
@@ -3062,7 +3756,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:31:00.000Z",
+              "occurred_at": "2026-10-23T08:40:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 1
@@ -3138,7 +3832,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:32:00.000Z",
+              "occurred_at": "2026-10-23T08:41:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3151,7 +3845,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "218da4d03acf69f707d74446adb7aab2fd4fc4d52402d90d931dfc1229da12ba"
               }
             ],
             "legs": [
@@ -3213,7 +3907,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:33:00.000Z",
+              "occurred_at": "2026-10-23T08:42:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3226,7 +3920,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "218da4d03acf69f707d74446adb7aab2fd4fc4d52402d90d931dfc1229da12ba"
               }
             ],
             "legs": [
@@ -3290,7 +3984,7 @@
           "fact": {
             "act": {
               "verb": "transfer",
-              "occurred_at": "2026-10-23T08:34:00.000Z",
+              "occurred_at": "2026-10-23T08:43:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 2
@@ -3303,7 +3997,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 1,
-                "expected_digest": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15"
+                "expected_digest": "218da4d03acf69f707d74446adb7aab2fd4fc4d52402d90d931dfc1229da12ba"
               }
             ],
             "legs": [
@@ -3375,7 +4069,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:35:00.000Z",
+              "occurred_at": "2026-10-23T08:44:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 3
@@ -3388,7 +4082,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 2,
-                "expected_digest": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a"
+                "expected_digest": "5379b4923f045c053e6fe9c624622754cbfd81e4c0d160e1dfd205f1998b520c"
               }
             ],
             "legs": [
@@ -3508,7 +4202,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:36:00.000Z",
+              "occurred_at": "2026-10-23T08:45:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 1
@@ -3521,7 +4215,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 3,
-                "expected_digest": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b"
+                "expected_digest": "5aef74adf89002694283ff3a942a217064ec02dd681eb566982182fa30a5b4e4"
               }
             ],
             "legs": [],
@@ -3577,7 +4271,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:37:00.000Z",
+              "occurred_at": "2026-10-23T08:46:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -3590,7 +4284,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+                "expected_digest": "730631e3a01de281fdb43985cfd543b4dbff7517275efc7900450c20b34a243f"
               }
             ],
             "legs": [
@@ -3652,7 +4346,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:38:00.000Z",
+              "occurred_at": "2026-10-23T08:47:00.000Z",
               "observation": {
                 "source_id": "orders",
                 "sequence": 2
@@ -3665,7 +4359,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 4,
-                "expected_digest": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40"
+                "expected_digest": "730631e3a01de281fdb43985cfd543b4dbff7517275efc7900450c20b34a243f"
               }
             ],
             "legs": [
@@ -3743,7 +4437,11 @@
                     "base_units_per_pack": null
                   }
                 },
-                "party": null
+                "party": {
+                  "minted_by": null,
+                  "root": "00000025-0000-4000-8000-000000000025",
+                  "record_id": null
+                }
               }
             ],
             "transform": null,
@@ -3760,7 +4458,7 @@
           "fact": {
             "act": {
               "verb": "move",
-              "occurred_at": "2026-10-23T08:39:00.000Z",
+              "occurred_at": "2026-10-23T08:48:00.000Z",
               "observation": {
                 "source_id": "wms",
                 "sequence": 4
@@ -3773,7 +4471,7 @@
               {
                 "key": "0c686c7764b53f2849d39e4823134d2856e6fe85be81d6c7a4ab44aa1328fbc3",
                 "expected_revision": 5,
-                "expected_digest": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
+                "expected_digest": "40c8236bc238c45da7c50b5f7d1cf09b353bd0a591e718d4f6535f0aea95c51e"
               }
             ],
             "legs": [
@@ -3888,7 +4586,7 @@
             "tracking": "serial",
             "balance": "nonnegative",
             "revision": 6,
-            "head": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718",
+            "head": "942eb28b0bf64d3d875217ded176f893ec6e15d0ba260ded31f239c359e4401e",
             "positions": {
               "490580e0a3696626496585fa3d41aea6f1969b04c3d1a22bd5cdba24946e6c4c": {
                 "position": {
@@ -3959,17 +4657,17 @@
           "wms": {
             "high_water": 4,
             "recent": {
-              "1": "4982708fcbfe069f59f78da2002ed78e98e3b3fd25658fe64f065fe54b6a4c15",
-              "2": "bc6964e2a6f7317b3e362110dbb7a790c166d418c4725d4b445fefb9c87ffe7a",
-              "3": "6bb57acd90bd0904596468f110add23ec87755cf05b5315242809964af03dd2b",
-              "4": "875788dfddffc24ebd448fcbc2931fb7f1b53985b461ddb65e3d657b9a63f718"
+              "1": "218da4d03acf69f707d74446adb7aab2fd4fc4d52402d90d931dfc1229da12ba",
+              "2": "5379b4923f045c053e6fe9c624622754cbfd81e4c0d160e1dfd205f1998b520c",
+              "3": "5aef74adf89002694283ff3a942a217064ec02dd681eb566982182fa30a5b4e4",
+              "4": "942eb28b0bf64d3d875217ded176f893ec6e15d0ba260ded31f239c359e4401e"
             }
           },
           "orders": {
             "high_water": 2,
             "recent": {
-              "1": "b74dbe1019452b76cae27be13f6c53287ae97c1f79416517eed3253fbbbe2c40",
-              "2": "61be10c565e5ceee6615048b26fd1ffb06419e97bce7346fb5cbc4d6ea1a0507"
+              "1": "730631e3a01de281fdb43985cfd543b4dbff7517275efc7900450c20b34a243f",
+              "2": "40c8236bc238c45da7c50b5f7d1cf09b353bd0a591e718d4f6535f0aea95c51e"
             }
           }
         }

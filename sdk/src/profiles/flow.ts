@@ -170,6 +170,7 @@ function toBase(ledger: FlowLedger | null, asset: Asset, q: unknown, path: strin
 }
 const scaleOf = (l: FlowLedger) => l.asset.currency !== null ? MONEY_SCALE : GOODS_SCALE;
 const reservedAt = (l: FlowLedger, key: string) => Object.values(l.reservations).filter(r => r.position === key).reduce((n, r) => n + parseDecimal(r.quantity, GOODS_SCALE), 0n);
+const sameParty = (a: ObjectRef | null, b: ObjectRef | null) => canonicalize(a) === canonicalize(b);
 function positionAt(l: FlowLedger, p: FlowPosition): FlowPositionState { return l.positions[flowPositionKey(p)] ??= { position: structuredClone(p), quantity: '0', serials: [] }; }
 function compact(l: FlowLedger) { for (const [k, p] of Object.entries(l.positions)) if (parseDecimal(p.quantity, scaleOf(l), true) === 0n && p.serials.length === 0) delete l.positions[k]; }
 const sameRef = (a: ObjectRef | null, b: ObjectRef | null) => canonicalize(a) === canonicalize(b);
@@ -294,7 +295,7 @@ export function applyFlowFact(state: FlowBook, fact: FlowFact): FlowResult {
       if (s.kind === 'payment' && !currencies.has(s.currency)) refuse('invalid', `${path}: a payment settles with money legs in its currency`);
     });
     const offsets = fact.settles.filter(s => s.kind === 'offset');
-    if (offsets.length === 1) refuse('invalid', '$.settles: an offset nets at least two claims');
+    if (offsets.length > 0 && new Set(offsets.map(s => canonicalize(s.claim))).size < 2) refuse('invalid', '$.settles: an offset nets at least two distinct claims');
     // The ledger list names exactly the ledgers touched, each at its current revision and head: one compare-and-set per ledger.
     const listed = new Set<string>();
     fact.ledgers.forEach((l, i) => {
@@ -315,12 +316,14 @@ export function applyFlowFact(state: FlowBook, fact: FlowFact): FlowResult {
       const current = ledger.reservations[op.reservation_id];
       if (op.kind === 'reserve') {
         if (current && current.position !== key) refuse('invalid', `${path}: a reservation claims one position`);
+        if (current && !sameParty(current.party, op.party)) refuse('invalid', `${path}: only the claim's party tops up a reservation`);
         const have = parseDecimal(positionAt(ledger, op.position).quantity, GOODS_SCALE, true), reserved = reservedAt(ledger, key);
         if (have - reserved < qty) refuse('insufficient_stock', `${path}: reservation exceeds unreserved stock at the position`);
-        ledger.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, GOODS_SCALE) : 0n) + qty, GOODS_SCALE), party: current?.party ?? op.party };
+        ledger.reservations[op.reservation_id] = { position: key, quantity: formatDecimal((current ? parseDecimal(current.quantity, GOODS_SCALE) : 0n) + qty, GOODS_SCALE), party: op.party };
         return;
       }
       if (!current || current.position !== key) refuse('insufficient_reservation', `${path}: no such reservation at that position`);
+      if (!sameParty(current.party, op.party)) refuse('invalid', `${path}: a release or fulfilment names the claim's party`);
       const held = parseDecimal(current.quantity, GOODS_SCALE); if (held < qty) refuse('insufficient_reservation', `${path}: release or fulfilment exceeds the reservation`);
       if (held === qty) delete ledger.reservations[op.reservation_id]; else ledger.reservations[op.reservation_id] = { ...current, quantity: formatDecimal(held - qty, GOODS_SCALE) };
       if (op.kind === 'fulfill') {
