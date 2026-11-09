@@ -102,11 +102,13 @@ export function readFact(ledger: Ledger, fact: any): { outcome: Outcome; ledger:
       const cur = next.reservations[op.reservation_id];
       if (op.kind === 'reserve') {
         if (cur && cur.position !== k) stop('invalid', 'one position');
+        if (cur && cur.party !== op.party) stop('invalid', 'same party');
         if (th(at(next, p).quantity) - reserved(next, k) < qty) stop('insufficient_stock');
-        next.reservations[op.reservation_id] = { position: k, quantity: show((cur ? th(cur.quantity) : 0n) + qty), party: cur ? cur.party : op.party };
+        next.reservations[op.reservation_id] = { position: k, quantity: show((cur ? th(cur.quantity) : 0n) + qty), party: op.party };
         return;
       }
       if (!cur || cur.position !== k) stop('insufficient_reservation');
+      if (cur.party !== op.party) stop('invalid', 'same party');
       const held = th(cur.quantity); if (held < qty) stop('insufficient_reservation');
       if (held === qty) delete next.reservations[op.reservation_id]; else next.reservations[op.reservation_id] = { ...cur, quantity: show(held - qty) };
       if (op.kind === 'fulfill') {

@@ -57,6 +57,19 @@ An identity is not a verified legal person. It is self-certifying control over k
 ### 5. Signed records and exchange bundles
 
 - **A record** is a `Signed<Record>` under `DTP-RECORD-1`. Its body names its issuer (a person, or a person acting for an organisation), the identity-log head it was signed under, its profile by content digest (what kind of document it is), the record it supersedes if any (by digest, with the next sequence), and its payload. Core-1 checks the structure and the profile digest. What a payload means is the profile's business, not Core-1's.
+  **Proposed format** (step 4, first pull request; `needs-owner`). The body has exactly these members:
+
+  ```
+  Record = { "issuer":       { "identity": <identity id>, "head": { "sequence": <n>, "digest": <hex> } },
+             "organization": null | { "id": <organisation id>, "head": { "sequence": <m>, "digest": <hex> } },
+             "profile":      <hex digest of the profile document>,
+             "sequence":     <integer ≥ 1>,
+             "supersedes":   null | <record digest>,
+             "issued_at":    <integer ms>,
+             "payload":      <object> }
+  ```
+
+  Identifiers are lower-case UUIDs; digests are lower-case SHA-256 hex. A head is named by its sequence and its digest (the identity-log head of part 4, or the organisation's governance head). `supersedes` is null exactly when `sequence` is 1. `issued_at` is the issuer's own claim and bounds nothing; backdating is settled by the receipt and `stale_head` below. The **record digest** is SHA-256 over the canonical `Signed<Record>`, signatures included, the digest a log leaf commits to. A verifier checks, in order: the envelope under `DTP-RECORD-1` (`invalid_envelope`, `invalid_signature`); the body as above (`invalid_record`); the profile digest it expects, when it expects one (`unexpected_profile`); that the heads it holds are the ones the record names (`wrong_head`); that every signer is an operational key at the issuer's head and together they meet its threshold, and, for an organisation, that the issuer is a controller at the named governance head (`unauthorized_signer`). A record supersedes another when it names the other's record digest, takes the next sequence, and keeps the profile and the issuing party, the organisation when there is one and otherwise the person (`broken_supersession`). Reference: `sdk/src/core1/record.ts`. Vectors: `spec/core-1/vectors/record.json` (regenerate with `node sdk/scripts/build-core1-record-vectors.ts`).
 - **An exchange bundle** carries a record together with everything needed to verify it offline: the issuer's identity log up to and including the head the record names, and for a record issued for an organisation, the organisation's governance log showing the signer was a controller at that head. A recipient verifies the bundle with no network access and no host. A host may still add a short-lived freshness or delivery token, but no host token is needed to know who signed what, and for whom.
 
 **Backdating, settled in the bundle pull request.** A key that has been rotated out could sign a new record naming an older head. A bundle proves who held which keys at each head; it cannot by itself prove when a record was signed. The bundle pull request settles this, with vectors: a recipient's own receipt time against the newest head it has admitted, an optional host head attestation counter-signing the record, or both. Decided by the owner on October 29, 2026: both, as S1 and S2 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), with the host's counter-signature as a signed log head (`DTP-LOG-HEAD-1`) carried in the bundle as the record's receipt, and the recipient rule refusing a stale head without one (`stale_head`).
@@ -88,7 +101,7 @@ Nothing here has been released, so these go without a migration: the v0.2 record
 
 ## Order of work
 
-Each item is its own pull request with vectors, labelled `needs-owner`. Sequencing (owner, October 22, 2026): steps 1 and 2 first; then verb-layer build steps 3 and 4 (`assign@1`, `claim@1`), which the flagship's shadow close needs; then steps 3 to 5 here.
+Each item is its own pull request with vectors, labelled `needs-owner`. Sequencing (owner, November 5, 2026, [#157](https://github.com/runquik/direct-trade-protocol/issues/157), replacing that of October 22, 2026): steps 1 and 2 first; then steps 3 and 4 here (identity, then records and bundles), because a record names an identity-log head and a bundle carries that log; then verb-layer build steps 3 and 4 (`assign@1`, then `claim@1`); then step 5 onward here.
 
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).

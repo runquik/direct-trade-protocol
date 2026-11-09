@@ -457,7 +457,6 @@
           }
         ],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       },
       "after": {
@@ -841,7 +840,6 @@
         "profiles": [],
         "releases": [],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       },
       "after": {
@@ -1268,7 +1266,6 @@
         "profiles": [],
         "releases": [],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       },
       "after": {
@@ -1688,7 +1685,6 @@
           }
         ],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       }
     },
@@ -2029,7 +2025,6 @@
         "profiles": [],
         "releases": [],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       }
     },
@@ -2408,7 +2403,6 @@
         "profiles": [],
         "releases": [],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       }
     },
@@ -2755,7 +2749,6 @@
         "profiles": [],
         "releases": [],
         "records": [],
-        "remote_authorities": [],
         "inventory": {}
       }
     }

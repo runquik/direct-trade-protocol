@@ -25,6 +25,7 @@ test("snapshot-import vectors: the base imports and the destination reproduces i
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(vectors.base.projections.inventory));
   assert.equal(canonicalize(dest.inventory[org]), canonicalize(snap.inventory[org]), "the carried inventory is what replay produces");
   const kinds = new Set(snap.profiles.map(p => p.id));
+  assert.deepEqual(Object.keys(snap).sort(), ["inventory", "organization", "persons", "policies", "profiles", "records", "releases", "source", "version"], "the snapshot carries owned state only (#107)");
   // #119: the base flow fact is signed at the same instant as its ledger opening, and that is not "before".
   const opening = Object.values(snap.inventory[org].ledger_openings as Record<string, { issued_at: string }>)[0];
   const flowFact = snap.records.find(r => r.resource_id === Object.keys(snap.inventory[org].books)[0])!;
@@ -49,6 +50,8 @@ const reasons: Record<string, RegExp> = {
   "flow-fact-unpublished-pack": /flow fact pins a packaging revision the product had not published/,
   "flow-fact-before-opening": /flow fact precedes its ledger opening/,
   "flow-book-differs": /inventory projection differs from signed events/,
+  "carries-remote-authorities": /unexpected or missing snapshot members/,
+  "ledger-opened-under-other-policy": /ledger opened under a policy other than its product's/,
 };
 
 test("snapshot-import vectors: every case is refused with invalid_snapshot, for the rule it names", async () => {
@@ -70,7 +73,10 @@ test("snapshot-import vectors: each case is the base company with its records re
     assert.equal(c.snapshot.organization.id, base.organization.id, c.name);
     assert.equal(canonicalize(c.snapshot.persons), canonicalize(base.persons), c.name);
     assert.equal(canonicalize(c.snapshot.profiles), canonicalize(base.profiles), c.name);
-    assert.equal(canonicalize(c.snapshot.policies), canonicalize(base.policies), c.name);
+    // #130's case needs a second policy to open the ledger under: it keeps the base's policy unchanged and adds exactly one.
+    const policies = c.name === "ledger-opened-under-other-policy" ? c.snapshot.policies.filter(p => base.policies.some(b => b.id === p.id)) : c.snapshot.policies;
+    if (c.name === "ledger-opened-under-other-policy") assert.equal(c.snapshot.policies.length, base.policies.length + 1, c.name);
+    assert.equal(canonicalize(policies), canonicalize(base.policies), c.name);
     assert.notEqual(canonicalize(c.snapshot), canonicalize(base), c.name);
   }
 });

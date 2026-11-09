@@ -4,11 +4,14 @@
 //
 // The scheduled teams (teams/README.md) may not merge. The gate applies the merge rules from a workflow, so decided
 // and reviewed work lands within minutes of going green instead of waiting for someone to merge it by hand:
-//   - Approval. Either the owner decided it (`owner-approved`), or it changes nothing the owner reserves (RESERVED,
-//     from teams/README.md, Authority) and the red team reviewed it (`reviewed`).
+//   - Approval. A pull request touching what the owner reserves (RESERVED, from teams/README.md, Authority) needs
+//     both: the owner decided it (`owner-approved`) and the red team reviewed its head (`reviewed`). One touching
+//     nothing reserved needs either.
 //   - Approval covers the head that merges. `reviewed` counts only when it was added after the head commit; a stale
-//     one comes off, with one comment. `owner-approved` stays on, because it records the owner's decision, but after a
-//     new commit the head needs the owner's label or decision comment naming that head, or a fresh `reviewed`.
+//     one comes off, with one comment. `owner-approved` stays on, because it records the owner's decision. For a
+//     reserved path only a fresh `reviewed` covers a head, so when the label was added cannot let an unreviewed head
+//     through. Elsewhere, after a new commit the head needs the owner's label or a decision comment naming that head,
+//     or a fresh `reviewed`.
 //   - The "Protocol conformance" workflow passed on the head, GitHub reports it mergeable, and it is not labelled
 //     `needs-owner`.
 //   - A stack merges bottom first with merge commits: a pull request whose description says "Depends on #N" waits for
@@ -32,7 +35,7 @@ export const CI_WORKFLOW = 'protocol.yml';
  * What teams/README.md (Authority) reserves for the owner: wire formats, signing, canonicalization, identifiers,
  * authority rules, registered profiles and conformance vectors (all under `spec/` and the normative documents), the
  * reference SDK's behaviour, the release and foundation gates, and the packed SDK's dependencies. A pull request
- * touching one merges only with `owner-approved`.
+ * touching one merges only with `owner-approved` and a red-team review of its head.
  */
 export const RESERVED = [
   'spec/', 'SPEC.md',
@@ -99,11 +102,12 @@ export function decide(pr) {
   if (owner.length) return { action: 'owner', reason: `touches ${owner.join(', ')}`, paths: owner };
   const fresh = reviewedHead(pr);
   if (reviewed && !fresh) return { action: 'unreview', reason: `the red team has not reviewed the head ${pr.head.slice(0, 7)}` };
+  const reserved = reservedPaths(pr.files);
   if (approved) {
+    if (reserved.length && !fresh) return { action: 'review-again', reason: `touches ${reserved.join(', ')}; the red team has not reviewed the head ${pr.head.slice(0, 7)}` };
     if (!ownerCoversHead(pr) && !fresh) return { action: 'review-again', reason: `commits since the owner's decision; the head ${pr.head.slice(0, 7)} needs a review` };
-  } else {
-    const reserved = reservedPaths(pr.files);
-    if (reserved.length) return { action: 'needs-owner', reason: `touches ${reserved.join(', ')} without ${OWNER_APPROVED}`, paths: reserved };
+  } else if (reserved.length) {
+    return { action: 'needs-owner', reason: `touches ${reserved.join(', ')} without ${OWNER_APPROVED}`, paths: reserved };
   }
   if (!pr.ciPassed) return skip('Protocol conformance has not passed on the head');
   if (pr.mergeable !== true) return skip(pr.mergeable === false ? 'GitHub reports a conflict' : 'GitHub has not said whether it is mergeable yet');
@@ -165,7 +169,7 @@ export async function sweep(api, { log = console.log, sleep = ms => new Promise(
     log(`#${pr.number}: ${verdict.action} (${verdict.reason})`);
     if (verdict.action === 'skip') { outcome.skipped.push({ number: pr.number, reason: verdict.reason }); continue; }
     if (verdict.action === 'review-again') {
-      await once(pr, MARK.again(pr.head), `The owner's decision stands, but this head (\`${pr.head.slice(0, 7)}\`) came after it. It merges once the red team has reviewed it and labelled it \`${REVIEWED}\`.`);
+      await once(pr, MARK.again(pr.head), `The owner's decision stands. This head (\`${pr.head.slice(0, 7)}\`) ${reservedPaths(pr.files).length ? 'changes what the owner reserves, so it' : 'came after the decision. It'} merges once the red team has reviewed it and labelled it \`${REVIEWED}\`.`);
       outcome.waiting.push({ number: pr.number, reason: verdict.reason });
       continue;
     }
