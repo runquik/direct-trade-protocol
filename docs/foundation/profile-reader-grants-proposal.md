@@ -1,6 +1,6 @@
 # Private profile readers: design proposal
 
-November 9, 2026. Status: **proposed, not decided, not implemented.** Nothing here is normative. It answers the owner decision of November 8, 2026 on [#110](https://github.com/runquik/direct-trade-protocol/issues/110) and is folded into [Core-1](../../spec/core-1/README.md) step 4 (records and exchange bundles, [#157](https://github.com/runquik/direct-trade-protocol/issues/157)). Section 8 lists the decisions asked of the owner; nothing is built before they are taken.
+November 9, 2026, revised November 10 after the red team's review. Status: **proposed, not decided, not implemented.** Nothing here is normative. It answers the owner decision of November 8, 2026 on [#110](https://github.com/runquik/direct-trade-protocol/issues/110) and is folded into [Core-1](../../spec/core-1/README.md) step 4 (records and exchange bundles, [#157](https://github.com/runquik/direct-trade-protocol/issues/157)). Section 8 lists the decisions asked of the owner; nothing is built before they are taken.
 
 ## 1. The problem
 
@@ -34,6 +34,10 @@ payload = { "profile":     <hex digest of the profile contract>,
 
 It carries no reader. `reader_list` is the opt-in of section 2, item 2, and is signed, so a reader can prove which choice the publisher made. For `community` it is always `"private"` and there are no grants. Changing `reader_list` is a new publication of the same contract (it supersedes the old one, Core-1 part 5).
 
+**Superseding a publication reissues its grants.** A grant names one publication version by record digest, so it is valid against that version only. When the publisher supersedes a publication (to change `reader_list`, or for any other reason), it issues a fresh grant, sequence 1, naming the new version, to every reader it keeps; a reader it does not reissue to is no longer a reader of the new version. A recipient that holds the newer publication refuses a bundle that carries a grant for an older version (`profile_not_granted`, section 5). The alternative, grants naming the publication's first version and staying valid across the chain, saves the reissue but makes every grant verifier walk the publication chain and lets a grant outlive a change of `reader_list` the reader never saw; it is not proposed.
+
+**Switching `reader_list` cannot recall a disclosure.** A switch from `"shared"` to `"private"` stops sending other readers' grants from then on, but readers that already held them keep what they received, as with evidence (SPEC §7). A switch from `"private"` to `"shared"` discloses every current grant to every reader from then on.
+
 **The grant** (kind `dtp/profile-grant@1`), issued by the same organisation, one per reader:
 
 ```
@@ -50,10 +54,12 @@ A grant names exactly one reader. Its first version has `status: "granted"` and 
 | --- | --- |
 | The publisher | the publication and every grant |
 | A reader, `reader_list: "private"` | the publication and its own grant |
-| A reader, `reader_list: "shared"` | the publication and every current grant |
+| A reader, `reader_list: "shared"` | the publication and every current grant, as of its last `profile.get` |
 | An evidence recipient | the publication and, when the issuer is not the publisher, the issuer's grant (section 5) |
 
-In v0.4 terms, `profile.publish` would carry the signed publication and grants in place of today's `readers` member; the host keeps the reader set as publisher-side state (it needs it for access checks) and `profile.get` returns the publication plus the caller's own grant, or all grants when shared. That changes the v0.4 `profile.publish` payload, the `Profile` state shape and the snapshot format, which step 5 (v0.4 on Core-1) reworks anyway.
+In v0.4 terms, `profile.publish` would carry the signed publication and grants in place of today's `readers` member; the host keeps the reader set as publisher-side state (it needs it for access checks) and `profile.get` returns the publication plus the caller's own grant, or all grants when shared.
+
+**When readers learn of a new reader (shared mode).** The host pushes nothing. A reader added later receives its grant when the publisher adds it; existing readers see the new grant on their next `profile.get`, and a revocation the same way. So "every current grant" means current at the time of that call, and a conformance test checks it by calling `profile.get` after the last grant is issued. That changes the v0.4 `profile.publish` payload, the `Profile` state shape and the snapshot format, which step 5 (v0.4 on Core-1) reworks anyway.
 
 ## 4. The publishing member's person ID
 
@@ -82,18 +88,29 @@ The publisher issues the grant's next version with `status: "revoked"` (Core-1 s
 
 Revoking one grant reveals nothing to other readers: with `reader_list: "private"` they never held that grant.
 
+**The limit of revocation in private mode.** With `reader_list: "private"`, no one but the publisher and the reader ever holds that reader's grant, so no third party holds a revoked version to compare against. Telling a third party of the revocation means sending it the revoked grant, which discloses that the revoked organisation was a reader. So, under Option A, after a revocation in private mode:
+
+- the revoked reader's own host enforces it (it holds the publisher's state, or receives the revoked grant from the publisher);
+- a third party enforces it only if the publisher sends it the revoked grant, accepting that disclosure;
+- an offline third party that has not received it **accepts** new evidence the revoked reader issues with its old grant, for as long as it holds nothing newer.
+
+In shared mode, every reader receives the revocation on its next `profile.get` and can refuse from then on. If the owner wants the private-mode window bounded without disclosure, **Option C** below does that.
+
+- **Option C, revocation plus expiring grants.** As Option A, and the grant payload gains `valid_until` (integer ms); a recipient refuses a grant past it, by the bundle's receipt time (S1, S2), and the publisher reissues grants before they lapse. This bounds how long an offline third party can be misled to the grant's lifetime, at the cost of one more member, periodic reissue, and readers whose evidence fails if the publisher stops reissuing.
+
 ## 7. Vectors and conformance tests
 
 **Vectors** (new `spec/core-1/vectors/profile-grant.json`, with a builder and `--check`, like the record vectors):
 
-- accepted: a publication with `reader_list` private and shared; a grant; a revocation; a bundle carrying the publication only (issuer is the publisher); a bundle carrying the publication and the issuer's grant;
-- refused: a grant naming another publication; a grant or publication signed by a non-controller (if 4A); a grant issued by an organisation other than the publication's; a revocation that is not the next version; a bundle under a private profile with no grant when the issuer is not the publisher; a bundle carrying a grant superseded by a revocation the recipient holds; a bundle to a non-reader recipient of a third party's private profile (if 5A);
+- accepted: a publication with `reader_list` private and shared; a grant; a revocation; a superseding publication with its reissued grants; a bundle carrying the publication only (issuer is the publisher); a bundle carrying the publication and the issuer's grant;
+- refused: a grant naming another publication; a grant or publication signed by a non-controller (if 4A); a grant issued by an organisation other than the publication's; a revocation that is not the next version; a bundle under a private profile with no grant when the issuer is not the publisher; a bundle carrying a grant superseded by a revocation the recipient holds; a bundle carrying a grant for a publication version older than one the recipient holds; a grant past `valid_until` (if 5C); a bundle to a non-reader recipient of a third party's private profile (if 5A);
 - the registered kinds `dtp/profile-publication@1` and `dtp/profile-grant@1` with fixtures, as every kind has.
 
 **Conformance tests** (v0.4, when step 5 lands):
 
 - the multi-reader test of #164 flips: with two readers and `reader_list: "private"`, each reader receives only its own grant and no `readers` list; with `"shared"`, each receives both grants;
 - `profile.get` for a revoked reader is not-found, and its earlier records still verify;
+- in shared mode, a reader added after another sees the earlier reader's grant on its first `profile.get`, and the earlier reader sees the new grant on its next one;
 - `business-evidence` for a reader's record carries the publication and the issuer's grant and no other reader;
 - the publication names a controller, not the member who requested it (if 4A);
 - snapshot export and import keep the reader set on the publisher's side only.
@@ -103,10 +120,10 @@ Revoking one grant reveals nothing to other readers: with `reader_list: "private
 | # | Question | Recommendation |
 | --- | --- | --- |
 | R1 | Publication and grants as two `DTP-RECORD-1` kinds, `dtp/profile-publication@1` and `dtp/profile-grant@1`, adding no signing domain (section 3) | Yes |
-| R2 | The opt-in as a signed `reader_list: "private" \| "shared"` member of the publication; shared means each reader receives every current grant (section 3) | Yes |
+| R2 | The opt-in as a signed `reader_list: "private" \| "shared"` member of the publication; shared means each reader receives every current grant on its next `profile.get`; a superseding publication reissues its grants, and a switch of `reader_list` cannot recall what readers already hold (section 3) | Yes |
 | R3 | Who signs: a controller (A), the host (B) or an organisation key (C) (section 4) | A |
 | R4 | Redistribution: keep today's recipient limit with the issuer's grant carried (A), the issuer's grant alone (B), or a per-grant flag (C) (section 5) | A |
-| R5 | Revocation: stops future use (A) or withdraws past records (B) (section 6) | A |
+| R5 | Revocation: stops future use (A), withdraws past records (B), or stops future use with expiring grants (C). Under A, in private mode an offline third party is not told of a revocation unless the publisher discloses the revoked reader to it (section 6) | A |
 | R6 | The vectors and tests of section 7, built in Core-1 step 4 after the exchange bundle, with the v0.4 conformance changes in step 5 | Yes |
 
 Until these are decided, SPEC v0.4 §5 and §7 describe today's disclosure as a known limitation (#164), and #110 stays open.
