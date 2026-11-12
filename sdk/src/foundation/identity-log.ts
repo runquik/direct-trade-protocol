@@ -306,6 +306,31 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, pinne
   if (judged.reason === 'invalid-log') throw judged.error;
   throw new Error(REFUSAL_MESSAGES[judged.reason]);
 }
+/** A pin advanced from a resolution, and the log the party keeps for it. */
+export interface ResolvedAdvance { outcome: 'unchanged' | 'advanced'; pin: ResolverPin; log: IdentityLog }
+/** Advances a pin to a head a resolution named, never on the resolution alone (Core-1, part 4; owner decision
+ *  2026-11-08 on #159, item 3). The party fetches the identity log from the host and passes it as `log`; it may run
+ *  past the resolved head. It MUST contain the resolved head, at its sequence and in the pinned epoch (a head in a
+ *  later epoch is a move, admitted with admitIdentityLog). The log cut off at that head is admitted against the pin
+ *  exactly as admitIdentityLog would, with `pinned` and `refusals`, and the result is the pin to store with the log
+ *  to keep beside it, ending at the new pin. When there is no log (`null`), or any check fails, this throws: the
+ *  party does not advance, and the resolution does not authenticate anyone above its pin. */
+export async function advancePinByResolution(pin: ResolverPin, resolved: { sequence: number; head_digest: string }, log: IdentityLog | null, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<ResolvedAdvance> {
+  pin = checkPin(pin);
+  const r = copyIdentityData(resolved); fields(r, ['sequence', 'head_digest']);
+  need(Number.isSafeInteger(r.sequence) && r.sequence >= 0 && hex64(r.head_digest), 'invalid resolved head');
+  need(log !== null, 'the identity log up to the resolved head is required to advance the pin');
+  const v = await verifyIdentityHistory(log);
+  need(v.identity_id === pin.identity_id, 'log is for another identity');
+  const at = v.heads[r.sequence];
+  need(at !== undefined && at.head_digest === r.head_digest, 'log does not contain the resolved head');
+  need(at.epoch === pin.resolver_epoch, 'resolved head is not in the pinned epoch');
+  const kept = copyLog(log); kept.entries = kept.entries.slice(0, r.sequence + 1);
+  const admitted = await admitIdentityLog(pin, kept, pinned, refusals);
+  // The kept log ends in the pinned epoch, so admission can only leave the pin or advance it within that epoch.
+  need(admitted.outcome !== 'superseded', 'resolved head is not in the pinned epoch');
+  return { outcome: admitted.outcome, pin: admitted.pin, log: kept };
+}
 /** Owner push, relying-party side. The message carries the log and nothing else; the answer is a function of the
  *  message and the pin the relying party holds, so a repeated push is answered identically once admitted
  *  (`unchanged`). `lookup` returns the durable pin for an identity, or null when this relying party never enrolled

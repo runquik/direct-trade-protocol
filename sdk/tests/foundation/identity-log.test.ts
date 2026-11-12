@@ -11,7 +11,7 @@ import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Resolution, Transition, Signed } from '../../src/foundation/identity.ts';
 import { checkResolutionHead } from '../../src/foundation/person-authentication.ts';
-import { admitIdentityLog, attestHead, buildIdentityLog, compareCheckpoint, compareRehomeRefusal, judgeIdentityLog, parseIdentityLogPushAck, precedence, receiveIdentityLogPush, recoverGenesisInstant, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal,
+import { admitIdentityLog, advancePinByResolution, attestHead, buildIdentityLog, compareCheckpoint, compareRehomeRefusal, judgeIdentityLog, parseIdentityLogPushAck, precedence, receiveIdentityLogPush, recoverGenesisInstant, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal,
   IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, WITHDRAWN_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, IdentityLogPushAck, RehomeRefusal, ResolverPin } from '../../src/foundation/identity-log.ts';
 
@@ -149,6 +149,7 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
     accept: { why: string; relying_party: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; log: IdentityLog }[];
     precedence: { why: string; a: IdentityLog; b: IdentityLog; expect: ReturnType<typeof precedence> }[];
     admission: { why: string; pin: ResolverPin; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; log: IdentityLog; expect: any }[];
+    resolution: { why: string; pin: ResolverPin; resolved: { sequence: number; head_digest: string }; pinned: IdentityLog | null; log: IdentityLog | null; expect: any }[];
     push: { why: string; pin: ResolverPin | null; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; message: IdentityLogPush; ack: IdentityLogPushAck }[];
     refusals: { accept: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal>; expect: RehomeRefusal }[]; reject: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal> }[];
       contradictions: { why: string; refusal: Signed<RehomeRefusal>; log: IdentityLog; expect: string }[] };
@@ -165,6 +166,13 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
     assert.deepEqual(j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded }, v.expect, v.why);
     if (j.outcome === 'refused') await assert.rejects(admitIdentityLog(v.pin, v.log, v.pinned, v.refusals), v.why);
     else assert.deepEqual(await admitIdentityLog(v.pin, v.log, v.pinned, v.refusals), j, v.why);
+  }
+  // #159, item 3: a pin advances from a resolution only with the log up to the resolved head, which the party keeps.
+  assert.ok(vectors.resolution.length >= 13 && vectors.resolution.some(v => v.log === null && v.expect.outcome === 'refused'));
+  for (const v of vectors.resolution) {
+    const r = await advancePinByResolution(v.pin, v.resolved, v.log, v.pinned).catch(() => null);
+    assert.deepEqual(r === null ? { outcome: 'refused' } : { outcome: r.outcome, pin: r.pin, kept_entries: r.log.entries.length }, v.expect, v.why);
+    if (r !== null) { const kept = await verifyIdentityHistory(r.log); assert.equal(kept.head_digest, v.resolved.head_digest, v.why); assert.equal(kept.head.sequence, v.resolved.sequence, v.why); }
   }
   for (const v of vectors.push) {
     const { ack } = await receiveIdentityLogPush(v.message, async identity => v.pin === null || v.pin.identity_id !== identity ? null : { pin: v.pin, log: v.pinned, refusals: v.refusals });

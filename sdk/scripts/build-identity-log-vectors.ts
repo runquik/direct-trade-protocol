@@ -10,7 +10,7 @@ import type { KeyPair } from '../src/keys.ts';
 import { createIdentity, signIdentity, CLOCK_MARGIN_MS, LEASE_MS } from '../src/foundation/identity.ts';
 import type { Control, Rehome, Resolution, Signed, Transition } from '../src/foundation/identity.ts';
 import { checkResolutionHead } from '../src/foundation/person-authentication.ts';
-import { attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, refuseRehome, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal,
+import { advancePinByResolution, attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, refuseRehome, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal,
   HEAD_ATTESTATION_DOMAIN, IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, WITHDRAWN_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, RehomeRefusal, ResolverPin } from '../src/foundation/identity-log.ts';
 
@@ -233,6 +233,25 @@ const admission: Admission[] = [
   ['the move after the first resolver is gone: its heads carry no attestation, the destination attested the move and every head after it: advanced (#159, item 2)', pinA(0, bareHeads[0].head_digest), movedFormerGone, null],
   ['the move with the head after it unattested by the destination, the current resolver: invalid-log (#159, item 2)', pinA(0, bareHeads[0].head_digest), movedTailBare, null],
 ];
+// Advancing a pin from a resolution (#159, item 3): the party fetches the log and keeps it cut off at the resolved head.
+type Resolved = [string, ResolverPin, { sequence: number; head_digest: string }, IdentityLog | null, IdentityLog | null];
+const at = (v: { heads: { head: Control; head_digest: string }[] }, n: number) => ({ sequence: n, head_digest: v.heads[n].head_digest });
+const attestedV = await verifyIdentityHistory(clone(attested)), attestedTo1 = { ...clone(attested), entries: clone(attested.entries.slice(0, 2)) };
+const resolution: Resolved[] = [
+  ['a pin at head 0, a resolution of head 3, and the log up to it: advanced, and the party keeps that log', pinA(0, bareHeads[0].head_digest), at(attestedV, 3), attested, null],
+  ['a resolution of head 2 and a log that runs past it: advanced to head 2, and the kept log ends there', pinA(0, bareHeads[0].head_digest), at(attestedV, 2), attested, null],
+  ['a party holding its pinned history at head 1: advanced, judged against that history', pinA(1, bareHeads[1].head_digest), at(attestedV, 3), attested, attestedTo1],
+  ['a resolution of the pinned head itself: unchanged', pinA(3, bareHeads[3].head_digest), at(attestedV, 3), attested, null],
+  ['a log that runs past the resolved head through a move: advanced to the resolved head in the pinned epoch, and the move is not admitted this way', pinA(0, bareHeads[0].head_digest), at(movedV, 3), moved, null],
+  ['no log: refused, and the pin does not advance', pinA(0, bareHeads[0].head_digest), at(attestedV, 3), null, null],
+  ['a log that ends before the resolved head: refused', pinA(0, bareHeads[0].head_digest), at(attestedV, 3), genesisOnly, null],
+  ['a log whose head at that sequence is another one: refused', pinA(0, bareHeads[0].head_digest), at(rivalV, 4), attested, null],
+  ['a log whose current epoch is unattested: refused (#159, item 2)', pinA(0, bareHeads[0].head_digest), at(attestedV, 3), bare, null],
+  ['a resolved head the log reaches only after a move: refused; that is a move, admitted from the log', pinA(0, bareHeads[0].head_digest), at(movedV, 5), moved, null],
+  ['a resolved head below the pin: refused (behind)', pinA(3, bareHeads[3].head_digest), at(attestedV, 2), attested, null],
+  ['a log for another identity: refused', pinA(0, null, { identity_id: '00000000-0000-4000-8000-000000000000' }), at(attestedV, 3), attested, null],
+  ['a party holding a rival history at head 4, shown the owner\'s log up to head 3: refused; the resolution cannot move a pin backwards', pinA(4, rivalV.heads[4].head_digest), at(attestedV, 3), attested, rivalAt4],
+];
 const pushMessage = (log: IdentityLog, format = IDENTITY_LOG_PUSH_FORMAT): IdentityLogPush => ({ format: format as typeof IDENTITY_LOG_PUSH_FORMAT, log });
 type Push = [string, ResolverPin | null, IdentityLogPush, IdentityLog | null, Signed<RehomeRefusal>[]?];
 const push: Push[] = [
@@ -288,7 +307,7 @@ const contradictions: Contradiction[] = [
 ];
 
 const out = {
-  description: 'Portable identity log. Every log under "accept" is a valid owner-authorized history: a verifier MUST accept it as history and derive exactly the expected values. A relying party MUST accept it exactly when "relying_party" is true, which is when every head of the log\'s current resolver epoch carries that epoch\'s attestation; heads of earlier epochs may be unattested, and there is no policy that waives the check (owner decision 2026-11-08, #159). A verifier MUST refuse every log under "reject", as history and as a relying party, including every log in the withdrawn format 1 ("withdrawn_format"). A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
+  description: 'Portable identity log. Every log under "accept" is a valid owner-authorized history: a verifier MUST accept it as history and derive exactly the expected values. A relying party MUST accept it exactly when "relying_party" is true, which is when every head of the log\'s current resolver epoch carries that epoch\'s attestation; heads of earlier epochs may be unattested, and there is no policy that waives the check (owner decision 2026-11-08, #159). A verifier MUST refuse every log under "reject", as history and as a relying party, including every log in the withdrawn format 1 ("withdrawn_format"). A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A relying party holding the pin under "resolution" (and the log under "pinned", where not null), that verified a resolution of the head under "resolved" and fetched the log under "log" (null: it could not), MUST advance exactly when "expect" is not refused, to exactly the expected pin, and keep the log cut off at the resolved head ("kept_entries" entries); when refused, its pin does not advance (owner decision 2026-11-08, #159, item 3). A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
   format: IDENTITY_LOG_FORMAT, withdrawn_format: WITHDRAWN_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
   keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
@@ -305,6 +324,10 @@ const out = {
   admission: await Promise.all(admission.map(async ([why, pin, log, pinned, refusals = []]) => {
     const j = await judgeIdentityLog(pin, clone(log), pinned === null ? null : clone(pinned), clone(refusals));
     return { why, pin, pinned, refusals, log, expect: j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded } };
+  })),
+  resolution: await Promise.all(resolution.map(async ([why, pin, resolved, log, pinned]) => {
+    const r = await advancePinByResolution(pin, resolved, log === null ? null : clone(log), pinned === null ? null : clone(pinned)).catch(() => null);
+    return { why, pin, resolved, pinned, log, expect: r === null ? { outcome: 'refused' } : { outcome: r.outcome, pin: r.pin, kept_entries: r.log.entries.length } };
   })),
   push: await Promise.all(push.map(async ([why, pin, message, pinned, refusals = []]) => {
     const { ack } = await receiveIdentityLogPush(clone(message), async identity => pin === null || pin.identity_id !== identity ? null : { pin, log: pinned === null ? null : clone(pinned), refusals: clone(refusals) });
@@ -334,6 +357,8 @@ const expectedReasons = ['advanced', 'advanced', 'unchanged', 'unadopted-move', 
   'conflict', 'conflict', 'conflict', 'advanced', 'conflict', 'refused-move', 'refused-move', 'advanced', 'advanced',
   'refused-move', 'advanced', 'refused-move', 'refused-move', 'unadopted-move', 'advanced', 'refused-move', 'advanced', 'invalid-log'];
 out.admission.forEach((a, i) => { const got = 'reason' in a.expect ? a.expect.reason : a.expect.outcome; if (got !== expectedReasons[i]) throw new Error(`generator: admission "${a.why}" gave ${got}`); });
+const expectedResolutions = ['advanced', 'advanced', 'advanced', 'unchanged', 'advanced', 'refused', 'refused', 'refused', 'refused', 'refused', 'refused', 'refused', 'refused'];
+out.resolution.forEach((r, i) => { if (r.expect.outcome !== expectedResolutions[i]) throw new Error(`generator: resolution "${r.why}" gave ${r.expect.outcome}`); });
 const expectedAcks = ['advanced', 'unchanged', 'unknown-identity', 'invalid-log', 'invalid-log', 'behind', 'unadopted-move', 'conflict', 'conflict', 'conflict', 'refused-move', 'advanced', 'advanced', 'advanced', 'invalid-log'];
 out.push.forEach((p, i) => { const got = p.ack.reason ?? p.ack.outcome; if (got !== expectedAcks[i]) throw new Error(`generator: push "${p.why}" gave ${got}`); });
 for (const [why, a, b, expect] of pairs) {
@@ -348,5 +373,5 @@ const target = new URL('../../spec/vectors/identity-log.json', import.meta.url),
 if (!process.argv.includes('--check')) writeFileSync(target, text);
 // A checkout may have converted line endings; the content is what must not drift.
 else if (readFileSync(target, 'utf8').replaceAll('\r\n', '\n') !== text) { console.error('spec/vectors/identity-log.json is stale; rerun this script without --check'); process.exit(1); }
-console.log('vectors:', out.accept.length, 'accept,', out.reject.length, 'reject,', out.precedence.length, 'precedence pairs,', out.admission.length, 'admissions,', out.push.length, 'pushes,',
+console.log('vectors:', out.accept.length, 'accept,', out.reject.length, 'reject,', out.precedence.length, 'precedence pairs,', out.admission.length, 'admissions,', out.resolution.length, 'resolution advances,', out.push.length, 'pushes,',
   out.refusals.accept.length + out.refusals.reject.length, 'refusals,', out.refusals.contradictions.length, 'contradictions,', out.signing.length, 'signing cases');

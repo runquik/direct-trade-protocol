@@ -9,18 +9,14 @@ import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, rehomeIdentity, signIdentity, transitionIdentity } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Transition } from '../../src/foundation/identity.ts';
 import { attestHead, buildIdentityLog, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, refuseRehome, rehomeDigest } from '../../src/foundation/identity-log.ts';
-import type { IdentityLog, IdentityLogEntry, IdentityLogParts } from '../../src/foundation/identity-log.ts';
+import type { IdentityLog, IdentityLogEntry } from '../../src/foundation/identity-log.ts';
 import type { JsonObject } from '../../src/foundation/semantics.ts';
 import { personAuthenticationFixture } from './person-authentication-fixture.ts';
 
 async function setup() {
   const pg = new PGlite(); await pg.exec(FOUNDATION_STORE_SCHEMA); await pg.exec(PERSON_AUTHENTICATION_SCHEMA);
   const f = await personAuthenticationFixture(pgliteDb(pg));
-  // The history as its owner keeps it. Resolver A attested nothing before it became unreachable.
-  const audienceA = 'https://resolver-a.example', at0 = f.identity.head.effective_at;
-  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: f.person.id, genesis_digest: f.identity.genesis_digest, resolver_id: f.resolverId, resolver_key: f.resolver.keyId,
-    audience: audienceA, nonce: 'e'.repeat(64), issued_at: at0 - 1_000, expires_at: at0 + 299_000 }, [f.ordinary, f.recovery]);
-  const parts: IdentityLogParts = { genesis: f.genesis, enrollment, entries: [{ effective_at: at0, transition: null, rehome: null, attestation: null }] };
+  // The history as its owner keeps it (f.parts). Resolver A attested nothing before it became unreachable.
   const resolverB = await generateKeyPair(), b = { resolver_id: crypto.randomUUID(), resolver_key: resolverB.keyId, audience: 'https://resolver-b.example' };
   async function move(from: IdentityState, at: number): Promise<{ state: IdentityState; entry: IdentityLogEntry }> {
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: f.person.id, expected_digest: from.head_digest, sequence: from.head.sequence + 1,
@@ -42,7 +38,7 @@ async function setup() {
   };
   const admit = (log: IdentityLog, adapter = f.adapter, person_id = f.person.id) => f.db.transaction(tx => adapter.admitIdentityMove(tx, { person_id, log }));
   const row = async () => { const r = (await f.db.query<{ resolver_id: string; resolver_epoch: string; sequence: string; digest: string }>('select resolver_id,resolver_epoch,sequence,digest from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]))[0]; return { resolver_id: r.resolver_id, epoch: Number(r.resolver_epoch), sequence: Number(r.sequence), digest: r.digest }; };
-  return { pg, ...f, parts, resolverB, b, move, rotate, hooks, authenticate, admit, row };
+  return { pg, ...f, resolverB, b, move, rotate, hooks, authenticate, admit, row };
 }
 
 test('a move admitted from the owner\'s log becomes the durable binding: the new resolver authenticates, the former is refused, and a restart with the enrollment configuration keeps it', async () => {
@@ -190,7 +186,7 @@ test('held rehome refusals are capped per person, and refusals that match no reh
   } finally { await f.pg.close(); }
 });
 
-test('admission refuses another identity, a lineage this host never enrolled, an operational-signed move, and a same-epoch fork; a higher-epoch fork fails closed without the pinned history; a failed transaction changes nothing', async () => {
+test('admission refuses another identity, a lineage this host never enrolled, an operational-signed move, and a same-epoch fork; a higher-epoch fork fails closed without the pinned history and is ranked by the fork-point rule with it; a failed transaction changes nothing', async () => {
   const f = await setup(); try {
     await f.authenticate(f.identity, f.resolver);
     const now = Date.now(), moved = await f.move(f.identity, now), valid = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, moved.entry] }, f.resolverB);
@@ -211,16 +207,26 @@ test('admission refuses another identity, a lineage this host never enrolled, an
     await assert.rejects(f.admit(forged), /quorum/);
     // The host has seen the owner rotate at A (checkpoint at sequence 1). A rival rotation from the same head is a same-epoch fork.
     const rotated = await f.rotate(f.identity, f.next, f.ordinary, now + 1), rival = await f.rotate(f.identity, await generateKeyPair(), f.ordinary, now + 1);
-    await f.authenticate(rotated.state, f.resolver, [f.next]);
+    // The resolution advances the checkpoint only with the log up to its head, which the adapter keeps (#159, item 3).
+    const rotatedLog = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, rotated.entry] }, f.resolver);
+    f.serveIdentityLog(rotatedLog); await f.authenticate(rotated.state, f.resolver, [f.next]);
     assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 1, digest: rotated.state.head_digest });
     // Attested by the resolver: an unattested head of the current epoch would be refused before the fork is examined (#159, item 2).
     await assert.rejects(f.admit(await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, rival.entry] }, f.resolver)), /same resolver epoch/);
     assert.equal((await f.row()).digest, rotated.state.head_digest);
-    // The recovery quorum moves the rival branch to B. The adapter holds only its durable checkpoint, not the history
-    // behind it, so it cannot apply the fork-point rule (#50): a higher-epoch conflict fails closed and changes nothing.
+    // The recovery quorum moves the rival branch to B. A row written before the adapter kept logs holds only its
+    // checkpoint, not the history behind it, so it cannot apply the fork-point rule (#50): a higher-epoch conflict fails
+    // closed and changes nothing.
     const rivalMoved = await f.move(rival.state, now + 2), superseding = await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, rival.entry, rivalMoved.entry] }, f.resolverB);
+    await f.db.query('update dtp_foundation.person_auth_checkpoints set log=null where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]);
     await assert.rejects(f.admit(superseding), /conflicting control history/);
     assert.deepEqual(await f.row(), { resolver_id: f.resolverId, epoch: 0, sequence: 1, digest: rotated.state.head_digest });
     await f.authenticate(rotated.state, f.resolver, [f.next]);
+    // Presenting the log that ends at the checkpoint gives it back its history. With it, the fork-point rule applies:
+    // the rival branch forked under the recovery quorum still current at the fork, so its move supersedes, reported.
+    assert.equal((await f.admit(rotatedLog)).outcome, 'unchanged');
+    const ranked = await f.admit(superseding);
+    assert.equal(ranked.outcome, 'superseded'); assert.deepEqual(ranked.superseded, { sequence: 1, head_digest: rotated.state.head_digest });
+    assert.deepEqual(await f.row(), { resolver_id: f.b.resolver_id, epoch: 1, sequence: 2, digest: rivalMoved.state.head_digest });
   } finally { await f.pg.close(); }
 });

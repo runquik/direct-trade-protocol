@@ -4,6 +4,8 @@ import { generateKeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, signIdentity } from '../../src/foundation/identity.ts';
 import type { IdentityState } from '../../src/foundation/identity.ts';
 import { createPersonAuthentication, signPersonOperation } from '../../src/foundation/person-authentication.ts';
+import type { IdentityLogRequest } from '../../src/foundation/person-authentication.ts';
+import type { IdentityLog, IdentityLogParts } from '../../src/foundation/identity-log.ts';
 import { createFoundationStore } from '../../src/foundation/persistence.ts';
 import type { OperationIntent, JsonObject } from '../../src/foundation/semantics.ts';
 import { persistenceFixture } from './persistence-fixture.ts';
@@ -16,7 +18,16 @@ export async function personAuthenticationFixture(db: Db, threshold = 1) {
   const resolverId = crypto.randomUUID(), identity = await createIdentity(genesis, { id: resolverId, key_id: resolver.keyId }, Date.now() - 10000);
   const person = { kind: 'person' as const, id: identity.head.identity_id, organization_id: null };
   const config = { host_id: crypto.randomUUID(), audience: 'https://workspace.example', identities: [{ person_id: person.id, resolver_id: resolverId, resolver_key: resolver.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: identity.head_digest }] };
-  const adapter = createPersonAuthentication(config);
+  // The person's history as its owner keeps it, enrolled at the pinned resolver. Tests extend `parts.entries`.
+  const at0 = identity.head.effective_at;
+  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: person.id, genesis_digest: identity.genesis_digest, resolver_id: resolverId, resolver_key: resolver.keyId,
+    audience: 'https://resolver-a.example', nonce: 'e'.repeat(64), issued_at: at0 - 1_000, expires_at: at0 + 299_000 }, threshold === 1 ? [ordinary, recovery] : [ordinary, second, recovery]);
+  const parts: IdentityLogParts = { genesis, enrollment, entries: [{ effective_at: at0, transition: null, rehome: null, attestation: null }] };
+  // What the host serving the person's log answers when the adapter asks for it (#159, item 3); null: unavailable.
+  let served: IdentityLog | null = null; const fetched: IdentityLogRequest[] = [];
+  const serveIdentityLog = (log: IdentityLog | null) => { served = log === null ? null : structuredClone(log); };
+  const runtime = { now: Date.now, fetchIdentityLog: async (request: IdentityLogRequest) => { fetched.push(request); return served === null ? null : structuredClone(served); } };
+  const adapter = createPersonAuthentication(config, runtime);
   f.state.now = Date.now();
   const grant = { ...f.grant, id: crypto.randomUUID(), subject: person, not_before: Date.now() - 1000, expires_at: Date.now() + 300000 };
   await f.store.govern(f.organization_id, { action: 'grant', grant }, f.controller);
@@ -30,5 +41,5 @@ export async function personAuthenticationFixture(db: Db, threshold = 1) {
     return signPersonOperation({ intent: i, actor: person, grant_id: grant.id, challenge, resolution }, keys, identity);
   };
   const run = async (value: Awaited<ReturnType<typeof request>>) => store.execute(f.organization_id, value as unknown as JsonObject);
-  return { ...f, adapter, config, store, options, genesis, identity, person, ordinary, second, recovery, resolver, next, resolverId, personGrant: grant, intent, issue, proof, personRequest: request, run };
+  return { ...f, adapter, config, runtime, parts, serveIdentityLog, fetched, store, options, genesis, identity, person, ordinary, second, recovery, resolver, next, resolverId, personGrant: grant, intent, issue, proof, personRequest: request, run };
 }
