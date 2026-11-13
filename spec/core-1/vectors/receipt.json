@@ -1,0 +1,1186 @@
+{
+  "description": "Core-1 host receipts (spec/core-1/README.md part 5; data-layer security proposal 5.2, S1). A receipt is { head: Signed<LogHead> under DTP-LOG-HEAD-1, leaf, path }; the record is the head's last leaf (index size - 1). Leaf hash SHA-256(0x00 || canonical leaf), node hash SHA-256(0x01 || left || right) (RFC 9162). Check, in order: structure (invalid_receipt); the head's envelope (invalid_envelope, invalid_signature) and its one signer, the host key given (unauthorized_host); that the leaf names the record (wrong_record); inclusion at index size - 1 (not_included); accepted_at <= signed_at (time_order). `pairs` compare two verified heads of one host: unrelated, same, re-signed, ordered, equivocation or time_order.",
+  "generated_by": "sdk/scripts/build-core1-receipt-vectors.ts",
+  "keys": [
+    {
+      "label": "host",
+      "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "secret_key": "ed25519:pKwdaFEFZXgWLx3dEXKiJ5yxdvygWk57MDZTvgZzonSVfSvsfcB9nbbUiFTqCgAou5KhoVHU2rtinZFQ2EgKzhf"
+    },
+    {
+      "label": "other-host",
+      "key_id": "ed25519:96pFLepcsQc4DrhupKnc6aB7aJv9bXn6GspkGVqhJ6FC",
+      "secret_key": "ed25519:3AZRXQf95ZrZp341itcfjEwyvjNq7ckfGMLLsu3MHsVag2ge9HkdMxTY7E5anNx5LgkfLVw3TxsThzfUJs5GdqDC"
+    }
+  ],
+  "log": {
+    "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+    "leaves": [
+      {
+        "record": "532a9c84c9e22c4876dd4b01abd6109403ed3dbc75b55aeecf3c1a3783154be3",
+        "accepted_at": 1762000001000,
+        "effects": []
+      },
+      {
+        "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+        "accepted_at": 1762000002000,
+        "effects": [
+          "670a6b78a4b59774d9a759a624fae21e1a2b71d48e0e93fa01957242301099bf",
+          "da9f18f5f8e73a358620278f04d8e109b074b4efceb4abd5ad2f609b8daca0cb"
+        ]
+      },
+      {
+        "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+        "accepted_at": 1762000003000,
+        "effects": []
+      },
+      {
+        "record": "179772961307e9a95ff4fe600ba131908ea6e1c17c28e98c9ecc7da5c5e1bc89",
+        "accepted_at": 1762000004000,
+        "effects": []
+      },
+      {
+        "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+        "accepted_at": 1762000005000,
+        "effects": []
+      }
+    ],
+    "leaf_hashes": [
+      "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469",
+      "581536654c1b8d636e9b0f5bbbaa91b7b6236031a078b4f7e3df313cf8c37004",
+      "5c33485263dc569a668f5d709429f193b474ee8be75f4178ee2325ebdfeedbab",
+      "8f5a5e23c1cc484962a48dee902d0410ddc8421fee8dc68564383e05b052629f",
+      "8100c37341bb2ccc1f41b2afec767295afef566671c73f11fd6ae6d6883b1a9e"
+    ],
+    "roots": [
+      "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469",
+      "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+      "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+      "874d8e59ba1cb2ea98db16971450a49d847fb74bee6f102f580fa87f6cdd0371",
+      "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887"
+    ]
+  },
+  "accept": [
+    {
+      "why": "the first record: a log of one leaf, an empty path",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 1,
+            "root": "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469",
+            "signed_at": 1762000001005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:YFzPTVzhc3LFJ8TS3Q6EiuSgaEPX5uNkKdpRhJPzF1w6rt6Ka6MaPhy7nCLomnA3eTFWBSr6ynVGtbciJtg91y8"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "532a9c84c9e22c4876dd4b01abd6109403ed3dbc75b55aeecf3c1a3783154be3",
+          "accepted_at": 1762000001000,
+          "effects": []
+        },
+        "path": []
+      },
+      "record": "532a9c84c9e22c4876dd4b01abd6109403ed3dbc75b55aeecf3c1a3783154be3",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 1,
+        "root": "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469",
+        "signed_at": 1762000001005
+      },
+      "leaf": {
+        "record": "532a9c84c9e22c4876dd4b01abd6109403ed3dbc75b55aeecf3c1a3783154be3",
+        "accepted_at": 1762000001000,
+        "effects": []
+      }
+    },
+    {
+      "why": "a record with two effects, second of two leaves",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 2,
+            "root": "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+            "signed_at": 1762000002005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2HQaBA5NgoyLrrbkDP5xvjZQT4968bsGWheWGycnESTW634YET83h9LisE6cRK8LcQLvYEVDnKRBC5Gex5Sfkf7P"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+          "accepted_at": 1762000002000,
+          "effects": [
+            "670a6b78a4b59774d9a759a624fae21e1a2b71d48e0e93fa01957242301099bf",
+            "da9f18f5f8e73a358620278f04d8e109b074b4efceb4abd5ad2f609b8daca0cb"
+          ]
+        },
+        "path": [
+          "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469"
+        ]
+      },
+      "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 2,
+        "root": "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+        "signed_at": 1762000002005
+      },
+      "leaf": {
+        "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+        "accepted_at": 1762000002000,
+        "effects": [
+          "670a6b78a4b59774d9a759a624fae21e1a2b71d48e0e93fa01957242301099bf",
+          "da9f18f5f8e73a358620278f04d8e109b074b4efceb4abd5ad2f609b8daca0cb"
+        ]
+      }
+    },
+    {
+      "why": "the last leaf of an unbalanced tree of three",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 3,
+        "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+        "signed_at": 1762000003005
+      },
+      "leaf": {
+        "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+        "accepted_at": 1762000003000,
+        "effects": []
+      }
+    },
+    {
+      "why": "the last leaf of a balanced tree of four",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 4,
+            "root": "874d8e59ba1cb2ea98db16971450a49d847fb74bee6f102f580fa87f6cdd0371",
+            "signed_at": 1762000004005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:L4ydNctvpmb9wkJANiJPGLCR5eizqn5gJaBmepKYfHdnRH3ycF11uH353W8sc6pBCA7Ay4xV8Rh9dekjuKXBncW"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "179772961307e9a95ff4fe600ba131908ea6e1c17c28e98c9ecc7da5c5e1bc89",
+          "accepted_at": 1762000004000,
+          "effects": []
+        },
+        "path": [
+          "5c33485263dc569a668f5d709429f193b474ee8be75f4178ee2325ebdfeedbab",
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "record": "179772961307e9a95ff4fe600ba131908ea6e1c17c28e98c9ecc7da5c5e1bc89",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 4,
+        "root": "874d8e59ba1cb2ea98db16971450a49d847fb74bee6f102f580fa87f6cdd0371",
+        "signed_at": 1762000004005
+      },
+      "leaf": {
+        "record": "179772961307e9a95ff4fe600ba131908ea6e1c17c28e98c9ecc7da5c5e1bc89",
+        "accepted_at": 1762000004000,
+        "effects": []
+      }
+    },
+    {
+      "why": "the last leaf of a tree of five",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 5,
+            "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+            "signed_at": 1762000005005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:GTYsrF6eAYFR9Fb6ZmHWHoZarrKagwtpejzaSE8EN1SWjwQeCVYV86eeCuJksADSXAyAfVSZmLuc66WhKhvCSJi"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+          "accepted_at": 1762000005000,
+          "effects": []
+        },
+        "path": [
+          "874d8e59ba1cb2ea98db16971450a49d847fb74bee6f102f580fa87f6cdd0371"
+        ]
+      },
+      "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 5,
+        "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+        "signed_at": 1762000005005
+      },
+      "leaf": {
+        "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+        "accepted_at": 1762000005000,
+        "effects": []
+      }
+    },
+    {
+      "why": "a receipt whose head was re-signed later with the same size and root",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762003600000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2JZ3t4e3z27pmdhi8jCQnJbbWPsfcCmXZiFB7QcJNse5VwQk3R7X5c8BDmD4i4C1yADRf2JnsHUXVb2D1aVPSrmc"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "head": {
+        "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+        "size": 3,
+        "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+        "signed_at": 1762003600000
+      },
+      "leaf": {
+        "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+        "accepted_at": 1762000003000,
+        "effects": []
+      }
+    }
+  ],
+  "reject": [
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a member beside head, leaf and path",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ],
+        "index": 2
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a leaf without effects",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a leaf with 65 effects",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": [
+            "372fef6ae8d40642bc2e0835d7c5ad86359a5febba980883d767712ccb12604f",
+            "2c9d3839ed2aace507ca54f025a446ffdeaf4f3e240e9fa091c23b296986905d",
+            "0e6456c97fc973509a514751cca167be01ee63e39214bac78ca81e457a67471b",
+            "5782d137abb8d5cc7d04ddd80d1379754f3f8affd0e4d2cfc4c2e513c3130a61",
+            "ff740fe3171ca8ad1b9b0c4ddd37dc78ecacf3c12e072ede1c88318671c9c51a",
+            "ffdbc6048c253a927cb825e22d5ac19a51b3a325bed7c12d9e078d97bb7d0450",
+            "c2953ec27b04d57d8f7e1beb6036ceed8d17f63362729aca3b66eaec2c70a7a4",
+            "b07c78e69e6b63122da80ef7aee727717bf14343fbdf7df0fbdcf4d426aa39da",
+            "ab09c8a196ac41d034bd8475250b79a6378710b4407912ec8e5c3747762f7574",
+            "f4a1e30b78821c66d91a42bc88c075ad92dd43b6e93e511abc66f0a65c615f7e",
+            "badbc7a27efe6ccbdd7a3c545550850bd86b1e0910be7284b079b5d74e9557f3",
+            "01bb8a7b583711bd03f7c026104aac77e3b637ca4bc98fd240a3fbb0e9a1855a",
+            "d030d03e1695ab53c83671ac5f324a7016494f71b0da8bf75476c9a8d15dbb76",
+            "a7b95157e97d8393ae82b273b3f21d4faadefe66bc8af689b05748c6357750d7",
+            "c1145ab4f3b5c263f67ca962fd7ecb79c11f777e14f5361f2714e65c9550f6e6",
+            "82428a3912130c2976b227aaad04d5f670e5a60d9d7eed71f919ab2137c787c7",
+            "2c3a6e5ed1c1f170817896498de5e6301f94318addff2e3b0019e725044c86a1",
+            "d130667408c2a6a9c7fa45439ce77e7463b8070206435e1f6b134831929f7e17",
+            "0169f53a0afcad4c75600bceb2f33ffe969e570ffed9d23274f39f52ed4c1a06",
+            "4a9dc88e6dedcfdf861d1abeb6b7c45e0208d5d860f1111b27b65d7556f2bd9e",
+            "3bcd2792f5d2b335481476192734512f100a58b22c7ee7f3ad26b7ba06f7eae2",
+            "25c9f83c81e87ce187f9d038a3f1843702df82b85e607c785fc56158cdb7ac16",
+            "1408320fe3541b6674b86363147fc82475c7fa643e599e30c8a4435a438dbb19",
+            "e32d138ae87f75ca36c63e5e56aeb8ac6f872a69a7e98b530d1d0060aafbd2e2",
+            "88da37f98e1ab8895022d790474f6254a908592b0ac233c666f188d7b0874996",
+            "358fd7204e76f3534c06a46833b917988f568cd06cd61a6deaaf7543e26397e8",
+            "56c05d226d9765d8405d9484bc9d04273a05e2ebcb4b87b7744cc518cfb72fc4",
+            "505aca1458b56d636717ab9118ee7462fb77588bd92f9f2a919f622d7bf4a40c",
+            "05bc42c009506d62a951739543685fff811a402a3d54ea0a16e5467a43dba51b",
+            "dc31667187e12cf9c7dcaa44444345ca571233c04ef7170078c0e08b42ac5a34",
+            "1df6b76f1367147241e84fb4bce46205539c818f9ed6ee0347a147c24992d05a",
+            "35f9bec7e5a1c3e29c59c2be4addca6a51395d7ff68fa059f9b98d0092744376",
+            "d52746c7258321c1fb91bbc0d79a9846f0d1335f206ac5cb0ac46faf2a91a365",
+            "5ebde855dec65f31f5eaab4d5c789b5c96481c9b946948deb1842a0cd1103039",
+            "5e3471a40a809f34d97268da207609dca59c39d3900faac8b5dbd71a7355c2c3",
+            "eb82c431bae53e4f6f0aecfe6424adc5acdbdc246ed48e9704cac85ae834a020",
+            "d9c021812b08669e402a17f2f178eb5445b335685798e609b1cce99bbce28d38",
+            "95255e999fba06aa89c9f89c1992e747c03d833703cc3b3c4dd50cb437c9c636",
+            "9ec11559e9e7869a3cdc00b933fa8f83d5578d8917ee5f4bf82cb25d4eea80fc",
+            "d3b98e89472e5617db067c6c97434988a0d9525a3c1d64fc5f5a1e9531111043",
+            "2a2ef57158a3678306d0986b1fcf12ff1ac9434a667fad28aff866af449706a5",
+            "9b7496ba4922955fac4bb75984d1e19b60051e813db15b076f6eced7979d4a43",
+            "3e972d5a177ef419777de4968aea85dc31965b7fc4763ee34fd35bdd02234354",
+            "6b27c503a94c60d495bfe9c74e4f01f4b3d099facb59c623de91ed4c50139e3f",
+            "b813e6af938133967a6d4ca29be2a8dfd06a66fafe9d0732e162c7abaf29ef08",
+            "1b3da538472b64e04945ffffa23c7928ebd30dc9121ed6678d2ded500343f79e",
+            "c99ce417f1a640232601daa05bcadf3180357a37d694fa239a68340c48296280",
+            "2bd599f4ff494fb8a5594555398c9bca92a8735947e033ef42dc946246bb61e2",
+            "8fecb3c4b682fde688617d3e9da8c78dbbb8261bab30ee385fb49b303064800f",
+            "33cfdd7ea88305acd7d9123c87fb8b39f1ad04e95e756f7590d776e392fe690a",
+            "52bc96884bc06357354fdc5ef19f2237f3234503464b919d1f89bc6dc06213ed",
+            "1510f3bae95adedcb55d86aa181fb3fb64a150dc2f0571329f5029cd28069f29",
+            "485660f76fcf59bf82bc84746f857e8c9e42f4493b6cf78ec7041d7d204644ae",
+            "e0941426a229639d7466c54eb396a94dfa49b8106cb6fba01e0f08a6a33e686e",
+            "13ef27628deef3a297b9b19c59cc72da00f82dcdc201dc13ce1654e2fe41e0c3",
+            "7e029d67762349f20399e77e1f8c6dfc82c7c72094873bb68e3953c33f231ada",
+            "3b592d90d3e5387209bad2712de2884d24c7798370cef64f90eb05408707b042",
+            "26162b87ad206dba84440ad881e36e1cf6abfc2ee5ed21d9377cdc76a9e80480",
+            "af2b7c58dca0cd060953ef81ea51781182b6607788c026acf419a1303857b4de",
+            "7e937075476bcd4a87080acaecdc5fbd9d7aaf6f0f3e8a10f8dff4fc1ef19635",
+            "6219787e0a7f27fa2b2e0622faa469f62bcb1d44f375c3469d32ae14b9085e2f",
+            "cb8667e3d57fa3d7de81474e13edb9c41c00c297252e80087eabfc06a561158e",
+            "37a9c630019057a177db6f7f2778f418ac06542219e8dbe7c99453c0904e3217",
+            "cc8f79f3dcf0df72a462fc86c906e1933fa771c036c9bb0293383b320b5355ea",
+            "186a3e26e2861ce1feca814bbeff9709c3fe43fca9735f36050d9b457e6b455a"
+          ]
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a path node in upper-case hex",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "A8B8BA043FF01E115FE90FA9637A46D127C5F01D7489B6F5DE01B7EF6D4570DD"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "an accepted_at that is an ISO-8601 string",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": "2025-11-01T12:00:03.000Z",
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head of size 0",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 0,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:5krnSmsB74s13MYzTrsbFSWqV645deCLdrzZrthJhpwEeyZEmSmbVrUSFNZYzvP6ipc6E4xAPPsSL9m54hAbDVm3"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head whose log_id is not a lower-case UUID",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4B0E6F2A-91C3-4D7E-A85B-3F12C0D9E6A4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:4NrvdVgQHDqpRiu4YUxgJkkjVY19kHT1wxMFQAniWcUgGVFKsJLWziS7oo3oLT4qCAQyrTrMyEtQ5PtNQsBTxz7r"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head with a member beside the four",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005,
+            "host": "example"
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:3gNVfWrAmbNZ2XYzFTfWSCKAL1EgucUZp4BskCrZdDhxHt6SdWgC74LG836GPBgMfdCYi6dJnEtFDFsZZ6d3gQ4j"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_receipt",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head whose root changed after signing",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_signature",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head signed under the identity head attestation domain",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2iyPSJawpfRmEcEXCLrBiCXQRJeGimuGkGaNaMsTW5W7pbkuG8REesckHt43KFB9GaAQ1sgsnCSdKwqQV7U5VmHr"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "invalid_signature",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head signed by another host's key",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:96pFLepcsQc4DrhupKnc6aB7aJv9bXn6GspkGVqhJ6FC",
+              "signature": "ed25519:hnWQUY7FguwKkfGPcMEVNFNdcPmEUFMLgFXCBzffdoKcDbaAte8pkNZVuDFgqUCNP7ChXJApuMteAXVkRXNUkF5"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "unauthorized_host",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a head signed by the host and a second key",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            },
+            {
+              "key_id": "ed25519:96pFLepcsQc4DrhupKnc6aB7aJv9bXn6GspkGVqhJ6FC",
+              "signature": "ed25519:hnWQUY7FguwKkfGPcMEVNFNdcPmEUFMLgFXCBzffdoKcDbaAte8pkNZVuDFgqUCNP7ChXJApuMteAXVkRXNUkF5"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "unauthorized_host",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+      "why": "a receipt for another record",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "wrong_record",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+      "why": "a leaf whose effects changed: the path no longer reaches the root",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 2,
+            "root": "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+            "signed_at": 1762000002005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2HQaBA5NgoyLrrbkDP5xvjZQT4968bsGWheWGycnESTW634YET83h9LisE6cRK8LcQLvYEVDnKRBC5Gex5Sfkf7P"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "97cd1b687d4630d9131272bc0dc52ae3e97a8c9a59d4255ff23b6e16be472e80",
+          "accepted_at": 1762000002000,
+          "effects": [
+            "670a6b78a4b59774d9a759a624fae21e1a2b71d48e0e93fa01957242301099bf"
+          ]
+        },
+        "path": [
+          "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469"
+        ]
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a leaf whose accepted_at changed",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000002999,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a later head with the path of an earlier size: the record is not the head's last leaf",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 5,
+            "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+            "signed_at": 1762000005005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:GTYsrF6eAYFR9Fb6ZmHWHoZarrKagwtpejzaSE8EN1SWjwQeCVYV86eeCuJksADSXAyAfVSZmLuc66WhKhvCSJi"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "the path of another leaf of the same head",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 5,
+            "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+            "signed_at": 1762000005005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:GTYsrF6eAYFR9Fb6ZmHWHoZarrKagwtpejzaSE8EN1SWjwQeCVYV86eeCuJksADSXAyAfVSZmLuc66WhKhvCSJi"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "8f5a5e23c1cc484962a48dee902d0410ddc8421fee8dc68564383e05b052629f",
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+          "8100c37341bb2ccc1f41b2afec767295afef566671c73f11fd6ae6d6883b1a9e"
+        ]
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a path with one node too many",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+            "signed_at": 1762000003005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000003000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+          "a3f66731263d33972cad86c13acce3978f28aa1e6058d750f5ecc5b237eb4469"
+        ]
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+      "why": "a path with its last node removed",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 5,
+            "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+            "signed_at": 1762000005005
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:GTYsrF6eAYFR9Fb6ZmHWHoZarrKagwtpejzaSE8EN1SWjwQeCVYV86eeCuJksADSXAyAfVSZmLuc66WhKhvCSJi"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "eb77c2a531afa23798a84b4d9af83c0bb343ad958c8fbb805ec7b0fb19d52be9",
+          "accepted_at": 1762000005000,
+          "effects": []
+        },
+        "path": []
+      },
+      "code": "not_included",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    },
+    {
+      "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+      "why": "a leaf accepted after the head that includes it was signed",
+      "receipt": {
+        "head": {
+          "body": {
+            "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+            "size": 3,
+            "root": "0e482400d6fae02a6304a3b3d5ac72a667e51b903759295415428be45797f1ba",
+            "signed_at": 1762000008000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+              "signature": "ed25519:56H95EcgeLFaXCKYRakQYF6fSwYUzfRUJCNe3bYux5Padsb9q9e41cUxqFQx9X4sZDmYd5BhAnTCHAVL5uS9zTnf"
+            }
+          ]
+        },
+        "leaf": {
+          "record": "66135c452db1f6b7f6842fbd2e766979c08fd584874a258d357f1c07bd40c5ee",
+          "accepted_at": 1762000009000,
+          "effects": []
+        },
+        "path": [
+          "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd"
+        ]
+      },
+      "code": "time_order",
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP"
+    }
+  ],
+  "pairs": [
+    {
+      "why": "one head twice",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "same"
+    },
+    {
+      "why": "an unchanged head re-signed at a later time",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762003600000
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2JZ3t4e3z27pmdhi8jCQnJbbWPsfcCmXZiFB7QcJNse5VwQk3R7X5c8BDmD4i4C1yADRf2JnsHUXVb2D1aVPSrmc"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "re-signed"
+    },
+    {
+      "why": "two sizes, the larger signed later",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 2,
+          "root": "a8b8ba043ff01e115fe90fa9637a46d127c5f01d7489b6f5de01b7ef6d4570dd",
+          "signed_at": 1762000002005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2HQaBA5NgoyLrrbkDP5xvjZQT4968bsGWheWGycnESTW634YET83h9LisE6cRK8LcQLvYEVDnKRBC5Gex5Sfkf7P"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 5,
+          "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+          "signed_at": 1762000005005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:GTYsrF6eAYFR9Fb6ZmHWHoZarrKagwtpejzaSE8EN1SWjwQeCVYV86eeCuJksADSXAyAfVSZmLuc66WhKhvCSJi"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "ordered"
+    },
+    {
+      "why": "two heads of one size with different roots: the host equivocated",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "9ab147eca4e5239e1b28cdc104272861f9a73f05725bbdbb305bb80b40717b24",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:36uJJfZqCR7UhHfDWWapthpNp7QfhsfDAT44UUX3wgcYVBsDTyEb8nEucdStQDCspvSjpxW6XPgNPT2ZuCKL2YnY"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "equivocation"
+    },
+    {
+      "why": "a larger head signed before a smaller one",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 4,
+          "root": "874d8e59ba1cb2ea98db16971450a49d847fb74bee6f102f580fa87f6cdd0371",
+          "signed_at": 1762000004005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:L4ydNctvpmb9wkJANiJPGLCR5eizqn5gJaBmepKYfHdnRH3ycF11uH353W8sc6pBCA7Ay4xV8Rh9dekjuKXBncW"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 5,
+          "root": "ef7f7390e7fc6d2daf18fd0f434ee56b027ad71c43e5587dc35b28633feb1887",
+          "signed_at": 1762000001000
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:WjN4sAwCP1XKtooZ3h4fXa46bnmAccdSkti15s5taLjJ8CUndMBjXGP8YgDLJ5QzMvtGY8diegetia5WULGKBHX"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "time_order"
+    },
+    {
+      "why": "heads of two different logs",
+      "a": {
+        "body": {
+          "log_id": "4b0e6f2a-91c3-4d7e-a85b-3f12c0d9e6a4",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:2Uo424KyHwp9qpQ7ahEYwNUAPokhPt2jnEyWkJnpkNefmChPtNQkNnGq1z27wmRaxN1fHCnyDfnnFU5uGaHzJWzK"
+          }
+        ]
+      },
+      "b": {
+        "body": {
+          "log_id": "d3a8c51e-07b2-4f69-9e4d-62a1b7f0c835",
+          "size": 3,
+          "root": "2dba4bd94d5967e6e54d05d5b69200dbb0a3fd7bad945827493412238bde9eea",
+          "signed_at": 1762000003005
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+            "signature": "ed25519:4z5uzzKKMNE75edBFDDa2Qyxn9Sv28iad5Nxh9EwBQDjkPrhinG8CZM6ovDdTrcQiGjQtxsRawawMdcGtVFRBsHG"
+          }
+        ]
+      },
+      "host_key": "ed25519:3vMV71gnH9y6FRpUpewy1YJQvD9W1cCHsbyox5kdQMwP",
+      "result": "unrelated"
+    }
+  ]
+}
