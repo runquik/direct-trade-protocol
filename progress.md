@@ -224,8 +224,8 @@ The foundation and portable-onboarding work is being preserved as an unreleased 
 
 ## September 10 architecture audit
 
-- User confirmed replaceable hosting and support for restricted employee-level HR/payroll as well as company summaries. Future workspace/marketplace and company-built apps must access DTP through common contracts; building that platform is not this pass.
-- Read [the architecture review](docs/DTP_ARCHITECTURE_REVIEW_2026-09-10.md), [whole-business map](docs/DTP_BUSINESS_DOMAIN_MAP.md), and [proposed stress test](docs/DTP_PROTOCOL_STRESS_TEST.md). The proposed direction is a small core, versioned shared profiles and governed publisher-owned extensions. This is not a new released protocol version or agreed Boris sprint.
+- The owner confirmed replaceable hosting and support for restricted employee-level HR/payroll as well as company summaries. Future workspace/marketplace and company-built apps must access DTP through common contracts; building that platform is not this pass.
+- Read [the architecture review](docs/DTP_ARCHITECTURE_REVIEW_2026-09-10.md), [whole-business map](docs/DTP_BUSINESS_DOMAIN_MAP.md), and [proposed stress test](docs/DTP_PROTOCOL_STRESS_TEST.md). The proposed direction is a small core, versioned shared profiles and governed publisher-owned extensions. This is not a new released protocol version or an agreed sprint scope.
 - Live GitHub main matched local HEAD `e5deb7f` at review time. Local browser/finance/disclosure changes remain uncommitted and are distinct from remote/deployed state.
 - Verified locally: 103 default tests, 37 auxiliary tests, TypeScript, 33 embedded-schema parity checks plus v0.3 command schema parity. SDK npm audit returned zero reported advisories. No real PostgreSQL, hosted runtime or browser qualification was performed in this pass.
 - Key blockers: closed type registry, insufficient employee/resource privacy, cooperative bounded migration rather than federation, missing profile/version negotiation and module artifact/assessment contracts, and essential demo workflow state outside portable records. Existing signing/permissions invariants are retained.
@@ -233,11 +233,11 @@ The foundation and portable-onboarding work is being preserved as an unreleased 
 
 ---
 
-## September 17: approved portable onboarding slice
+## September 17: portable onboarding preview
 
-George approved implementation after the NetSuite-shadow planning conversation. The new [onboarding preview](docs/foundation/ONBOARDING_PREVIEW.md) connects the existing foundation person identity registry and authority engine to a persistent local reference host, client-held encrypted identity/recovery files, company creation, accepted memberships, viewer/editor permissions and revocation. Private client UIs live in their own repositories, outside this one. The public DTP repository contains only generic reference/client code, tests and documentation for this slice.
+The owner approved this slice. The [onboarding preview](docs/foundation/ONBOARDING_PREVIEW.md) connects the foundation person identity registry and authority engine to a persistent local reference host: client-held encrypted identity and recovery files, company creation, accepted memberships, viewer and editor permissions, and revocation. Client user interfaces live outside this repository; it holds only generic reference and client code, tests and documentation for this slice.
 
-Pinned Node 22.23.2 validation: 280 foundation tests, 103 default SDK tests and 9 new onboarding tests pass, including real HTTP process restart. Browser verification demonstrated an identity exported by one client opening the same company and notes in the separate DTP reference client. This is client portability, not host migration. Typechecking passed during implementation. No release gates, independent reviews, deployments or real NetSuite connections are claimed. See the linked handoff for exact launch instructions, custody assumptions and remaining production blockers. Existing uncommitted foundation work was preserved.
+Pinned Node 22.23.2 validation: 280 foundation tests, 103 default SDK tests and 9 new onboarding tests pass, including a real HTTP process restart. An identity exported by one client opened the same company and notes in a second client. This is client portability, not host migration. No release gates, independent reviews, deployments or connections to outside systems are claimed.
 
 ## Naming and collaboration boundary
 
@@ -245,90 +245,70 @@ Pinned Node 22.23.2 validation: 280 foundation tests, 103 default SDK tests and 
 
 ---
 
-## Latest: Portable Business Protocol and v0.3 authority preview
+## September: Portable Business Protocol and the v0.3 authority preview
 
-- Deployment follow-up: the user explicitly authorized merge and a shared development deployment. The branch now includes a gated Deno hosting adapter, additive `pbp_v03` migration, private builder-access token, browser-origin allowlist, database timeouts, capacity rollback and a hosted synthetic smoke test. Connection/release instructions are in [PBP_DEVELOPMENT_DEPLOYMENT.md](docs/PBP_DEVELOPMENT_DEPLOYMENT.md). This is not production approval or an implemented browser wireframe; the release PR/task records the deployed revision and smoke result.
-
-- **Portable Business Protocol (PBP)** is the adopted working name. Current prose is renamed; v0.2 wire IDs, schema URIs, package/API symbols, fixture identities, historical records and the GitHub repository name remain compatible. See [PBP_DIRECTION.md](docs/PBP_DIRECTION.md).
-- PR #4 was independently reviewed, two remaining privacy/payment-authority issues were fixed, and it merged to main at `2b75ec4`. The v0.2 suite has 64 tests, with 37 auxiliary and two PostgreSQL tests. Nothing was deployed.
+- **Portable Business Protocol (PBP)** was the working name then. v0.2 wire identifiers, schema URIs, package and API symbols, fixture identities, historical records and the repository name stayed compatible. See [PBP_DIRECTION.md](docs/PBP_DIRECTION.md).
+- PR #4 was independently reviewed, two remaining privacy and payment-authority issues were fixed, and it merged to main at `2b75ec4`. The v0.2 suite had 64 tests, with 37 auxiliary and two PostgreSQL tests.
 - The separate [v0.3 reference preview](spec/v0.3/SPEC.md) implements person identities, accepted company memberships, explicit capabilities, installation-scoped module keys, exact signed attribution, controller quorum, retained-key recovery, and pinned trusted-store migration. It uses `/pbp-store/commands` and isolated `pbp_v03` persistence, not a v0.2 root-credential proxy.
-- [Passport core](modules/passport/README.md) and `cd sdk; npm run demo:passport` demonstrate one person entering three fictional companies and retaining access to two after revocation in the third. No private keys are printed. This is a developer walkthrough, not a browser dashboard.
-- Local validation on Node 22.23.2: 84 conformance tests (64 existing + 20 v0.3), 37 auxiliary tests, type-checking, generated v0.2 artifact compatibility and the Passport walkthrough pass. The additional v0.3 PostgreSQL concurrency tests require the disposable CI database; local PGlite is not proof of multi-connection PostgreSQL behavior.
-- New code remains a reviewable preview. Do not merge/deploy it as production authority without independent review and the explicit gates in the v0.3 specification. Whole-state JSON persistence, source-store trust, bounded migration and absence of all-keys-lost recovery are intentional limits, not solved production concerns.
-- The role-oriented movable-widget workspace, notifications and connected-module bars are captured in [PASSPORT_DEMO.md](docs/PASSPORT_DEMO.md); UI, custody UX, general job execution, the full consumer evidence verifier and marketplace billing are still next work.
-- Preserve Boris's agreed v0.2 revision until the builders explicitly choose otherwise. ShelfKit demo and module split remain pending agreement; synthetic data, simulated buyer/lender/funds and independent signing remain the sprint boundary.
+- A gated hosting adapter, an additive `pbp_v03` migration, a builder-access token, a browser-origin allowlist, database timeouts, capacity rollback and a synthetic smoke test were added for one shared development deployment. That deployment is not part of the protocol and was never production approval.
+- [Passport core](modules/passport/README.md) and `cd sdk; npm run demo:passport` show one person entering three fictional companies and keeping access to two after revocation in the third. No private keys are printed. This is a developer walkthrough, not a dashboard.
+- Validation on Node 22.23.2: 84 conformance tests (64 existing + 20 v0.3), 37 auxiliary tests, type-checking, generated v0.2 artifact compatibility and the Passport walkthrough passed. The v0.3 PostgreSQL concurrency tests need the disposable CI database; local PGlite is not proof of multi-connection PostgreSQL behaviour.
+- The v0.3 code is a reviewable preview, not production authority, until it passes independent review and the gates in the v0.3 specification. Whole-state JSON persistence, source-store trust, bounded migration and the absence of all-keys-lost recovery are intentional limits.
+- The workspace layout ideas are in [PASSPORT_DEMO.md](docs/PASSPORT_DEMO.md); user interface, custody UX, general job execution, the full consumer evidence verifier and billing were left as later work.
+- The v0.2 revision agreed for the interop sprint stays until the builders choose otherwise. Synthetic data, a simulated buyer, lender and funds, and independently written signing were the sprint boundary.
 
 ---
 
-## September 6 save point: infrastructure hardening and workspace direction
+## September 6: infrastructure hardening and workspace direction
 
-The September 4 save point below is historical. The current fix batch and remaining gates are in [docs/INFRA_HARDENING_2026-09-06.md](docs/INFRA_HARDENING_2026-09-06.md). Read that before treating the old "all findings closed" statement as current.
+The September 4 save point below is historical. The fix batch and remaining gates are in [docs/INFRA_HARDENING_2026-09-06.md](docs/INFRA_HARDENING_2026-09-06.md). Read that before treating the old "all findings closed" statement as current.
 
-- Privacy, filtered sync, exact retries, agreed-term/evidence integrity, immutable settlements, finance revision/assignment controls, last-root safeguards and serialized write authorization have been tightened. Schemas and SPEC move together; original signature vectors are unchanged.
-- Local default suite: 63 tests; auxiliary suite: 37. Node 22.23.2 is the qualified local runtime. Actual deployed Edge runtime remains a separate gate. CI includes disposable PostgreSQL concurrency checks. No live deployment is implied.
-- Passport token recovery and the full consumer-side evidence verifier remain prerequisites for real operations; do not onboard real companies or advance real money based on this batch alone.
-- Proposed sprint split is Passport + Early Pay on George's side, brand-side Trade Ledger + Books on the other side, pending the existing-product demo and agreement on the end-to-end test. Simulated lender and payments; independently built signing; records must flow both directions. The earlier "then Trade Ledger" instruction below is superseded as a working plan, not evidence that the new split has been accepted.
-- [Workspace foundations](docs/WORKSPACE_FOUNDATIONS.md): same operations across chat/manual UI, narrow permissions, durable jobs/approvals, usage receipts later. No marketplace or workspace implementation added.
+- Privacy, filtered sync, exact retries, agreed-term and evidence integrity, immutable settlements, finance revision and assignment controls, last-root safeguards and serialized write authorization were tightened. Schemas and SPEC moved together; the original signature vectors are unchanged.
+- Local default suite: 63 tests; auxiliary suite: 37. Node 22.23.2 is the qualified local runtime; any deployed runtime is a separate gate. CI includes disposable PostgreSQL concurrency checks.
+- Passport token recovery and the full consumer-side evidence verifier remain prerequisites for real operations.
+- A split of the sprint modules between the two builders was proposed, pending agreement on the end-to-end test: simulated lender and payments, independently built signing, records flowing in both directions.
+- [Workspace foundations](docs/WORKSPACE_FOUNDATIONS.md): the same operations across chat and manual UI, narrow permissions, durable jobs and approvals, usage receipts later. No workspace implementation was added.
 
 ---
 
-## Historical September 4 save point
+## September 4: the v0.2 baseline (historical)
 
-*Read this first when picking the project back up. It replaces the March 2026 contract-era `task_plan.md` / `findings.md`.*
+*This replaced the March 2026 contract-era `task_plan.md` and `findings.md`.*
 
-## Where we are
-
-**The protocol is v0.2 — a company record protocol — and it is running.**
-
-- `SPEC.md` v0.2: a company's signed, append-only record store; modules read/write under grants; namespaces `core`, `trade`, `finance`, `traceability`. A company has **no role** — roles (buyer, seller, financer, arbitrator…) are per record. `business_types` is optional, plural, descriptive only.
+- `SPEC.md` v0.2: a company's signed, append-only record store; modules read and write under grants; namespaces `core`, `trade`, `finance`, `traceability`. A company has **no role**: roles (buyer, seller, financer, arbitrator) are per record. `business_types` is optional, plural and descriptive only.
 - Normative artifacts: `spec/schemas/**` (33 schemas, 16 record types), `spec/schemas/index.json`, `spec/vectors/**`. Generated: `spec/generated/`.
-- Reference store: `supabase/functions/dtp-store` (Deno edge function; handlers are HTTP-agnostic and also run in Node). Schema `protocol` via `supabase/migrations/20260903000000_protocol_store.sql`.
-- SDK + tooling + tests: `sdk/` (`npm test` = 43 tests; `node scripts/dev-server.ts` = no-Docker local store on PGlite; `npm run seed`; `scripts/keygen.ts`, `scripts/sign.ts`).
-- **Live**: `https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store` on Supabase project ref `vsuqtdofphppybkhnijg` (being renamed from `dtp-marketplace` to `dtp` in the dashboard). 43/43 tests pass against it. Seeded fixtures: `acme-sauce.dtp`, `bluestem-dist.dtp`, `demo-fin.dtp`, module `demo-financing`, one contract + a fulfillment attested by both sides. Keys/tokens in gitignored `sdk/fixtures/dev-keys.json` (re-run `STORE_URL=… npm run seed -- --prefix <x>` if lost).
-- Red-teamed (2026-09-04): cold black-box, white-box, and fuzz agents. All findings closed and covered by `sdk/tests/06_redteam.test.ts`; harnesses kept in `sdk/tests/redteam/` and `sdk/tests/fuzz/` (excluded from `npm test`). Details: `sdk/tests/redteam/FINDINGS-whitebox.md`, `sdk/tests/fuzz/FINDINGS-fuzz.md`.
-- Docs for an outside builder: `docs/PROTOCOL_STORE.md` (quickstart), `docs/SPRINT_01_PROTOCOL_INTEROP.md` (sprint brief), `docs/SPRINT_01_GAP_LOG.md` (empty, append-only).
-- Prior-art research that drove all of this: `research/` (8 dossiers + `SYNTHESIS.md` + `TIMELINE.md`).
+- A reference store whose handlers are HTTP-agnostic and also run in Node, with its SQL migration. The SDK, tooling and tests live in `sdk/` (`npm test` was 43 tests then; `node scripts/dev-server.ts` runs a local store on PGlite; `npm run seed`; `scripts/keygen.ts`, `scripts/sign.ts`). Seeded fixtures were fictional companies and one demo module; development keys stay in a gitignored file.
+- Red-teamed on 2026-09-04 by cold black-box, white-box and fuzz passes. The findings were closed and covered by `sdk/tests/06_redteam.test.ts`; harnesses are in `sdk/tests/redteam/` and `sdk/tests/fuzz/` (excluded from `npm test`). Details: `sdk/tests/redteam/FINDINGS-whitebox.md`, `sdk/tests/fuzz/FINDINGS-fuzz.md`.
+- Docs for an outside builder: `docs/PROTOCOL_STORE.md` (quickstart), `docs/SPRINT_01_PROTOCOL_INTEROP.md` (sprint brief), `docs/SPRINT_01_GAP_LOG.md` (append-only).
+- Prior-art research: `research/` (8 dossiers, `SYNTHESIS.md`, `TIMELINE.md`).
 
-## Sprint 01 with Boris (Gearkit)
+## Sprint 01: two-builder interop (historical)
 
-Four candidate modules; each builder picks two. Success = sign up once / a stranger's module works without a conversation / a money decision from records alone / everyone sees the same truth / nobody saw or did what they weren't allowed to / a gap list, not just a demo. See the sprint brief §4–6.
+Four candidate modules; each builder picks two. Success: sign up once; a stranger's module works without a conversation; a money decision from records alone; everyone sees the same truth; nobody saw or did what they were not allowed to; a gap list, not just a demo. See the sprint brief §4–6.
 
 | Module | What it does |
 |---|---|
-| **Passport** | onboard a company once; manage keys; grant/revoke module access; "my protocol state" view |
+| **Passport** | onboard a company once; manage keys; grant and revoke module access; a "my protocol state" view |
 | **Trade Ledger** | buyer orders, seller ships and attests, buyer attests receipt |
-| **Early Pay** | watches for attested deliveries, issues invoice, offers an advance from records alone, records payout/payoff |
-| **Books** | read-only: who owes whom, paid/overdue, full history — assembled from others' records |
+| **Early Pay** | watches for attested deliveries, issues an invoice, offers an advance from records alone, records payout and payoff |
+| **Books** | read-only: who owes whom, paid or overdue, full history, assembled from others' records |
 
-Hit list after: Inventory (with manufacturing = lot transformation), Reputation (derived, cannot self-grade), then Demand Plan, aging-stock marketplace.
+Later candidates: Inventory (with manufacturing as lot transformation), Reputation (derived, cannot self-grade), Demand Plan, an aging-stock marketplace.
 
-## NEXT: build Passport (George's module #1)
+## The planned first module, Passport (historical)
 
-Agreed shape for every module — **core library + MCP surface + minimal web page**:
+Every module was to be a core library, an MCP surface and a minimal web page:
 
-1. `modules/passport/` — a small TypeScript package using `sdk/` (`DtpStoreClient`, `draft`, `signRecord`, `generateKeyPair`). Pure functions, no UI deps:
-   - `onboardCompany({display_name, jurisdiction, locations, business_types?})` → generates root key, signs genesis `core.company`, `POST /companies`, returns ids + secret key + token (caller stores them).
-   - `addKey` / `revokeKey` (supersede the spine with a root key; delegate keys for agents/NEAR sub-accounts).
-   - `grantModule(company, module_id, scopes, expires_at?)` / `revokeGrant` (supersede the `core.grant` chain).
-   - `myState(company)` → everything visible about the company, grouped by namespace + head/version counts, from `GET /records?subject=…` and `?counterparty=…` plus `GET /companies/{id}` and `/grants`.
-   - Key custody for the sprint: a local encrypted-at-rest JSON file per company (mock KYB); note as a gap-log item.
-2. **MCP server** exposing those as tools (`passport_onboard_company`, `passport_add_key`, `passport_grant_module`, `passport_revoke_grant`, `passport_my_state`, `passport_list_modules`) — reuse the stateless MCP-over-HTTP shim from `marketplace/server/dtp-mcp/index.ts:829-904` or `@modelcontextprotocol/sdk` stdio for Claude Code.
-3. **Minimal web page** (plain HTML + fetch, no framework): the "my protocol state" view that fills up as other modules write; grant/revoke buttons.
-4. Tests against the dev store (`storeUnderTest()` pattern from `sdk/tests/helpers.ts`); the demo narrative: onboard Acme in < 5 min → grant `demo-financing` → watch the drawer accrete.
+1. `modules/passport/`: a small TypeScript package on `sdk/` (`DtpStoreClient`, `draft`, `signRecord`, `generateKeyPair`), pure functions, no UI dependencies: `onboardCompany`, `addKey` / `revokeKey`, `grantModule` / `revokeGrant`, and `myState`, which lists everything visible about the company. Key custody for the sprint: a local encrypted-at-rest JSON file per company (mock KYB), logged as a gap.
+2. An MCP server exposing those as tools.
+3. A minimal web page (plain HTML and fetch) for the "my protocol state" view, with grant and revoke buttons.
+4. Tests against the development store (the `storeUnderTest()` pattern in `sdk/tests/helpers.ts`). Each module starts by reading `docs/PROTOCOL_STORE.md` cold and logging anything unclear in the gap log.
 
-Then **Trade Ledger** the same way. Start each module by reading `docs/PROTOCOL_STORE.md` cold and logging anything unclear in the gap log — George's builds count as gap-log input too.
+## Phase 2 leftovers (historical; none blocked the sprint)
 
-## Phase 2 leftovers (none block the sprint)
+- `spec/examples/**` and `sdk/scripts/check-examples.ts` / `check-transitions.ts`.
+- An optional MCP surface over the store itself.
+- Report the JavaScript engine's `JSON.parse` key bug found by the fuzzer upstream (`sdk/tests/fuzz/repro-v8-*.mjs`).
+- Design `trade.dispute` (arbitrator as subject), a documented gap in SPEC §3.5.
 
-- `spec/examples/**` + `sdk/scripts/check-examples.ts` / `check-transitions.ts`.
-- Optional MCP surface over the store itself (`supabase/functions/dtp-store-mcp`).
-- Report the V8 `JSON.parse` key bug found by the fuzzer upstream (`sdk/tests/fuzz/repro-v8-*.mjs`).
-- Refresh the sprint one-pager artifact if it's going to be shared.
-- Design `trade.dispute` (arbitrator as subject) — currently a documented gap in SPEC §3.5.
-
-## Operational notes
-
-- Deploy: `./sdk/node_modules/.bin/supabase functions deploy dtp-store --no-verify-jwt --use-api` (from repo root). **Check `supabase projects list` shows `vsuqtdofphppybkhnijg` first** — George has a second Supabase account and a login on the wrong one yields 403s.
-- Migrations: `supabase db push`. Secrets already set (`SUPABASE_DB_URL`); the function derives the pooler URL from it.
-- Always run `STORE_URL=<prod> npm test` after deploying; the local PGlite store cannot reproduce connection-pool or driver-format issues.
-- Docker Desktop cannot be launched from Claude's sandbox; not needed (PGlite covers local dev).
+This section once held deployment notes for one development account. They were not protocol material and were removed on 2026-11-13; run the suites locally as [CONTRIBUTING.md](CONTRIBUTING.md) describes.
