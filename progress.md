@@ -1,8 +1,96 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 9: a reservation's party must match its claim ([#145](https://github.com/runquik/direct-trade-protocol/issues/145))
+
+The owner chose option 1 on November 4, for `inventory@2` and `flow@1` alike. A `reserve` on an existing `reservation_id` tops up the claim only when it names the same party; any other party, or `null` against a party, is `invalid`. A `release` or `fulfill` must name the claim's party, checked after the claim is found at its position and before the quantity. The reference reducers and both interop readers change the same way. The fixtures' existing release and fulfill operations now name their claim's party, and new cases pin a same-party top-up and each refused mismatch; the contract digests are unchanged. Builders: a host that matched claims by `reservation_id` alone now disagrees with the fixtures. It changed a packed entry after the `0.2.1-dev.1` boundary the November 8 entry names; #182 corrects that boundary (#181).
+
+## November 9: Core-1 signed records, `DTP-RECORD-1` ([#157](https://github.com/runquik/direct-trade-protocol/issues/157))
+
+The first piece of Core-1 step 4. [`spec/core-1/README.md`](spec/core-1/README.md) part 5 now defines the body of a signed record: issuer and its identity-log head, organisation and its governance head, profile digest, sequence and `supersedes`, `issued_at`, payload. The reference verifier is `sdk/src/core1/record.ts`: the record digest, the signer check against the named heads and the supersession check. New vectors `spec/core-1/vectors/record.json`. No new signing domain. Still open, each in its own pull request waiting for the owner: the host's log-head receipt `DTP-LOG-HEAD-1` (#179) and the exchange bundle with offline verification and `stale_head` (#180).
+
+## November 9: identity log format 1 is withdrawn ([#157](https://github.com/runquik/direct-trade-protocol/issues/157))
+
+Core-1 part 4 allows one identity log format, `dtp-identity-log-2`, with format 1 withdrawn before release, but the reference verifier still accepted `dtp-identity-log-1`. `verifyIdentityLog` now refuses format 1 like any unknown format, and the export `LEGACY_IDENTITY_LOG_FORMAT` is renamed `WITHDRAWN_IDENTITY_LOG_FORMAT`. In `spec/vectors/identity-log.json` the format 1 accept case becomes a refusal (7 accept, 48 reject) and the top-level key `legacy_format` becomes `withdrawn_format`. `identity-log.md` rule 1 and the Core-1 order of work follow the owner's decision of November 5. Builders: a log written in format 1 no longer verifies; an import of the old export name fails to compile. This is Core-1 step 3, part 1 of 3; parts 2 and 3 (#168, #183) wait for the owner. It changed a packed entry after the `0.2.1-dev.1` boundary the November 8 entry names; #182 corrects that boundary (#181).
+
 ## November 8: `@dtp/sdk` names its own version ([#73](https://github.com/runquik/direct-trade-protocol/issues/73))
 
 The owner decided on October 22 that every change to the behaviour of a packed SDK entry bumps the version, and on November 4 that the label is `0.2.1-dev.N` with a changelog. The SDK is now `0.2.1-dev.1`, and `npm pack` writes `dtp-sdk-0.2.1-dev.1.tgz`, which ships the new [`sdk/CHANGELOG.md`](sdk/CHANGELOG.md). Its packed entries behave exactly as a `0.2.0` artifact packed at `9946c60` or later. The builder baseline's table of `0.2.0` artifacts gains the seven merges since `c1445bb` that changed a packed entry (#113, #125, #156, #162, #118, #114, #151) and is closed; from now on, a pull request that changes a packed entry bumps `N` and adds a changelog entry. `sdk/tests/release/version-changelog.test.ts` checks the label, the entry, the lockfile and the example's tarball path. Builders: pin the version and the commit; the example module's dependency path follows the version.
+
+## November 7: an `inventory@2` ledger opens only under its product's policy ([#130](https://github.com/runquik/direct-trade-protocol/issues/130))
+
+The owner chose option 1. `inventory.open` let the caller name any policy it could write, so a member with read-only access to a product could open the company's one ledger for it elsewhere and lock the product's own compartment out. The live path now refuses a `policy_id` other than the product record's policy with `403 forbidden`, after the product lookup and before the `409` for an existing ledger; the write check falls on the product's policy. Snapshot import refuses a ledger opened under another policy with `invalid_snapshot`. SPEC section 6 and `inventory/2.md` state the rule, and `snapshot-import.json` gains the case `ledger-opened-under-other-policy`. Regression test `tests/v04/inventory2-ledger-policy.test.ts`.
+
+## November 7: a snapshot carries owned state only ([#107](https://github.com/runquik/direct-trade-protocol/issues/107))
+
+The owner chose option 2 on November 2. `buildSnapshot` no longer emits `remote_authorities`, so `snapshot_hash` depends only on what migrates, and a refresh of a counterparty's authority during the migration window no longer forces a new prepare. `validateSnapshot` requires exactly the nine owned-state members and refuses any other shape with `invalid_snapshot`; SPEC v0.4 section 8 lists them. `snapshot-import.json` is regenerated (every hash moves) with a new reject case `carries-remote-authorities`; regression test `tests/v04/snapshot-owned-only.test.ts`. Builders: a destination must refuse a snapshot that still carries the cache, and a source must stop sending it.
+
+## November 7: membership revocation ends policy grants ([#98](https://github.com/runquik/direct-trade-protocol/issues/98))
+
+A grant now counts only when the policy revision carrying it was signed after the person's latest `membership.revoke` in the company, so re-admitting a person no longer restores grants that no steward re-signed. A revocation signed before a newer granting revision is refused `409 conflict`, and a policy command signed at or before the grantee's latest revocation is refused `400 invalid`. The rule is derived from signed history only: no new state field and no snapshot format change. New vectors `spec/vectors/membership-revocation.json` (11 scenarios) and `sdk/tests/v04/membership-revocation.test.ts`, 6 of which fail without the fix. SPEC sections 3 and 4 and the builder baseline say so. Under the November 5 existence rule (#89), a re-admitted person's write is answered `404`.
+
+## November 7: records are numbered per organization ([#71](https://github.com/runquik/direct-trade-protocol/issues/71))
+
+The owner chose option (b). Every record's `seq` came from one host-wide counter, so the gap between two of a company's own `seq` values counted every other company's writes on the host. Each organization now has its own counter; a store without one continues after the company's highest existing `seq`. A snapshot numbers its records 1 to n and an import starts the company's own sequence, so staged imports reserve no shared capacity. An exhausted company sequence refuses the write `507 capacity`. SPEC section 6 ("Record sequence") and the section 8 capacity row state it. `tests/v04/record-seq.test.ts` replaces gap test #70. Builders: do not read meaning into `seq` across companies.
+
+## November 7: a key that left the company's control no longer blocks import ([#137](https://github.com/runquik/direct-trade-protocol/issues/137))
+
+The owner chose A1, B1 and C on November 4. At import, only a key that can still act for the company (a person's current key, an active installation's key) must be free at the destination; a retired key or a revoked installation's key is historical and does not refuse the import, though keys still may not alias inside the snapshot. A person the destination holds with another key history is kept as the destination holds it when the person is not a controller, active member or pending invitee; otherwise the import is refused `409 conflict`, naming the person and the remedy. Every key-collision refusal names the person or installation. SPEC sections 3 and 8 state the rules; new vectors `spec/vectors/snapshot-key-collision.json` (3 import, 4 conflict). `tests/v04/migration-key-squat.test.ts` replaces gap test #138.
+
+## November 7: a `flow@1` offset nets at least two distinct claims ([#135](https://github.com/runquik/direct-trade-protocol/issues/135))
+
+The owner decided on November 4 that an offset whose entries name fewer than two distinct claims, one claim twice for example, is refused `invalid`. The reducer and the interop reader compare offset claims as whole object references, and one refused fixture is added. The schema and contract digest are unchanged.
+
+## November 6: a Core-1 signed body nests at most 48 levels ([#149](https://github.com/runquik/direct-trade-protocol/issues/149))
+
+The owner chose option 1 on November 4. Core-1 part 1 sets a maximum nesting depth of 48, the v0.4 transport bound: the body is level 0 and each array or object adds one. `signEnvelope` and `verifyEnvelope` check it before canonicalizing, without recursion, so a deep envelope is `invalid_envelope` whatever the stack size, never a `RangeError`. `spec/core-1/vectors/envelope.json` gains an accept case at depth 48 and a reject case at depth 49. `tests/20_core1_depth.test.ts` replaces gap test #150.
+
+## November 6: the observation window is an exact inequality ([#144](https://github.com/runquik/direct-trade-protocol/issues/144))
+
+The owner chose option A on November 4: keep the reference window. With mark M, the window is M−63 to M, and an unseen sequence s ≤ M−64 is `stale_observation`. `inventory/2.md` (Semantics 5) and `flow/1.md` (Semantics 6) state the inequality with the judging order and an example, and the builder baseline's deduplication row says the same. The fixtures of both kinds gain three facts at the boundary (M−64 refused, M−63 accepted, then the same sequence a duplicate), and a new check shows they disagree with a 63- or 65-wide window. No reducer behaviour or contract digest changes. The gap test from #146 is removed, because the behaviour it recorded is now normative.
+
+## November 5: `flow@1` refuses a fact issued before its ledger's opening ([#119](https://github.com/runquik/direct-trade-protocol/issues/119))
+
+The owner chose option (b) on November 2: the commands' `issued_at` orders a flow fact against the opening of a ledger it changes, on the live path and on import alike. `record.append` now refuses such a fact with `409 conflict`; an equal `issued_at` is accepted. So every book a host commits also imports. `flow/1.md` and SPEC section 6 state the rule, and `snapshot-import.json` gains the case `flow-fact-before-opening`. `tests/v04/flow-issuedat-order.test.ts` fails 2 of 2 without the fix.
+
+## November 5: snapshot-import vectors cover `object@1` and `flow@1` (drift)
+
+`spec/vectors/snapshot-import.json`, which SPEC section 8 names as the conformance definition for import, carried only the first five kinds. Its base company now also holds an `object@1` location and a `flow@1` book with one goods ledger and one fact, and three new cases are refused `invalid_snapshot`: an object revision that changes its class, a flow fact pinning an unpublished pack conversion, and a carried flow book that replay does not produce. No host rule, schema or contract digest changes. Builders: run the new cases against your import.
+
+## November 5: a Core-1 envelope body that is not I-JSON is `invalid_envelope` ([#124](https://github.com/runquik/direct-trade-protocol/issues/124))
+
+`verifyEnvelope` let a float or canonicalization error escape for a body holding a fraction, an integer beyond 2^53−1 or a lone surrogate, outside its two-code contract. Both now map to `invalid_envelope`; `envelope.json` gains three reject vectors and Core-1 part 3 states the two codes. Signing is unchanged.
+
+## November 5: a refused write no longer reveals what the caller cannot read ([#89](https://github.com/runquik/direct-trade-protocol/issues/89))
+
+The read paths answer an absent, foreign or unreadable record or policy identically; the write paths did not. Under the owner's decision to harden, a denied write now answers `404` unless the caller can read the named resource, in which case it stays `403`. This covers `record.append`, `inventory.create`, `inventory.open`, `flow.open`, `flow.ledger.open` and the `evidence.inspect` recipient compartment, and an unreadable or foreign predecessor is treated as absent. SPEC section 4 gains "Refusals and existence"; new vectors `spec/vectors/write-existence.json`, checked by `tests/v04/write-existence.test.ts`, which replaces gap test #90. Still open: per-company object identifiers for pools, books and ledgers (#89 part 2), which waits for the owner.
+
+## November 5: integers are lexical ([#97](https://github.com/runquik/direct-trade-protocol/issues/97))
+
+SPEC section 2 said safe-integer-only JSON without saying whether `1.0`, `1e0` or `1.0000000000000001` is an integer, and the reference checked after parsing to binary64 and accepted all three. The owner chose a lexical rule: an integer is an optional minus sign and digits. The v0.4 router answers `400 non_integer_number`, and `migration.ready` refuses such a snapshot as `invalid_snapshot`. Frozen layers are unchanged. `unsafe-json.json` gains a numbers section (11 refuse, 6 accept). Builders: a host that parses first and checks after now disagrees with the vectors.
+
+## November 5: `party@1` country is shape only ([#94](https://github.com/runquik/direct-trade-protocol/issues/94))
+
+The owner decided that `country` is exactly two upper-case ASCII letters, and that checking assigned ISO 3166-1 codes is host policy, not conformance. The profile document says so, and the fixtures gain a `ZZ` accept and lower-case rejects (6 accept, 19 reject, 7 continuity). The contract digest and reference code are unchanged.
+
+## November 5: a held refusal is checked before the pinned-history conflict ([#69](https://github.com/runquik/direct-trade-protocol/issues/69))
+
+`identity-log.md` said both the pinned-history comparison and the held-refusal check came before every other admission rule. The owner chose `refused-move`, which is what the judge already returns. The sentence is reworded and one admission vector covers a log where both apply; the earlier vectors are byte-identical and no code changes.
+
+## November 5: the builder baseline pins `622c5d1` and lists every registered kind ([#73](https://github.com/runquik/direct-trade-protocol/issues/73))
+
+`EXTERNAL_BUILDER_BASELINE.md` section 1 pinned `622c5d1` and listed the six packed-SDK changes since `444a0c4`; the November 8 entry has since replaced the pin with the SDK version. The baseline's supported surface now names all seven registered kinds, and its entry table the `core1`, `act`, `object` and `flow` namespaces.
+
+## November 4: `flow@1` projects positions that differ only in `record_id` as one ([#133](https://github.com/runquik/direct-trade-protocol/issues/133))
+
+`projectInventory2` maps two own positions whose location references differ only in `record_id` to one `inventory@2` position, and overwrote the earlier one, dropping its stock from the view. It now sums the quantities and joins the serials in sorted order. The interop reader gets the same fix, `flow/1.md` states the rule, and the serialized fixture book gains a fact that pins it.
+
+## November 4: the packed SDK pins its runtime validator ([#139](https://github.com/runquik/direct-trade-protocol/issues/139))
+
+A packed tarball ships no lockfile, so `^4.1.1` let every consumer resolve `@cfworker/json-schema` 4.1.4, a validator the suite never ran. The dependency is pinned exactly to 4.1.1, and a release test requires every runtime dependency to be an exact version equal to the lockfile's with no dependencies of its own. The builder baseline says the integrity hash does not cover the dependency, and the exact pin is what keeps it fixed. Since November 3 the packaging test also packs and unpacks the real tarball, and fails if an entry's files or a runtime dependency are missing from it ([#117](https://github.com/runquik/direct-trade-protocol/issues/117)).
+
+## November 4: two documented limits of governance ([#127](https://github.com/runquik/direct-trade-protocol/issues/127), [#88](https://github.com/runquik/direct-trade-protocol/issues/88))
+
+`organization-identity.md` now says, next to the guarantee, that replay under `controlFromIdentityLogs` proves consent by keys current at some head of each person's log, not by the controllers as they are now: a threshold of retired operational keys can sign a fork that replay accepts, so a verifier without a clock must not treat a governance log as evidence of present control. SPEC section 3 gains a steward availability note: only active stewards count, a policy below its threshold can be neither updated nor migrated, no controller quorum overrides it in this candidate, and operators should keep active stewards above the threshold. No behaviour changes. Still open: a governance pin (with the data-layer proposal, #129), and the steward recovery path (#88 part a, now #177), which waits for the owner.
 
 ## October 23: a string value may not contain U+0000 ([#95](https://github.com/runquik/direct-trade-protocol/issues/95))
 
@@ -15,6 +103,15 @@ The owner chose option 1 on October 22. A relying party advances its person chec
 ## October 23: a terminal order takes no revision ([#76](https://github.com/runquik/direct-trade-protocol/issues/76))
 
 The owner decided on October 22 that an `order@1` revision that keeps the status is allowed only while `placed`, `acknowledged` or `partially_fulfilled`, and that `rejected`, `cancelled` and `closed` accept no revision at all. The transition table in [`spec/profiles/order/1.md`](spec/profiles/order/1.md) now lists every revision an order may take, same-status ones included, and `checkOrderContinuity` checks it on every revision instead of only when the status changes. The interop reader `sdk/tests/interop/order-reader.ts` changes the same way. `fulfilled` is not listed, so `fulfilled` to `fulfilled` is refused too. The fixtures gain 1 accept and 5 reject continuity pairs and drop none; the schema and contract digest are unchanged. `sdk/tests/profiles/order-terminal-revision.test.ts` replaces gap test #77. Local suite on Node 22.23.2: 126 default, 201 v0.4/profile/interop/release, 320 foundation, typecheck clean. Builders: a host that accepts a revision of a terminal order, for example one that only adds an external identifier, now disagrees with the fixtures.
+
+## October 22: Core-1, the minimal profile, and its envelope
+
+[`spec/core-1/README.md`](spec/core-1/README.md) is a proposal the owner accepted in direction: the least two parties who have never met need to create identities and exchange a signed record each can verify offline. I-JSON with names that need no escape and integer-only numbers; SHA-256, strict Ed25519 and one encoding each for keys, signatures and time; one signed envelope `{body, signatures}` over `{domain, body}` with permanent domains; the foundation person and organisation identities and portable logs; signed records and offline-verifiable exchange bundles. Everything else becomes an optional extension. Its first two steps merged the same day:
+
+- **I-JSON** ([#91](https://github.com/runquik/direct-trade-protocol/pull/91)). The pre-parse guard refuses an object that names a member twice with `duplicate_member_name`, and `canonicalize()` refuses a member name with a quotation mark, a reverse solidus or a control character, so a producer cannot sign what a receiver refuses. `unsafe-json.json` gains 5 refusals and 4 acceptances, each refusal names its code, and `canonicalization.json` drops the cases a non-JavaScript implementation could not reproduce or that contradicted the member-name rule. Builders: a host now answers `400 duplicate_member_name` to text it accepted before.
+- **Envelope** ([#93](https://github.com/runquik/direct-trade-protocol/pull/93)). `signEnvelope(domain, body, keys)` and `verifyEnvelope(domain, envelope)`: the verifier supplies the domain; any extra member, a key signing twice, a key id that is not a key, a domain without a format version, or one failing signature refuses the whole envelope. `CORE1_DOMAINS` lists the domains. `spec/core-1/vectors/envelope.json` reproduces byte for byte. Exported from the preview entries as `core1`; the stable entry is unchanged.
+
+Also on October 22, `canonicalization.json` gained a case whose key order differs by UTF-16 code unit and by code point ([#79](https://github.com/runquik/direct-trade-protocol/issues/79)), so a canonicalizer sorting by code point now fails a published vector. The reference already sorted by code unit.
 
 ## October 22: reserved stock ships in one fact, and pack conversions match by value ([#85](https://github.com/runquik/direct-trade-protocol/issues/85), [#99](https://github.com/runquik/direct-trade-protocol/issues/99))
 
