@@ -68,6 +68,16 @@ export function migrationModuleReserved(s: State, moduleId: string): boolean {
 export function migrationInstallationReserved(s: State, installationId: string): boolean {
   return readySnapshots(s).some(snap => Object.hasOwn(snap.organization.installations,installationId));
 }
+// A source keeps at most one payload copy per company, and only while a
+// destination can still use it. Commit, cancellation and manifest expiry each
+// end that use (staging, upload and readiness all require a live manifest), and
+// a newer preparation by the same company supersedes the payload of an older
+// one. Manifests and receipts stay for verified retries; only chunks go.
+function releaseChunks(out: State["outgoing"][string]) { out.chunks = []; }
+function releaseStalePayloads(s: State, organizationId: string, now: number) {
+  for (const out of Object.values(s.outgoing))
+    if (out.chunks.length && (out.manifest.organization_id === organizationId || instant(out.manifest.expires_at) <= now)) releaseChunks(out);
+}
 export async function migrationPrepare(s: State, c: Command, ctx: Context, snapshot: Snapshot, destination: { audience: string; key_id: string }) {
   exact(destination, ["audience", "key_id"]);
   const org = s.organizations[snapshot.organization.id];
@@ -84,11 +94,13 @@ export async function migrationPrepare(s: State, c: Command, ctx: Context, snaps
   const prior = s.outgoing[manifest.migration_id];
   if (prior) { demand(await digest(prior.authorization) === await digest(c), "conflict", "migration ID already used", 409); return structuredClone(prior.manifest_token); }
   const manifest_token = await signToken(body("migration-manifest", ctx, manifest.expires_at, { actor_id: c.actor.id, manifest }), ctx);
+  releaseStalePayloads(s, org.id, ctx.now);
   s.outgoing[manifest.migration_id] = { manifest, chunks, manifest_token, authorization: structuredClone(c) };
   return structuredClone(manifest_token);
 }
-export function migrationChunk(s: State, migrationId: string, index: number) {
+export function migrationChunk(s: State, migrationId: string, index: number, now?: number) {
   const out = s.outgoing[migrationId]; demand(out, "not_found", "migration unavailable", 404);
+  demand(out.chunks.length > 0 && !out.commit_token && !out.cancel_token && (now === undefined || instant(out.manifest.expires_at) > now), "expired", "migration payload was released: committed, cancelled, expired or superseded", 409);
   demand(Number.isSafeInteger(index) && index >= 0 && index < out.chunks.length, "invalid_chunk", "invalid chunk index", 400);
   return { migration_id: migrationId, index, data: out.chunks[index], hash: out.manifest.chunk_hashes[index] };
 }
@@ -158,6 +170,8 @@ export async function migrationCommit(s: State, migrationId: string, readyToken:
   demand(instant(m.expires_at) > ctx.now && await digest(currentSnapshot) === m.snapshot_hash, "conflict", "source snapshot changed or readiness expired", 409);
   out.commit_token = await signToken(body("migration-commit", ctx, new Date(ctx.now + 3600000).toISOString(), { manifest_hash: await digest(m), migration_id: migrationId, organization_id: m.organization_id, generation: m.generation, source: m.source, destination: m.destination, snapshot_hash: m.snapshot_hash, ready: structuredClone(readyToken) }), ctx);
   org.status = "migrated";
+  // The destination already holds every chunk: readiness required them.
+  releaseChunks(out);
   return structuredClone(out.commit_token);
 }
 export function migrationReceipt(s: State, migrationId: string) {
@@ -186,6 +200,7 @@ export async function migrationCancel(s: State, migrationId: string, ctx: Contex
   demand(!out.commit_token, "conflict", "committed migration cannot be cancelled", 409);
   if (out.cancel_token) return structuredClone(out.cancel_token);
   out.cancel_token = await signToken(body("migration-cancel", ctx, new Date(ctx.now + 3600000).toISOString(), { migration_id: migrationId, organization_id: out.manifest.organization_id, manifest_hash: await digest(out.manifest), destination: out.manifest.destination }), ctx);
+  releaseChunks(out);
   return structuredClone(out.cancel_token);
 }
 export async function migrationAbort(s: State, migrationId: string, cancelToken: SignedToken, ctx: Context) {
