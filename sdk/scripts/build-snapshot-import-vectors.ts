@@ -82,7 +82,7 @@ const flowFact = (sequence: number, expected_revision: number, expected_digest: 
 const FLOW_FACT_BODY = flowFact(1, 0, null, '3', ucumJar);
 
 type Variant = 'base' | 'fact-unpublished-pack' | 'fact-pack-before-published' | 'product-drops-packaging' | 'product-alters-packaging' | 'order-born-acknowledged'
-  | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs'
+  | 'order-lines-after-acknowledgment' | 'forecast-subject-changed' | 'forecast-born-withdrawn' | 'forecast-withdrawn-revised' | 'party-kind-changed' | 'person-party-business-policy' | 'ledger-projection-differs'
   | 'object-class-changed' | 'flow-fact-unpublished-pack' | 'flow-book-differs' | 'flow-fact-before-opening' | 'ledger-opened-under-other-policy';
 
 /** Runs the company's history on a source host. A case writes one record the way a host that skipped the rule would. */
@@ -163,7 +163,12 @@ async function source(variant: Variant): Promise<Snapshot> {
     await inject(fixedId(4, 3), ORDER, ORDER_ACK, contract.order, ORDER, orderBody('acknowledged', [{ ...lines[0], quantity: { ...lines[0].quantity, amount: '20' } }]));
   }
 
-  await append(FORECAST, FORECAST, null, contract.forecast, FORECAST, FORECAST_BODY);
+  if (variant === 'forecast-born-withdrawn') await inject(FORECAST, FORECAST, null, contract.forecast, FORECAST, { ...FORECAST_BODY, status: 'withdrawn' });
+  else await append(FORECAST, FORECAST, null, contract.forecast, FORECAST, FORECAST_BODY);
+  if (variant === 'forecast-withdrawn-revised') {
+    await append(fixedId(5, 2), FORECAST, FORECAST, contract.forecast, FORECAST, { ...FORECAST_BODY, status: 'withdrawn', as_of: '2026-09-02T06:00:00.000Z' });
+    await inject(fixedId(5, 3), FORECAST, fixedId(5, 2), contract.forecast, FORECAST, { ...FORECAST_BODY, status: 'withdrawn', as_of: '2026-09-03T06:00:00.000Z', method: 'corrected method note' });
+  }
   if (variant === 'forecast-subject-changed')
     await inject(fixedId(5, 2), FORECAST, FORECAST, contract.forecast, FORECAST, { ...FORECAST_BODY, subject: { product_id: null, description: 'Synthetic Sauce, all sizes' }, as_of: '2026-09-02T06:00:00.000Z' });
 
@@ -206,6 +211,8 @@ const CASES: [Variant, string, string][] = [
   ['order-born-acknowledged', 'order genesis', 'an order whose first record is already acknowledged'],
   ['order-lines-after-acknowledgment', 'order continuity', 'an acknowledged order revised with a changed line quantity'],
   ['forecast-subject-changed', 'forecast continuity', 'a forecast revision that changes its subject'],
+  ['forecast-born-withdrawn', 'forecast genesis (#185)', 'a forecast whose first record is already withdrawn'],
+  ['forecast-withdrawn-revised', 'forecast continuity (#185)', 'a withdrawn forecast revised while staying withdrawn; withdrawn is terminal'],
   ['party-kind-changed', 'party continuity', 'a party revision that changes its kind from organization to unit'],
   ['person-party-business-policy', 'personnel classification', 'a person party held under a business-classified policy'],
   ['ledger-projection-differs', 'inventory replay', 'the carried inventory@2 ledger holds one more jar than replaying its signed facts produces; no signature is changed'],

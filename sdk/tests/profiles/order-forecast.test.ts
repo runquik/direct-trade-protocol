@@ -9,7 +9,7 @@ import { parseUntrustedJson } from '../../src/safe-json.ts';
 import { checkSchema, validateShape } from '../../src/v04/profiles.ts';
 import { ORDER_KIND, ORDER_PROFILE, ORDER_SCHEMA, ORDER_SEMANTICS, ORDER_TRANSITIONS, checkOrderContinuity, checkOrderGenesis, validateOrder } from '../../src/profiles/order.ts';
 import type { OrderBody } from '../../src/profiles/order.ts';
-import { FORECAST_KIND, FORECAST_PROFILE, FORECAST_SCHEMA, FORECAST_SEMANTICS, checkForecastContinuity, validateForecast } from '../../src/profiles/forecast.ts';
+import { FORECAST_KIND, FORECAST_PROFILE, FORECAST_SCHEMA, FORECAST_SEMANTICS, FORECAST_TRANSITIONS, checkForecastContinuity, checkForecastGenesis, validateForecast } from '../../src/profiles/forecast.ts';
 import type { ForecastBody } from '../../src/profiles/forecast.ts';
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
@@ -42,6 +42,13 @@ test('forecast@1 fixtures: bodies and continuity pairs are judged exactly, an or
   checkSchema(forecastContract.schema);
   for (const v of forecast.accept) { assert.ok(validateShape(forecastContract.schema, v.body), v.why); assert.deepEqual(validateForecast(v.body), [], v.why); }
   for (const v of forecast.reject) assert.ok(validateForecast(v.body).length > 0, v.why);
+  for (const v of forecast.genesis.accept) assert.deepEqual(checkForecastGenesis(v.body), [], v.why);
+  for (const v of forecast.genesis.reject) assert.ok(checkForecastGenesis(v.body).length > 0, v.why);
+  // #185: withdrawn is terminal, a draft may be abandoned, and the scenario names the projection.
+  assert.deepEqual(FORECAST_TRANSITIONS, { draft: ['draft', 'published', 'withdrawn'], published: ['published', 'withdrawn'], withdrawn: [] });
+  const pair = (why: string) => forecast.continuity.accept.concat(forecast.continuity.reject).find((v: any) => v.why === why);
+  for (const why of ['a withdrawn forecast revised: withdrawn is terminal', 'a changed scenario: a different projection']) assert.ok(forecast.continuity.reject.some((v: any) => v.why === why) && pair(why), why);
+  assert.ok(forecast.continuity.accept.some((v: any) => v.why === 'a draft abandoned: withdrawn without being published'));
   for (const v of forecast.continuity.accept) assert.deepEqual(checkForecastContinuity(v.previous, v.next), [], v.why);
   for (const v of forecast.continuity.reject) assert.ok(checkForecastContinuity(v.previous, v.next).length > 0, v.why);
   // A forecast body can never be mistaken for an order: no field of an order exists in it.
