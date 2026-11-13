@@ -39,11 +39,11 @@ const strict = { require_attestation: true };
 test('registry export: a host-independent verifier reproduces the digests the live registry acknowledged', async () => {
   const f = await fixture(); try {
     await f.registry.enroll(f.genesis, f.enrollment);
-    const genesisOnly = await verifyIdentityLog(await f.registry.exportLog(f.identity), strict);
+    const genesisOnly = await verifyIdentityLog(await f.registry.exportLog(f.identity));
     assert.equal(genesisOnly.heads.length, 1); assert.equal(genesisOnly.head.effective_at, f.signedAt + delay);
     const first = await f.change('rotate', f.next.keyId, [f.person, f.next]), second = await f.change('recover', f.last.keyId, [f.recovery, f.last]);
     // Through JSON, as it would travel.
-    const log = await f.registry.exportLog(f.identity), verified = await verifyIdentityLog(JSON.parse(JSON.stringify(log)), strict);
+    const log = await f.registry.exportLog(f.identity), verified = await verifyIdentityLog(JSON.parse(JSON.stringify(log)));
     assert.deepEqual(verified.heads.slice(1).map(h => [h.head.sequence, h.head_digest, h.head.effective_at]), [first, second].map(r => [r.sequence, r.head_digest, r.effective_at]));
     assert.deepEqual(verified.head.operational.keys, [f.last.keyId]); assert.deepEqual(verified.unattested, []);
     // Freshness still comes from the resolver; the log then proves that head's whole lineage.
@@ -66,7 +66,7 @@ test('registry export: a frozen identity can still leave with its history; anoth
     await f.registry.enroll(f.genesis, f.enrollment); await f.change('rotate', f.next.keyId, [f.person, f.next]);
     await f.db.query("update dtp_foundation.identities set status='frozen' where identity_id=$1", [f.identity]);
     await assert.rejects(f.registry.resolve(f.request), /frozen/);
-    assert.equal((await verifyIdentityLog(await f.registry.exportLog(f.identity), strict)).heads.length, 2);
+    assert.equal((await verifyIdentityLog(await f.registry.exportLog(f.identity))).heads.length, 2);
     const foreign = createIdentityRegistry(f.db, { ...f.config, key: await generateKeyPair() });
     await assert.rejects(foreign.exportLog(f.identity), /another resolver/);
     await assert.rejects(f.registry.exportLog(crypto.randomUUID()), /unavailable/);

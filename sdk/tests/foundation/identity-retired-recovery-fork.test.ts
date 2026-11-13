@@ -56,18 +56,18 @@ test('a recovery key retired by recovery-policy forks from an older head and reh
   const policy = await transition(s0, 'recovery-policy', op0, rec1, [rec0, rec1], now);
   assert.ok(policy.next.retired_keys.includes(rec0.keyId), 'rec0 is retired on the owner\'s history');
   let ownerEntries = await append(head0, policy.next, a, { transition: policy.signed, rehome: null });
-  const ownerAtA = log(ownerEntries), owner = await verifyIdentityLog(ownerAtA, strict);
-  const pinBefore = pinOf(await verifyIdentityLog(log(head0), strict)), pinAfter = pinOf(owner);
+  const ownerAtA = log(ownerEntries), owner = await verifyIdentityLog(ownerAtA);
+  const pinBefore = pinOf(await verifyIdentityLog(log(head0))), pinAfter = pinOf(owner);
 
   // The owner moves to host B, signed by the current recovery quorum.
   now += 60_000;
   const ownerMove = await rehome(policy.next, b, [rec1], now);
   ownerEntries = await append(ownerEntries, ownerMove.next, b, { transition: null, rehome: ownerMove.signed });
-  const ownerAtBLog = log(ownerEntries), ownerAtB = await verifyIdentityLog(ownerAtBLog, strict);
+  const ownerAtBLog = log(ownerEntries), ownerAtB = await verifyIdentityLog(ownerAtBLog);
   assert.equal(ownerAtB.resolver.epoch, 1);
   // The fork-point rule leaves the owner's own move alone.
   assert.equal(precedence(ownerAtB, owner), 'a-extends-b');
-  assert.equal((await judgeIdentityLog(pinAfter, ownerAtBLog, strict, ownerAtA)).outcome, 'advanced');
+  assert.equal((await judgeIdentityLog(pinAfter, ownerAtBLog, ownerAtA)).outcome, 'advanced');
 
   // The thief holds only rec0. From head 0 it rehomes to a host it runs, rotates that host's key, and recovers.
   now += 60_000;
@@ -79,7 +79,7 @@ test('a recovery key retired by recovery-policy forks from an older head and reh
   now += 60_000;
   const t3 = await transition(t2.next, 'recover', thiefOp, rec0, [rec0, thiefOp], now);
   thiefEntries = await append(thiefEntries, t3.next, evil2, { transition: t3.signed, rehome: null });
-  const thiefLog = log(thiefEntries), thief = await verifyIdentityLog(thiefLog, strict);
+  const thiefLog = log(thiefEntries), thief = await verifyIdentityLog(thiefLog);
 
   // The branch is still a valid, owner-key-signed history on its own: the log verifier cannot know about the retirement.
   assert.equal(thief.identity_id, identity); assert.equal(thief.resolver.epoch, 2);
@@ -91,25 +91,25 @@ test('a recovery key retired by recovery-policy forks from an older head and reh
   // 2. A pin taken after the retirement: an unauthenticated push of the fork is refused as a conflict, whether the
   //    party holds its pinned history or only the pin, and the pin it holds is not replaced.
   for (const found of [pinAfter, { pin: pinAfter, log: ownerAtA }]) {
-    const pushed = await receiveIdentityLogPush({ format: IDENTITY_LOG_PUSH_FORMAT, log: thiefLog }, async () => found, strict);
+    const pushed = await receiveIdentityLogPush({ format: IDENTITY_LOG_PUSH_FORMAT, log: thiefLog }, async () => found);
     assert.deepEqual([pushed.ack.outcome, pushed.ack.reason, pushed.ack.binding, pushed.admission], ['refused', 'conflict', null, null]);
   }
-  assert.deepEqual(await judgeIdentityLog(pinAfter, thiefLog, strict, ownerAtA), { outcome: 'refused', reason: 'conflict', error: null });
+  assert.deepEqual(await judgeIdentityLog(pinAfter, thiefLog, ownerAtA), { outcome: 'refused', reason: 'conflict', error: null });
   // A party that already followed the owner to B and holds that history refuses the fork the same way.
-  assert.deepEqual(await judgeIdentityLog(pinOf(ownerAtB), thiefLog, strict, ownerAtBLog), { outcome: 'refused', reason: 'conflict', error: null });
+  assert.deepEqual(await judgeIdentityLog(pinOf(ownerAtB), thiefLog, ownerAtBLog), { outcome: 'refused', reason: 'conflict', error: null });
 
   // 3. A pin taken before the retirement cannot see it: the fork extends what it holds, so it is admitted.
-  const early = await judgeIdentityLog(pinBefore, thiefLog, strict);
+  const early = await judgeIdentityLog(pinBefore, thiefLog);
   assert.equal(early.outcome, 'advanced');
   // When the owner's real history then arrives, the party holding the fork it admitted sees a conflict instead of
   // staying silently on the fork, by push and by admission alike.
   const onFork = pinOf(thief);
-  assert.deepEqual(await judgeIdentityLog(onFork, ownerAtBLog, strict, thiefLog), { outcome: 'refused', reason: 'conflict', error: null });
-  const ownerPush = await receiveIdentityLogPush({ format: IDENTITY_LOG_PUSH_FORMAT, log: ownerAtBLog }, async () => ({ pin: onFork, log: thiefLog }), strict);
+  assert.deepEqual(await judgeIdentityLog(onFork, ownerAtBLog, thiefLog), { outcome: 'refused', reason: 'conflict', error: null });
+  const ownerPush = await receiveIdentityLogPush({ format: IDENTITY_LOG_PUSH_FORMAT, log: ownerAtBLog }, async () => ({ pin: onFork, log: thiefLog }));
   assert.deepEqual([ownerPush.ack.outcome, ownerPush.ack.reason], ['refused', 'conflict']);
 
   // 4. A pinned history that does not end at the pin is the caller's bug.
-  await assert.rejects(judgeIdentityLog(pinAfter, thiefLog, strict, ownerAtBLog), /pinned history does not end at the pinned head/);
+  await assert.rejects(judgeIdentityLog(pinAfter, thiefLog, ownerAtBLog), /pinned history does not end at the pinned head/);
 });
 
 test('fork-point rule compares quorums as sets: a recovery-policy that only reorders the keys keeps the branch superseding; one that only changes the threshold is a conflict', async () => {
@@ -129,16 +129,16 @@ test('fork-point rule compares quorums as sets: a recovery-policy that only reor
     return log(await append(head0, next, a, { transition: signed, rehome: null }));
   };
   const reordered = await policy({ keys: [recB.keyId, recA.keyId], threshold: 1 }), raised = await policy({ keys: [recA.keyId, recB.keyId], threshold: 2 });
-  assert.deepEqual((await verifyIdentityLog(reordered, strict)).retired_keys, [], 'reordering retires nothing');
+  assert.deepEqual((await verifyIdentityLog(reordered)).retired_keys, [], 'reordering retires nothing');
 
   // A move from head 0 signed by the genesis recovery quorum, which the reordered history still holds.
   const moved = await rehome(s0, b, [recA], now + 120_000);
-  const branchLog = log(await append(head0, moved.next, b, { transition: null, rehome: moved.signed })), branch = await verifyIdentityLog(branchLog, strict);
-  const kept = await verifyIdentityLog(reordered, strict);
+  const branchLog = log(await append(head0, moved.next, b, { transition: null, rehome: moved.signed })), branch = await verifyIdentityLog(branchLog);
+  const kept = await verifyIdentityLog(reordered);
   assert.equal(precedence(branch, kept), 'a-supersedes-b');
   const pin: ResolverPin = { identity_id: identity, resolver_id: a.id, resolver_key: a.key.keyId, resolver_epoch: 0, minimum_sequence: 1, minimum_digest: kept.head_digest };
-  const judged = await judgeIdentityLog(pin, branchLog, strict, reordered);
+  const judged = await judgeIdentityLog(pin, branchLog, reordered);
   assert.equal(judged.outcome, 'superseded');
   // The same move against a history that changed only the threshold after the fork: not the current quorum there.
-  assert.equal(precedence(branch, await verifyIdentityLog(raised, strict)), 'conflict');
+  assert.equal(precedence(branch, await verifyIdentityLog(raised)), 'conflict');
 });

@@ -11,7 +11,7 @@ import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Resolution, Transition, Signed } from '../../src/foundation/identity.ts';
 import { checkResolutionHead } from '../../src/foundation/person-authentication.ts';
-import { admitIdentityLog, attestHead, buildIdentityLog, compareCheckpoint, compareRehomeRefusal, judgeIdentityLog, parseIdentityLogPushAck, precedence, receiveIdentityLogPush, recoverGenesisInstant, verifyIdentityLog, verifyRehomeRefusal,
+import { admitIdentityLog, advancePinByResolution, attestHead, buildIdentityLog, compareCheckpoint, compareRehomeRefusal, judgeIdentityLog, parseIdentityLogPushAck, precedence, receiveIdentityLogPush, recoverGenesisInstant, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal,
   IDENTITY_LOG_FORMAT, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT, WITHDRAWN_IDENTITY_LOG_FORMAT, REHOME_REFUSAL_DOMAIN } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogParts, IdentityLogPush, IdentityLogPushAck, RehomeRefusal, ResolverPin } from '../../src/foundation/identity-log.ts';
 
@@ -47,7 +47,7 @@ test('identity log: a verifier holding only the log reproduces every head digest
   const f = await live(), log = await buildIdentityLog(f.parts, f.resolver);
   assert.equal(log.format, IDENTITY_LOG_FORMAT);
   assert.ok(f.states[1].head.effective_at > f.parts.entries[1].transition!.body.issued_at + LEASE_MS, 'fixture exercises the lease barrier');
-  const verified = await verifyIdentityLog(clone(log), strict);
+  const verified = await verifyIdentityLog(clone(log));
   assert.deepEqual(verified.heads.map(h => h.head_digest), f.states.map(s => s.head_digest));
   assert.deepEqual(verified.head, f.state.head); assert.equal(verified.head_digest, f.state.head_digest);
   assert.deepEqual(verified.retired_keys, f.state.retired_keys); assert.deepEqual(verified.unattested, []);
@@ -80,29 +80,29 @@ test('identity log: tampered, reordered, truncated-in-the-middle and spliced log
     ['a rehome on the genesis entry', l => { l.entries[0].rehome = { body: { identity_id: 'x' }, signatures: [] } as any; }],
     ['no entries', l => { l.entries = []; }],
   ];
-  for (const [why, damage] of cases) { const l = clone(log); damage(l); await assert.rejects(verifyIdentityLog(l, lenient), why); }
-  await verifyIdentityLog(clone(log), strict);
+  for (const [why, damage] of cases) { const l = clone(log); damage(l); await assert.rejects(verifyIdentityHistory(l), why); }
+  await verifyIdentityLog(clone(log));
 });
 
 test('identity log: instants are bounded by what the owner signed', async () => {
   const f = await live(), log = await buildIdentityLog({ ...f.parts, entries: f.parts.entries.slice(0, 2) }, null);
-  const t = log.entries[1].transition!.body, check = async (at: number) => { const l = clone(log); l.entries[1].effective_at = at; return verifyIdentityLog(l, lenient); };
+  const t = log.entries[1].transition!.body, check = async (at: number) => { const l = clone(log); l.entries[1].effective_at = at; return verifyIdentityHistory(l); };
   await assert.rejects(check(t.issued_at - 1), /precedes/);
   await assert.rejects(check(t.expires_at + LEASE_MS + CLOCK_MARGIN_MS), /beyond/);
   assert.equal((await check(t.expires_at - 1 + LEASE_MS + CLOCK_MARGIN_MS)).head.effective_at, t.expires_at - 1 + LEASE_MS + CLOCK_MARGIN_MS);
   const early = clone(log); early.entries[0].effective_at = start + 100_000; // inside the enrollment window, but later than head 1: time runs backwards
   assert.ok(early.entries[1].effective_at < start + 100_000 && early.entries[1].effective_at >= t.issued_at);
-  await assert.rejects(verifyIdentityLog(early, lenient), /decrease/);
+  await assert.rejects(verifyIdentityHistory(early), /decrease/);
 });
 
 test('identity log: the final instant is host-asserted; only an attestation or a checkpoint pins it', async () => {
-  const f = await live(), honest = await buildIdentityLog(f.parts, f.resolver), verified = await verifyIdentityLog(honest, strict);
+  const f = await live(), honest = await buildIdentityLog(f.parts, f.resolver), verified = await verifyIdentityLog(honest);
   // A host, or anyone relaying the log, shifts the last head by one millisecond inside the signed window.
   const shifted = clone(honest), last = shifted.entries.length - 1; shifted.entries[last].effective_at += 1;
-  await assert.rejects(verifyIdentityLog(clone(shifted), lenient), /does not describe this head/, 'the stale attestation exposes it');
+  await assert.rejects(verifyIdentityHistory(clone(shifted)), /does not describe this head/, 'the stale attestation exposes it');
   shifted.entries[last].attestation = null;
-  await assert.rejects(verifyIdentityLog(clone(shifted), strict), /attestation required/);
-  const accepted = await verifyIdentityLog(clone(shifted), lenient);
+  await assert.rejects(verifyIdentityLog(clone(shifted)), /attestation required/);
+  const accepted = await verifyIdentityHistory(clone(shifted));
   assert.deepEqual(accepted.unattested, [last]); assert.notEqual(accepted.head_digest, verified.head_digest);
   assert.deepEqual(accepted.head.operational, verified.head.operational, 'who controls the identity is still owner-proven');
   // A verifier that pinned the honest head from a resolution sees the disagreement instead of guessing.
@@ -111,24 +111,26 @@ test('identity log: the final instant is host-asserted; only an attestation or a
   assert.equal(compareCheckpoint(verified, { sequence: last + 1, head_digest: 'f'.repeat(64) }), 'log-behind');
   // If the enrolled resolver signs both versions, the two attestations are portable proof of equivocation.
   const second = await attestHead(accepted.head, accepted.resolver, f.resolver); shifted.entries[last].attestation = second;
-  await verifyIdentityLog(clone(shifted), strict);
+  await verifyIdentityLog(clone(shifted));
   assert.equal(second.body.sequence, honest.entries[last].attestation!.body.sequence); assert.notEqual(second.body.head_digest, honest.entries[last].attestation!.body.head_digest);
 });
 
 test('identity log: attestations bind the enrolled resolver key, the head and the sequence', async () => {
   const f = await live(), log = await buildIdentityLog(f.parts, f.resolver);
   await assert.rejects(buildIdentityLog(f.parts, f.stranger), /enrolled resolver key/);
-  const forged = clone(log); forged.entries[1].attestation = await attestHead((await verifyIdentityLog(clone(log), strict)).heads[1].head, { id: f.resolverId, epoch: 0 }, f.stranger);
-  await assert.rejects(verifyIdentityLog(forged, lenient), /enrolled resolver key/);
+  const forged = clone(log); forged.entries[1].attestation = await attestHead((await verifyIdentityLog(clone(log))).heads[1].head, { id: f.resolverId, epoch: 0 }, f.stranger);
+  await assert.rejects(verifyIdentityHistory(forged), /enrolled resolver key/);
   const moved = clone(log); moved.entries[1].attestation = clone(log.entries[2].attestation);
-  await assert.rejects(verifyIdentityLog(moved, lenient), /does not describe/);
+  await assert.rejects(verifyIdentityHistory(moved), /does not describe/);
   const epoch = clone(log); epoch.entries[1].attestation!.body.resolver_epoch = 1;
-  await assert.rejects(verifyIdentityLog(epoch, lenient), /does not describe/);
-  await assert.rejects(verifyIdentityLog(clone(log), {} as never)); await assert.rejects(verifyIdentityLog(clone(log), { require_attestation: 'no' } as never));
+  await assert.rejects(verifyIdentityHistory(epoch), /does not describe/);
+  // There is no attestation switch (#159, item 2): an old caller's policy object changes nothing.
+  const bare = await buildIdentityLog(f.parts, null);
+  await assert.rejects((verifyIdentityLog as (l: IdentityLog, p: unknown) => Promise<unknown>)(clone(bare), { require_attestation: false }), /current epoch/);
 });
 
 test('identity log: a verified log and a fresh resolution together prove current control and its full lineage', async () => {
-  const f = await live(), log = await verifyIdentityLog(await buildIdentityLog(f.parts, f.resolver), strict);
+  const f = await live(), log = await verifyIdentityLog(await buildIdentityLog(f.parts, f.resolver));
   const request = { identity_id: log.identity_id, audience: 'https://relying.example', challenge: 'c'.repeat(64) }, at = f.state.head.effective_at;
   const { proof } = await issueResolution(f.state, request, f.resolver, at);
   const head = await verifyResolution(proof, { ...request, resolver_id: log.resolver.id, resolver_key: log.resolver.key_id, resolver_epoch: log.resolver.epoch, minimum_sequence: log.head.sequence, minimum_digest: log.head_digest }, at);
@@ -144,28 +146,36 @@ test('identity log: a host that never recorded the genesis instant can recover i
 test('identity log conformance vectors: accepted logs yield exactly the published heads; every rejected log is refused; admissions, pushes, refusals and wallet signing are judged exactly', async () => {
   const file = fileURLToPath(new URL('../../../spec/vectors/identity-log.json', import.meta.url));
   const vectors = parseUntrustedJson(readFileSync(file, 'utf8')) as { format: string; withdrawn_format: string; rehome_domain: string; refusal_domain: string; push_format: string; push_ack_format: string; lease_ms: number; clock_margin_ms: number;
-    accept: { why: string; require_attestation: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; require_attestation: boolean; log: IdentityLog }[];
+    accept: { why: string; relying_party: boolean; log: IdentityLog; expect: any }[]; reject: { why: string; log: IdentityLog }[];
     precedence: { why: string; a: IdentityLog; b: IdentityLog; expect: ReturnType<typeof precedence> }[];
-    admission: { why: string; pin: ResolverPin; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; log: IdentityLog; require_attestation: boolean; expect: any }[];
-    push: { why: string; pin: ResolverPin | null; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; message: IdentityLogPush; require_attestation: boolean; ack: IdentityLogPushAck }[];
+    admission: { why: string; pin: ResolverPin; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; log: IdentityLog; expect: any }[];
+    resolution: { why: string; pin: ResolverPin; resolved: { sequence: number; head_digest: string }; pinned: IdentityLog | null; log: IdentityLog | null; expect: any }[];
+    push: { why: string; pin: ResolverPin | null; pinned: IdentityLog | null; refusals: Signed<RehomeRefusal>[]; message: IdentityLogPush; ack: IdentityLogPushAck }[];
     refusals: { accept: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal>; expect: RehomeRefusal }[]; reject: { why: string; rehome: Signed<Rehome>; refusal: Signed<RehomeRefusal> }[];
       contradictions: { why: string; refusal: Signed<RehomeRefusal>; log: IdentityLog; expect: string }[] };
     signing: { why: string; log: IdentityLog; resolution: Signed<Resolution>; sign: boolean }[] };
   assert.equal(vectors.format, IDENTITY_LOG_FORMAT); assert.equal(vectors.withdrawn_format, WITHDRAWN_IDENTITY_LOG_FORMAT); assert.equal(vectors.rehome_domain, 'DTP-IDENTITY-REHOME-1');
   assert.equal(vectors.refusal_domain, REHOME_REFUSAL_DOMAIN); assert.equal(vectors.push_format, IDENTITY_LOG_PUSH_FORMAT); assert.equal(vectors.push_ack_format, IDENTITY_LOG_PUSH_ACK_FORMAT);
   assert.equal(vectors.lease_ms, LEASE_MS); assert.equal(vectors.clock_margin_ms, CLOCK_MARGIN_MS);
-  assert.ok(vectors.accept.length >= 7 && vectors.reject.length >= 48 && vectors.precedence.length >= 7);
-  assert.ok(vectors.admission.length >= 23 && vectors.push.length >= 12 && vectors.refusals.accept.length >= 1 && vectors.refusals.reject.length >= 8 && vectors.refusals.contradictions.length >= 4);
+  assert.ok(vectors.accept.length >= 9 && vectors.reject.length >= 47 && vectors.precedence.length >= 7);
+  assert.ok(vectors.admission.length >= 32 && vectors.push.length >= 15 && vectors.refusals.accept.length >= 1 && vectors.refusals.reject.length >= 8 && vectors.refusals.contradictions.length >= 4);
   const reasons = new Set(vectors.admission.map(v => v.expect.reason ?? v.expect.outcome));
   for (const reason of ['unchanged', 'advanced', 'superseded', 'invalid-log', 'another-identity', 'foreign-lineage', 'behind', 'conflict', 'unadopted-move', 'refused-move']) assert.ok(reasons.has(reason), `admission vectors cover ${reason}`);
   for (const v of vectors.admission) {
-    const j = await judgeIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned, v.refusals);
+    const j = await judgeIdentityLog(v.pin, v.log, v.pinned, v.refusals);
     assert.deepEqual(j.outcome === 'refused' ? { outcome: j.outcome, reason: j.reason } : { outcome: j.outcome, pin: j.pin, superseded: j.superseded }, v.expect, v.why);
-    if (j.outcome === 'refused') await assert.rejects(admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned, v.refusals), v.why);
-    else assert.deepEqual(await admitIdentityLog(v.pin, v.log, { require_attestation: v.require_attestation }, v.pinned, v.refusals), j, v.why);
+    if (j.outcome === 'refused') await assert.rejects(admitIdentityLog(v.pin, v.log, v.pinned, v.refusals), v.why);
+    else assert.deepEqual(await admitIdentityLog(v.pin, v.log, v.pinned, v.refusals), j, v.why);
+  }
+  // #159, item 3: a pin advances from a resolution only with the log up to the resolved head, which the party keeps.
+  assert.ok(vectors.resolution.length >= 13 && vectors.resolution.some(v => v.log === null && v.expect.outcome === 'refused'));
+  for (const v of vectors.resolution) {
+    const r = await advancePinByResolution(v.pin, v.resolved, v.log, v.pinned).catch(() => null);
+    assert.deepEqual(r === null ? { outcome: 'refused' } : { outcome: r.outcome, pin: r.pin, kept_entries: r.log.entries.length }, v.expect, v.why);
+    if (r !== null) { const kept = await verifyIdentityHistory(r.log); assert.equal(kept.head_digest, v.resolved.head_digest, v.why); assert.equal(kept.head.sequence, v.resolved.sequence, v.why); }
   }
   for (const v of vectors.push) {
-    const { ack } = await receiveIdentityLogPush(v.message, async identity => v.pin === null || v.pin.identity_id !== identity ? null : { pin: v.pin, log: v.pinned, refusals: v.refusals }, { require_attestation: v.require_attestation });
+    const { ack } = await receiveIdentityLogPush(v.message, async identity => v.pin === null || v.pin.identity_id !== identity ? null : { pin: v.pin, log: v.pinned, refusals: v.refusals });
     assert.deepEqual(ack, v.ack, v.why); parseIdentityLogPushAck(ack);
   }
   for (const v of vectors.refusals.accept) assert.deepEqual(await verifyRehomeRefusal(v.refusal, v.rehome), v.expect, v.why);
@@ -173,21 +183,22 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
   for (const v of vectors.refusals.contradictions) assert.equal(await compareRehomeRefusal(v.refusal, v.log), v.expect, v.why);
   assert.ok(vectors.signing.length >= 6 && vectors.signing.some(v => v.sign) && vectors.signing.some(v => !v.sign));
   for (const v of vectors.signing) {
-    const held = await verifyIdentityLog(v.log, { require_attestation: false });
+    const held = await verifyIdentityHistory(v.log);
     assert.equal(await checkResolutionHead(v.resolution, { head: held.head, head_digest: held.head_digest }).then(() => true, () => false), v.sign, v.why);
   }
   assert.ok(vectors.accept.every(v => v.log.format === IDENTITY_LOG_FORMAT) && vectors.accept.some(v => v.log.entries.some(e => e.rehome !== null)), 'only format 2 is accepted, and a move is covered');
   assert.ok(vectors.reject.filter(v => (v.log.format as string) === WITHDRAWN_IDENTITY_LOG_FORMAT).length >= 2, 'format 1 is refused, with and without a move');
   for (const v of vectors.accept) {
-    const r = await verifyIdentityLog(v.log, { require_attestation: v.require_attestation });
+    const r = await verifyIdentityHistory(v.log);
+    assert.equal(await verifyIdentityLog(v.log).then(() => true, () => false), v.relying_party, v.why);
     assert.deepEqual({ identity_id: r.identity_id, genesis_digest: r.genesis_digest, resolver: r.resolver, resolvers: r.resolvers,
       heads: r.heads.map(h => ({ sequence: h.head.sequence, head_digest: h.head_digest, effective_at: h.head.effective_at, epoch: h.epoch, attested: h.attested })),
       operational: r.head.operational, recovery: r.head.recovery, retired_keys: r.retired_keys, unattested: r.unattested }, v.expect, v.why);
     // Each head digest is recomputed here from first principles with a second SHA-256 implementation.
     for (const h of r.heads) assert.equal(createHash('sha256').update(canonicalize(h.head), 'utf8').digest('hex'), h.head_digest, v.why);
   }
-  for (const v of vectors.reject) await assert.rejects(verifyIdentityLog(v.log, { require_attestation: v.require_attestation }), v.why);
-  for (const v of vectors.precedence) assert.equal(precedence(await verifyIdentityLog(v.a, { require_attestation: false }), await verifyIdentityLog(v.b, { require_attestation: false })), v.expect, v.why);
+  for (const v of vectors.reject) { await assert.rejects(verifyIdentityHistory(v.log), v.why); await assert.rejects(verifyIdentityLog(v.log), v.why); }
+  for (const v of vectors.precedence) assert.equal(precedence(await verifyIdentityHistory(v.a), await verifyIdentityHistory(v.b)), v.expect, v.why);
   const run = spawnSync(process.execPath, [fileURLToPath(new URL('../../scripts/build-identity-log-vectors.ts', import.meta.url)), '--check'], { encoding: 'utf8', timeout: 120_000 });
   assert.equal(run.status, 0, run.stderr);
 });
@@ -195,7 +206,7 @@ test('identity log conformance vectors: accepted logs yield exactly the publishe
 test('identity log: accessors are refused without being invoked and later caller changes have no effect', async () => {
   const f = await live(), log = await buildIdentityLog(f.parts, f.resolver);
   let reads = 0; const trapped = clone(log) as any; Object.defineProperty(trapped.entries[1], 'effective_at', { enumerable: true, get() { reads++; return 0; } });
-  await assert.rejects(verifyIdentityLog(trapped, lenient)); assert.equal(reads, 0);
-  const racing = clone(log), pending = verifyIdentityLog(racing, strict); racing.entries[1].transition!.body.operational.threshold = 0; racing.entries.length = 1;
+  await assert.rejects(verifyIdentityHistory(trapped)); assert.equal(reads, 0);
+  const racing = clone(log), pending = verifyIdentityLog(racing); racing.entries[1].transition!.body.operational.threshold = 0; racing.entries.length = 1;
   assert.equal((await pending).heads.length, log.entries.length);
 });
