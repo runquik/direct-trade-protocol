@@ -8,7 +8,7 @@ import { PRODUCT_PROFILE, checkProductContinuity, validateProduct } from "../pro
 import { INVENTORY2_PROFILE, applyInventoryFact, openInventoryLedger, unpublishedPackaging } from "../profiles/inventory2.ts";
 import { PARTY_PROFILE, checkPartyContinuity, validateParty } from "../profiles/party.ts";
 import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder } from "../profiles/order.ts";
-import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
+import { FORECAST_PROFILE, checkForecastContinuity, checkForecastGenesis, validateForecast } from "../profiles/forecast.ts";
 import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
 import { FLOW_PROFILE, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, moneyLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger } from "../profiles/flow.ts";
 import { canonicalBytes } from "../canonical.ts";
@@ -316,7 +316,9 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     }
     if (semantics === "forecast-v1") {
       demand(validateForecast(r.body).length === 0, "invalid_snapshot", "forecast violates profile");
-      if (r.supersedes) { const prior = records.get(r.supersedes) ?? s.records[r.supersedes]; demand(prior && checkForecastContinuity(prior.body as any, r.body as any).length === 0, "invalid_snapshot", "forecast continuity violated"); }
+      const prior = r.supersedes ? records.get(r.supersedes) ?? s.records[r.supersedes] : undefined;
+      const forecastRules = r.supersedes ? (prior ? checkForecastContinuity(prior.body as any, r.body as any) : [{ path: "$", message: "predecessor missing" }]) : checkForecastGenesis(r.body as any);
+      demand(forecastRules.length === 0, "invalid_snapshot", "forecast continuity violated");
       expectedValidation = {profile:FORECAST_PROFILE,level:"business-rules",business_verified:false};
     }
     if (semantics === "object-v1") {

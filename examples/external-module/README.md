@@ -12,7 +12,7 @@ What it proves: from a clean directory, install the packed SDK, connect to the d
    cd sdk && npm ci && npm pack
    ```
 
-   This writes `sdk/dtp-sdk-<version>.tgz` (today `dtp-sdk-0.2.1-dev.1.tgz`), which this example's `package.json` depends on by path. The version changes with every change to the SDK's behaviour ([`sdk/CHANGELOG.md`](../../sdk/CHANGELOG.md)), and the path changes with it.
+   This writes `sdk/dtp-sdk-<version>.tgz` (today `dtp-sdk-0.2.1-dev.2.tgz`), which this example's `package.json` depends on by path. The version changes with every change to the SDK's behaviour ([`sdk/CHANGELOG.md`](../../sdk/CHANGELOG.md)), and the path changes with it.
 
 2. Install and prepare the host configuration:
 

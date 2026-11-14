@@ -32,8 +32,10 @@ export function readForecast(body: unknown): Issue[] {
 }
 export function readForecastContinuity(previous: any, next: any): Issue[] {
   const out: Issue[] = [], same = (a: unknown, b: unknown) => readerCanonical(a) === readerCanonical(b);
-  for (const k of ['subject', 'party_id', 'direction', 'horizon']) if (!same(previous[k], next[k])) out.push({ path: `$.${k}`, message: 'immutable' });
+  for (const k of ['subject', 'party_id', 'direction', 'horizon', 'scenario']) if (!same(previous[k], next[k])) out.push({ path: `$.${k}`, message: 'immutable' });
   if (next.as_of < previous.as_of) out.push({ path: '$.as_of', message: 'backwards' });
-  if (STATUSES.indexOf(next.status) < STATUSES.indexOf(previous.status)) out.push({ path: '$.status', message: 'transition' });
+  const allowed: Record<string, string[]> = { draft: ['draft', 'published', 'withdrawn'], published: ['published', 'withdrawn'], withdrawn: [] };
+  if (!(allowed[previous.status] ?? []).includes(next.status)) out.push({ path: '$.status', message: 'transition' });
   return out;
 }
+export const readForecastGenesis = (body: any): Issue[] => body.status === 'withdrawn' ? [{ path: '$.status', message: 'not born withdrawn' }] : [];

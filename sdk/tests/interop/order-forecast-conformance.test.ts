@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { checkOrderContinuity, checkOrderGenesis, validateOrder } from '../../src/profiles/order.ts';
-import { checkForecastContinuity, validateForecast } from '../../src/profiles/forecast.ts';
+import { checkForecastContinuity, checkForecastGenesis, validateForecast } from '../../src/profiles/forecast.ts';
 import { readerDigest } from './product-reader.ts';
 import { readOrder, readOrderContinuity, readOrderGenesis } from './order-reader.ts';
-import { readForecast, readForecastContinuity } from './forecast-reader.ts';
+import { readForecast, readForecastContinuity, readForecastGenesis } from './forecast-reader.ts';
 
 const load = (p: string) => JSON.parse(readFileSync(fileURLToPath(new URL(p, import.meta.url)), 'utf8'));
 const order = load('../../../spec/profiles/order/1/fixtures.json'), orderContract = load('../../../spec/profiles/order/1/profile.json');
@@ -23,10 +23,12 @@ test('second implementation of order@1: bodies, genesis and continuity judged ex
   for (const v of order.continuity.reject) { const mine = readOrderContinuity(v.previous, v.next); assert.ok(mine.length > 0, v.why); assert.deepEqual(paths(mine), paths(checkOrderContinuity(v.previous, v.next)), v.why); }
 });
 
-test('second implementation of forecast@1: bodies and continuity judged exactly, blaming the same fields as the reference', () => {
+test('second implementation of forecast@1: bodies, genesis and continuity judged exactly, blaming the same fields as the reference', () => {
   assert.equal(readerDigest(forecastContract), forecast.contract_digest);
   for (const v of forecast.accept) assert.deepEqual(readForecast(v.body), [], v.why);
   for (const v of forecast.reject) { const mine = readForecast(v.body); assert.ok(mine.length > 0, v.why); assert.deepEqual(new Set(paths(mine)), new Set(paths(validateForecast(v.body))), v.why); }
+  for (const v of forecast.genesis.accept) assert.deepEqual(readForecastGenesis(v.body), [], v.why);
+  for (const v of forecast.genesis.reject) { assert.ok(readForecastGenesis(v.body).length > 0, v.why); assert.deepEqual(paths(readForecastGenesis(v.body)), paths(checkForecastGenesis(v.body)), v.why); }
   for (const v of forecast.continuity.accept) assert.deepEqual(readForecastContinuity(v.previous, v.next), [], v.why);
   for (const v of forecast.continuity.reject) { const mine = readForecastContinuity(v.previous, v.next); assert.ok(mine.length > 0, v.why); assert.deepEqual(paths(mine), paths(checkForecastContinuity(v.previous, v.next)), v.why); }
 });
