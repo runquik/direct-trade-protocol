@@ -14,9 +14,9 @@ There is no business logic in the store. If you need something it doesn't do, th
 
 ## 0. What you need
 
-- The store URL (`STORE_URL`), e.g. `https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store` or a local `http://127.0.0.1:8787/dtp-store`.
+- The store URL (`STORE_URL`), e.g. a hosted `https://<host>/functions/v1/dtp-store` or a local `http://127.0.0.1:8787/dtp-store`.
 - Any language with Ed25519, SHA-256, base58, and JSON. The reference SDK is TypeScript in [`sdk/`](../sdk); the qualified local runtime is Node 22.23.2 (see `.node-version`). Run `npm run check:runtime` before qualifying alternatives; Deno/Edge needs independent verification. You do not have to use the SDK.
-- The seed output (`sdk/fixtures/dev-keys.json` after `npm run seed`, or the summary George hands you) with the fixture companies, the demo module, and their tokens.
+- The seed output (`sdk/fixtures/dev-keys.json` after `npm run seed`, or the summary the store operator hands you) with the fixture companies, the demo module, and their tokens.
 
 Check the store is up:
 
@@ -149,7 +149,7 @@ Modules have their own keys and a **publisher company**. For the sprint:
 2. `POST $STORE_URL/modules` with a signed genesis `core.module` envelope, **sending your publisher company's bearer token** — the publisher has to consent, otherwise anyone could publish software in your company's name. Sign either with the module's own root key listed in `body.keys` (set `issuer.module_id` to your `module_id`) or with the publisher's root key (`issuer.module_id: null`); either way `issuer.company_id` and `subject_company_id` are the publisher. Response includes the module key's token.
 
 ```json
-{ "module_id": "receivables-financing", "name": "Receivables Financing", "publisher_company_id": "boris-fin.dtp",
+{ "module_id": "receivables-financing", "name": "Receivables Financing", "publisher_company_id": "example-fin.dtp",
   "keys": [ { "key_id": "ed25519:…", "role": "root", "status": "active", "added_at": "…" } ],
   "requested_scopes": [ { "namespace": "trade", "access": "read" }, { "namespace": "finance", "access": "write" } ] }
 ```
@@ -158,7 +158,7 @@ Modules have their own keys and a **publisher company**. For the sprint:
 
 ### A grant
 
-A company authorizes a module by writing a `core.grant` record (subject = the company, signed by a company **root** key, module id in the body). In the sprint, George's Passport module does this; the seeded fixtures already grant `demo-financing`. A grant looks like:
+A company authorizes a module by writing a `core.grant` record (subject = the company, signed by a company **root** key, module id in the body). In the sprint, the Passport module does this; the seeded fixtures already grant `demo-financing`. A grant looks like:
 
 ```json
 { "module_id": "receivables-financing",
@@ -262,7 +262,7 @@ Full schemas: `spec/schemas/**` or `GET /schemas/{type}`. Generated TypeScript t
 
 ## 10. Walkthrough with curl (from the seed)
 
-Assume `$STORE_URL`, and the values George hands you from the seed (`$MOD_TOKEN`, `$MOD_SECRET`, `$MOD_ID` = `demo-financing`, `$ACME` = `acme-sauce.dtp`, `$BLUESTEM`, `$FUL_ROOT` the attested fulfillment's root, `$CONTRACT_ROOT`). The `node sdk/scripts/sign.ts` step uses the reference SDK for convenience; any Ed25519 + RFC 8785 implementation that matches the vectors works in its place.
+Assume `$STORE_URL`, and the values the store operator hands you from the seed (`$MOD_TOKEN`, `$MOD_SECRET`, `$MOD_ID` = `demo-financing`, `$ACME` = `acme-sauce.dtp`, `$BLUESTEM`, `$FUL_ROOT` the attested fulfillment's root, `$CONTRACT_ROOT`). The `node sdk/scripts/sign.ts` step uses the reference SDK for convenience; any Ed25519 + RFC 8785 implementation that matches the vectors works in its place.
 
 ```bash
 # who am I

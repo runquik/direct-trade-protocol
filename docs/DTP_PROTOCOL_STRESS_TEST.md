@@ -1,6 +1,6 @@
 # DTP protocol stress test: plan and acceptance gates
 
-September 10, 2026. **A first executable A/C/D boundary pass is now complete:** read [the results and all 28 case dispositions](DTP_STRESS_TEST_RESULTS_2026-09-10.md). The broader design below remains a proposed conformance experiment, not an agreed Boris sprint or a fully passed acceptance suite. Existing regression tests are listed separately in [the architecture review](DTP_ARCHITECTURE_REVIEW_2026-09-10.md).
+September 10, 2026. **A first executable A/C/D boundary pass is now complete:** read [the results and all 28 case dispositions](DTP_STRESS_TEST_RESULTS_2026-09-10.md). The broader design below remains a proposed conformance experiment, not an agreed two-builder sprint or a fully passed acceptance suite. Existing regression tests are listed separately in [the architecture review](DTP_ARCHITECTURE_REVIEW_2026-09-10.md).
 
 ## Purpose
 
@@ -16,7 +16,7 @@ This tests the [whole-business architecture](DTP_BUSINESS_DOMAIN_MAP.md), not a 
 4. Apply adversarial variations and preserve expected vs observed results, gaps and explicit workarounds.
 5. Decide the minimum next protocol revision. The workspace remains step two; no requirement to build a marketplace to pass step one.
 
-Do not prescribe a one-week deadline or assign Boris's code ownership until he agrees. Distinguish collaborators from independent reviewers; two modules importing the same implementation helper do not establish independent conformance.
+Do not prescribe a one-week deadline or assign the second builder's code ownership until they agree. Distinguish collaborators from independent reviewers; two modules importing the same implementation helper do not establish independent conformance.
 
 ## Four deliberately different business fixtures
 

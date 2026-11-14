@@ -1,6 +1,6 @@
 # Infrastructure hardening: implementation and remaining gates
 
-This is the first implementation batch after the Astra review. It targets the v0.2 reference store, SDK verification tooling, and the current interoperability sprint. It does not deploy or mutate existing stored records.
+This is the first implementation batch after the September 4 review. It targets the v0.2 reference store, SDK verification tooling, and the current interoperability sprint. It does not deploy or mutate existing stored records.
 
 ## Implemented
 
@@ -19,7 +19,7 @@ This is the first implementation batch after the Astra review. It targets the v0
 
 Local application tests pass on Node 25.4.0 and 24.20.0, but both fail the independent minimal JSON round-trip reproducer. Node **22.23.2** passes that reproducer and the corrected 5,000-case canonicalization/round-trip fuzz check; it is pinned in `.node-version` and CI. The system Node installation was not changed. Run `npm run check:runtime` before using another runtime. The earlier fuzz harness overcounted runtime faults by comparing normal JSON.stringify output to canonical text; that diagnostic is now corrected. It does not negate the separate minimal reproducer on Node 24/25.
 
-The actual deployed Deno/Supabase Edge runtime still requires its own qualification. A local Node pass is not a production runtime certificate.
+The actual deployed Deno edge runtime still requires its own qualification. A local Node pass is not a production runtime certificate.
 
 ## Verification commands
 
@@ -60,7 +60,7 @@ The coarse lock trades throughput for clear behavior. The public HTTP boundary i
 1. **Passport recovery:** root proof-of-possession token rotation/recovery with short-lived, single-use, domain-bound challenges. A lost first registration response can still strand token access. Retrying public genesis must never return tokens. This needs a separately reviewed authentication flow, custody handling and abuse controls.
 2. **Consumer evidence verifier:** validate the exact signed versions, historical issuer/key/grant authority, chain and reference consistency, both parties' agreement where required, disputes and financial arithmetic. The store intentionally does not perform body referential checks. `active`, `buyer_attested`, `complete`, or a financer signature alone does not certify real-world truth.
 3. **Amendments/assignment release:** this batch freezes terms and one invoice chain's assignment. It does not implement renegotiation, assignment consent/release, cross-root duplicate-invoice detection or multi-lender coordination. Do not market the assignment guard as eliminating double financing.
-4. **Production qualification:** deployed Deno runtime, actual Supabase connection/pool behavior, existing-data audit, request timeouts/rate quotas and load testing. CI's PostgreSQL service is not the deployment.
+4. **Production qualification:** deployed Deno runtime, actual hosted database connection/pool behavior, existing-data audit, request timeouts/rate quotas and load testing. CI's PostgreSQL service is not the deployment.
 5. **Workspace security:** installation/tenant-scoped credentials, operation approvals, spending caps and durable jobs before a general agent can run a company. Company delegate keys remain broad; module keys may cover multiple companies.
 
 The proposed build order and marketplace boundary are in [WORKSPACE_FOUNDATIONS.md](WORKSPACE_FOUNDATIONS.md).

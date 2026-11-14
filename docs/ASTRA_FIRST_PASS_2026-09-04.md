@@ -1,8 +1,8 @@
-# Astra first pass, health check, and recommended fixes
+# September 4 review: first pass, health check, and recommended fixes
 
 > Historical baseline. The September 6 implementation status and remaining gaps are in [INFRA_HARDENING_2026-09-06.md](INFRA_HARDENING_2026-09-06.md). The diagnostic probes referenced below have been converted to secure-behavior regressions in `sdk/tests/07_infra.test.ts`. Also, the old fuzz suite's bulk JSON.parse-fault count was inflated by comparing JSON.stringify ordering to canonical ordering; that diagnostic is corrected. The separate minimal Node 24/25 round-trip reproducer remains independently reproducible.
 
-Reviewed 2026-09-04 against commit `9187eb5`. This is the second review in the Codex conversation, requested after switching to Astra. Scope: v0.2 schemas, SDK, reference store, protocol guarantees, and readiness for Passport / Trade Ledger / Early Pay / Books. Legacy v0.1 contracts and MCP servers were not re-audited.
+Reviewed 2026-09-04 against commit `9187eb5`. This is the second review of the repository, by a different reviewer than the first. Scope: v0.2 schemas, SDK, reference store, protocol guarantees, and readiness for Passport / Trade Ledger / Early Pay / Books. Legacy v0.1 contracts and MCP servers were not re-audited.
 
 ## Assessment
 
@@ -15,11 +15,11 @@ The store is operational, but a passing conformance suite is not yet enough to t
 | Security | Needs fixes: private identity reads and write-error metadata disclose information; module cursors use incomplete authorization. No new signature forgery demonstrated. |
 | Correctness | Needs fixes: supersede retries, filtered pagination, and payment correction semantics; financial agreement semantics need specification work. |
 | Performance / reliability | Adequate local baseline; request bounds and real multi-connection PostgreSQL behavior need further validation. No load test performed. |
-| Maintainability | Strong shared schema/runtime structure, but auxiliary tests, status docs, and Codex's legacy MCP configuration have drifted. |
+| Maintainability | Strong shared schema/runtime structure, but auxiliary tests, status docs, and a local agent's legacy MCP configuration have drifted. |
 
 ## Health results
 
-All write-producing checks used fresh, local, in-memory PGlite stores. The retained Astra probes explicitly ignore `STORE_URL`. Live checks were three anonymous GETs only, on the URL documented in `progress.md`.
+All write-producing checks used fresh, local, in-memory PGlite stores. The retained review probes explicitly ignore `STORE_URL`. Live checks were three anonymous GETs only, on the URL documented in `progress.md`.
 
 | Check | Result |
 |---|---|
@@ -30,7 +30,7 @@ All write-producing checks used fresh, local, in-memory PGlite stores. The retai
 | Live `/schemas` | HTTP 200; expected 16 record types |
 | Live `/companies/acme-sauce.dtp` | HTTP 200; current `core.company` head with one active key; confirms a database-backed read |
 | Existing fuzz + race files, run independently via `node --test` | 33/37 pass; four failures explained below |
-| New Astra diagnostic probes | 12/12 reproduce the behaviors described below; these are NOT 12 security passes |
+| New review diagnostic probes | 12/12 reproduce the behaviors described below; these are NOT 12 security passes |
 | `check:examples`, `check:transitions` | Both fail because the referenced scripts are absent |
 | Existing minimal JSON parser reproducer | Fault reproduced on Node v25.4.0: identical JSON parses to different property names after a preceding parse |
 
@@ -123,7 +123,7 @@ Repair auxiliary expectations without weakening the actual canonicalization prot
 
 `router.ts:33` reads the entire request before its fallback size check, and compares string length rather than UTF-8 bytes. Bound the input stream before buffering/parsing and consider a nesting bound for recursive canonicalization. Reject invalid/fractional pagination arguments cleanly, handle malformed URI decoding inside the error boundary, and return generic client-facing internal errors. Choose rate limits/quotas for anonymous company registration and canonicalization based on the intended deployment. The prior review's resource-exhaustion claim is best treated as untested hardening work, not a reproduced denial of service.
 
-Refresh README status to match the deployed store and 43-test baseline. Add concise repository guidance identifying v0.2 as authoritative. The existing untracked `.codex/config.toml` points at the frozen v0.1 NEAR MCP server; explicitly label or disconnect that legacy integration and add the intended v0.2 Passport surface when it exists. No configuration was changed in this review.
+Refresh README status to match the deployed store and 43-test baseline. Add concise repository guidance identifying v0.2 as authoritative. An existing untracked local agent configuration points at the frozen v0.1 NEAR MCP server; explicitly label or disconnect that legacy integration and add the intended v0.2 Passport surface when it exists. No configuration was changed in this review.
 
 ## Retained reproduction and handoff
 

@@ -8,9 +8,9 @@ Direct Trade Protocol is an open foundation for businesses to discover capabilit
 
 The objective is to make software and service providers replaceable while preserving business meaning, authorized relationships, and usable records. This is wider than exchanging documents, but does not require one database containing everything or one program that runs every business.
 
-Confirmed by George on September 10:
+Confirmed by the project owner on September 10:
 
-- Stress-test the protocol before building the private workspace/module experiment with Boris.
+- Stress-test the protocol before building the private workspace/module experiment with a second builder.
 - The eventual workspace uses Passport for entry and connects company-built and independently built modules. A marketplace may host and distribute them; community publication is optional.
 - Hosting **must be replaceable**, including third-party hosting or self-hosting compatible with our workspace.
 - HR/payroll must support **both restricted employee-level records and company-level summaries**, with strict privacy boundaries.
