@@ -1,6 +1,6 @@
 // Shared helpers for the red-team reproductions. Reuses ../helpers.ts fixtures and adds raw HTTP + assertion utilities.
 // Run one file:   node --test tests/redteam/rt01_*.test.ts
-// Against live:   STORE_URL=https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store node --test tests/redteam/rt01_*.test.ts
+// Against live:   STORE_URL=https://<host>/functions/v1/dtp-store node --test tests/redteam/rt01_*.test.ts
 // Every identity created here is fresh (`wb-<random>.dtp`), so runs against the shared env are non-destructive.
 export * from "../helpers.ts";
 import { DtpStoreClient, StoreRequestError, draft } from "../../src/client.ts";

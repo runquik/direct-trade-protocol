@@ -1,7 +1,7 @@
 # DTP v0.2 fuzz and concurrency findings
 
 Date: 2026-09-03. Scope: `sdk/src/canonical.ts`, `sign.ts`, `keys.ts`, `base58.ts` (Part A) and the protocol store,
-local PGlite and the live deployment `https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store` (Part B).
+local PGlite and the then-live hosted deployment `https://<host>/functions/v1/dtp-store` (Part B).
 Harness: `sdk/tests/fuzz/` (see README.md there). Seed 20260903, 5000 iterations per property unless stated.
 Runtime: Node v25.4.0, V8 14.1.146.11. No production code was changed.
 
@@ -105,7 +105,7 @@ with `toJSON` (Date) serialize as `{}` in the SDK vs an ISO string in the refere
   Relevance to DTP: the store parses every incoming envelope with `JSON.parse`; a mis-decoded key changes the object
   before canonicalization, so verification would fail closed (`signature_invalid`) for a valid record, and a stored
   `envelope` read back via `JSON.parse` could differ from what was signed. Keys beginning with a backslash are rare in
-  practice, but the Supabase edge runtime (Deno, also V8) should be checked with `repro-v8-check.mjs`, and the bug should
+  practice, but the hosted edge runtime (Deno, also V8) should be checked with `repro-v8-check.mjs`, and the bug should
   be reported upstream to V8/Node.
 
 ## 2. Encodings and crypto (`fuzz-encodings.test.ts`, 10/10 pass)
@@ -146,7 +146,7 @@ with `toJSON` (Date) serialize as `{}` in the SDK vs an ISO string in the refere
 
 ## 4. Concurrency (`race-store.test.ts`)
 
-Both runs used `RACE_N=10`. Local = in-process PGlite via `tests/helpers.ts`; live = the Supabase deployment.
+Both runs used `RACE_N=10`. Local = in-process PGlite via `tests/helpers.ts`; live = the hosted deployment.
 All post-state checks passed in both environments: exactly one head, exactly one persisted successor, exactly one
 company with the winner's key, one record per replayed envelope, every event exactly once in seq order.
 
@@ -228,7 +228,7 @@ same result.
    database text in `error.message`.
 4. Make `POST /companies` idempotent on `payload_hash` (return 200 with the existing record; decide whether tokens are
    re-issued) so genesis retries are safe.
-5. Run `repro-v8-check.mjs` on the Supabase edge runtime and report the `JSON.parse` fault upstream; until it is fixed,
+5. Run `repro-v8-check.mjs` on the hosted edge runtime and report the `JSON.parse` fault upstream; until it is fixed,
    consider rejecting keys that begin with a backslash at the schema level (they are never legitimate field names) so the
    trigger cannot occur in stored envelopes.
 6. Hygiene: validate seed length in `encodeSecretKey`; relax the `key_id` check to `{32,44}`; document `-0`, `1.0` and
