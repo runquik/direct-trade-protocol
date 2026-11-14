@@ -100,10 +100,21 @@ function window(body: Record<string, any>, at: number, previous: number, what: s
   need(previous < expires_at, `${what} expired before its predecessor took effect`);
   return { issued_at, expires_at };
 }
-/** Throws unless the log is one valid, owner-authorized control history. The caller must say
- *  whether unattested heads are acceptable; there is deliberately no default. */
-export async function verifyIdentityLog(input: IdentityLog, policy: { require_attestation: boolean }): Promise<VerifiedIdentityLog> {
-  fields(policy, ['require_attestation']); need(typeof policy.require_attestation === 'boolean', 'explicit attestation policy required');
+/** The relying party's verifier (Core-1, part 4; owner decision 2026-11-08 on #159, item 2): throws unless the log is
+ *  one valid, owner-authorized control history AND every head of its current resolver epoch carries that epoch's
+ *  attestation. The serving host can always attest its own epoch; heads of earlier epochs may stay unattested,
+ *  because a former host may be gone or hostile. There is no switch that turns the check off. */
+export async function verifyIdentityLog(input: IdentityLog): Promise<VerifiedIdentityLog> {
+  const v = await verifyIdentityHistory(input);
+  need(currentEpochAttested(v), 'resolver head attestation required on every head of the current epoch');
+  return v;
+}
+function currentEpochAttested(v: VerifiedIdentityLog) { return v.heads.every(h => h.epoch !== v.resolver.epoch || h.attested); }
+/** Throws unless the log is one valid, owner-authorized control history; every attestation present must be valid, and
+ *  none is required. This is NOT a relying party's check: it is for the owner signing from the log it holds, a host
+ *  adopting or releasing an identity whose former host may be gone, and evidence about refusals. A relying party
+ *  verifies with verifyIdentityLog, or admits with admitIdentityLog. */
+export async function verifyIdentityHistory(input: IdentityLog): Promise<VerifiedIdentityLog> {
   fields(input, ['format', 'genesis', 'enrollment', 'entries']);
   need(input.format === IDENTITY_LOG_FORMAT, 'unsupported identity log format');
   list(input.entries, 1, MAX_LOG_ENTRIES);
@@ -147,7 +158,7 @@ export async function verifyIdentityLog(input: IdentityLog, policy: { require_at
       need(state.head.effective_at === at && state.head.sequence === n, 'effective instant not reproducible');
     }
     const current = resolvers[resolvers.length - 1];
-    if (entry.attestation === null) { need(!policy.require_attestation, 'resolver head attestation required'); unattested.push(n); }
+    if (entry.attestation === null) unattested.push(n);
     else await checkAttestation(entry.attestation, { identity_id: state.head.identity_id, resolver_id: current.id, resolver_epoch: current.epoch, sequence: n, head_digest: state.head_digest, effective_at: at }, current.key_id);
     heads.push({ head: structuredClone(state.head), head_digest: state.head_digest, epoch: current.epoch, attested: entry.attestation !== null });
   }
@@ -196,7 +207,7 @@ function checkPin(pin: ResolverPin): ResolverPin {
  *  the pinned binding. It is the party's own record of what it already admitted, so attestations are not required
  *  again. A mismatch is the caller's bug and throws. */
 async function pinnedHistory(pin: ResolverPin, log: IdentityLog): Promise<VerifiedIdentityLog> {
-  const p = await verifyIdentityLog(log, { require_attestation: false });
+  const p = await verifyIdentityHistory(log);
   need(p.identity_id === pin.identity_id && p.resolver.id === pin.resolver_id && p.resolver.key_id === pin.resolver_key && p.resolver.epoch === pin.resolver_epoch
     && p.head.sequence === pin.minimum_sequence && p.head_digest === pin.minimum_digest, 'pinned history does not end at the pinned head');
   return p;
@@ -221,6 +232,9 @@ function judgeVerified(pin: ResolverPin, v: VerifiedIdentityLog, pinned: Verifie
     const moved = v.heads[n].epoch !== v.heads[n - 1].epoch;
     if (moved && v.heads[n].epoch > pin.resolver_epoch && !v.heads[n].attested) return { outcome: 'refused', reason: 'unadopted-move', error: null };
   }
+  // Every head of the log's current epoch must carry its attestation (verifyIdentityLog). Checked after adoption
+  // evidence, so a move nobody adopted keeps its more precise reason.
+  if (!currentEpochAttested(v)) return { outcome: 'refused', reason: 'invalid-log', error: new Error('resolver head attestation required on every head of the current epoch') };
   let outcome: 'unchanged' | 'advanced' | 'superseded' = v.head.sequence === pin.minimum_sequence && v.resolver.epoch === pin.resolver_epoch ? 'unchanged' : 'advanced', superseded = null;
   if (pin.minimum_digest !== null && compareCheckpoint(v, { sequence: pin.minimum_sequence, head_digest: pin.minimum_digest }) === 'conflict') {
     if (v.resolver.epoch <= pin.resolver_epoch) return { outcome: 'refused', reason: 'conflict', error: null };
@@ -271,11 +285,11 @@ function escaped(entries: IdentityLogEntry[], n: number): boolean {
  *  pinned history shows that the recovery quorum the log's branch forked under is still current, and then report it,
  *  never hide it. `pinned` is the log the party holds, ending at the pinned head, or null when it holds only the pin.
  *  An invalid pin, or a pinned history that does not end at the pin, is the caller's bug and still throws. */
-export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogJudgement> {
+export async function judgeIdentityLog(pin: ResolverPin, log: IdentityLog, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogJudgement> {
   pin = checkPin(pin);
   const held = pinned === null ? null : await pinnedHistory(pin, pinned);
   let v: VerifiedIdentityLog;
-  try { v = await verifyIdentityLog(log, policy); } catch (error) { return { outcome: 'refused', reason: 'invalid-log', error: error instanceof Error ? error : new Error(String(error)) }; }
+  try { v = await verifyIdentityHistory(log); } catch (error) { return { outcome: 'refused', reason: 'invalid-log', error: error instanceof Error ? error : new Error(String(error)) }; }
   return judgeVerified(pin, v, held, await refusedMove(log, refusals));
 }
 const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string> = {
@@ -286,8 +300,8 @@ const REFUSAL_MESSAGES: Record<Exclude<AdmissionRefusal, 'invalid-log'>, string>
 };
 /** The relying-party procedure: admit a log against a durable pin and return the pin to store in its place, or throw.
  *  The caller stores the returned pin atomically and refuses the former resolver from then on. */
-export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, policy: { require_attestation: boolean }, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogAdmission> {
-  const judged = await judgeIdentityLog(pin, log, policy, pinned, refusals);
+export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, pinned: IdentityLog | null = null, refusals: Signed<RehomeRefusal>[] = []): Promise<IdentityLogAdmission> {
+  const judged = await judgeIdentityLog(pin, log, pinned, refusals);
   if (judged.outcome !== 'refused') return judged;
   if (judged.reason === 'invalid-log') throw judged.error;
   throw new Error(REFUSAL_MESSAGES[judged.reason]);
@@ -298,12 +312,12 @@ export async function admitIdentityLog(pin: ResolverPin, log: IdentityLog, polic
  *  it; with the pin it may return the log it holds for that pin, `{ pin, log }`, which lets a higher-epoch fork be
  *  ranked by the fork-point rule instead of refused as a conflict, and the rehome refusals it holds for the identity,
  *  `{ pin, log, refusals }`, so that a log containing a refused rehome it does not escape is refused as `refused-move`; the caller stores the returned admission's pin atomically with whatever transaction it looked the pin up in. */
-export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | PinnedHistory | null>, policy: { require_attestation: boolean }): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
+export async function receiveIdentityLogPush(message: IdentityLogPush, lookup: (identity_id: string) => Promise<ResolverPin | PinnedHistory | null>): Promise<{ ack: IdentityLogPushAck; admission: IdentityLogAdmission | null }> {
   const refused = (identity_id: string | null, reason: AdmissionRefusal): { ack: IdentityLogPushAck; admission: null } => ({ ack: { format: IDENTITY_LOG_PUSH_ACK_FORMAT, identity_id, outcome: 'refused', reason, binding: null }, admission: null });
   let v: VerifiedIdentityLog, log: IdentityLog;
   try {
     const m = copyIdentityData(message); fields(m, ['format', 'log']); need(m.format === IDENTITY_LOG_PUSH_FORMAT, 'unsupported identity log push format');
-    v = await verifyIdentityLog(m.log, policy); log = m.log;
+    v = await verifyIdentityHistory(m.log); log = m.log;
   } catch { return refused(null, 'invalid-log'); }
   const found = await lookup(v.identity_id);
   if (found === null) return refused(v.identity_id, 'unknown-identity');
@@ -331,14 +345,14 @@ export function parseIdentityLogPushAck(value: unknown): IdentityLogPushAck {
  *  it cannot verify itself. */
 export async function buildIdentityLog(parts: IdentityLogParts, resolverKey: KeyPair | null): Promise<IdentityLog> {
   const log: IdentityLog = copyLog({ format: IDENTITY_LOG_FORMAT, genesis: parts.genesis, enrollment: parts.enrollment, entries: parts.entries });
-  const verified = await verifyIdentityLog(log, { require_attestation: false });
+  const verified = await verifyIdentityHistory(log);
   if (resolverKey === null) return log;
   need(verified.resolvers.some(r => r.key_id === resolverKey.keyId), 'only an enrolled resolver key can attest this log');
   for (let n = 0; n < log.entries.length; n++) {
     const r = verified.resolvers[verified.heads[n].epoch];
     if (log.entries[n].attestation === null && r.key_id === resolverKey.keyId) log.entries[n].attestation = await attestHead(verified.heads[n].head, { id: r.id, epoch: r.epoch }, resolverKey);
   }
-  const again = await verifyIdentityLog(log, { require_attestation: false });
+  const again = await verifyIdentityHistory(log);
   need(again.unattested.every(n => again.resolvers[again.heads[n].epoch].key_id !== resolverKey.keyId), 'attestation incomplete');
   return log;
 }
@@ -380,7 +394,7 @@ export async function verifyRehomeRefusal(refusal: Signed<RehomeRefusal>, rehome
  *  does, but nobody attested that head, so the log is a dangling consent and the refusal stands. `equivocation`: the
  *  destination attested the head it said it never created; keep both artifacts, they prove it. */
 export async function compareRehomeRefusal(refusal: Signed<RehomeRefusal>, log: IdentityLog): Promise<'unrelated' | 'consistent' | 'equivocation'> {
-  const v = await verifyIdentityLog(log, { require_attestation: false }), copy = copyLog(log);
+  const v = await verifyIdentityHistory(log), copy = copyLog(log);
   for (let n = 1; n < copy.entries.length; n++) {
     const move = copy.entries[n].rehome; if (move === null) continue;
     let body: RehomeRefusal; try { body = await verifyRehomeRefusal(refusal, move); } catch { continue; }

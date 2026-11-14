@@ -3,7 +3,7 @@ import { canonicalBytes } from '../canonical.ts';
 import { generateKeyPair, keyPairFromSecret, encodeSignature, signBytes, verifyBytes } from '../keys.ts';
 import { createIdentity, signIdentity, verifyResolution } from '../foundation/identity.ts';
 import type { Genesis, Rehome, ResolverEnrollment, Signed, Transition } from '../foundation/identity.ts';
-import { IDENTITY_LOG_PUSH_FORMAT, parseIdentityLogPushAck, verifyIdentityLog } from '../foundation/identity-log.ts';
+import { IDENTITY_LOG_PUSH_FORMAT, parseIdentityLogPushAck, verifyIdentityHistory, verifyIdentityLog } from '../foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogPushAck } from '../foundation/identity-log.ts';
 import type { KeyPair } from '../keys.ts';
 import type { Command, Challenge, Request } from './wire.ts';
@@ -98,7 +98,7 @@ export class PassportClient {
    *  Needs nothing from the current host. Returns the rehome and this wallet re-pinned to the destination. */
   async prepareRehome(log:IdentityLog,to:ResolverMetadata,now=Date.now()):Promise<{rehome:Signed<Rehome>;next:Wallet}> {
     if(this.wallet.kind!=='recovery')throw new Error('Only recovery authority can move an identity');
-    const v=await verifyIdentityLog(log,{require_attestation:false}),pinned=this.wallet.resolver;
+    const v=await verifyIdentityHistory(log),pinned=this.wallet.resolver;
     if(v.identity_id!==this.wallet.person_id||v.resolver.id!==pinned.resolver_id||v.resolver.key_id!==pinned.resolver_key||v.resolver.audience!==pinned.audience||v.resolver.epoch!==epochOf(pinned))throw new Error('Identity log binding mismatch');
     const rehome=await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1',{identity_id:v.identity_id,expected_digest:v.head_digest,sequence:v.head.sequence+1,from:{resolver_id:v.resolver.id,resolver_epoch:v.resolver.epoch},
       to:{resolver_id:to.resolver_id,resolver_key:to.resolver_key,audience:to.audience,resolver_epoch:v.resolver.epoch+1},issued_at:now,expires_at:now+300000},[await keyPairFromSecret(this.wallet.secret_key)]);
@@ -110,7 +110,7 @@ export class PassportClient {
   async release(log:IdentityLog) { return this.transport('transfer',{log}); }
   /** The portable control history, to keep somewhere the host cannot reach. Verified against this wallet's pinned resolver before it is returned. */
   async exportLog():Promise<IdentityLog> {
-    const log:IdentityLog=await this.transport('log',{person_id:this.wallet.person_id}),checked=await verifyIdentityLog(log,{require_attestation:true}),pinned=this.wallet.resolver;
+    const log:IdentityLog=await this.transport('log',{person_id:this.wallet.person_id}),checked=await verifyIdentityLog(log),pinned=this.wallet.resolver;
     if(checked.identity_id!==this.wallet.person_id||checked.resolver.id!==pinned.resolver_id||checked.resolver.key_id!==pinned.resolver_key||checked.resolver.audience!==pinned.audience||checked.resolver.epoch!==epochOf(pinned))throw new Error('Identity log binding mismatch');
     return log;
   }

@@ -7,7 +7,7 @@ import type { KeyPair } from '../../src/keys.ts';
 import { createIdentity, issueResolution, rehomeIdentity, signIdentity, transitionIdentity, verifyResolution, LEASE_MS, CLOCK_MARGIN_MS } from '../../src/foundation/identity.ts';
 import type { IdentityState, Rehome, Signed, Transition } from '../../src/foundation/identity.ts';
 import { createIdentityRegistry, IDENTITY_REGISTRY_SCHEMA } from '../../src/foundation/identity-registry.ts';
-import { admitIdentityLog, attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT } from '../../src/foundation/identity-log.ts';
+import { admitIdentityLog, attestHead, buildIdentityLog, compareRehomeRefusal, judgeIdentityLog, precedence, receiveIdentityLogPush, rehomeDigest, verifyIdentityHistory, verifyIdentityLog, verifyRehomeRefusal, IDENTITY_LOG_PUSH_ACK_FORMAT, IDENTITY_LOG_PUSH_FORMAT } from '../../src/foundation/identity-log.ts';
 import type { IdentityLog, IdentityLogPush, ResolverPin } from '../../src/foundation/identity-log.ts';
 import { pushIdentityLog } from '../../src/onboarding/client.ts';
 import type { Transport } from '../../src/onboarding/client.ts';
@@ -51,7 +51,7 @@ function relyingParty(pin: ResolverPin) {
       const head = await verifyResolution(r.proof, { ...r.request, resolver_id: pin.resolver_id, resolver_key: pin.resolver_key, resolver_epoch: pin.resolver_epoch, minimum_sequence: pin.minimum_sequence, minimum_digest: pin.minimum_digest }, now);
       pin = { ...pin, minimum_sequence: head.sequence, minimum_digest: r.proof.body.head_digest }; return head;
     },
-    async admit(log: IdentityLog) { const result = await admitIdentityLog(pin, log, strict); pin = result.pin; return result; },
+    async admit(log: IdentityLog) { const result = await admitIdentityLog(pin, log); pin = result.pin; return result; },
   };
 }
 
@@ -61,7 +61,7 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
     const policy = await w.change(w.a, 'recovery-policy', w.op0, w.rec1, [w.rec0, w.rec1]);
     assert.equal(policy.sequence, 1);
     const exported = await w.a.registry.exportLog(w.identity);
-    assert.deepEqual((await verifyIdentityLog(exported, strict)).unattested, []);
+    assert.deepEqual((await verifyIdentityLog(exported)).unattested, []);
     // 3. A relying party pins (A, epoch 0) and accepts a resolution from A.
     const rp = relyingParty({ identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: null });
     assert.equal((await rp.accept(await w.resolve(w.a), w.clock.now())).sequence, 1);
@@ -69,7 +69,7 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
     const hostile = { resolve: (r: any) => w.a.registry.resolve(r), transition: async () => { throw new Error('unavailable'); }, exportLog: async () => { throw new Error('unavailable'); } };
     await assert.rejects(hostile.exportLog());
     // 5. Only the recovery key and the copy of the log the owner kept. B adopts.
-    const current = await verifyIdentityLog(exported, lenient), at = w.clock.advance(60_000);
+    const current = await verifyIdentityHistory(exported), at = w.clock.advance(60_000);
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: current.head_digest, sequence: current.head.sequence + 1,
       from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 }, [w.rec1]);
     const adopted = await w.b.registry.adopt(exported, rehome);
@@ -79,7 +79,7 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
     const recovered = await w.change(w.b, 'recover', w.op1, w.rec1, [w.rec1, w.op1]);
     assert.equal(recovered.effective_at, at + LEASE_MS + CLOCK_MARGIN_MS);
     // 7. The relying party is shown B's log, admits the move, accepts B, and refuses a fresh, correctly signed resolution from A.
-    const moved = await w.b.registry.exportLog(w.identity), verified = await verifyIdentityLog(moved, strict);
+    const moved = await w.b.registry.exportLog(w.identity), verified = await verifyIdentityLog(moved);
     assert.deepEqual(verified.resolvers.map(r => [r.epoch, r.id]), [[0, w.a.config.id], [1, w.b.config.id]]);
     assert.deepEqual(verified.unattested, [], 'A attested its epoch before turning hostile; B attests its own');
     const admission = await rp.admit(moved);
@@ -90,7 +90,7 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
     // 8. A thief with the old operational key forks at A; A vouches for it. Epoch precedence decides, and an operational-signed rehome is refused everywhere.
     const fork = await w.change(w.a, 'rotate', w.thief, w.rec1, [w.op0, w.thief]);
     assert.equal(fork.sequence, 2, 'A accepted a rival successor of the same head');
-    const thiefLog = await verifyIdentityLog(await w.a.registry.exportLog(w.identity), strict);
+    const thiefLog = await verifyIdentityLog(await w.a.registry.exportLog(w.identity));
     assert.equal(precedence(verified, thiefLog), 'a-supersedes-b'); assert.equal(precedence(thiefLog, verified), 'b-supersedes-a');
     await assert.rejects(rp.admit(await w.a.registry.exportLog(w.identity)), /conflicting|does not continue/, 'the pinned verifier does not go back');
     const rival = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { ...rehome.body, to: { ...rehome.body.to, resolver_id: crypto.randomUUID() } }, [w.op0]);
@@ -103,25 +103,25 @@ test('exit test: an identity leaves a hostile host using only the recovery key a
 test('cooperative move: the old host records the rehome, stops resolving, and serves the log as a forwarding address', async () => {
   const w = await world(); try {
     await w.change(w.a, 'rotate', w.op1, w.rec0, [w.op0, w.op1]);
-    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(10_000);
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported), at = w.clock.advance(10_000);
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: current.head_digest, sequence: 2, from: { resolver_id: w.a.config.id, resolver_epoch: 0 },
       to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 }, [w.rec0]);
     await w.b.registry.adopt(exported, rehome);
     const moved = await w.b.registry.exportLog(w.identity), release = await w.a.registry.transfer(moved);
     assert.deepEqual([release.sequence, release.resolver_epoch], [2, 1]); assert.deepEqual(await w.a.registry.transfer(moved), release, 'replay acknowledges');
     await assert.rejects(w.a.registry.resolve({ identity_id: w.identity, audience: 'https://relying.example', challenge: hex() }), /transferred/);
-    const forwarded = await verifyIdentityLog(await w.a.registry.exportLog(w.identity), strict), latest = await verifyIdentityLog(moved, strict);
+    const forwarded = await verifyIdentityLog(await w.a.registry.exportLog(w.identity)), latest = await verifyIdentityLog(moved);
     assert.equal(forwarded.resolver.id, w.b.config.id); assert.equal(precedence(forwarded, latest), 'equal');
     // B advances; A's copy is now a strict prefix and still verifies as one.
     await w.change(w.b, 'rotate', w.thief, w.rec0, [w.op1, w.thief]);
-    assert.equal(precedence(forwarded, await verifyIdentityLog(await w.b.registry.exportLog(w.identity), strict)), 'b-extends-a');
+    assert.equal(precedence(forwarded, await verifyIdentityLog(await w.b.registry.exportLog(w.identity))), 'b-extends-a');
     // Returning to A later extends the prefix A already holds rather than starting over.
-    const back = await verifyIdentityLog(await w.b.registry.exportLog(w.identity), strict), at2 = w.clock.advance(40_000);
+    const back = await verifyIdentityLog(await w.b.registry.exportLog(w.identity)), at2 = w.clock.advance(40_000);
     const home = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: back.head_digest, sequence: back.head.sequence + 1, from: { resolver_id: w.b.config.id, resolver_epoch: 1 },
       to: { ...w.a.meta, resolver_epoch: 2 }, issued_at: at2, expires_at: at2 + 300_000 }, [w.rec0]);
     const returned = await w.a.registry.adopt(await w.b.registry.exportLog(w.identity), home);
     assert.deepEqual([returned.sequence, returned.resolver_epoch], [4, 2]);
-    const full = await verifyIdentityLog(await w.a.registry.exportLog(w.identity), strict);
+    const full = await verifyIdentityLog(await w.a.registry.exportLog(w.identity));
     assert.deepEqual(full.resolvers.map(r => r.epoch), [0, 1, 2]); assert.deepEqual(full.unattested, []);
     await w.change(w.a, 'rotate', w.op0, w.rec0, [w.thief, w.op0]).then(() => assert.fail('retired key reinstated'), e => assert.match(e.message, /retired/));
   } finally { await w.close(); }
@@ -129,7 +129,7 @@ test('cooperative move: the old host records the rehome, stops resolving, and se
 
 test('adoption refuses a log that names another resolver, a rehome from the wrong epoch, a foreign key as resolver key, and a divergent history', async () => {
   const w = await world(); try {
-    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported), at = w.clock.advance(5_000);
     const body: Rehome = { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 };
     const sign = (b: Rehome, keys: KeyPair[] = [w.rec0]) => signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', b, keys);
     await assert.rejects(w.b.registry.adopt(exported, await sign({ ...body, to: { ...body.to, resolver_id: crypto.randomUUID() } })), /another resolver/);
@@ -147,7 +147,7 @@ test('adoption refuses a log that names another resolver, a rehome from the wron
 
 test('a destination that will not adopt signs a refusal: it never adopts that rehome afterwards, a verifier can tell a refused consent from an adopted move, and an attestation of the refused head is equivocation', async () => {
   const w = await world(); try {
-    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported), at = w.clock.advance(5_000);
     const body: Rehome = { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 };
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', body, [w.rec0]);
     // B declines. The refusal is the destination's own signed statement about exactly this document.
@@ -158,19 +158,19 @@ test('a destination that will not adopt signs a refusal: it never adopts that re
     await assert.rejects(w.b.registry.adopt(exported, rehome), /refused/, 'the refusal says never, and the host keeps its word');
     // A log someone assembles from the owner's consent alone: valid as a history, but no destination adopted the move.
     const dangling: IdentityLog = { ...structuredClone(exported), entries: [...structuredClone(exported.entries), { effective_at: at + 1, transition: null, rehome, attestation: null }] };
-    await verifyIdentityLog(dangling, lenient);
+    await verifyIdentityHistory(dangling);
     const pin: ResolverPin = { identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
-    assert.deepEqual(await judgeIdentityLog(pin, dangling, lenient), { outcome: 'refused', reason: 'unadopted-move', error: null });
-    await assert.rejects(admitIdentityLog(pin, dangling, lenient), /destination's attestation/);
+    assert.deepEqual(await judgeIdentityLog(pin, dangling), { outcome: 'refused', reason: 'unadopted-move', error: null });
+    await assert.rejects(admitIdentityLog(pin, dangling), /destination's attestation/);
     assert.equal(await compareRehomeRefusal(refusal, dangling), 'consistent');
     assert.equal(await compareRehomeRefusal(refusal, exported), 'unrelated');
     // If B nevertheless attested that head, its refusal and its attestation together prove it equivocated.
-    const attested = structuredClone(dangling), head = (await verifyIdentityLog(dangling, lenient)).heads[1].head;
+    const attested = structuredClone(dangling), head = (await verifyIdentityHistory(dangling)).heads[1].head;
     attested.entries[1].attestation = await attestHead(head, { id: w.b.config.id, epoch: 1 }, w.b.key);
     assert.equal(await compareRehomeRefusal(refusal, attested), 'equivocation');
-    assert.equal((await judgeIdentityLog(pin, attested, lenient)).outcome, 'advanced', 'a relying party that holds no refusal cannot see it');
-    assert.deepEqual(await judgeIdentityLog(pin, attested, lenient, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'a relying party holding the refusal refuses the branch (#56)');
-    assert.deepEqual(await judgeIdentityLog(pin, dangling, lenient, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'and the dangling consent too, before any evidence rule');
+    assert.equal((await judgeIdentityLog(pin, attested)).outcome, 'advanced', 'a relying party that holds no refusal cannot see it');
+    assert.deepEqual(await judgeIdentityLog(pin, attested, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'a relying party holding the refusal refuses the branch (#56)');
+    assert.deepEqual(await judgeIdentityLog(pin, dangling, null, [refusal]), { outcome: 'refused', reason: 'refused-move', error: null }, 'and the dangling consent too, before any evidence rule');
     // The owner signs a fresh rehome to B, which B adopts; the earlier refusal is about the earlier document only.
     const later = w.clock.advance(1_000), again = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { ...body, issued_at: later, expires_at: later + 300_000 }, [w.rec0]);
     const adopted = await w.b.registry.adopt(exported, again); assert.equal(adopted.resolver_epoch, 1);
@@ -181,7 +181,7 @@ test('a destination that will not adopt signs a refusal: it never adopts that re
 
 test('owner push: a wallet hands a relying party the log after a move; the answer is idempotent and classifies every refusal', async () => {
   const w = await world(); try {
-    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported), at = w.clock.advance(5_000);
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 }, [w.rec0]);
     await w.b.registry.adopt(exported, rehome); const moved = await w.b.registry.exportLog(w.identity);
     // A relying party: one durable pin, and the push route in front of the procedure.
@@ -189,12 +189,12 @@ test('owner push: a wallet hands a relying party the log after a move; the answe
     const received: unknown[] = [];
     const party: Transport = async (path, message) => {
       assert.equal(path, 'identity-log'); received.push(message);
-      const { ack, admission } = await receiveIdentityLogPush(message as IdentityLogPush, async identity => pin !== null && pin.identity_id === identity ? pin : null, strict);
+      const { ack, admission } = await receiveIdentityLogPush(message as IdentityLogPush, async identity => pin !== null && pin.identity_id === identity ? pin : null);
       if (admission !== null) pin = admission.pin; return ack;
     };
     const first = await pushIdentityLog(party, moved);
     assert.deepEqual(received, [{ format: IDENTITY_LOG_PUSH_FORMAT, log: moved }], 'the message is the log and nothing else');
-    assert.deepEqual([first.outcome, first.reason, first.identity_id, first.binding], ['advanced', null, w.identity, { resolver_id: w.b.config.id, resolver_epoch: 1, sequence: 1, head_digest: (await verifyIdentityLog(moved, strict)).head_digest }]);
+    assert.deepEqual([first.outcome, first.reason, first.identity_id, first.binding], ['advanced', null, w.identity, { resolver_id: w.b.config.id, resolver_epoch: 1, sequence: 1, head_digest: (await verifyIdentityLog(moved)).head_digest }]);
     assert.equal((await pushIdentityLog(party, moved)).outcome, 'unchanged', 'repeating the push changes nothing');
     // A stale log that never reaches the party's epoch cannot be tied to the lineage it now holds: foreign-lineage, not behind.
     assert.deepEqual([(await pushIdentityLog(party, exported)).outcome, (await pushIdentityLog(party, exported)).reason], ['refused', 'foreign-lineage']);
@@ -235,27 +235,27 @@ test('rehomeIdentity: control is unchanged, the head commits to the rehome, and 
 
 test('the log verifier binds each head attestation to the resolver of its epoch and reports every binding', async () => {
   const w = await world(); try {
-    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported, strict), at = w.clock.advance(5_000);
+    const exported = await w.a.registry.exportLog(w.identity), current = await verifyIdentityLog(exported), at = w.clock.advance(5_000);
     const rehome = await signIdentity<Rehome>('DTP-IDENTITY-REHOME-1', { identity_id: w.identity, expected_digest: current.head_digest, sequence: 1, from: { resolver_id: w.a.config.id, resolver_epoch: 0 }, to: { ...w.b.meta, resolver_epoch: 1 }, issued_at: at, expires_at: at + 300_000 }, [w.rec0]);
     await w.b.registry.adopt(exported, rehome); await w.change(w.b, 'rotate', w.op1, w.rec0, [w.op0, w.op1]);
-    const log = await w.b.registry.exportLog(w.identity), v = await verifyIdentityLog(log, strict);
+    const log = await w.b.registry.exportLog(w.identity), v = await verifyIdentityLog(log);
     assert.deepEqual(v.heads.map(h => h.epoch), [0, 1, 1]);
     const swapped = structuredClone(log); swapped.entries[1].attestation = await attestHead(v.heads[1].head, { id: w.a.config.id, epoch: 0 }, w.a.key);
-    await assert.rejects(verifyIdentityLog(swapped, lenient), /does not describe/, 'the old resolver cannot attest the rehome head');
+    await assert.rejects(verifyIdentityHistory(swapped), /does not describe/, 'the old resolver cannot attest the rehome head');
     const late = structuredClone(log); late.entries[1].effective_at = rehome.body.expires_at; late.entries[1].attestation = null;
-    await assert.rejects(verifyIdentityLog(late, lenient), /beyond the signed window/);
+    await assert.rejects(verifyIdentityHistory(late), /beyond the signed window/);
     const early = structuredClone(log); early.entries[1].effective_at = rehome.body.issued_at - 1; early.entries[1].attestation = null;
-    await assert.rejects(verifyIdentityLog(early, lenient), /precedes/);
+    await assert.rejects(verifyIdentityHistory(early), /precedes/);
     // A verifier that pinned nothing yet, with a stale pin, or with a same-epoch conflict.
     const pinA: ResolverPin = { identity_id: w.identity, resolver_id: w.a.config.id, resolver_key: w.a.key.keyId, resolver_epoch: 0, minimum_sequence: 0, minimum_digest: current.head_digest };
-    await assert.rejects(admitIdentityLog({ ...pinA, identity_id: crypto.randomUUID() }, log, strict), /another identity/);
-    assert.equal((await admitIdentityLog(pinA, log, strict)).outcome, 'advanced');
-    assert.equal((await admitIdentityLog(pinA, exported, strict)).outcome, 'unchanged');
-    await assert.rejects(admitIdentityLog({ ...pinA, resolver_key: w.b.key.keyId }, log, strict), /pinned lineage/);
-    await assert.rejects(admitIdentityLog({ ...pinA, minimum_sequence: 5 }, log, strict), /behind/);
+    await assert.rejects(admitIdentityLog({ ...pinA, identity_id: crypto.randomUUID() }, log), /another identity/);
+    assert.equal((await admitIdentityLog(pinA, log)).outcome, 'advanced');
+    assert.equal((await admitIdentityLog(pinA, exported)).outcome, 'unchanged');
+    await assert.rejects(admitIdentityLog({ ...pinA, resolver_key: w.b.key.keyId }, log), /pinned lineage/);
+    await assert.rejects(admitIdentityLog({ ...pinA, minimum_sequence: 5 }, log), /behind/);
     // A higher-epoch conflict with a party that holds only its pin: without the pinned history the fork-point rule
     // cannot rule out a retired recovery quorum (#50), so it fails closed. The supersede path is in the vectors.
-    await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, log, strict), /conflicting control history/);
-    await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, exported, strict), /same resolver epoch/);
+    await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, log), /conflicting control history/);
+    await assert.rejects(admitIdentityLog({ ...pinA, minimum_digest: 'f'.repeat(64) }, exported), /same resolver epoch/);
   } finally { await w.close(); }
 });
