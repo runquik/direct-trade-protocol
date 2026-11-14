@@ -65,7 +65,7 @@ test("what the foundation layer signs today is a Core-1 envelope, unchanged", as
 
 test("the Core-1 domain list is the one the profile names", () => {
   assert.deepEqual([...CORE1_DOMAINS].sort(), [
-    "DTP-IDENTITY-LOG-HEAD-1", "DTP-IDENTITY-REHOME-1", "DTP-IDENTITY-TRANSITION-1", "DTP-ORGANIZATION-CONSENT-1",
+    "DTP-IDENTITY-LOG-HEAD-1", "DTP-IDENTITY-REHOME-1", "DTP-IDENTITY-TRANSITION-1", "DTP-LOG-HEAD-1", "DTP-ORGANIZATION-CONSENT-1",
     "DTP-ORGANIZATION-GENESIS-1", "DTP-ORGANIZATION-TRANSITION-1", "DTP-PERSON-GENESIS-1", "DTP-RECORD-1",
   ]);
   const profile = readFileSync(new URL("../../spec/core-1/README.md", import.meta.url), "utf8");
