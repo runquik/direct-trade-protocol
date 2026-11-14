@@ -51,6 +51,7 @@ const first = await sign(base, "alice-op-1");
 const firstDigest = await recordDigest(first);
 const second = await sign({ ...base, sequence: 2, supersedes: firstDigest, issued_at: 1762000200000, payload: { note: "café", amount: "13.00" } }, "alice-op-1");
 const orgFirst = await sign(forOrg, "alice-op-2");
+const bobBoth = await sign(byBob, "bob-op-1", "bob-op-2");
 const accepted = async (why: string, envelope: Awaited<ReturnType<typeof sign>>, person: keyof typeof heads, organization: "org" | null, signers: string[]) =>
   ({ why, envelope, profile: PROFILE, person, organization, digest: await recordDigest(envelope), signers });
 
@@ -58,7 +59,8 @@ const accept = [
   await accepted("a person's first record, signed by one operational key at the named head", first, "alice", null, [k["alice-op-1"].key_id]),
   await accepted("a record that supersedes the first, with the next sequence", second, "alice", null, [k["alice-op-1"].key_id]),
   await accepted("a record issued for an organisation by one of its controllers", orgFirst, "alice", "org", [k["alice-op-2"].key_id]),
-  await accepted("a record whose issuer's threshold is two, signed by both operational keys", await sign(byBob, "bob-op-1", "bob-op-2"), "bob", null, [k["bob-op-1"].key_id, k["bob-op-2"].key_id]),
+  await accepted("a record whose issuer's threshold is two, signed by both operational keys", bobBoth, "bob", null, [k["bob-op-1"].key_id, k["bob-op-2"].key_id]),
+  await accepted("the same record with its two signatures in the other order: the same record digest, because the digest takes the signatures in ascending order of key_id", { body: bobBoth.body, signatures: [bobBoth.signatures[1], bobBoth.signatures[0]] }, "bob", null, [k["bob-op-1"].key_id, k["bob-op-2"].key_id]),
 ];
 
 const reject = [
@@ -95,7 +97,7 @@ const supersession = {
 };
 
 const out = {
-  description: "Core-1 signed records (spec/core-1/README.md, part 5): Signed<Record> under DTP-RECORD-1. For accept: verify the envelope under DTP-RECORD-1, check the body and the expected profile, check the signers against heads[person] and, when organization is set, heads[organization]; the record digest (SHA-256 of the canonical envelope, signatures included) and the signers must match. For reject: run the same steps, using profile, person and organization when given, and expect the code. For supersession: both records verify; check that next supersedes previous. Keys come from fixed seeds; never use them for anything real.",
+  description: "Core-1 signed records (spec/core-1/README.md, part 5): Signed<Record> under DTP-RECORD-1. For accept: verify the envelope under DTP-RECORD-1, check the body and the expected profile, check the signers against heads[person] and, when organization is set, heads[organization]; the record digest (SHA-256 of the canonical envelope, signatures included and taken in ascending order of key_id, so the order they arrive in does not change it) and the signers must match. For reject: run the same steps, using profile, person and organization when given, and expect the code. For supersession: both records verify; check that next supersedes previous. Keys come from fixed seeds; never use them for anything real.",
   keys: labels.map(l => k[l]),
   heads, accept, reject, supersession,
 };
