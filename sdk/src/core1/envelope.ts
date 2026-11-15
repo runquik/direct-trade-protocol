@@ -16,7 +16,7 @@ export interface Signature { key_id: string; signature: string }
 export interface Signed<T> { body: T; signatures: Signature[] }
 export interface KeySet { keys: string[]; threshold: number }
 
-/** The domains a Core-1 verifier implements: identity (part 4) and records (part 5). Extensions add their own. */
+/** The domains a Core-1 verifier implements: identity (part 4), records and host receipts (part 5). Extensions add their own. */
 export const CORE1_DOMAINS = Object.freeze([
   "DTP-PERSON-GENESIS-1",
   "DTP-IDENTITY-TRANSITION-1",
@@ -26,6 +26,7 @@ export const CORE1_DOMAINS = Object.freeze([
   "DTP-ORGANIZATION-TRANSITION-1",
   "DTP-ORGANIZATION-CONSENT-1",
   "DTP-RECORD-1",
+  "DTP-LOG-HEAD-1",
 ] as const);
 
 /** A domain's shape: `DTP-` then upper-case words, ending in its format version, such as DTP-RECORD-1. */
