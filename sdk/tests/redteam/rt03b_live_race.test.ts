@@ -1,8 +1,8 @@
 // RED-TEAM rt03b: fire N concurrent supersedes of the SAME head and look for a loser mapped to
 // `internal`/500 instead of `supersedes_conflict`/409. Meaningful only against a multi-connection
-// backend (the live Supabase deployment); on single-connection PGlite the writes serialize.
+// backend (a hosted deployment); on single-connection PGlite the writes serialize.
 //
-//   STORE_URL=https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store \
+//   STORE_URL=https://<host>/functions/v1/dtp-store \
 //     node --test tests/redteam/rt03b_live_race.test.ts
 import test from "node:test";
 import assert from "node:assert/strict";

@@ -56,7 +56,7 @@ node repro-v8-check.mjs v8-repro/polluter.min.json v8-repro/target.min.json prin
 ```sh
 node race-store.test.ts                                    # in-process PGlite store (no Docker), via ../helpers.ts
 STORE_URL=http://127.0.0.1:8787/dtp-store node race-store.test.ts     # against `node scripts/dev-server.ts`
-STORE_URL=https://<project>.supabase.co/functions/v1/dtp-store node race-store.test.ts   # live (about 130 requests)
+STORE_URL=https://<host>/functions/v1/dtp-store node race-store.test.ts   # live (about 130 requests)
 ```
 
 `RACE_N` (default 10) sets the number of simultaneous requests per race. Company ids are `fz-<random>.dtp`.

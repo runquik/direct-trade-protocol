@@ -10,7 +10,7 @@ node --test tests/redteam/rt04_stranger_supersede.test.ts          # CRITICAL-1
 node --test tests/redteam/rt01_subject_and_role_forgery.test.ts
 node --test tests/redteam/rt02_module_publisher_spoof.test.ts
 node --test tests/redteam/rt03_concurrent_supersede.test.ts        # PGlite control
-STORE_URL=https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-store \
+STORE_URL=https://<host>/functions/v1/dtp-store \
   node --test tests/redteam/rt01_subject_and_role_forgery.test.ts \
                 tests/redteam/rt02_module_publisher_spoof.test.ts \
                 tests/redteam/rt03b_live_race.test.ts
