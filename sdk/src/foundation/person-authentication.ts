@@ -5,7 +5,7 @@ import { decodeKeyId, decodeSignature, encodeSignature, signBytes, verifyBytes }
 import type { KeyPair } from '../keys.ts';
 import { copyIdentityData, verifyResolution } from './identity.ts';
 import type { Control, Signed, Resolution, Signature } from './identity.ts';
-import { admitIdentityLog, receiveIdentityLogPush, rehomeDigest, verifyIdentityLog, verifyRehomeRefusal } from './identity-log.ts';
+import { admitIdentityLog, advancePinByResolution, receiveIdentityLogPush, rehomeDigest, verifyIdentityHistory, verifyRehomeRefusal } from './identity-log.ts';
 import type { IdentityLog, IdentityLogPush, IdentityLogPushAck, PinnedHistory, RehomeRefusal, ResolverPin } from './identity-log.ts';
 import { parseEntityReference, parseRevisionReference, entityReferenceKey } from './datatypes.ts';
 import type { EntityReference } from './datatypes.ts';
@@ -28,6 +28,10 @@ create table if not exists dtp_foundation.person_auth_checkpoints (
  resolver_epoch bigint not null, sequence bigint not null, digest text not null,
  primary key(host_id,person_id)
 );
+-- The identity log this host last admitted for the person, ending exactly at the checkpoint, or null while it holds
+-- only the configured pin (Core-1, part 4; owner decision 2026-11-08 on #159, item 3). Every write of the
+-- checkpoint writes this column with it.
+alter table dtp_foundation.person_auth_checkpoints add column if not exists log jsonb;
 create table if not exists dtp_foundation.person_auth_rehome_refusals (
  host_id uuid not null, person_id uuid not null, rehome_digest text not null, rehome jsonb not null, refusal jsonb not null,
  primary key(host_id,person_id,rehome_digest)
@@ -131,7 +135,11 @@ export async function signPersonOperation(value: Omit<PersonOperationRequest, 'a
   r.authentication.signatures = await Promise.all(keys.map(async k => ({ key_id: k.keyId, signature: encodeSignature(await signBytes(k.secretKey, bytes)) })));
   return parseRequest(r);
 }
-interface Checkpoint { resolver_id: string; resolver_key: string; resolver_epoch: number | string; sequence: number | string; digest: string }
+interface Checkpoint { resolver_id: string; resolver_key: string; resolver_epoch: number | string; sequence: number | string; digest: string; log: IdentityLog | null }
+/** What the adapter asks for when a resolution names a head above the checkpoint: the person's identity log from the
+ *  host that serves it, reaching at least that head, or null when it cannot be had. */
+export interface IdentityLogRequest { identity_id: string; resolver_id: string; resolver_epoch: number; sequence: number; head_digest: string }
+export interface PersonAuthenticationRuntime { now: () => number; fetchIdentityLog?: (request: IdentityLogRequest) => Promise<IdentityLog | null> }
 interface ChallengeRow { binding: PersonChallenge; consumed_at: number | string | null; consumed_request_digest: string | null; consumed_transaction: string | null; deadline_ms: number | string | null }
 async function dbNow(tx: Db, hostClock: () => number): Promise<number> {
   const before = hostClock(); integer(before);
@@ -144,9 +152,10 @@ async function dbNow(tx: Db, hostClock: () => number): Promise<number> {
   return n;
 }
 
-export function createPersonAuthentication(options: PersonAuthenticationOptions, runtime: { now: () => number } = { now: Date.now }) {
-  // Local runtime dependency, deliberately separate from the serializable identity/pin configuration.
+export function createPersonAuthentication(options: PersonAuthenticationOptions, runtime: PersonAuthenticationRuntime = { now: Date.now }) {
+  // Local runtime dependencies, deliberately separate from the serializable identity/pin configuration.
   const clock = runtime.now; need(typeof clock === 'function', 'trusted host clock required');
+  const fetchLog = runtime.fetchIdentityLog ?? null; need(fetchLog === null || typeof fetchLog === 'function', 'identity log fetcher must be a function');
   const hostClock = () => { const value = clock(); integer(value); return value; };
   const admissionClock = (admittedAt: number) => {
     integer(admittedAt); const current = hostClock(); integer(current);
@@ -166,7 +175,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
   const pinFor = (person: string) => { const p = pins.get(person); need(p, 'person resolver not enrolled'); return p; };
   const checkpoint = async (tx: Db, p: PersonResolverPin) => {
     await tx.query('insert into dtp_foundation.person_auth_checkpoints (host_id,person_id,resolver_id,resolver_key,resolver_epoch,sequence,digest) values ($1,$2,$3,$4,$5,$6,$7) on conflict (host_id,person_id) do nothing', [config.host_id, p.person_id, p.resolver_id, p.resolver_key, p.resolver_epoch, p.minimum_sequence, p.minimum_digest]);
-    const row = (await tx.query<Checkpoint>('select resolver_id,resolver_key,resolver_epoch,sequence,digest from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2 for update', [config.host_id, p.person_id]))[0];
+    const row = (await tx.query<Checkpoint>('select resolver_id,resolver_key,resolver_epoch,sequence,digest,log from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2 for update', [config.host_id, p.person_id]))[0];
     integer(Number(row.resolver_epoch)); need(Number(row.resolver_epoch) >= p.resolver_epoch, 'durable resolver pin conflict');
     if (Number(row.resolver_epoch) === p.resolver_epoch) {
       need(row.resolver_id === p.resolver_id && row.resolver_key === p.resolver_key, 'durable resolver pin conflict');
@@ -174,6 +183,13 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
       if (Number(row.sequence) === p.minimum_sequence) need(row.digest === p.minimum_digest, 'durable control pin conflict');
     } else { uuid(row.resolver_id); decodeKeyId(row.resolver_key); } // A later epoch was admitted from a verified log; the row is the binding now.
     integer(Number(row.sequence)); hash(row.digest); return row;
+  };
+  const pinOf = (person: string, row: Checkpoint): ResolverPin => ({ identity_id: person, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest });
+  /** Writes the checkpoint and the log that ends at it, together. */
+  const store = async (tx: Db, person: string, next: ResolverPin, log: IdentityLog) => {
+    const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7,log=$8::text::jsonb where host_id=$1 and person_id=$2 returning person_id',
+      [config.host_id, person, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest, JSON.stringify(log)]);
+    need(rows.length === 1, 'checkpoint update conflict');
   };
   const heldRefusals = async (tx: Db, person: string): Promise<Signed<RehomeRefusal>[]> =>
     (await tx.query<{ refusal: Signed<RehomeRefusal> }>('select refusal from dtp_foundation.person_auth_rehome_refusals where host_id=$1 and person_id=$2 order by rehome_digest', [config.host_id, person])).map(r => r.refusal);
@@ -220,10 +236,21 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
         need(await verifyBytes(signature.key_id, bytes, decodeSignature(signature.signature)), 'invalid person operation signature'); signers.add(signature.key_id);
       }
       need(signers.size >= control.operational.threshold, 'operational quorum required');
-      const proof = r.authentication.resolution.body, fresh = await dbNow(tx, hostClock), deadline = Math.min(c.expires_at, proof.expires_at);
+      const proof = r.authentication.resolution.body;
+      // A resolution above the checkpoint advances it only with the log up to the resolved head, kept beside it
+      // (#159, item 3). Without that log the pin does not advance, and this resolution authenticates nobody.
+      let advance = null;
+      if (control.sequence !== Number(head.sequence)) {
+        const request: IdentityLogRequest = { identity_id: p.person_id, resolver_id: head.resolver_id, resolver_epoch: Number(head.resolver_epoch), sequence: control.sequence, head_digest: proof.head_digest };
+        try {
+          const fetched = fetchLog === null ? null : await fetchLog(request);
+          advance = await advancePinByResolution(pinOf(p.person_id, head), { sequence: control.sequence, head_digest: proof.head_digest }, fetched ?? null, head.log, await heldRefusals(tx, p.person_id));
+        } catch (error) { throw new Error(`identity log up to the resolved head unavailable; the checkpoint does not advance: ${error instanceof Error ? error.message : String(error)}`); }
+      }
+      const fresh = await dbNow(tx, hostClock), deadline = Math.min(c.expires_at, proof.expires_at);
       need(hostClock() >= enteredAt, 'host clock regressed after authentication admission');
       need(fresh >= now && deadline > fresh + PERSON_COMMIT_RESERVE_MS, 'person proof expired during authentication');
-      await tx.query('update dtp_foundation.person_auth_checkpoints set sequence=$3,digest=$4 where host_id=$1 and person_id=$2', [config.host_id, p.person_id, control.sequence, proof.head_digest]);
+      if (advance !== null) await store(tx, p.person_id, advance.pin, advance.log);
       const digest = await sha256Hex(canonicalBytes(r));
       const rows = await tx.query('update dtp_foundation.person_auth_challenges set consumed_at=$3,consumed_transaction=txid_current()::text,consumed_request_digest=$4,deadline_ms=$5 where host_id=$1 and nonce=$2 and consumed_at is null returning nonce', [config.host_id, c.nonce, fresh, digest, deadline]);
       need(rows.length === 1, 'challenge consumption conflict');
@@ -234,38 +261,31 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  pin without the history behind it, so the fork-point rule cannot be applied and every conflict with it is refused,
      *  a higher-epoch one too (identity-log.md, #50); a fork signed by a retired recovery quorum never supersedes here. The durable row becomes the
      *  effective binding, so resolutions from the former resolver are refused from this commit on, across restarts and
-     *  regardless of the static configuration. Whether unattested heads are acceptable is the caller's explicit policy. */
-    async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog; require_attestation: boolean }) {
-      const v = bounded(input); exact(v, ['person_id', 'log', 'require_attestation']); uuid(v.person_id); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
+     *  regardless of the static configuration. Every head of the log's current epoch must be attested; there is no switch (#159). */
+    async admitIdentityMove(tx: Db, input: { person_id: string; log: IdentityLog }) {
+      const v = bounded(input); exact(v, ['person_id', 'log']); uuid(v.person_id);
       const p = pinFor(v.person_id), head = await checkpoint(tx, p);
-      const pin: ResolverPin = { identity_id: p.person_id, resolver_id: head.resolver_id, resolver_key: head.resolver_key, resolver_epoch: Number(head.resolver_epoch), minimum_sequence: Number(head.sequence), minimum_digest: head.digest };
-      const admitted = await admitIdentityLog(pin, v.log, { require_attestation: v.require_attestation }, null, await heldRefusals(tx, p.person_id)), next = admitted.pin;
-      if (admitted.outcome !== 'unchanged') {
-        const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
-          [config.host_id, p.person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
-        need(rows.length === 1, 'checkpoint update conflict');
-      }
+      const admitted = await admitIdentityLog(pinOf(p.person_id, head), v.log, head.log, await heldRefusals(tx, p.person_id)), next = admitted.pin;
+      // The admitted log ends at the pin it yields, so it is the history kept beside the checkpoint.
+      if (admitted.outcome !== 'unchanged' || head.log === null) await store(tx, p.person_id, next, v.log);
       return { outcome: admitted.outcome, superseded: admitted.superseded, binding: { resolver_id: next.resolver_id, resolver_key: next.resolver_key, resolver_epoch: next.resolver_epoch, sequence: next.minimum_sequence, digest: next.minimum_digest } };
     },
     /** Owner push, inside the caller's transaction: the relying-party answer to a wallet that sends this host a log
      *  after a move. An identity this host never enrolled is refused as unknown; otherwise the log is judged against
      *  the durable checkpoint exactly as admitIdentityMove would, and an admission is stored the same way. The
      *  answer is a function of the checkpoint and the message, so repeating a push is idempotent. */
-    async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush; require_attestation: boolean }): Promise<IdentityLogPushAck> {
-      const v = bounded(input); exact(v, ['message', 'require_attestation']); need(typeof v.require_attestation === 'boolean', 'explicit attestation policy required');
-      let admitted: PersonResolverPin | null = null;
+    async receiveIdentityLogPush(tx: Db, input: { message: IdentityLogPush }): Promise<IdentityLogPushAck> {
+      const v = bounded(input); exact(v, ['message']);
+      let admitted: { person: PersonResolverPin; held: IdentityLog | null } | null = null;
       const lookup = async (identity_id: string): Promise<PinnedHistory | null> => {
         const p = pins.get(identity_id); if (!p) return null;
-        const row = await checkpoint(tx, p); admitted = p;
-        return { pin: { identity_id: p.person_id, resolver_id: row.resolver_id, resolver_key: row.resolver_key, resolver_epoch: Number(row.resolver_epoch), minimum_sequence: Number(row.sequence), minimum_digest: row.digest },
-          log: null, refusals: await heldRefusals(tx, p.person_id) };
+        const row = await checkpoint(tx, p); admitted = { person: p, held: row.log };
+        return { pin: pinOf(p.person_id, row), log: row.log, refusals: await heldRefusals(tx, p.person_id) };
       };
-      const { ack, admission } = await receiveIdentityLogPush(v.message, lookup, { require_attestation: v.require_attestation });
-      if (admission !== null && admission.outcome !== 'unchanged') {
-        need(admitted !== null, 'admission without a checkpoint'); const next = admission.pin;
-        const rows = await tx.query('update dtp_foundation.person_auth_checkpoints set resolver_id=$3,resolver_key=$4,resolver_epoch=$5,sequence=$6,digest=$7 where host_id=$1 and person_id=$2 returning person_id',
-          [config.host_id, (admitted as PersonResolverPin).person_id, next.resolver_id, next.resolver_key, next.resolver_epoch, next.minimum_sequence, next.minimum_digest]);
-        need(rows.length === 1, 'checkpoint update conflict');
+      const { ack, admission } = await receiveIdentityLogPush(v.message, lookup);
+      if (admission !== null) {
+        need(admitted !== null, 'admission without a checkpoint'); const found = admitted as { person: PersonResolverPin; held: IdentityLog | null };
+        if (admission.outcome !== 'unchanged' || found.held === null) await store(tx, found.person.person_id, admission.pin, v.message.log);
       }
       return ack;
     },
@@ -281,7 +301,7 @@ export function createPersonAuthentication(options: PersonAuthenticationOptions,
      *  PERSON_MAX_REHOME_REFUSALS are kept per person, and one more is refused. */
     async recordRehomeRefusal(tx: Db, input: { person_id: string; log: IdentityLog; refusal: Signed<RehomeRefusal> }): Promise<{ rehome_digest: string; recorded: boolean; contradicts_admitted_move: boolean }> {
       const v = bounded(input); exact(v, ['person_id', 'log', 'refusal']); uuid(v.person_id); const p = pinFor(v.person_id);
-      const log = await verifyIdentityLog(v.log, { require_attestation: false }); need(log.identity_id === p.person_id, 'log is for another identity');
+      const log = await verifyIdentityHistory(v.log); need(log.identity_id === p.person_id, 'log is for another identity');
       const named = (v.refusal as { body?: { rehome_digest?: unknown } } | null)?.body?.rehome_digest;
       let rehome = null, at = -1;
       for (let n = 0; n < v.log.entries.length; n++) { const entry = v.log.entries[n]; if (entry.rehome !== null && await rehomeDigest(entry.rehome) === named) { rehome = entry.rehome; at = n; break; } }

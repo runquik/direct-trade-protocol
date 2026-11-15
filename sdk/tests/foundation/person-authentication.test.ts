@@ -5,6 +5,8 @@ import { pgliteDb } from '../../../supabase/functions/dtp-store/db.ts';
 import { FOUNDATION_STORE_SCHEMA, createFoundationStore } from '../../src/foundation/persistence.ts';
 import { PERSON_AUTHENTICATION_SCHEMA, createPersonAuthentication, signPersonOperation } from '../../src/foundation/person-authentication.ts';
 import { signIdentity, transitionIdentity } from '../../src/foundation/identity.ts';
+import type { Transition } from '../../src/foundation/identity.ts';
+import { buildIdentityLog } from '../../src/foundation/identity-log.ts';
 import type { JsonObject } from '../../src/foundation/semantics.ts';
 import { personAuthenticationFixture } from './person-authentication-fixture.ts';
 async function setup(threshold = 1) {
@@ -78,10 +80,13 @@ test('resolver key/epoch pins and durable head checkpoint reject replacement and
     epoch.authentication.resolution = await signIdentity('DTP-IDENTITY-RESOLUTION-1', epoch.authentication.resolution.body, [f.resolver]);
     await assert.rejects(f.run(epoch), /resolver authority mismatch/);
     // A pinned resolver equivocation/stale lease must not undo a control checkpoint learned elsewhere.
-    const moved = await transitionIdentity(f.identity, await signIdentity('DTP-IDENTITY-TRANSITION-1', {
+    const rotation = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', {
       identity_id: f.person.id, expected_digest: f.identity.head_digest, sequence: 1, kind: 'rotate', operational: { keys: [f.next.keyId], threshold: 1 },
       recovery: f.identity.head.recovery, issued_at: Date.now() - 9000, expires_at: Date.now() + 60000,
-    }, [f.ordinary, f.next]), Date.now() - 9000);
+    }, [f.ordinary, f.next]);
+    const moved = await transitionIdentity(f.identity, rotation, Date.now() - 9000);
+    // The checkpoint advances only with the log up to the resolved head, served by the resolver's host (#159, item 3).
+    f.serveIdentityLog(await buildIdentityLog({ ...f.parts, entries: [...f.parts.entries, { effective_at: moved.head.effective_at, transition: rotation, rehome: null, attestation: null }] }, f.resolver));
     const otherOrg = crypto.randomUUID(), otherIntent = f.intent(); otherIntent.organization_id = otherOrg;
     otherIntent.resources = otherIntent.resources.map(r => ({ ...r, organization_id: otherOrg }));
     const c = await f.issue(otherIntent, otherOrg), resolution = await f.proof(c, moved);

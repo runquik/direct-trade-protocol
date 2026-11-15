@@ -36,7 +36,7 @@ async function person(op: KeyPair, rec: KeyPair, nonce: string, rotateTo: KeyPai
     const command = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: state.head_digest, sequence: 1, kind: 'rotate', operational: { keys: [rotateTo.keyId], threshold: 1 }, recovery: state.head.recovery, issued_at: T + 50_000, expires_at: T + 350_000 }, [op, rotateTo]);
     parts.entries.push({ effective_at: T + 50_500, transition: command, rehome: null, attestation: null });
   }
-  const log = await buildIdentityLog(parts, k.resolver), verified = await verifyIdentityLog(log, { require_attestation: true });
+  const log = await buildIdentityLog(parts, k.resolver), verified = await verifyIdentityLog(log);
   return { id, log, verified, heads: verified.heads, current: verified.heads[verified.heads.length - 1], keys: rotateTo === null ? [op] : [rotateTo], oldKeys: [op], recovery: rec };
 }
 const alice = await person(k['alice-op'], k['alice-rec'], '0f0e0d0c-0b0a-4908-8706-050403020100', k['alice-op-2']);
@@ -134,7 +134,7 @@ const out = {
   },
   governance: {
     accept: await Promise.all(logAccept.map(async ([why, log, logs]) => {
-      const v = await verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l), { require_attestation: true })))));
+      const v = await verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l))))));
       return { why, log, people: logs.map(l => (people.find(p => p.log === l) as Person).id), expect: { organization_id: v.organization_id, genesis_digest: v.genesis_digest, heads: v.heads, governance: v.governance } };
     })),
     reject: logReject.map(([why, log, logs]) => ({ why, log, people: logs.map(l => (people.find(p => p.log === l) as Person).id) })),
@@ -145,7 +145,7 @@ for (const [why, consent, expected, head] of consentReject) {
   if (!refused) throw new Error(`generator: the reference verifier accepted the consent "${why}"`);
 }
 for (const [why, log, logs] of logReject) {
-  const refused = verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l), { require_attestation: true }))))).then(() => false, () => true);
+  const refused = verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l)))))).then(() => false, () => true);
   if (!await refused) throw new Error(`generator: the reference verifier accepted the governance log "${why}"`);
 }
 const target = new URL('../../spec/vectors/organization-governance.json', import.meta.url), text = JSON.stringify(out, null, 2) + '\n';

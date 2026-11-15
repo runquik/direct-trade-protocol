@@ -47,7 +47,7 @@ async function setup() {
     const resolution = (await issueResolution(served, { identity_id: f.person.id, audience: f.config.audience, challenge: challenge.nonce }, key, Date.now())).proof;
     return f.store.execute(f.organization_id, await signPersonOperation({ intent: i, actor: f.person, grant_id: f.personGrant.id, challenge, resolution }, [f.ordinary], held) as unknown as JsonObject);
   };
-  const push = (log: IdentityLog) => f.db.transaction(tx => f.adapter.receiveIdentityLogPush(tx, { message: { format: IDENTITY_LOG_PUSH_FORMAT, log }, require_attestation: false }));
+  const push = (log: IdentityLog) => f.db.transaction(tx => f.adapter.receiveIdentityLogPush(tx, { message: { format: IDENTITY_LOG_PUSH_FORMAT, log } }));
   const row = async () => { const r = (await f.db.query<{ resolver_epoch: string; sequence: string }>('select resolver_epoch,sequence from dtp_foundation.person_auth_checkpoints where host_id=$1 and person_id=$2', [f.config.host_id, f.person.id]))[0]; return { epoch: Number(r.resolver_epoch), sequence: Number(r.sequence) }; };
   return { pg, ...f, resolverB, escape, fabricated, authenticate, push, row };
 }

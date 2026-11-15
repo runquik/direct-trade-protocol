@@ -70,10 +70,10 @@ test('organization genesis: a host accepts it only when every initial controller
   await assert.rejects(verifyOrganizationGenesis(w.genesis, [consents[0], await w.consent(w.bob, 'genesis', 'a'.repeat(64))], w.heads, w.now), /describe/);
   await assert.rejects(verifyOrganizationGenesis({ ...w.genesis, threshold: 2 }, consents, w.heads, w.now), /describe/, 'consent binds the exact genesis digest, so a different genesis is a different consent');
   // A host vouches only for the heads it resolved: a consent naming another head of the same person is not established.
-  const stale = await signOrganizationConsent({ ...consents[0].body, head_digest: (await verifyIdentityLog(w.alice.log, { require_attestation: true })).heads[0].head_digest }, w.alice.oldKeys);
+  const stale = await signOrganizationConsent({ ...consents[0].body, head_digest: (await verifyIdentityLog(w.alice.log)).heads[0].head_digest }, w.alice.oldKeys);
   await assert.rejects(verifyOrganizationGenesis(w.genesis, [stale, consents[1]], w.heads, w.now), /not established/);
   // The same consent replays for a verifier without a clock, from the person's identity log.
-  const replay = controlFromIdentityLogs(await Promise.all([w.alice.log, w.bob.log].map(l => verifyIdentityLog(l, { require_attestation: true }))));
+  const replay = controlFromIdentityLogs(await Promise.all([w.alice.log, w.bob.log].map(l => verifyIdentityLog(l))));
   assert.deepEqual((await verifyOrganizationGenesis(w.genesis, consents, replay, null)).head_digest, accepted.head_digest);
   assert.equal((await verifyOrganizationGenesis(w.genesis, [stale, consents[1]], replay, null)).head_digest, accepted.head_digest, 'a replay verifier accepts a consent under any head in the log: it cannot know when it was signed');
 });
@@ -103,7 +103,7 @@ test('governance transition: the current quorum and every added controller conse
   const head2 = await applyGovernanceTransition(head1, e2, w.heads, w.now);
   // The whole history, replayed by a verifier with no clock from the people's identity logs alone.
   const log: GovernanceLog = { format: GOVERNANCE_LOG_FORMAT, genesis: w.genesis, consents, entries: [e1, e2] };
-  const logs = await Promise.all([w.alice.log, w.bob.log, w.carol.log].map(l => verifyIdentityLog(l, { require_attestation: true })));
+  const logs = await Promise.all([w.alice.log, w.bob.log, w.carol.log].map(l => verifyIdentityLog(l)));
   const v = await verifyGovernanceLog(clone(log), controlFromIdentityLogs(logs));
   assert.deepEqual(v.heads.map(h => h.head_digest), [head0.head_digest, head1.head_digest, head2.head_digest]);
   assert.deepEqual(v.governance, { organization_id: w.orgId, controllers: t2.controllers.map(id => ({ kind: 'person', id, organization_id: null })), threshold: 1 });
@@ -124,7 +124,7 @@ test('organization governance conformance vectors: consents and governance logs 
   assert.equal(vectors.consent_domain, ORGANIZATION_CONSENT_DOMAIN); assert.equal(vectors.transition_domain, ORGANIZATION_TRANSITION_DOMAIN); assert.equal(vectors.format, GOVERNANCE_LOG_FORMAT); assert.equal(vectors.window_ms, ORGANIZATION_WINDOW_MS);
   assert.ok(vectors.consents.accept.length >= 2 && vectors.consents.reject.length >= 14 && vectors.governance.accept.length >= 3 && vectors.governance.reject.length >= 16);
   const people = new Map<string, IdentityLog>(vectors.people.map(p => [p.person_id, p.log]));
-  const lookup = async (ids: string[]) => controlFromIdentityLogs(await Promise.all(ids.map(id => verifyIdentityLog(people.get(id)!, { require_attestation: true }))));
+  const lookup = async (ids: string[]) => controlFromIdentityLogs(await Promise.all(ids.map(id => verifyIdentityLog(people.get(id)!))));
   for (const v of vectors.consents.accept) assert.deepEqual(await verifyOrganizationConsent(v.consent, v.expected, v.head, null), v.expect, v.why);
   for (const v of vectors.consents.reject) await assert.rejects(verifyOrganizationConsent(v.consent, v.expected, v.head, null), v.why);
   for (const v of vectors.governance.accept) {

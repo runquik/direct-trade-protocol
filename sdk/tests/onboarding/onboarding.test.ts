@@ -101,7 +101,7 @@ test('rotation and offline recovery preserve identity and membership, reject old
     const a=await f.company(),c={request_id:crypto.randomUUID(),action:'company.read',organization_id:a.organization_id,parameters:{}};
     const oldRequest=await f.alice.client.request(c),rotation=await f.alice.client.prepareTransition(f.now);
     const {ack:accepted,log:afterRotation}=await f.alice.client.applyTransition(rotation.command);
-    assert.equal((await identityLog.verifyIdentityLog(afterRotation,{require_attestation:true})).head_digest,accepted.head_digest,'the change comes back with its verified history');
+    assert.equal((await identityLog.verifyIdentityLog(afterRotation)).head_digest,accepted.head_digest,'the change comes back with its verified history');
     await assert.rejects(f.host.execute(oldRequest),/transition pending/);
     const newer=new PassportClient(rotation.next,f.transport);
     await assert.rejects(newer.run('companies.list'),/transition pending/);
@@ -195,10 +195,10 @@ test('a wallet exports its verified control history after rotation and recovery,
   const f=await fixture();try{
     const rotation=await f.alice.client.prepareTransition(f.now),{ack:accepted}=await f.alice.client.applyTransition(rotation.command);f.advance(accepted.effective_at-f.now);
     const recovery=new PassportClient(f.alice.recovery,f.transport),plan=await recovery.prepareTransition(f.now),{ack:result}=await recovery.applyTransition(plan.command);f.advance(result.effective_at-f.now);
-    const log=await new PassportClient(plan.next,f.transport).exportLog(),verified=await identityLog.verifyIdentityLog(log,{require_attestation:true});
+    const log=await new PassportClient(plan.next,f.transport).exportLog(),verified=await identityLog.verifyIdentityLog(log);
     assert.equal(verified.identity_id,f.alice.operational.person_id);assert.equal(verified.head_digest,result.head_digest);assert.equal(verified.heads.length,3);
     assert.deepEqual(verified.head.operational.keys,[(await keyPairFromSecret(plan.next.secret_key)).keyId]);
-    assert.equal((await identityLog.verifyIdentityLog(f.alice.log,{require_attestation:true})).heads.length,1,'enrollment already returned a genesis-only history to keep');
+    assert.equal((await identityLog.verifyIdentityLog(f.alice.log)).heads.length,1,'enrollment already returned a genesis-only history to keep');
     // A recovery-only wallet, the one most likely to need the log, can fetch it too.
     assert.deepEqual(await recovery.exportLog(),log);
     const repinned=new PassportClient({...plan.next,resolver:{...plan.next.resolver,resolver_key:(await generateKeyPair()).keyId}},f.transport);
@@ -217,9 +217,9 @@ test('a person moves their identity to a second host with the recovery file and 
     const recovery=new PassportClient(a.alice.recovery,a.transport),{rehome,next}=await recovery.prepareRehome(log,b.host.metadata(),b.now);
     assert.equal(next.resolver.resolver_epoch,1);
     const {ack:adopted,log:afterMove}=await new PassportClient(next,b.transport).adopt(log,rehome);assert.deepEqual([adopted.sequence,adopted.resolver_epoch],[2,1]);
-    assert.equal((await identityLog.verifyIdentityLog(afterMove,{require_attestation:true})).resolver.id,b.host.metadata().resolver_id,'the move comes back with the history the new host now serves');
+    assert.equal((await identityLog.verifyIdentityLog(afterMove)).resolver.id,b.host.metadata().resolver_id,'the move comes back with the history the new host now serves');
     const atB=new PassportClient(rehomeWallet(rotation.next,b.host.metadata()),b.transport);
-    const moved=await identityLog.verifyIdentityLog(await atB.exportLog(),{require_attestation:true});
+    const moved=await identityLog.verifyIdentityLog(await atB.exportLog());
     assert.equal(moved.resolver.id,b.host.metadata().resolver_id);assert.equal(moved.identity_id,a.alice.operational.person_id);
     // Ordinary life continues at B, including key rotation under B's conservative barrier; A still serves the stale identity until told.
     assert.deepEqual(await atB.run('companies.list'),[],'companies stay where they were created');
@@ -228,7 +228,7 @@ test('a person moves their identity to a second host with the recovery file and 
     // Cooperative release: A stops serving the identity and answers with the forwarding log.
     await recovery.release(await atB.exportLog());
     await assert.rejects(atA.run('companies.list'),/Identity unavailable/);
-    const forwarded=await identityLog.verifyIdentityLog(await a.host.registry.exportLog(a.alice.operational.person_id),{require_attestation:true});
+    const forwarded=await identityLog.verifyIdentityLog(await a.host.registry.exportLog(a.alice.operational.person_id));
     assert.equal(forwarded.resolver.id,b.host.metadata().resolver_id);
     // The operational file cannot move the identity; a wallet pinned to the wrong epoch cannot read the log.
     await assert.rejects(atB.prepareRehome(log,a.host.metadata()),/recovery authority/);
