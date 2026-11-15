@@ -1,10 +1,14 @@
 // Explicit live DEVELOPMENT smoke test. Creates only clearly labeled synthetic state.
 // Caller loads private config without printing secrets. No existing data is changed.
+// PBP_AUTHORIZED_AUDIENCE names the one development deployment this run is authorized to
+// touch; it must equal PBP_AUDIENCE exactly, so a stray PBP_AUDIENCE alone never runs it.
 import assert from "node:assert/strict";
 import { Passport } from "../../modules/passport/src/index.ts";
 import { PbpError } from "../src/v03/wire.ts";
 const audience = process.env.PBP_AUDIENCE, token = process.env.PBP_DEV_ACCESS_TOKEN, revision = process.env.PBP_REVISION;
-assert.equal(audience, "https://vsuqtdofphppybkhnijg.supabase.co/functions/v1", "targets only the authorized development project");
+const authorized = process.env.PBP_AUTHORIZED_AUDIENCE;
+assert.ok(audience && authorized, "set PBP_AUDIENCE and PBP_AUTHORIZED_AUDIENCE to the authorized development deployment");
+assert.equal(audience, authorized, "targets only the authorized development project");
 assert.ok(token && revision, "load development token and expected revision without printing them");
 const health = await fetch(audience + "/pbp-store/health"); assert.equal(health.status, 200);
 assert.equal(health.headers.get("x-pbp-revision"), revision);
