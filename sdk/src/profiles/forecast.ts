@@ -60,13 +60,20 @@ export function validateForecast(body: unknown): ForecastIssue[] {
   if (!(FORECAST_STATUSES as readonly string[]).includes(b.status)) fail('$.status', 'draft, published or withdrawn required');
   return issues;
 }
-/** Revisions re-forecast the same thing: subject, party, direction and horizon are immutable, `as_of` never goes
- *  back, and status moves draft -> published -> withdrawn only. A different subject or horizon is a new forecast. */
+/** Every revision of a forecast, one that keeps the status included, is listed here. A draft may be published or
+ *  abandoned (withdrawn without being published); a published forecast may be re-forecast or withdrawn; a withdrawn
+ *  forecast is terminal and takes no revision (#185, mirroring order@1's terminal statuses, #76). */
+export const FORECAST_TRANSITIONS: Record<ForecastBody['status'], readonly ForecastBody['status'][]> = {
+  draft: ['draft', 'published', 'withdrawn'], published: ['published', 'withdrawn'], withdrawn: [],
+};
+/** Genesis: a forecast is born draft or published, never withdrawn. Both bodies are assumed valid. */
+export function checkForecastGenesis(body: ForecastBody): ForecastIssue[] { return body.status === 'withdrawn' ? [{ path: '$.status', message: 'a forecast is not born withdrawn' }] : []; }
+/** Revisions re-forecast the same projection: subject, party, direction, horizon and scenario are immutable (a
+ *  different one is a new forecast), `as_of` never goes back, and every revision is listed in FORECAST_TRANSITIONS. */
 export function checkForecastContinuity(previous: ForecastBody, next: ForecastBody): ForecastIssue[] {
   const issues: ForecastIssue[] = [], same = (a: unknown, b: unknown) => canonicalize(a) === canonicalize(b);
-  for (const key of ['subject', 'party_id', 'direction', 'horizon'] as const) if (!same(previous[key], next[key])) issues.push({ path: `$.${key}`, message: `${key} is immutable; a different one is a new forecast` });
+  for (const key of ['subject', 'party_id', 'direction', 'horizon', 'scenario'] as const) if (!same(previous[key], next[key])) issues.push({ path: `$.${key}`, message: `${key} is immutable; a different one is a new forecast` });
   if (next.as_of < previous.as_of) issues.push({ path: '$.as_of', message: 'a revision is never older than what it revises' });
-  const order = FORECAST_STATUSES.indexOf(previous.status), after = FORECAST_STATUSES.indexOf(next.status);
-  if (after < order) issues.push({ path: '$.status', message: `no transition from ${previous.status} to ${next.status}` });
+  if (!(FORECAST_TRANSITIONS[previous.status] ?? []).includes(next.status)) issues.push({ path: '$.status', message: `no transition from ${previous.status} to ${next.status}` });
   return issues;
 }

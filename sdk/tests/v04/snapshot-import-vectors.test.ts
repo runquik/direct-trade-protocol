@@ -43,6 +43,8 @@ const reasons: Record<string, RegExp> = {
   "order-born-acknowledged": /order continuity violated/,
   "order-lines-after-acknowledgment": /order continuity violated/,
   "forecast-subject-changed": /forecast continuity violated/,
+  "forecast-born-withdrawn": /forecast continuity violated/,
+  "forecast-withdrawn-revised": /forecast continuity violated/,
   "party-kind-changed": /party continuity violated/,
   "person-party-business-policy": /person party outside a personnel policy/,
   "ledger-projection-differs": /inventory projection differs from signed events/,

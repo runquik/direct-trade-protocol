@@ -49,10 +49,24 @@ test("order-v1 and forecast-v1 in the reference host, through the registered pro
     const orders = await client.ok(owner, "records.list", org, page(["dtp/order@1"]));
     assert.ok(orders.records.length > 0); assert.deepEqual(orders.records[0].validation, { profile: ORDER_PROFILE, level: "business-rules", business_verified: false });
     // Forecasts: accepted and refused; a forecast never appears among orders and an order never among forecasts.
-    for (const v of forecast.accept) await client.ok(owner, "record.append", org, record(org, pol, resource, forecast.contract_digest, v.body));
+    // A forecast is born draft or published (#185): a body born withdrawn is refused with the forecast code.
+    for (const v of forecast.accept) {
+      const response = await client.act(owner, "record.append", org, record(org, pol, resource, forecast.contract_digest, v.body));
+      if (v.body.status !== "withdrawn") assert.equal(response.status, 200, `${v.why}: ${JSON.stringify(response.error)}`);
+      else { assert.equal(response.status, 422, v.why); assert.equal(response.error.code, "invalid_forecast", v.why); }
+    }
     for (const v of forecast.reject) { const r = await client.act(owner, "record.append", org, record(org, pol, resource, forecast.contract_digest, v.body)); assert.ok([400, 422].includes(r.status), v.why); }
-    for (const v of forecast.continuity.accept) { const first = record(org, pol, resource, forecast.contract_digest, v.previous); await client.ok(owner, "record.append", org, first); await client.ok(owner, "record.append", org, { ...record(org, pol, resource, forecast.contract_digest, v.next), root_id: first.id, supersedes: first.id }); }
-    for (const v of forecast.continuity.reject) { const first = record(org, pol, resource, forecast.contract_digest, v.previous); await client.ok(owner, "record.append", org, first); const r = await client.act(owner, "record.append", org, { ...record(org, pol, resource, forecast.contract_digest, v.next), root_id: first.id, supersedes: first.id }); assert.equal(r.error.code, "invalid_forecast", v.why); }
+    for (const v of forecast.genesis.accept) await client.ok(owner, "record.append", org, record(org, pol, resource, forecast.contract_digest, v.body));
+    for (const v of forecast.genesis.reject) { const r = await client.act(owner, "record.append", org, record(org, pol, resource, forecast.contract_digest, v.body)); assert.equal(r.error?.code, "invalid_forecast", v.why); }
+    // Each pair's previous revision is reached through a chain born draft, then its next revision is judged.
+    const reach = async (previous: any) => {
+      const first = record(org, pol, resource, forecast.contract_digest, { ...previous, status: "draft" }); await client.ok(owner, "record.append", org, first);
+      if (previous.status === "draft") return first;
+      const step = { ...record(org, pol, resource, forecast.contract_digest, previous), root_id: first.id, supersedes: first.id }; await client.ok(owner, "record.append", org, step);
+      return step;
+    };
+    for (const v of forecast.continuity.accept) { const prev = await reach(v.previous); await client.ok(owner, "record.append", org, { ...record(org, pol, resource, forecast.contract_digest, v.next), root_id: prev.root_id, supersedes: prev.id }); }
+    for (const v of forecast.continuity.reject) { const prev = await reach(v.previous); const r = await client.act(owner, "record.append", org, { ...record(org, pol, resource, forecast.contract_digest, v.next), root_id: prev.root_id, supersedes: prev.id }); assert.equal(r.error?.code, "invalid_forecast", v.why); }
     const forecasts = await client.ok(owner, "records.list", org, page(["dtp/forecast@1"]));
     assert.deepEqual(forecasts.records[0].validation, { profile: FORECAST_PROFILE, level: "business-rules", business_verified: false });
     const again = await client.ok(owner, "records.list", org, page(["dtp/order@1"]));
