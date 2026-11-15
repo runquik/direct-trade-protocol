@@ -127,13 +127,13 @@ Refresh README status to match the deployed store and 43-test baseline. Add conc
 
 ## Retained reproduction and handoff
 
-The new local-only diagnostic file is [`sdk/tests/redteam/astra-pass.test.ts`](../sdk/tests/redteam/astra-pass.test.ts). Run from `sdk/`:
+This pass added a local-only diagnostic file under `sdk/tests/redteam/`. That file no longer exists: its probes were converted to secure-behavior regressions in [`sdk/tests/07_infra.test.ts`](../sdk/tests/07_infra.test.ts) (see the note at the top). Run those from `sdk/`:
 
 ```sh
-node --test tests/redteam/astra-pass.test.ts
+node --test tests/07_infra.test.ts
 ```
 
-Its 12 passing assertions demonstrate current behavior, including unsafe behavior. It is excluded from the normal suite and must be converted to rejection/invariant tests as fixes land. Existing auxiliary checks can be run together without shell short-circuiting:
+At the time of this pass, the diagnostic's 12 passing assertions demonstrated the behavior then current, including unsafe behavior. It was excluded from the normal suite, to be converted to rejection/invariant tests as fixes landed. Existing auxiliary checks can be run together without shell short-circuiting:
 
 ```sh
 cd tests/fuzz
