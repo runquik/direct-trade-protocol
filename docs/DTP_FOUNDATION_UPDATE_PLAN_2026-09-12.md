@@ -24,7 +24,7 @@ These are synthetic protocol fixtures and minimal reference clients, not full pr
 
 ## 2. Evidence baseline: keep, extend, replace
 
-Inspected local source: `5045e52`, the reviewed experimental v0.4 candidate. The checkout is not itself checked out on main. No remote/deployed-state refresh was performed. Existing changes in `progress.md`, `.codex/`, private collaboration notes, the nested vision site, and `output/` are outside this plan and remain untouched.
+Inspected local source: `5045e52`, the reviewed experimental v0.4 candidate. The checkout is not itself checked out on main. No remote/deployed-state refresh was performed. Existing changes in `progress.md`, local agent configuration, private collaboration notes, the nested vision site, and `output/` are outside this plan and remain untouched.
 
 | Area | Verified current surface | Planned response |
 |---|---|---|
@@ -72,7 +72,7 @@ Admission rule for a new core concept: demonstrate a cross-domain need, explicit
 
 ## 4. Priority work packages
 
-All packages below are proposed, not currently running. Owners are responsibilities for a later implementation team, not assignments to Boris or existing agents.
+All packages below are proposed, not currently running. Owners are responsibilities for a later implementation team, not assignments to any collaborator or existing agent.
 
 ### F0. One release story and a frozen compatibility baseline
 
@@ -221,7 +221,7 @@ Provisional benchmark, to ratify before implementation: 10 organizations, 100,00
 - Ship a profile starter, a private-app starter and actionable error examples. AI-generated starter code must still use the same SDK/contracts and pass the same server-side checks; it gets no special trust.
 - Provide a minimal record/authority inspector showing readable business meaning, provenance, status, freshness, missing evidence and why an action failed. This is developer tooling, not a workspace product.
 - Distinguish connecting a privately operated app from uploading executable code for us to host. The former requires admission and authorization; the latter additionally requires a reviewed runtime/sandbox/secrets/egress operating model and is deferred.
-- Require a cold integration by an external builder using published docs, without private database access or undocumented instructions. Obtain participation explicitly; do not assume Boris's availability. Every clarification needed becomes a contract/doc/test change.
+- Require a cold integration by an external builder using published docs, without private database access or undocumented instructions. Obtain participation explicitly; do not assume any collaborator's availability. Every clarification needed becomes a contract/doc/test change.
 - Maintain separate badges/results for structural validation, semantic conformance, host trust, credential evidence and artifact assessment. No generic green badge meaning “all safe.”
 
 **Exit:** independent producer/consumer integration and app replacement succeed; a deliberate incompatible extension fails understandably; minimal human review can explain each fixture's state and authority from public documentation.

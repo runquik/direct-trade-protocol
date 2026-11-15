@@ -1,8 +1,8 @@
 # Sprint 01: PBP Protocol Interop Test
 
-> September 7 update: the project is now **Portable Business Protocol (PBP)**, formerly DTP. The technical v0.2 identifiers remain unchanged. Agree one store/spec revision with Boris before testing; the proposed v0.3 authority model is not silently added to this sprint. The original module split and schedule below are historical planning: the proposed split is George on Passport + Early Pay and Boris on brand-side Trade Ledger + Books, pending the ShelfKit demo and agreement. Financing, buyer fixtures, and payments remain simulated. See [the current direction](PBP_DIRECTION.md) and [adjusted acceptance tests](WORKSPACE_FOUNDATIONS.md#sprint-acceptance-test-adjusted-without-expanding-the-sprint).
+> September 7 update: the project is now **Portable Business Protocol (PBP)**, formerly DTP. The technical v0.2 identifiers remain unchanged. Agree one store/spec revision between the two builders before testing; the proposed v0.3 authority model is not silently added to this sprint. The original module split and schedule below are historical planning: the proposed split is builder A on Passport + Early Pay and builder B on brand-side Trade Ledger + Books, pending builder B's existing-product demo and agreement. Financing, buyer fixtures, and payments remain simulated. See [the current direction](PBP_DIRECTION.md) and [adjusted acceptance tests](WORKSPACE_FOUNDATIONS.md#sprint-acceptance-test-adjusted-without-expanding-the-sprint).
 
-**Participants:** George Milton, Boris Korsunsky
+**Participants:** two builders, A (the project owner) and B (an independent builder)
 **Duration:** ~1 week (5 working days + kickoff)
 **Status:** Ready for kickoff — store and spec v0.2 are built; see §3
 **Repo:** `runquik/direct-trade-protocol` (protocol spec in [`SPEC.md`](../SPEC.md); this sprint runs off-chain)
@@ -28,7 +28,7 @@ These make the test valid. Breaking them invalidates the result.
 
 1. **The spec is the only coordination channel.** No Slack/text/call about what a field means, what an object contains, or how a flow works. If it isn't answerable from the written spec, that's a finding.
 2. **Log every gap; work around it visibly.** When a module needs something the protocol doesn't define, open an issue in the gap log (format below) and implement a clearly-marked local workaround (`x_` prefix on any nonstandard field). Do not silently extend the protocol.
-3. **Each module is built by one person only.** George does not read Boris's code during the sprint, and vice versa. Interop happens through protocol state or not at all.
+3. **Each module is built by one person only.** Builder A does not read builder B's code during the sprint, and vice versa. Interop happens through protocol state or not at all.
 4. **Fake everything except the schema.** Made-up companies, fake KYB, mock funds. The schema and state machines are real; nothing else needs to be.
 5. **Timebox to the week.** An unfinished module with a good gap log beats a polished module with none.
 
@@ -39,7 +39,7 @@ These make the test valid. Breaking them invalidates the result.
 - **Protocol store:** the v0.2 reference store (`supabase/functions/dtp-store`) — a thin HTTP API over Postgres exposing signed, typed records with per-module grants and an event feed. It does validation, signature verification, authorization, and nothing else. **No business logic lives in the store**; if a module needs the store to do something more, that's a gap-log entry. Read [`docs/PROTOCOL_STORE.md`](PROTOCOL_STORE.md) first — it's the cold-read quickstart — then [`SPEC.md`](../SPEC.md).
 - **Identity:** each company has Ed25519 keys (NEAR-compatible encoding); each module has its own keys and needs a `core.grant` from a company to act for it. Callers authenticate with a bearer token per key; every write is also signed. How scoping *should* work is itself under test — log what's wrong with it.
 - **Objects:** the v0.2 record types in [`spec/schemas/`](../spec/schemas) (`core.*`, `trade.*`, `finance.*`, `traceability.*`). New objects only via the gap log, provisionally as `x_` fields.
-- **Running it:** no Docker needed — `cd sdk && npm install && node scripts/dev-server.ts` starts an embedded-Postgres store; `npm run seed` loads the fixtures below; `npm test` runs the conformance suite against any `STORE_URL`. The shared hosted instance is on the existing Supabase project.
+- **Running it:** no Docker needed — `cd sdk && npm install && node scripts/dev-server.ts` starts an embedded-Postgres store; `npm run seed` loads the fixtures below; `npm test` runs the conformance suite against any `STORE_URL`. A shared hosted instance runs on the project's managed hosting account.
 - **Fixtures (seeded):** `acme-sauce.dtp` (brand), `bluestem-dist.dtp` (distributor), `demo-fin.dtp` (financer) with module `demo-financing` already granted `trade read` + `finance write` by Acme; one `trade.contract` and a `trade.fulfillment` attested by both sides — an attested receivable exists on day 0.
 
 ## 4. The modules
@@ -64,7 +64,7 @@ Natural pairings: Passport + Trade Ledger set the table; Early Pay + Books eat o
 
 ## 5. Demo narrative (the 90-second version)
 
-> **Acme Sauce Co.** onboards via Passport in five minutes. It trades a pallet order with **Bluestem Distribution** in Trade Ledger; delivery is attested. Boris's Financing module — which has never met Acme, and whose builder never spoke to Trade Ledger's builder — sees the attested receivable and offers an advance in one click. Acme accepts. Both apps now show the same settlement state, and Acme's Passport view shows a company record that accreted from use, not from a form.
+> **Acme Sauce Co.** onboards via Passport in five minutes. It trades a pallet order with **Bluestem Distribution** in Trade Ledger; delivery is attested. Builder B's Financing module — which has never met Acme, and whose builder never spoke to Trade Ledger's builder — sees the attested receivable and offers an advance in one click. Acme accepts. Both apps now show the same settlement state, and Acme's Passport view shows a company record that accreted from use, not from a form.
 
 ## 6. Success criteria
 
@@ -96,7 +96,7 @@ Expected clusters (to be confirmed or refuted): generalized documents (invoice, 
 
 ## 8. Schedule
 
-| Day | George | Boris |
+| Day | Builder A | Builder B |
 |---|---|---|
 | 0 (kickoff, ~1h) | Agree scope, hand over spec + store URL + fixture keys. Last free-talk day. | Same |
 | 1 | Protocol store live with existing types; Passport started | Read spec cold; design M3 against it; log first gaps |
@@ -115,7 +115,7 @@ Expected clusters (to be confirmed or refuted): generalized documents (invoice, 
 
 ## 10. Open questions for kickoff
 
-1. Fixture stack for the protocol store — Supabase (existing DTP infra) vs. something Boris prefers to hit?
+1. Fixture stack for the protocol store — the existing hosted store vs. something builder B prefers to hit?
 2. Does M3 talk to the store via raw HTTP or an MCP server wrapper? (MCP wrapper is more agent-native and closer to production intent, but adds a day; raw HTTP is fine for the test.)
 3. Naming of the fake companies and the trade scenario — CPG-flavored (brand ↔ distributor) or produce-flavored (grower ↔ buyer)? This quietly picks which corridor's semantics get stress-tested first.
-4. Where does Boris file gap entries — PR to the repo, or shared doc mirrored in afterward?
+4. Where does builder B file gap entries — PR to the repo, or shared doc mirrored in afterward?

@@ -4,7 +4,7 @@ September 10, 2026. **Design/review deliverable, not a release, independent secu
 
 ## Executive finding
 
-The repository is a useful experimental foundation for signed company records and scoped authority. It is **not yet the general, host-independent language of business modularity** George described. The next work should address the architecture's extension, privacy, semantics and portability boundaries before adding a workspace marketplace or dozens of business schemas.
+The repository is a useful experimental foundation for signed company records and scoped authority. It is **not yet the general, host-independent language of business modularity** the project owner described. The next work should address the architecture's extension, privacy, semantics and portability boundaries before adding a workspace marketplace or dozens of business schemas.
 
 Keep GitHub. Keep the tested signing, actor attribution, revocation, version identity and isolation concepts. Rework the assumption that every business type must be centrally registered, that company-wide type permissions cover all privacy needs, and that a cooperative company snapshot proves live host replaceability.
 
@@ -16,7 +16,7 @@ Companion deliverables:
 
 ## 1. What was actually checked
 
-Read-only GitHub lookup confirmed `main` at `e5deb7fcecc07bf6cd2486d36c9d5b3ed24d69c9`, matching this checkout's HEAD. The checkout is on `codex/passport-browser-demo` and contains substantial existing uncommitted Passport, Early Pay, Financial Profile and v0.3 disclosure work. This review evaluates that working tree, not just GitHub main. No fetch/merge/push/deployment was performed.
+Read-only GitHub lookup confirmed `main` at `e5deb7fcecc07bf6cd2486d36c9d5b3ed24d69c9`, matching this checkout's HEAD. The checkout is on a Passport browser-demo feature branch and contains substantial existing uncommitted Passport, Early Pay, Financial Profile and v0.3 disclosure work. This review evaluates that working tree, not just GitHub main. No fetch/merge/push/deployment was performed.
 
 | Surface | Review performed | Limits |
 |---|---|---|
@@ -151,7 +151,7 @@ Recommendation: one authoritative status/index page, frozen versioned specificat
 
 ### DTP-A13 / P2: deployment/runtime qualification remains a separate gate
 
-Evidence: live GitHub HEAD was checked; live deployed backend revisions were not. The v0.3 hosted adapter requires development access control and uses Supabase-specific configuration. CI defines Deno and PostgreSQL jobs, but a local green test run is not evidence those jobs passed for the dirty working tree. Legacy application graphs were not dependency-audited.
+Evidence: live GitHub HEAD was checked; live deployed backend revisions were not. The v0.3 hosted adapter requires development access control and uses configuration specific to its hosting platform. CI defines Deno and PostgreSQL jobs, but a local green test run is not evidence those jobs passed for the dirty working tree. Legacy application graphs were not dependency-audited.
 
 Recommendation: release manifest tying commit, schema hashes, runtime, migration and capability profile to each environment; independent-store tests; real PostgreSQL race tests; host-specific load/abuse/backup qualification. Pin production CI actions and validate dependency update compatibility as part of supply-chain hardening. "Most current" should mean current evidence and supported versions, not untested upgrades to every newest package.
 

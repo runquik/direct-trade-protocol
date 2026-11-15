@@ -11,7 +11,7 @@ A fictional fractional CFO signs in once and has different memberships in three 
 1. **Passport entry:** create/recover the person's access, choose an existing company or onboard a fictional one. Clearly distinguish person identity, company membership and company control. Mock KYB only; no claim of verified company ownership.
 2. **Company selection:** show three company cards and the user's role in each. Switching must reset company-specific search, notifications, cached data, module context and any chat context.
 3. **Workspace arrival:** attention/messages at the top; movable/resizable role-default widgets below; clickable connected-module bars beneath them. Show unknown data honestly and provide useful empty states.
-4. **Connect a module:** show publisher, pinned version, requested read/write/action access and whether it can run without a human request. Do not combine data consent with spending approval. Sample module only until ShelfKit's public interface is agreed.
+4. **Connect a module:** show publisher, pinned version, requested read/write/action access and whether it can run without a human request. Do not combine data consent with spending approval. Sample module only until a partner product's public interface is agreed.
 5. **Inspect and revoke:** identify the exact person/company/module behind a record. Revoke the module and show that future access is denied while company records remain.
 
 No backend mock is acceptable for the identity/permission demonstration. Operational widget content can be clearly labeled fixtures. This cut does not need live money, a lender, public employee identities, or a marketplace catalog.

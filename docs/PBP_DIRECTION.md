@@ -64,12 +64,12 @@ See [the implemented v0.3 preview specification](../spec/v0.3/SPEC.md), its [com
 
 ## Independent-builder boundary
 
-The existing Boris sprint remains on an agreed v0.2 store/spec commit until both builders explicitly choose a change. The proposed split remains George: Passport + Early Pay; Boris: brand-side Trade Ledger + Books, pending the ShelfKit demo and agreement. Use fictional companies, explicit simulated buyer confirmations, mock lenders/funds, independent signing implementations and the gap log. No silent v0.3 rollout mid-test.
+The existing two-builder sprint remains on an agreed v0.2 store/spec commit until both builders explicitly choose a change. The proposed split remains builder A: Passport + Early Pay; builder B: brand-side Trade Ledger + Books, pending builder B's existing-product demo and agreement. Use fictional companies, explicit simulated buyer confirmations, mock lenders/funds, independent signing implementations and the gap log. No silent v0.3 rollout mid-test.
 
 ## Next review priorities
 
 1. Independently review the new authority model and threat boundaries before merge/deployment.
 2. Validate the three-company fractional-CFO demo and all negative permission tests.
-3. Decide whether Boris's first demo exercises frozen v0.2 or the explicit v0.3 preview; do not mix credentials/signatures.
+3. Decide whether builder B's first demo exercises frozen v0.2 or the explicit v0.3 preview; do not mix credentials/signatures.
 4. Design Passport's browser experience and custody/recovery UX without exposing root keys to models or module runtimes.
 5. Revisit scale: replace the reference whole-state JSON transaction with indexed projections/journal without weakening atomic authorization, add deployment quotas, and qualify actual production runtimes.
