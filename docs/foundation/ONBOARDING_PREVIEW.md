@@ -1,6 +1,6 @@
 # Portable onboarding integration — September 17, 2026
 
-Status: implemented local synthetic vertical slice, **not DTP 0.1 release approval**. Nothing deployed, published, merged, or connected to NetSuite. Existing experimental Passport and signing domains are unchanged.
+Status: implemented local synthetic vertical slice, **not DTP 0.1 release approval**. Nothing deployed, published, merged, or connected to an external accounting system. Existing experimental Passport and signing domains are unchanged.
 
 ## What is implemented
 
@@ -75,8 +75,8 @@ Tests also cover cross-company isolation, invitation acceptance/revocation/re-in
 
 This is implementer testing, **not independent review**, and it does not update or green the foundation release gates. The initial baseline invocation accidentally used another cached Node version; its runtime-enforcement failures were superseded by the clean pinned-runtime rerun above.
 
-## Next milestone: read-only NetSuite shadow
+## Next milestone: read-only shadow of an external accounting system
 
 Keep the connector a separately identified, company-installed private service. Its grants must name allowed source/target scopes and support revocation. It must not receive a person's keys or controller privileges. Before implementation, define service-principal authentication, credential custody, source provenance, checkpoint/reconciliation contracts, and the first financial reporting profile. The current onboarding host intentionally provides no live connector credential endpoint or fake green readiness signal.
 
-No real accounts, business financials, deployment, production recovery or NetSuite compatibility have been qualified by this work.
+No real accounts, business financials, deployment, production recovery or compatibility with any external accounting system have been qualified by this work.

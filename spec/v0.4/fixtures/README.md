@@ -28,7 +28,7 @@ completeness is a caller-established precondition. Partial/unknown history remai
 unknown, never a default zero balance.
 
 This establishes separately coded consumer agreement by the same author, not
-independent authorship, certification or a cold implementation by Boris. A second
+independent authorship, certification or a cold implementation by an outside builder. A second
 builder should implement these public fixtures without seeing either consumer.
 
 Run from `sdk` with the pinned runtime:
