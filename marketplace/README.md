@@ -21,8 +21,8 @@ Claude Code (any user)
 plugins/dtp  ──  skills (/dtp:start /dtp:shop /dtp:sell /dtp:buy /dtp:trust)
    │             + remote MCP server declaration (.mcp.json)
    ▼  HTTPS (streamable HTTP MCP, JSON-RPC)
-Supabase Edge Function `dtp-mcp`         ← server/dtp-mcp/index.ts
-   │  https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-mcp
+Hosted edge function `dtp-mcp`           ← server/dtp-mcp/index.ts
+   │  https://<host>/functions/v1/dtp-mcp
    ▼
 Postgres schema `dtp`                    ← migrations/001_mvp_schema.sql
    accounts · listings · intents · endorsements
@@ -54,13 +54,9 @@ dtp_my_activity`
 
 ## Redeploying the server
 
-The edge function is deployed on the dedicated Supabase project `vsuqtdofphppybkhnijg`
-(project name `dtp-marketplace`, function name `dtp-mcp`, JWT verification off — the
-function does its own API-key auth). After editing `server/dtp-mcp/index.ts`, redeploy
-with the Supabase CLI:
-
-```bash
-supabase functions deploy dtp-mcp --project-ref vsuqtdofphppybkhnijg --no-verify-jwt
-```
-
-(or via the Supabase MCP `deploy_edge_function` tool).
+The server is one edge function, `dtp-mcp`, deployed to the hosting project that serves
+`<host>` above, with the platform's JWT verification turned off (the function does its
+own API-key auth). After editing `server/dtp-mcp/index.ts`, redeploy that function to the
+same project with the hosting platform's CLI or deployment tooling, keeping JWT
+verification off. The project reference and deploy credentials belong to whoever operates
+the deployment and are not recorded in this repository.
