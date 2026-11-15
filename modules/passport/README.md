@@ -1,6 +1,6 @@
 # Passport — PBP 0.3 local browser demo and core
 
-## Browser demo for the ShelfKit conversation
+## Browser demo
 
 **Financial Profile and Early Pay are distinct modules:** enter Acme as Alex and open either module bar. Financial Profile has independent read-only authority; Early Pay consumes explicit snapshots. Riley represents Harbor Finance and Taylor represents Cedar Capital. See the [financing walkthrough and scope](../early-pay/README.md) and [review record](../../docs/MODULAR_FINANCE_REVIEW.md). The original Passport-only walkthrough below still applies; all financing is simulated.
 
@@ -12,7 +12,7 @@ Alternatively, from the repository root:
 npx --yes --package=node@22.23.2 node sdk/scripts/passport-web.ts
 ```
 
-The launcher selects the project's qualified Node 22.23.2 runtime, which is already cached on this workstation. On a new machine, install npm and run `npm ci` in `sdk` first; the initial runtime/dependency downloads need internet. The demo itself uses only loopback servers and needs no Supabase, lender, mailbox or cloud credentials. Port 8789 must be free.
+The launcher selects the project's qualified Node 22.23.2 runtime, which is already cached on this workstation. On a new machine, install npm and run `npm ci` in `sdk` first; the initial runtime/dependency downloads need internet. The demo itself uses only loopback servers and needs no hosted-backend, lender, mailbox or cloud credentials. Port 8789 must be free.
 
 ### Three-minute walkthrough
 
@@ -27,7 +27,7 @@ Optional: choose **Sam Rivera** to show an Acme operations member who can read o
 ### What is real, and what is simulated
 
 - **Real local PBP operations:** signed identities, memberships and invitation acceptance; scoped workspace reads; installation-specific module credentials; human/module permission intersection; membership and installation revocation.
-- **Demo only:** one-click persona selection, job-title labels, fictional company data and notifications, local Books/Trade Ledger readers and Early Pay financing workflow. These are not Boris's ShelfKit modules. No real sign-in, KYB, payment, production scheduling, billing or marketplace is implemented here.
+- **Demo only:** one-click persona selection, job-title labels, fictional company data and notifications, local Books/Trade Ledger readers and Early Pay financing workflow. These are not a collaborator's production modules. No real sign-in, KYB, payment, production scheduling, billing or marketplace is implemented here.
 - The dashboard is a Passport view of permitted records. Connected modules have their own reader permissions; removing a module does not remove company records or the Passport dashboard's independent access. Module-supplied widget manifests remain future work.
 - Widget order is stored only in browser session storage, separately per person and company. No business records or private signing keys are persisted in browser storage. All demo signing keys stay inside the disposable local server process. Anyone with local access may choose any fictional persona: **do not expose this server publicly or use real data**.
 - A feature-detected WebMCP navigation tool can enter an already-authorized workspace. It cannot switch personas or change authority. Registration/execution in a supporting browser has not been verified; ordinary controls do not depend on it.

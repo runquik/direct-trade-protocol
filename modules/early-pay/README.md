@@ -39,6 +39,6 @@ No settlement record is published at payment initiation. The demo prepares a sho
 - Sharing references the buyer-owned PO; it does not redisclose it without owner permission.
 - Unknown external debts/liens are not cleared. Signed evidence proves attribution, not real-world truth.
 - The current read loops paginate, but no production scale or independent conformance certification is claimed.
-- Do not expose the persona-selecting server publicly. This is not Boris's ShelfKit implementation.
+- Do not expose the persona-selecting server publicly. This is not a collaborator's production implementation.
 
 See [Financial Profile](../financial-profile/README.md) and [review record](../../docs/MODULAR_FINANCE_REVIEW.md). Run the full SDK tests under Node 22.23.2; tests 12–14 cover the financing/disclosure/module flows. Rendered borrower/lender and narrow-screen checks are recorded in the review document.
