@@ -89,9 +89,15 @@ export function parseRecord(body: unknown): RecordBody {
   return record as unknown as RecordBody;
 }
 
-/** The record digest: SHA-256 over the canonical Signed<RecordBody>, signatures included. */
+/**
+ * The record digest: SHA-256 over the canonical Signed<RecordBody>, signatures included, with the signatures array
+ * taken in ascending order of key_id (compared by UTF-16 code unit, as JCS orders member names). The envelope sets no
+ * order for its signatures, so a threshold record arrives in any order; the digest depends only on the body and the
+ * set of signatures, never on the order they were assembled or stored in (#188).
+ */
 export async function recordDigest(signed: Signed<RecordBody>): Promise<string> {
-  return sha256Hex(canonicalBytes(signed));
+  const signatures = [...signed.signatures].sort((a, b) => (a.key_id < b.key_id ? -1 : a.key_id > b.key_id ? 1 : 0));
+  return sha256Hex(canonicalBytes({ body: signed.body, signatures }));
 }
 
 /** Signs a record under DTP-RECORD-1. Refuses a body that is not a RecordBody, so nothing unverifiable is produced. */

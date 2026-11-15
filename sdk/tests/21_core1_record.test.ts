@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { EnvelopeError, signEnvelope } from "../src/core1/envelope.ts";
+import { EnvelopeError, signEnvelope, type Signed } from "../src/core1/envelope.ts";
 import { RecordError, checkRecordSigners, checkSupersession, parseRecord, recordDigest, signRecord, verifyRecord, type RecordBody } from "../src/core1/record.ts";
 import { parseUntrustedJson } from "../src/safe-json.ts";
 
@@ -54,6 +54,20 @@ test("the record digest covers the signatures: the same body signed by another k
   const one = await signRecord(body.body, [a1.secret_key]), two = await signRecord(body.body, [a2.secret_key]);
   assert.notEqual(await recordDigest(one), await recordDigest(two));
   assert.equal(await recordDigest(one), vectors.accept[0].digest);
+});
+
+test("the record digest does not depend on the order of the signatures (#188)", async () => {
+  const both = vectors.accept.find(v => v.signers.length === 2)!;
+  const signed = both.envelope as Signed<RecordBody>;
+  const reversed: Signed<RecordBody> = { body: signed.body, signatures: [...signed.signatures].reverse() };
+  assert.notDeepEqual(reversed.signatures, signed.signatures);
+  assert.equal(await recordDigest(reversed), both.digest);
+  const previous = await verifyRecord(signed), other = await verifyRecord(reversed);
+  assert.equal(other.digest, previous.digest);
+  // A successor that names the digest supersedes either copy of its predecessor.
+  const next = parseRecord({ ...signed.body, sequence: 2, supersedes: both.digest });
+  checkSupersession(previous, next);
+  checkSupersession(other, next);
 });
 
 test("the reference refuses to sign what a verifier refuses", async () => {

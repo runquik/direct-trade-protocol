@@ -1,5 +1,5 @@
 {
-  "description": "Core-1 signed records (spec/core-1/README.md, part 5): Signed<Record> under DTP-RECORD-1. For accept: verify the envelope under DTP-RECORD-1, check the body and the expected profile, check the signers against heads[person] and, when organization is set, heads[organization]; the record digest (SHA-256 of the canonical envelope, signatures included) and the signers must match. For reject: run the same steps, using profile, person and organization when given, and expect the code. For supersession: both records verify; check that next supersedes previous. Keys come from fixed seeds; never use them for anything real.",
+  "description": "Core-1 signed records (spec/core-1/README.md, part 5): Signed<Record> under DTP-RECORD-1. For accept: verify the envelope under DTP-RECORD-1, check the body and the expected profile, check the signers against heads[person] and, when organization is set, heads[organization]; the record digest (SHA-256 of the canonical envelope, signatures included and taken in ascending order of key_id, so the order they arrive in does not change it) and the signers must match. For reject: run the same steps, using profile, person and organization when given, and expect the code. For supersession: both records verify; check that next supersedes previous. Keys come from fixed seeds; never use them for anything real.",
   "keys": [
     {
       "label": "alice-op-1",
@@ -239,6 +239,47 @@
           {
             "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
             "signature": "ed25519:5XFwWMnLVfjtoFT4ch38ZYKQ8RTjGBTqRZfjy8eTPt9ag6eokWkw75L5otYkbq5cPSBHNQqGm1RSAegdfqGAmTxZ"
+          }
+        ]
+      },
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "person": "bob",
+      "organization": null,
+      "digest": "a70b8332565e83816fbb2eae8be27c624da5b93d940f03e0d36dbbcb5cbb1ec4",
+      "signers": [
+        "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+        "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg"
+      ]
+    },
+    {
+      "why": "the same record with its two signatures in the other order: the same record digest, because the digest takes the signatures in ascending order of key_id",
+      "envelope": {
+        "body": {
+          "issuer": {
+            "identity": "9c3e5a71-2b0d-4e6f-8a19-4d2c7b1e0f35",
+            "head": {
+              "sequence": 0,
+              "digest": "56d3d2fc7dc1ac53226142fe1fa9a91149b5cfdb328110f08ba2271173a770ff"
+            }
+          },
+          "organization": null,
+          "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+          "sequence": 1,
+          "supersedes": null,
+          "issued_at": 1762000100000,
+          "payload": {
+            "note": "café",
+            "amount": "12.50"
+          }
+        },
+        "signatures": [
+          {
+            "key_id": "ed25519:FWJTKm7GRpdLaAHteh6eiCzKx9uYSAThjis1fMpXRnfg",
+            "signature": "ed25519:5XFwWMnLVfjtoFT4ch38ZYKQ8RTjGBTqRZfjy8eTPt9ag6eokWkw75L5otYkbq5cPSBHNQqGm1RSAegdfqGAmTxZ"
+          },
+          {
+            "key_id": "ed25519:862jmnvUNxB1ZdM82q1Z9gYNpo3NUvkCedYm1KQVVrfk",
+            "signature": "ed25519:21znBVHtrp1onJdopaAZpEzmG2p3E8yqw7Rd9dnBTUqQu2JPSgXH4p15yWYvckvFsDE5mGGQmyybpnrZvSHPEHjV"
           }
         ]
       },

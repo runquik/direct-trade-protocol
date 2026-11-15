@@ -1,23 +1,17 @@
-// GAP (red team, surface 1 — canonicalization and signing): the Core-1 record digest is not invariant under
-// the order of the `signatures` array, and nothing in Core-1 pins a canonical order for that array.
+// Regression (was a red-team gap test, #189, for finding #188 — surface 1, canonicalization and signing):
+// the Core-1 record digest is invariant under the order of the `signatures` array.
 //
 // A record is a `Signed<Record>` (spec/core-1/README.md, part 3: { body, signatures }) and the record digest is
-// "SHA-256 over the canonical Signed<Record>, signatures included, the digest a log leaf commits to" (part 5).
-// `canonicalBytes` sorts object member names but never reorders an array, and the envelope explicitly supports
-// several signatures ("Several signatures over the same input express a threshold"). So for a multi-signer
-// (threshold) record, two honest parties holding the identical body and the identical valid signatures in a
-// different array order verify both, agree on the signer set, yet compute DIFFERENT record digests — the digest
-// that `supersedes` names, that a log leaf commits to, and that a receipt (DTP-LOG-HEAD-1) attests. `verifyEnvelope`
-// returns only `signers: Set<string>`, discarding the order the digest depends on.
-//
-// These assertions pin the CURRENT, order-dependent behaviour so CI stays green. Each GAP assertion has the
-// EXPECTED post-fix line beside it; they flip once Core-1 fixes a canonical signature order (e.g. the `signatures`
-// array sorted by key_id before canonicalization and digest). See the linked red-team finding.
+// SHA-256 over the canonical Signed<Record>, signatures included (part 5). The envelope supports several
+// signatures (a threshold). Before #190, two honest parties holding the identical body and the identical valid
+// signatures in a different array order computed different record digests, so `supersedes`, log leaves and
+// receipts diverged. #190 (option A, pending the owner) takes `signatures` in ascending `key_id` order for the
+// digest, and accepts any wire order. The GAP assertions below are now their EXPECTED lines.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { generateKeyPair } from "../src/keys.ts";
 import { signEnvelope, verifyEnvelope, type Signed } from "../src/core1/envelope.ts";
-import { RecordError, checkSupersession, parseRecord, recordDigest, verifyRecord, type RecordBody } from "../src/core1/record.ts";
+import { checkSupersession, parseRecord, recordDigest, verifyRecord, type RecordBody } from "../src/core1/record.ts";
 
 function body(sequence: number, supersedes: string | null): RecordBody {
   return {
@@ -40,7 +34,7 @@ async function bothOrders(): Promise<{ ab: Signed<RecordBody>; ba: Signed<Record
   return { ab, ba };
 }
 
-test("GAP: a threshold record's digest depends on the order of the signatures array", async () => {
+test("a threshold record's digest does not depend on the order of the signatures array", async () => {
   const { ab, ba } = await bothOrders();
 
   // Both orderings verify, and agree on who signed.
@@ -52,18 +46,16 @@ test("GAP: a threshold record's digest depends on the order of the signatures ar
   const dAb = await recordDigest(ab);
   const dBa = await recordDigest(ba);
 
-  // GAP: byte-identical signed content, two different record digests.
-  assert.notEqual(dAb, dBa, "record digest is order-dependent (the gap)");
-  // EXPECTED once a canonical signature order is pinned:
-  // assert.equal(dAb, dBa, "a record has one digest regardless of signature order");
+  // Byte-identical signed content, one record digest.
+  assert.equal(dAb, dBa, "a record has one digest regardless of signature order");
 
-  // verifyRecord accepts both and hands back the two divergent digests, no error.
+  // verifyRecord accepts both and hands back the same digest.
   const rAb = await verifyRecord(ab, { profile: "c".repeat(64) });
   const rBa = await verifyRecord(ba, { profile: "c".repeat(64) });
-  assert.notEqual(rAb.digest, rBa.digest, "verifyRecord reports the order-dependent digest (the gap)");
+  assert.equal(rAb.digest, rBa.digest, "verifyRecord reports one digest for either order");
 });
 
-test("GAP: supersession breaks across two honest orderings of the same predecessor", async () => {
+test("supersession holds across two honest orderings of the same predecessor", async () => {
   const { ab, ba } = await bothOrders();
   const dAb = await recordDigest(ab);
   const dBa = await recordDigest(ba);
@@ -76,11 +68,6 @@ test("GAP: supersession breaks across two honest orderings of the same predecess
   // Against the [A,B] copy of the predecessor, supersession holds.
   checkSupersession({ record: parseRecord(ab.body), digest: dAb }, next);
 
-  // GAP: against the [B,A] copy of the SAME predecessor (same body, same signatures, other order) it is refused.
-  assert.throws(
-    () => checkSupersession({ record: parseRecord(ba.body), digest: dBa }, next),
-    (error: unknown) => error instanceof RecordError && error.code === "broken_supersession",
-    "a party holding the other signature order cannot follow the supersession chain (the gap)",
-  );
-  // EXPECTED once a canonical signature order is pinned: both copies share one digest, so both succeed.
+  // Against the [B,A] copy of the SAME predecessor (same body, same signatures, other order) it holds too.
+  checkSupersession({ record: parseRecord(ba.body), digest: dBa }, next);
 });
