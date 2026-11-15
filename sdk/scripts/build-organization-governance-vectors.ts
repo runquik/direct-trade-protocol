@@ -21,28 +21,32 @@ async function fixedKey(label: string): Promise<KeyPair> {
   const publicKey = new Uint8Array(Buffer.from((await crypto.subtle.exportKey('jwk', key)).x!, 'base64url'));
   return { keyId: encodeKeyId(publicKey), secretKey: encodeSecretKey(seed, publicKey), publicKey, seed };
 }
-const labels = ['alice-op', 'alice-rec', 'alice-op-2', 'bob-op', 'bob-rec', 'carol-op', 'carol-rec', 'resolver', 'stranger'] as const;
+const labels = ['alice-op', 'alice-rec', 'alice-op-2', 'bob-op', 'bob-rec', 'carol-op', 'carol-rec', 'resolver', 'stranger', 'dana-op-a', 'dana-op-b', 'dana-rec'] as const;
 const k = Object.fromEntries(await Promise.all(labels.map(async l => [l, await fixedKey(l)]))) as Record<typeof labels[number], KeyPair>;
 const T = 1_800_000_000_000, resolverId = '5e5e5e5e-0000-4000-8000-00000000000c', audience = 'https://resolver.example';
 const clone = <V>(v: V): V => structuredClone(v);
 
-/** A person with a fixed genesis, enrolled at the fixed resolver, and optionally one rotation. */
-async function person(op: KeyPair, rec: KeyPair, nonce: string, rotateTo: KeyPair | null) {
-  const genesis = await signIdentity('DTP-PERSON-GENESIS-1', { nonce, operational: { keys: [op.keyId], threshold: 1 }, recovery: { keys: [rec.keyId], threshold: 1 } }, [op, rec]);
+/** A person with a fixed genesis, enrolled at the fixed resolver, and optionally one rotation. With `more`, the
+ * operational set is `op` plus those keys and every one of them is needed (a multi-key quorum). */
+async function person(op: KeyPair, rec: KeyPair, nonce: string, rotateTo: KeyPair | null, more: KeyPair[] = []) {
+  const ops = [op, ...more].sort((a, b) => a.keyId < b.keyId ? -1 : 1);
+  const genesis = await signIdentity('DTP-PERSON-GENESIS-1', { nonce, operational: { keys: ops.map(o => o.keyId), threshold: ops.length }, recovery: { keys: [rec.keyId], threshold: 1 } }, [...ops, rec]);
   const state = await createIdentity(genesis, { id: resolverId, key_id: k.resolver.keyId }, T + 1_000), id = state.head.identity_id;
-  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: id, genesis_digest: state.genesis_digest, resolver_id: resolverId, resolver_key: k.resolver.keyId, audience, nonce: 'e'.repeat(64), issued_at: T, expires_at: T + 300_000 }, [op, rec]);
+  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id: id, genesis_digest: state.genesis_digest, resolver_id: resolverId, resolver_key: k.resolver.keyId, audience, nonce: 'e'.repeat(64), issued_at: T, expires_at: T + 300_000 }, [...ops, rec]);
   const parts: IdentityLogParts = { genesis, enrollment, entries: [{ effective_at: T + 1_000, transition: null, rehome: null, attestation: null }] };
   if (rotateTo !== null) {
     const command = await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: state.head_digest, sequence: 1, kind: 'rotate', operational: { keys: [rotateTo.keyId], threshold: 1 }, recovery: state.head.recovery, issued_at: T + 50_000, expires_at: T + 350_000 }, [op, rotateTo]);
     parts.entries.push({ effective_at: T + 50_500, transition: command, rehome: null, attestation: null });
   }
   const log = await buildIdentityLog(parts, k.resolver), verified = await verifyIdentityLog(log, { require_attestation: true });
-  return { id, log, verified, heads: verified.heads, current: verified.heads[verified.heads.length - 1], keys: rotateTo === null ? [op] : [rotateTo], oldKeys: [op], recovery: rec };
+  return { id, log, verified, heads: verified.heads, current: verified.heads[verified.heads.length - 1], keys: rotateTo === null ? ops : [rotateTo], oldKeys: ops, recovery: rec };
 }
 const alice = await person(k['alice-op'], k['alice-rec'], '0f0e0d0c-0b0a-4908-8706-050403020100', k['alice-op-2']);
 const bob = await person(k['bob-op'], k['bob-rec'], '0f0e0d0c-0b0a-4908-8706-050403020101', null);
 const carol = await person(k['carol-op'], k['carol-rec'], '0f0e0d0c-0b0a-4908-8706-050403020102', null);
-const people = [alice, bob, carol], lookup = controlFromIdentityLogs(people.map(p => p.verified));
+// Dana's operational set is two keys with threshold two: no single key of hers consents for her.
+const dana = await person(k['dana-op-a'], k['dana-rec'], '0f0e0d0c-0b0a-4908-8706-050403020103', null, [k['dana-op-b']]);
+const people = [alice, bob, carol, dana], lookup = controlFromIdentityLogs(people.map(p => p.verified));
 const sorted = (ids: string[]) => [...ids].sort();
 
 const genesis: OrganizationGenesis = { nonce: '00010203-0405-4607-8809-0a0b0c0d0e0f', founder: alice.id, controllers: sorted([alice.id, bob.id]), threshold: 1 };
@@ -64,16 +68,35 @@ const d2 = await governanceTransitionDigest(t2);
 const e2: GovernanceEntry = { transition: t2, consents: [await consent(bob, 'transition', d2, T + 301_000), await consent(carol, 'transition', d2, T + 302_000)] };
 const log: GovernanceLog = { format: GOVERNANCE_LOG_FORMAT, genesis, consents: genesisConsents, entries: [e1, e2] };
 const genesisOnly: GovernanceLog = { ...log, entries: [] };
+// A second organization, founded by Dana with Bob, for the operational-quorum cases (#197). Its first transition
+// adds Carol on Dana's consent alone among the current controllers, so Dana's quorum is what carries it.
+const genesisD: OrganizationGenesis = { nonce: '00010203-0405-4607-8809-0a0b0c0d0e10', founder: dana.id, controllers: sorted([bob.id, dana.id]), threshold: 1 };
+const genesisDigestD = await organizationGenesisDigest(genesisD), orgIdD = await organizationId(genesisD);
+const consentD = (p: Person, subject: 'genesis' | 'transition', digest: string, at: number, keys = p.keys) =>
+  signOrganizationConsent({ organization_id: orgIdD, subject, digest, person_id: p.id, head_digest: p.current.head_digest, issued_at: at, expires_at: at + 3_600_000 }, keys);
+const genesisConsentsD = [await consentD(bob, 'genesis', genesisDigestD, T + 100_000), await consentD(dana, 'genesis', genesisDigestD, T + 100_500)];
+const headD0 = await verifyOrganizationGenesis(genesisD, genesisConsentsD, lookup, null);
+const tD1: GovernanceTransition = { organization_id: orgIdD, expected_digest: headD0.head_digest, sequence: 1, controllers: sorted([bob.id, carol.id, dana.id]), threshold: 2, issued_at: T + 200_000, expires_at: T + 200_000 + ORGANIZATION_WINDOW_MS };
+const dD1 = await governanceTransitionDigest(tD1);
+const logD: GovernanceLog = { format: GOVERNANCE_LOG_FORMAT, genesis: genesisD, consents: genesisConsentsD, entries: [{ transition: tD1, consents: [await consentD(carol, 'transition', dD1, T + 201_000), await consentD(dana, 'transition', dD1, T + 202_000)] }] };
+const genesisOnlyD: GovernanceLog = { ...logD, entries: [] };
 function damaged(base: GovernanceLog, change: (l: GovernanceLog) => void | Promise<void>) { const l = clone(base); return Promise.resolve(change(l)).then(() => l); }
 
 // Consent vectors: one consent against the act and the head it must be verified under.
 const rawConsent = async (body: OrganizationConsent, signers: KeyPair[], domain = ORGANIZATION_CONSENT_DOMAIN): Promise<Signed<OrganizationConsent>> =>
   ({ body, signatures: await Promise.all(signers.map(async s => ({ key_id: s.keyId, signature: encodeSignature(await signBytes(s.secretKey, canonicalBytes({ domain, body }))) }))) });
 const expectedGenesis = (p: Person) => ({ organization_id: orgId, subject: 'genesis' as const, digest: genesisDigest, person_id: p.id });
+const expectedGenesisD = (p: Person) => ({ organization_id: orgIdD, subject: 'genesis' as const, digest: genesisDigestD, person_id: p.id });
 type ConsentCase = [string, Signed<OrganizationConsent>, ReturnType<typeof expectedGenesis>, Control];
 const consentAccept: ConsentCase[] = [
   ['a controller consents to the genesis under their current head, signed by their operational key', genesisConsents[1], expectedGenesis(bob), bob.current.head],
   ['a consent signed under an earlier head of a person who has since rotated: valid under that head, which a replay verifier finds in the person\'s log', await consent(alice, 'genesis', genesisDigest, T + 100_000, alice.heads[0], alice.oldKeys), expectedGenesis(alice), alice.heads[0].head],
+  ['a controller whose operational threshold is two consents with both operational keys', genesisConsentsD[1], expectedGenesisD(dana), dana.current.head],
+];
+// Each of these is refused for the operational quorum alone: every signature on it is valid and current (#197).
+const quorumReject: ConsentCase[] = [
+  ['signed by one of the two operational keys of a controller whose operational threshold is two', await consentD(dana, 'genesis', genesisDigestD, T + 100_500, [k['dana-op-a']]), expectedGenesisD(dana), dana.current.head],
+  ['signed by the other one of those two keys alone', await consentD(dana, 'genesis', genesisDigestD, T + 100_500, [k['dana-op-b']]), expectedGenesisD(dana), dana.current.head],
 ];
 const consentReject: ConsentCase[] = [
   ['signed by the person\'s recovery key: recovery keys are not business signers', await consent(bob, 'genesis', genesisDigest, T + 100_500, bob.current, [bob.recovery]), expectedGenesis(bob), bob.current.head],
@@ -90,14 +113,22 @@ const consentReject: ConsentCase[] = [
   ['an extra member', await rawConsent({ ...genesisConsents[1].body, note: 'x' } as unknown as OrganizationConsent, bob.keys), expectedGenesis(bob), bob.current.head],
   ['the same key signing twice', { ...genesisConsents[1], signatures: [genesisConsents[1].signatures[0], genesisConsents[1].signatures[0]] }, expectedGenesis(bob), bob.current.head],
   ['no signatures', { ...genesisConsents[1], signatures: [] }, expectedGenesis(bob), bob.current.head],
+  ...quorumReject,
 ];
 // Governance log vectors, each with the identity logs a replaying verifier needs.
 type LogCase = [string, GovernanceLog, IdentityLog[]];
-const everyone = people.map(p => p.log);
+const everyone = [alice, bob, carol].map(p => p.log), withDana = people.map(p => p.log);
 const logAccept: LogCase[] = [
   ['a genesis with two controllers, each consenting under their current head', genesisOnly, everyone],
   ['a controller joins with a raised threshold, then the founder leaves: every head replays from the consents alone', log, everyone],
   ['the same history verified with only the logs of the people who ever consented', log, everyone],
+  ['a genesis whose initial controllers include one with a two-key operational quorum, who consents with both keys', genesisOnlyD, withDana],
+  ['a transition carried by that controller\'s full two-key consent and the added controller\'s', logD, withDana],
+];
+// Each of these is refused for one controller's operational quorum alone (#197).
+const quorumLogReject: LogCase[] = [
+  ['a genesis in which a required initial controller\'s consent carries one of their two operational keys', await damaged(genesisOnlyD, async l => { l.consents[1] = await consentD(dana, 'genesis', genesisDigestD, T + 100_500, [k['dana-op-a']]); }), withDana],
+  ['a transition whose current quorum is one controller\'s consent carrying one of their two operational keys', await damaged(logD, async l => { l.entries[0].consents[1] = await consentD(dana, 'transition', dD1, T + 202_000, [k['dana-op-b']]); }), withDana],
 ];
 const logReject: LogCase[] = [
   ['a genesis consent missing: every initial controller must consent', await damaged(genesisOnly, l => { l.consents = [l.consents[0]]; }), everyone],
@@ -116,6 +147,7 @@ const logReject: LogCase[] = [
   ['a genesis consent reused as consent to a transition', await damaged(log, l => { l.entries[0].consents[0] = clone(l.consents[0]); }), everyone],
   ['an unknown format', await damaged(log, l => { (l as { format: string }).format = 'dtp-governance-log-2'; }), everyone],
   ['an extra top-level member', await damaged(log, l => { (l as unknown as Record<string, unknown>).name = 'Example Foods'; }), everyone],
+  ...quorumLogReject,
 ];
 
 const out = {
@@ -147,6 +179,15 @@ for (const [why, consent, expected, head] of consentReject) {
 for (const [why, log, logs] of logReject) {
   const refused = verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l), { require_attestation: true }))))).then(() => false, () => true);
   if (!await refused) throw new Error(`generator: the reference verifier accepted the governance log "${why}"`);
+}
+// The quorum cases must fail on the quorum and nothing else, or they would not pin it.
+for (const [why, consent, expected, head] of quorumReject) {
+  const reason = await verifyOrganizationConsent(clone(consent), expected, head, null).then(() => '', (e: Error) => e.message);
+  if (!/operational quorum required/.test(reason)) throw new Error(`generator: "${why}" was not refused for the operational quorum: ${reason}`);
+}
+for (const [why, log, logs] of quorumLogReject) {
+  const reason = await verifyGovernanceLog(clone(log), controlFromIdentityLogs(await Promise.all(logs.map(l => verifyIdentityLog(clone(l), { require_attestation: true }))))).then(() => '', (e: Error) => e.message);
+  if (!/operational quorum required/.test(reason)) throw new Error(`generator: "${why}" was not refused for the operational quorum: ${reason}`);
 }
 const target = new URL('../../spec/vectors/organization-governance.json', import.meta.url), text = JSON.stringify(out, null, 2) + '\n';
 if (!process.argv.includes('--check')) writeFileSync(target, text);
