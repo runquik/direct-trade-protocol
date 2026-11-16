@@ -122,7 +122,7 @@ test('organization governance conformance vectors: consents and governance logs 
     consents: { accept: { why: string; consent: Signed<OrganizationConsent>; expected: any; head: Control; expect: OrganizationConsent }[]; reject: { why: string; consent: Signed<OrganizationConsent>; expected: any; head: Control }[] };
     governance: { accept: { why: string; log: GovernanceLog; people: string[]; expect: any }[]; reject: { why: string; log: GovernanceLog; people: string[] }[] } };
   assert.equal(vectors.consent_domain, ORGANIZATION_CONSENT_DOMAIN); assert.equal(vectors.transition_domain, ORGANIZATION_TRANSITION_DOMAIN); assert.equal(vectors.format, GOVERNANCE_LOG_FORMAT); assert.equal(vectors.window_ms, ORGANIZATION_WINDOW_MS);
-  assert.ok(vectors.consents.accept.length >= 2 && vectors.consents.reject.length >= 14 && vectors.governance.accept.length >= 3 && vectors.governance.reject.length >= 16);
+  assert.ok(vectors.consents.accept.length >= 3 && vectors.consents.reject.length >= 16 && vectors.governance.accept.length >= 5 && vectors.governance.reject.length >= 18);
   const people = new Map<string, IdentityLog>(vectors.people.map(p => [p.person_id, p.log]));
   const lookup = async (ids: string[]) => controlFromIdentityLogs(await Promise.all(ids.map(id => verifyIdentityLog(people.get(id)!, { require_attestation: true }))));
   for (const v of vectors.consents.accept) assert.deepEqual(await verifyOrganizationConsent(v.consent, v.expected, v.head, null), v.expect, v.why);
