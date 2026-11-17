@@ -1632,6 +1632,101 @@
           "replaces": null,
           "status": "active"
         }
+      },
+      {
+        "why": "a kept packaging revision with its conversion re-spelled (\"12\" as \"12.000\"): the same conversion (#99, #202)",
+        "previous": {
+          "names": [
+            {
+              "name": "Heritage Tomato Sauce 680 g",
+              "language": "en"
+            },
+            {
+              "name": "Salsa de tomate 680 g",
+              "language": "es"
+            }
+          ],
+          "description": "Slow-cooked tomato sauce in a glass jar.",
+          "brand": "Example Foods",
+          "category": "sauces",
+          "identifiers": [
+            {
+              "scheme": "gs1.gtin",
+              "value": "00012345678905"
+            },
+            {
+              "scheme": "sku",
+              "value": "HTS-680"
+            },
+            {
+              "scheme": "supplier.code",
+              "value": "A-77"
+            }
+          ],
+          "base_unit": {
+            "system": "ucum",
+            "code": "{jar}"
+          },
+          "packaging": [
+            {
+              "packaging_id": "case-12",
+              "version": "1",
+              "name": "Case of 12 jars",
+              "base_units_per_pack": "12",
+              "gtin": "10012345678902"
+            }
+          ],
+          "tracking": "lot",
+          "shelf_life_days": 540,
+          "replaces": null,
+          "status": "active"
+        },
+        "next": {
+          "names": [
+            {
+              "name": "Heritage Tomato Sauce 680 g",
+              "language": "en"
+            },
+            {
+              "name": "Salsa de tomate 680 g",
+              "language": "es"
+            }
+          ],
+          "description": "Slow-cooked tomato sauce in a glass jar.",
+          "brand": "Example Foods",
+          "category": "sauces",
+          "identifiers": [
+            {
+              "scheme": "gs1.gtin",
+              "value": "00012345678905"
+            },
+            {
+              "scheme": "sku",
+              "value": "HTS-680"
+            },
+            {
+              "scheme": "supplier.code",
+              "value": "A-77"
+            }
+          ],
+          "base_unit": {
+            "system": "ucum",
+            "code": "{jar}"
+          },
+          "packaging": [
+            {
+              "packaging_id": "case-12",
+              "version": "1",
+              "name": "Case of 12 jars",
+              "base_units_per_pack": "12.000",
+              "gtin": "10012345678902"
+            }
+          ],
+          "tracking": "lot",
+          "shelf_life_days": 540,
+          "replaces": null,
+          "status": "discontinued"
+        }
       }
     ],
     "reject": [
@@ -2093,6 +2188,101 @@
               "version": "1",
               "name": "Case of 12 jars",
               "base_units_per_pack": "6",
+              "gtin": "10012345678902"
+            }
+          ],
+          "tracking": "lot",
+          "shelf_life_days": 540,
+          "replaces": null,
+          "status": "active"
+        }
+      },
+      {
+        "why": "a packaging conversion changed in value though spelled alike in places (\"12\" as \"12.001\")",
+        "previous": {
+          "names": [
+            {
+              "name": "Heritage Tomato Sauce 680 g",
+              "language": "en"
+            },
+            {
+              "name": "Salsa de tomate 680 g",
+              "language": "es"
+            }
+          ],
+          "description": "Slow-cooked tomato sauce in a glass jar.",
+          "brand": "Example Foods",
+          "category": "sauces",
+          "identifiers": [
+            {
+              "scheme": "gs1.gtin",
+              "value": "00012345678905"
+            },
+            {
+              "scheme": "sku",
+              "value": "HTS-680"
+            },
+            {
+              "scheme": "supplier.code",
+              "value": "A-77"
+            }
+          ],
+          "base_unit": {
+            "system": "ucum",
+            "code": "{jar}"
+          },
+          "packaging": [
+            {
+              "packaging_id": "case-12",
+              "version": "1",
+              "name": "Case of 12 jars",
+              "base_units_per_pack": "12",
+              "gtin": "10012345678902"
+            }
+          ],
+          "tracking": "lot",
+          "shelf_life_days": 540,
+          "replaces": null,
+          "status": "active"
+        },
+        "next": {
+          "names": [
+            {
+              "name": "Heritage Tomato Sauce 680 g",
+              "language": "en"
+            },
+            {
+              "name": "Salsa de tomate 680 g",
+              "language": "es"
+            }
+          ],
+          "description": "Slow-cooked tomato sauce in a glass jar.",
+          "brand": "Example Foods",
+          "category": "sauces",
+          "identifiers": [
+            {
+              "scheme": "gs1.gtin",
+              "value": "00012345678905"
+            },
+            {
+              "scheme": "sku",
+              "value": "HTS-680"
+            },
+            {
+              "scheme": "supplier.code",
+              "value": "A-77"
+            }
+          ],
+          "base_unit": {
+            "system": "ucum",
+            "code": "{jar}"
+          },
+          "packaging": [
+            {
+              "packaging_id": "case-12",
+              "version": "1",
+              "name": "Case of 12 jars",
+              "base_units_per_pack": "12.001",
               "gtin": "10012345678902"
             }
           ],

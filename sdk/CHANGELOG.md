@@ -8,6 +8,12 @@ Each entry names the kind of each change, as the builder baseline's table does: 
 
 Each development entry records the digest of the source its packed entries are built from, on a line `Packed source: \`<sha256>\``; `node scripts/packed-source-digest.ts` prints it, and [`packed-source.test.ts`](tests/release/packed-source.test.ts) fails when the source no longer matches the current entry. A pull request that changes that source therefore touches this file: it bumps the version and adds an entry, or, when no packed entry behaves differently (a comment, a refactor), it records the new digest in the current entry with a line naming the pull request and saying so. Because the test runs on `main` after every merge, a version-bump pull request reviewed before another packed-entry change merged cannot land with a stale entry unnoticed (#181).
 
+## 0.2.1-dev.2
+
+`dtp/product@1` continuity (`checkProductContinuity`, `@dtp/sdk/preview`) compares a kept packaging revision's `base_units_per_pack` by decimal value, not spelling, as `inventory@2` and `flow@1` already match it since #99: a revision that keeps packaging `case-12` version `1` and spells its conversion `"12.000"` where the previous revision spelled `"12"` is now accepted, where an earlier artifact refused it `invalid_product` live and `invalid_snapshot` on import (#202, **conformance**). A changed value (`"12"` to `"12.001"` or `"6"`) is still refused. The `product@1` fixtures gain one continuity accept and one reject; the contract digest is unchanged.
+
+Packed source: `7ca3329b0a1d4d30657c9b2052ec71b7784dabadbedf395c8e0821aff7d2fc38`
+
 ## 0.2.1-dev.1
 
 The first labelled version, set at `3dd0f39` (#167). Its packed entries behave exactly as a `0.2.0` artifact packed from `main` at `cc20088` (the merge of #163, the newest row of the builder baseline's table, see `0.2.0` below) or at any later commit up to `129f917`, the commit before the version was set. What changes is the version, the tarball name, `dtp-sdk-0.2.1-dev.1.tgz`, and that the tarball now ships this changelog (**additive**, in the packed `package.json`'s `files`). Against an earlier `0.2.0` artifact, every row of that table applies from its merge on; against one packed at `9946c60`, the table's two newest rows apply: `2e37251` (#159, `identityLog` refuses identity log format 1) and `cc20088` (#163, an `inventory@2` or `flow@1` reservation is released, fulfilled and topped up only by its claim's party), both **conformance**.

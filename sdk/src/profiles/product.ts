@@ -109,7 +109,9 @@ export function checkProductContinuity(previous: ProductBody, next: ProductBody)
   previous.packaging.forEach((p, i) => {
     const same = later.get(JSON.stringify([p.packaging_id, p.version]));
     if (!same) issues.push({ path: `$.packaging[${i}]`, message: 'a published packaging version cannot be removed' });
-    else if (canonicalize([same.name, same.base_units_per_pack, same.gtin]) !== canonicalize([p.name, p.base_units_per_pack, p.gtin])) issues.push({ path: `$.packaging[${i}]`, message: 'a published packaging version is immutable; publish a new version' });
+    // The conversion is matched by value, not spelling ("12" and "12.000" are one conversion), as inventory@2 and
+    // flow@1 match it (#99, #202). Both bodies are valid, so both parse.
+    else if (canonicalize([same.name, same.gtin]) !== canonicalize([p.name, p.gtin]) || parseDecimal(same.base_units_per_pack, 3) !== parseDecimal(p.base_units_per_pack, 3)) issues.push({ path: `$.packaging[${i}]`, message: 'a published packaging version is immutable; publish a new version' });
   });
   return issues;
 }

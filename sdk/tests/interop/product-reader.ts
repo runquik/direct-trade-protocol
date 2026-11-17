@@ -84,7 +84,7 @@ export function readContinuity(previous: any, next: any): Issue[] {
   for (const [i, p] of (previous.packaging as any[]).entries()) {
     const later = (next.packaging as any[]).find(x => x.packaging_id === p.packaging_id && x.version === p.version);
     if (!later) out.push({ path: `$.packaging[${i}]`, message: 'removed' });
-    else if (later.name !== p.name || later.base_units_per_pack !== p.base_units_per_pack || later.gtin !== p.gtin) out.push({ path: `$.packaging[${i}]`, message: 'altered' });
+    else if (later.name !== p.name || thousandths(later.base_units_per_pack) !== thousandths(p.base_units_per_pack) || later.gtin !== p.gtin) out.push({ path: `$.packaging[${i}]`, message: 'altered' });
   }
   return out;
 }
