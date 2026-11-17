@@ -1,4 +1,4 @@
-// Astra infrastructure regressions. LOCAL ONLY; ignores STORE_URL.
+// Store infrastructure regressions. LOCAL ONLY; ignores STORE_URL.
 // Converted from the September 4 diagnostics: passing now asserts the fixes.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -18,9 +18,9 @@ before(async () => {
   process.env.DTP_DEV_PORT = "0";
   store = await createDevStore();
   base = new DtpStoreClient(store.url);
-  buyer = await makeCompany(base, "astra-buyer");
-  seller = await makeCompany(base, "astra-seller");
-  publisher = await makeCompany(base, "astra-publisher");
+  buyer = await makeCompany(base, "infra-buyer");
+  seller = await makeCompany(base, "infra-seller");
+  publisher = await makeCompany(base, "infra-publisher");
 });
 after(async () => store?.close());
 
@@ -38,7 +38,7 @@ async function errorOf(promise: Promise<unknown>) {
 
 test("A01: private identities are hidden through every read endpoint", async () => {
   const kp = await generateKeyPair();
-  const id = uniq("astra-private") + ".dtp";
+  const id = uniq("infra-private") + ".dtp";
   const env = await signRecord(draft({ type: "core.company", subject_company_id: id,
     issuer: { key_id: kp.keyId, company_id: id, module_id: null }, visibility: "private",
     body: companyBody(kp, "Private identity") }), kp.secretKey);
@@ -55,7 +55,7 @@ test("A01: private identities are hidden through every read endpoint", async () 
   }
 
   const moduleKey = await generateKeyPair();
-  const moduleId = uniq("astra-private-module");
+  const moduleId = uniq("infra-private-module");
   const mod = await signRecord(draft({ type: "core.module", subject_company_id: publisher.id,
     issuer: { key_id: moduleKey.keyId, company_id: publisher.id, module_id: moduleId }, visibility: "private",
     body: { module_id: moduleId, name: "Private module", publisher_company_id: publisher.id,
@@ -252,8 +252,8 @@ test("B08: invalid HTTP inputs are bounded and return safe client errors", async
 });
 
 test("A02: hidden rows do not truncate a module's record pagination", async () => {
-  const owner = await makeCompany(base, "astra-page");
-  const mod = await makeModule(base, publisher, "astra-page-reader");
+  const owner = await makeCompany(base, "infra-page");
+  const mod = await makeModule(base, publisher, "infra-page-reader");
   await grant(owner, mod, [{ type: "finance.invoice", access: "read" }]);
   for (let i = 0; i < 4; i++) await makeContract(owner, seller);
   const visible = await owner.client.sign(draft({ type: "trade.contract", subject_company_id: owner.id,
@@ -273,7 +273,7 @@ test("A02: hidden rows do not truncate a module's record pagination", async () =
 });
 
 test("A03: latest_cursor never names an event outside the module's read scope", async () => {
-  const mod = await makeModule(base, publisher, "astra-cursor-reader");
+  const mod = await makeModule(base, publisher, "infra-cursor-reader");
   const g = await grant(buyer, mod, [{ type: "finance.invoice", access: "read" }]);
   const hidden = await makeContract(buyer, seller);
   const feed = await mod.client.events({ after: String(g.record.seq) });
@@ -296,7 +296,7 @@ test("A04: exact supersede retries return 200 even after further supersession", 
 
 test("A05: anonymous and outsider writes reveal no private target details", async () => {
   const privateRecord = await makeContract(buyer, seller);
-  const attacker = await makeCompany(base, "astra-outsider");
+  const attacker = await makeCompany(base, "infra-outsider");
   const attack = await signRecord(draft({ type: "trade.contract", subject_company_id: buyer.id,
     counterparty_ids: [attacker.id], visibility: "counterparties",
     root_id: privateRecord.record.root_id, supersedes: privateRecord.record.record_id,
@@ -356,7 +356,7 @@ test("A09: buyer_attested requires evidence identifying the exact buyer-signed v
 
 test("A10: genesis retry returns 200 without reissuing a bearer token", async () => {
   const kp = await generateKeyPair();
-  const id = uniq("astra-retry") + ".dtp";
+  const id = uniq("infra-retry") + ".dtp";
   const env = await signRecord(draft({ type: "core.company", subject_company_id: id, visibility: "public",
     issuer: { key_id: kp.keyId, company_id: id, module_id: null }, body: companyBody(kp, "Retry") }), kp.secretKey);
   const first = await base.request<any>("POST", "/companies", env);
@@ -368,7 +368,7 @@ test("A10: genesis retry returns 200 without reissuing a bearer token", async ()
 });
 
 test("A11: revoking or demoting the sole root key cannot strand the company", async () => {
-  const owner = await makeCompany(base, "astra-lockout");
+  const owner = await makeCompany(base, "infra-lockout");
   const prev = await owner.client.getRecord(owner.companyRecordId);
   const body = prev.body as any;
   assert.equal((await errorOf(owner.client.sign(revision(prev, owner, { keys: body.keys.map((k: any) => ({ ...k, status: "revoked", revoked_at: nowIso() })) }), owner.kp.secretKey))).code, "forbidden");
@@ -392,12 +392,12 @@ test("A12: an in-flight write reauthorizes after a preceding revocation commits"
       return data;
     }
     const kp = await generateKeyPair();
-    const id = "astra-interleave.dtp";
+    const id = "infra-interleave.dtp";
     const company = await post("/companies", await signRecord(draft({ type: "core.company", subject_company_id: id,
       visibility: "public", issuer: { key_id: kp.keyId, company_id: id, module_id: null }, body: companyBody(kp, "Interleave") }), kp.secretKey));
     const token = company.keys[0].token;
     const mk = await generateKeyPair();
-    const moduleId = "astra-interleave-module";
+    const moduleId = "infra-interleave-module";
     const module = await post("/modules", await signRecord(draft({ type: "core.module", subject_company_id: id, visibility: "public",
       issuer: { key_id: mk.keyId, company_id: id, module_id: moduleId }, body: { module_id: moduleId, name: "Interleave",
         publisher_company_id: id, keys: [{ key_id: mk.keyId, role: "root", status: "active", added_at: nowIso() }] } }), mk.secretKey), token);
