@@ -1,5 +1,9 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 17: product continuity matches a pack conversion by value ([#202](https://github.com/runquik/direct-trade-protocol/issues/202))
+
+The #99 decision (October 22) matched `base_units_per_pack` by value in `inventory@2` and `flow@1`, but `product@1` continuity still compared it by spelling, so a revision that kept a packaging revision and re-spelled `"12"` as `"12.000"` was refused `invalid_product`, and on import `invalid_snapshot`. `checkProductContinuity` and the interop reader now compare the conversion by value; `name` and `gtin` are still compared exactly. `spec/profiles/product/1.md` rule 2 says so. The fixtures gain a continuity accept for the re-spelling and a reject for `"12"` to `"12.001"`; the contract digest is unchanged. The SDK is `0.2.1-dev.2`. Builders: a host that compares the conversion by spelling now disagrees with the fixtures. Waits for the owner's decision on #202.
+
 ## November 9: a reservation's party must match its claim ([#145](https://github.com/runquik/direct-trade-protocol/issues/145))
 
 The owner chose option 1 on November 4, for `inventory@2` and `flow@1` alike. A `reserve` on an existing `reservation_id` tops up the claim only when it names the same party; any other party, or `null` against a party, is `invalid`. A `release` or `fulfill` must name the claim's party, checked after the claim is found at its position and before the quantity. The reference reducers and both interop readers change the same way. The fixtures' existing release and fulfill operations now name their claim's party, and new cases pin a same-party top-up and each refused mismatch; the contract digests are unchanged. Builders: a host that matched claims by `reservation_id` alone now disagrees with the fixtures. It changed a packed entry after the `0.2.1-dev.1` boundary the November 8 entry names; #182 corrects that boundary (#181).

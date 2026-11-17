@@ -57,6 +57,7 @@ const continuityAccept: Continuity[] = [
   ['a status change', base, change(b => { b.status = 'discontinued'; })],
   ['a new packaging revision beside the old one', base, change(b => { b.packaging.push({ packaging_id: 'case-12', version: '2', name: 'Case of 12 jars, new tray', base_units_per_pack: '12', gtin: null }); })],
   ['new names, identifiers and description', base, change(b => { b.names.push({ name: 'Sauce tomate 680 g', language: 'fr' }); b.identifiers.push({ scheme: 'retailer.plu', value: '4099' }); b.description = null; })],
+  ['a kept packaging revision with its conversion re-spelled ("12" as "12.000"): the same conversion (#99, #202)', base, change(b => { b.packaging[0].base_units_per_pack = '12.000'; b.status = 'discontinued'; })],
 ];
 const continuityReject: Continuity[] = [
   ['a changed base unit: the stock ledger keys on it', base, change(b => { b.base_unit = { system: 'ucum', code: 'kg' }; })],
@@ -64,6 +65,7 @@ const continuityReject: Continuity[] = [
   ['a changed replaced product', base, change(b => { b.replaces = '11111111-1111-4111-8111-111111111111'; })],
   ['a packaging version removed', base, change(b => { b.packaging = []; })],
   ['a packaging version altered in place', base, change(b => { b.packaging[0].base_units_per_pack = '6'; })],
+  ['a packaging conversion changed in value though spelled alike in places ("12" as "12.001")', base, change(b => { b.packaging[0].base_units_per_pack = '12.001'; })],
   ['a packaging GTIN altered in place', base, change(b => { b.packaging[0].gtin = null; })],
 ];
 for (const [why, body] of accept) {
