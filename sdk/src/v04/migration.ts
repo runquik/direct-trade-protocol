@@ -52,6 +52,15 @@ function body(kind: string, ctx: Context, expires: string, fields: Record<string
 export function migrationReserved(s: State, organizationId: string): boolean {
   return Object.values(s.incoming).some(x => !x.activated && !x.aborted && x.manifest.organization_id === organizationId);
 }
+// A stage whose manifest expired before it became ready can never upload, become ready or be finalized, so no
+// committed handoff can arrive for it. It is abandoned exactly as an abort abandons it: its chunks and its company-ID
+// reservation are released and its manifest stays as a tombstone, so an abandoned unready stage cannot hold the
+// host's shared capacity (#205). Ready stages are kept: a valid committed handoff may still arrive after expiry
+// (SPEC v0.4 section 8).
+export function releaseLapsedStages(s: State, now: number): void {
+  for (const stage of Object.values(s.incoming))
+    if (!stage.activated && !stage.aborted && !stage.ready_token && instant(stage.manifest.expires_at) <= now) { stage.aborted = true; stage.chunks = {}; }
+}
 export function migrationResourceReserved(s: State, kind: "persons" | "policies" | "profiles" | "releases" | "records", resourceId: string): boolean {
   return Object.values(s.incoming).some(stage => !stage.activated && !stage.aborted && stage.ready_token && stage.snapshot?.[kind].some(value => (kind === "profiles" || kind === "releases" ? (value as any).digest : (value as any).id) === resourceId));
 }
