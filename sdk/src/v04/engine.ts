@@ -42,6 +42,7 @@ const inventoryState = (s: State, org: string) => { const company = s.inventory[
 const flowState = (s: State, org: string) => { const company = inventoryState(s, org); company.books ??= {}; company.book_openings ??= {}; company.ledger_openings ??= {}; company.flow_facts ??= {}; return company; };
 export async function execute(s: State, input: unknown, ctx: Context): Promise<any> {
   validateCommand(input,ctx.audience,ctx.now); const c = input, p = c.payload, signed = await verifyCommand(c), hash = await digest(c);
+  migration.releaseLapsedStages(s,ctx.now);
   let org = c.organization_id ? s.organizations[c.organization_id] : undefined;
   if (c.action !== "person.register") {
     if (c.actor.kind === "person") demand(s.persons[c.actor.id]?.keys.includes(c.actor.key_id) && c.requested_by === c.actor.id,"forbidden","inactive personal authority");
