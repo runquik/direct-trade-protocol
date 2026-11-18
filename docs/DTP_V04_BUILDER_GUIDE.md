@@ -111,7 +111,7 @@ Use two disposable stores and synthetic records first. The exact [migration and 
 - Prepare, stage and upload bounded chunks; use destination status to resume.
 - Obtain signed readiness before committing. Concurrent source changes require a new snapshot, not force-overwriting the check.
 - Commit/freeze, then finalize using the durable receipt. Verify exact records, profiles, policies and inventory at the destination and reinstall modules with fresh authority.
-- Before commit, cancel at the source and abort the destination stage when abandoning a move. After commit, retry finalization; **do not reactivate the source**.
+- Before commit, cancel at the source and abort the destination stage when abandoning a move. Any current controller can obtain the cancellation, and any person registered at the destination can present it, so the abort does not need the person who started the move. After commit, retry finalization; **do not reactivate the source**.
 - Move one company while its buyer stays behind. Check authority relocation and explicit evidence access, not merely file-count equality.
 
 The current maximum snapshot is 32 MiB; default reference state capacity is 128 MiB. Readiness preserves 64 KiB completion headroom per pending ready migration and enough safe-integer sequence space. Finalization atomically replaces the staged snapshot and removes chunks, so it does not retain a second full copy. Do not lower host capacity or bypass reservations mid-move. Keep pins, persistent storage and backups available through cutover. The in-memory development host cannot rehearse recovery from actual durable-host loss; restarting it discards the staging state.
