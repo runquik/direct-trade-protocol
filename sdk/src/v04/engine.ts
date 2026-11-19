@@ -33,7 +33,7 @@ function keyFree(s: State, key: string) {
   demand(!Object.values(s.persons).some(p => [...p.keys,...p.retired_keys].includes(key)) && !Object.values(s.organizations).some(o => Object.values(o.installations).some(i => i.key_id === key)),"conflict","key already bound",409);
 }
 function accessibleProfile(p: Profile, org: string) { return p.visibility === "community" || p.publisher_id === org || p.readers.includes(org); }
-const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.ledger","flow.book"]);
+const reads = new Set(["organizations.list","workspace.view","records.list","records.export","record.get","profile.get","policy.get","evidence.inspect","migration.chunk","migration.receipt","migration.status","inventory.get","inventory.ledger","flow.book"]);
 const installationActions = new Set(["record.append","record.get","records.list","records.export","profile.get","inventory.get","inventory.ledger","flow.book","evidence.inspect"]);
 // Projection maps travel in snapshots, so they are keyed by digest, never by the ids (#38). Null when the
 // identity cannot be canonicalized; the profile reducer then refuses the body.

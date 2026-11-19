@@ -73,7 +73,7 @@ async function fixture() {
     c.actor.kind = 'installation'; c.requested_by = worker.id;
     return send(await signCommand(c, [actor.key, worker.key]));
   };
-  return { ctx, expires, owner, worker, outsider, org, call, command, send, policy, publish, grant, appendCommand, install, moduleCall };
+  return { ctx, expires, owner, worker, outsider, org, call, command, send, policy, publish, grant, appendCommand, install, moduleCall, state: () => state };
 }
 
 test('review: registered outsiders cannot enumerate private organization metadata through empty data pages', async () => {
@@ -138,6 +138,25 @@ test('review: a structural-only module cannot bypass profile scope through the d
   await f.call(f.owner, 'inventory.create', f.org, { policy_id: policy, pool_id, product_id: crypto.randomUUID(), base_unit: 'unit' });
   const module = await f.install([structural], policy);
   await assert.rejects(f.moduleCall(module, 'inventory.get', { policy_id: policy, pool_id }), isDenied);
+});
+
+test('review: read commands keep no copy of their result in the host receipt (SPEC v0.4 section 2)', async () => {
+  const f = await fixture(), policy = await f.policy(), profile = await f.publish('notes');
+  const append = await f.appendCommand(f.owner, policy, profile); await f.send(append);
+  const pool_id = crypto.randomUUID();
+  await f.call(f.owner, 'inventory.create', f.org, { policy_id: policy, pool_id, product_id: crypto.randomUUID(), base_unit: 'unit' });
+  const reads: [string, Record<string, any>][] = [
+    ['record.get', { id: append.payload.id, profile_digest: profile }],
+    ['inventory.get', { policy_id: policy, pool_id }],
+  ];
+  for (const [action, payload] of reads) {
+    const read = await f.command(f.owner, action, f.org, payload);
+    const result = await f.send(read);
+    assert.ok(result, `${action} returned a result`);
+    const receipt = f.state().receipts[read.request_id];
+    assert.ok(receipt, `${action} left a replay receipt`);
+    assert.equal(receipt.result, null, `${action} stored a copy of its sensitive result in the receipt`);
+  }
 });
 
 test('review: host federation trust alone does not authorize an artifact security assessment', async () => {
