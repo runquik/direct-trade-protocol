@@ -287,7 +287,9 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
         // One spelling per object: references to the writer's own objects leave minted_by null.
         const owner=Array.isArray(fact?.legs)&&Array.isArray(fact?.reservations)&&Array.isArray(fact?.settles)&&fact?.act&&Array.isArray(fact.act.references)&&Array.isArray(fact.act.evidence)?checkFlowOwner(fact,o.id):[];
         demand(owner.length===0,"invalid_flow",owner.length?`${owner[0].message} at ${owner[0].path}`:"invalid flow",422);
-        const productHead=(root:string)=>Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===root&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1")?.body as any;
+        // Only a product with a goods ledger open in this book is consulted: any other, however readable, hidden or absent,
+        // answers as an absent product, so the refusal says nothing about a product the writer cannot read (#209).
+        const productHead=(root:string)=>book.ledgers[goodsLedgerKey(root)]?Object.values(s.records).find(r=>r.organization_id===o.id&&r.root_id===root&&r.is_head&&s.profiles[r.profile_digest]?.semantics==="product-v1")?.body as any:undefined;
         demand(!flowUnpublishedPackaging(fact,productHead),"unknown_packaging","pack conversion is not a published packaging revision of the product",422);
         const obs=observationKey(p.resource_id,fact?.act?.observation?.source_id,fact?.act?.observation?.sequence),factHash=await digest(fact),old=obs===null?undefined:company.flow_facts[obs];
         if(old){demand(old.hash===factHash&&old.policy_id===p.policy_id&&old.profile_digest===p.profile_digest,"observation_conflict","observation already has a different meaning",409);result={id:old.record_id,seq:s.records[old.record_id].seq,duplicate:true};break;}

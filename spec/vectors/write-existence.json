@@ -1,6 +1,6 @@
 {
-  "description": "v0.4 candidate: what a refused write tells its caller about policies and records it cannot read. Each case is a scenario, not signed bytes. On one host, company C has a member, the caller, and three policies: \"writable\" grants the caller read and write on every resource, \"read-only\" grants it read only, \"hidden\" grants it nothing; \"absent\" is a policy id no company holds, and \"foreign\" is a policy of another company D on the same host. \"policy\" names the policy_id the caller's command carries; every other field is valid, with fresh resource, pool, book and product ids. For record.append the company has a private structural profile; a \"supersedes\" case writes into \"writable\" and names as predecessor: \"readable\", a head record of a different chain in \"writable\"; \"hidden\", a record in \"hidden\"; \"foreign\", a record of company D; \"absent\", an id no record has. A host must give the expected outcome: \"accept\", or a refusal with the given error code and HTTP status. Where a case names \"same_as\", its refusal must also be indistinguishable from that case's: the same status and the same error body. A host that answers otherwise is non-conforming. The rule is in spec/v0.4/SPEC.md section 4 (Refusals and existence).",
-  "rule": "A refused command tells its caller nothing about a policy or record the caller cannot read. A write naming a policy of the caller's company on which the caller cannot read the named resource is refused exactly as a write naming an absent policy is (404 not_found); a write the caller may read but not make is refused 403 forbidden. A predecessor named by supersedes that the caller cannot read, or that belongs to another company, is refused exactly as an absent predecessor is. The same holds for the recipient compartment of evidence.inspect.",
+  "description": "v0.4 candidate: what a refused write tells its caller about policies and records it cannot read. Each case is a scenario, not signed bytes. On one host, company C has a member, the caller, and three policies: \"writable\" grants the caller read and write on every resource, \"read-only\" grants it read only, \"hidden\" grants it nothing; \"absent\" is a policy id no company holds, and \"foreign\" is a policy of another company D on the same host. \"policy\" names the policy_id the caller's command carries; every other field is valid, with fresh resource, pool, book and product ids. For record.append the company has a private structural profile; a \"supersedes\" case writes into \"writable\" and names as predecessor: \"readable\", a head record of a different chain in \"writable\"; \"hidden\", a record in \"hidden\"; \"foreign\", a record of company D; \"absent\", an id no record has. A host must give the expected outcome: \"accept\", or a refusal with the given error code and HTTP status. Where a case names \"same_as\", its refusal must also be indistinguishable from that case's: the same status and the same error body. A host that answers otherwise is non-conforming. The rule is in spec/v0.4/SPEC.md section 4 (Refusals and existence). For a \"packaging\" case the company has admitted product@1, object@1 and flow@1; the caller has opened a flow@1 book in \"writable\" and, in it, a goods ledger for one product; and the command is a record.append into \"writable\" of a flow@1 move fact into that book, from ~supplier, of 1 pack of the named product (lot P1, packaging case-12 version 1), listing that product's goods ledger at its current revision and head. Every product's body is the product@1 accept fixture's, which publishes case-12 version 1 at 12 per pack. \"packaging.product\" names: \"ledgered\", the product with a ledger in the book; \"readable\", a product in \"writable\" with no ledger in the book; \"hidden\", a product in \"hidden\"; \"foreign\", a product of company D; \"absent\", a product root no record has. \"packaging.per_pack\" is the pack conversion the fact states: \"12\" is published, \"24\" is not.",
+  "rule": "A refused command tells its caller nothing about a policy or record the caller cannot read. A write naming a policy of the caller's company on which the caller cannot read the named resource is refused exactly as a write naming an absent policy is (404 not_found); a write the caller may read but not make is refused 403 forbidden. A predecessor named by supersedes that the caller cannot read, or that belongs to another company, is refused exactly as an absent predecessor is. The same holds for the recipient compartment of evidence.inspect. A flow@1 fact's pack conversion is checked only against a product that has a goods ledger open in the fact's book; a conversion naming any other product is refused exactly as one naming an absent product is (422 unknown_packaging).",
   "cases": [
     {
       "name": "record.append into a compartment the caller writes",
@@ -239,6 +239,98 @@
         "status": 409
       },
       "same_as": "record.append superseding an absent record"
+    },
+    {
+      "name": "record.append of a flow@1 fact in a published pack of a product ledgered in the book",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "ledgered",
+        "per_pack": "12"
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "record.append of a flow@1 fact in an unpublished pack of a product ledgered in the book",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "ledgered",
+        "per_pack": "24"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      }
+    },
+    {
+      "name": "record.append of a flow@1 fact in a pack of an absent product",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "absent",
+        "per_pack": "12"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      }
+    },
+    {
+      "name": "record.append of a flow@1 fact in a published pack of a readable product with no ledger in the book",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "readable",
+        "per_pack": "12"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      },
+      "same_as": "record.append of a flow@1 fact in a pack of an absent product"
+    },
+    {
+      "name": "record.append of a flow@1 fact in a published pack of a product in a compartment the caller cannot read",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "hidden",
+        "per_pack": "12"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      },
+      "same_as": "record.append of a flow@1 fact in a pack of an absent product"
+    },
+    {
+      "name": "record.append of a flow@1 fact in an unpublished pack of a product in a compartment the caller cannot read",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "hidden",
+        "per_pack": "24"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      },
+      "same_as": "record.append of a flow@1 fact in a pack of an absent product"
+    },
+    {
+      "name": "record.append of a flow@1 fact in a published pack of another company's product",
+      "action": "record.append",
+      "policy": "writable",
+      "packaging": {
+        "product": "foreign",
+        "per_pack": "12"
+      },
+      "expected": {
+        "code": "unknown_packaging",
+        "status": 422
+      },
+      "same_as": "record.append of a flow@1 fact in a pack of an absent product"
     }
   ]
 }

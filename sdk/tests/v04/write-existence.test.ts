@@ -11,14 +11,18 @@ import { emptyState } from '../../src/v04/model.ts';
 import type { Context } from '../../src/v04/model.ts';
 import { execute } from '../../src/v04/engine.ts';
 import { digest, draftCommand, organizationId, personId, signCommand } from '../../src/v04/wire.ts';
+import { goodsLedgerKey } from '../../src/profiles/flow.ts';
+import { loadProtocolProfiles } from '../../scripts/dtp-v04-dev-server.ts';
 
 type Actor = { id: string; key: KeyPair };
 type Refusal = { code: string; status: number; message: string };
-type Case = { name: string; action: string; policy: string; supersedes?: string; expected: 'accept' | { code: string; status: number }; same_as?: string };
-const vectors = parseUntrustedJson(readFileSync(new URL('../../../spec/vectors/write-existence.json', import.meta.url), 'utf8')) as { cases: Case[] };
+type Case = { name: string; action: string; policy: string; supersedes?: string; packaging?: { product: string; per_pack: string }; expected: 'accept' | { code: string; status: number }; same_as?: string };
+const load = (path: string) => parseUntrustedJson(readFileSync(new URL(path, import.meta.url), 'utf8')) as any;
+const vectors = load('../../../spec/vectors/write-existence.json') as { cases: Case[] };
+const productFixtures = load('../../../spec/profiles/product/1/fixtures.json'), objectFixtures = load('../../../spec/profiles/object/1/fixtures.json'), flowFixtures = load('../../../spec/profiles/flow/1/fixtures.json');
 
 async function harness(audience: string) {
-  const ctx: Context = { audience, storeKey: await generateKeyPair(), pins: {}, now: Date.now() };
+  const ctx: Context = { audience, storeKey: await generateKeyPair(), pins: {}, now: Date.now(), ...await loadProtocolProfiles() };
   let state = emptyState();
   const send = async (input: any): Promise<any> => { const cand = structuredClone(state); const r = await execute(cand, input, ctx); state = cand; return r; };
   const call = async (actor: Actor, action: string, org: string | null, payload: any) => send(await signCommand(draftCommand(audience, actor, action, org, payload, ctx.now), [actor.key]));
@@ -72,6 +76,29 @@ async function world(audience = 'https://write-existence.test') {
     foreign: await genesis(D.owner, D.org, policies.foreign, profD),
     absent: crypto.randomUUID(),
   };
+  // Packaging cases: product@1, object@1 and flow@1 admitted; the caller's book in "writable", with a goods ledger for "ledgered".
+  for (const [co, profiles] of [[C, [productFixtures, objectFixtures, flowFixtures]], [D, [productFixtures]]] as const)
+    for (const f of profiles) await h.call(co.owner, 'profile.admit', co.org, { digest: f.contract_digest });
+  const productIn = async (actor: Actor, org: string, pol: string) => { const id = crypto.randomUUID(); await h.call(actor, 'record.append', org, { ...h.record(org, pol, productFixtures.contract_digest), id, root_id: id, body: productFixtures.accept[0].body }); return id; };
+  const products: Record<string, string> = {
+    ledgered: await productIn(C.owner, C.org, policies.writable),
+    readable: await productIn(C.owner, C.org, policies.writable),
+    hidden: await productIn(C.owner, C.org, policies.hidden),
+    foreign: await productIn(D.owner, D.org, policies.foreign),
+    absent: crypto.randomUUID(),
+  };
+  const book = crypto.randomUUID();
+  await h.call(caller, 'flow.open', C.org, { policy_id: policies.writable, book_id: book });
+  await h.call(caller, 'flow.ledger.open', C.org, { policy_id: policies.writable, book_id: book, asset: { product: products.ledgered, currency: null }, account: null, balance: 'nonnegative' });
+  let sequence = 0, revision = 0, head: string | null = null;
+  const packFact = (v: Case) => {
+    const product = products[v.packaging!.product], fact = structuredClone(flowFixtures.flows[0].facts[0].fact);
+    fact.act.observation = { source_id: 'write-existence', sequence: ++sequence };
+    fact.ledgers = [{ key: goodsLedgerKey(product), expected_revision: product === products.ledgered ? revision : 0, expected_digest: product === products.ledgered ? head : null }];
+    fact.legs[0].asset.product = product;
+    fact.legs[0].quantity = { amount: '1', unit: { system: 'packaging', code: null, packaging_id: 'case-12', version: '1', base_units_per_pack: v.packaging!.per_pack } };
+    return { ...h.record(C.org, policies.writable, flowFixtures.contract_digest), resource_id: book, body: fact };
+  };
   const payload = (v: Case) => {
     const policy_id = policies[v.policy];
     switch (v.action) {
@@ -83,7 +110,13 @@ async function world(audience = 'https://write-existence.test') {
       default: throw new Error(`unknown action ${v.action}`);
     }
   };
-  return { h, C, D, caller, policies, prof, run: (v: Case) => h.attempt(caller, v.action, C.org, payload(v)) };
+  const run = async (v: Case) => {
+    if (!v.packaging) return h.attempt(caller, v.action, C.org, payload(v));
+    const command = packFact(v), got = await h.attempt(caller, v.action, C.org, command);
+    if (got === 'accept') { revision += 1; head = await digest(command.body); }
+    return got;
+  };
+  return { h, C, D, caller, policies, prof, run };
 }
 
 test('write-existence vectors are well formed: every same_as names an earlier refusal with the same expected outcome', () => {
