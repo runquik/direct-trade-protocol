@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { packedInputs, packedSourceDigest, packedSourceFiles, type PackedInputs } from '../../scripts/packed-source-digest.ts';
+import { packedInputs, packedInputsText, packedScriptNames, packedSourceDigest, packedSourceFiles, type PackedInputs } from '../../scripts/packed-source-digest.ts';
 
 const sdk = resolve(dirname(fileURLToPath(import.meta.url)), '../../');
 const manifest = JSON.parse(readFileSync(resolve(sdk, 'package.json'), 'utf8'));
@@ -61,6 +61,15 @@ test('the digest covers the packed package.json, the runtime dependencies and th
     '`engines` changes': i => { i.manifest.engines = { node: '>=20' }; },
     'the build script changes': i => { (i.manifest.scripts as Record<string, string>)['build:package'] = 'tsc -p other.json'; },
     'an install script is added': i => { (i.manifest.scripts as Record<string, string>).postinstall = 'node setup.js'; },
+    // npm runs a script's `pre` and `post` hooks around it: `prepack` runs `npm run build:package`.
+    'a `postbuild:package` hook is added': i => { (i.manifest.scripts as Record<string, string>)['postbuild:package'] = 'node -e "1"'; },
+    'a `prebuild:package` hook is added': i => { (i.manifest.scripts as Record<string, string>)['prebuild:package'] = 'node -e "1"'; },
+    'a `postpack` hook is added': i => { (i.manifest.scripts as Record<string, string>).postpack = 'node -e "1"'; },
+    'a file a build script runs changes': i => { i.scriptFiles['tsconfig.build.json'] += ' '; },
+    'a package the runtime dependency needs moves': i => {
+      Object.assign(i.lock.packages[`node_modules/${dependency}`], { dependencies: { 'nested-dep': '^1.0.0' } });
+      i.lock.packages[`node_modules/${dependency}/node_modules/nested-dep`] = { version: '1.0.0', integrity: 'sha512-nested' };
+    },
     'the compiler target changes': i => { i.compilerOptions.target = ts.ScriptTarget.ES2021; },
     'a compiler option is added': i => { i.compilerOptions.useDefineForClassFields = false; },
     'the compiler version changes': i => { i.compilerVersion = '0.0.0'; },
@@ -72,8 +81,30 @@ test('the digest covers the packed package.json, the runtime dependencies and th
     'a test script changes': i => { (i.manifest.scripts as Record<string, string>).test = 'node --test other'; },
     'manifest keys are reordered': i => { i.manifest = Object.fromEntries(Object.entries(i.manifest).reverse()); },
     'the build\'s own config path, which names no option': i => { i.compilerOptions.configFilePath = '/elsewhere/tsconfig.build.json'; },
+    'a script no lifecycle script reaches is added': i => { (i.manifest.scripts as Record<string, string>)['postbuild:other'] = 'node -e "1"'; },
   };
   for (const [name, edit] of Object.entries(same)) assert.equal(changed(edit), base, `${name}: the digest must not change`);
+});
+
+test('a script the build reaches through `npm run` is covered, and array-valued path options are machine-independent (#212)', () => {
+  const withStamp = (stamp: string) => changed(i => {
+    Object.assign(i.manifest.scripts as Record<string, string>, { 'build:package': 'tsc -p tsconfig.build.json && npm run --silent stamp', stamp });
+  });
+  assert.notEqual(withStamp('node -e "2"'), withStamp('node -e "1"'), 'a change to a script only `npm run` reaches must change the digest');
+  const inputs = structuredClone(packedInputs());
+  inputs.compilerOptions.typeRoots = [resolve(sdk, 'types')];
+  const text = packedInputsText(inputs);
+  assert.match(text, /"typeRoots":\["types"\]/);
+  assert.ok(!text.includes(sdk), 'no absolute path of this machine reaches the digest');
+});
+
+test('every script that runs while packing or installing is kept, and only those (#212)', () => {
+  assert.deepEqual(packedScriptNames({
+    prepack: 'npm run build:package', 'build:package': 'tsc -p tsconfig.build.json && run-s stamp:*',
+    'prebuild:package': 'node clean.mjs', 'postbuild:package': 'npm run-script finish', finish: 'node finish.mjs',
+    'stamp:a': 'node a.mjs', 'stamp:b': 'node b.mjs', postinstall: 'node setup.mjs',
+    test: 'node --test', 'pretest': 'node pre.mjs', lint: 'eslint .',
+  }), ['build:package', 'finish', 'postbuild:package', 'postinstall', 'prebuild:package', 'prepack', 'stamp:a', 'stamp:b']);
 });
 
 test('the current version\'s changelog entry records the digest of the packed-entry source', () => {
