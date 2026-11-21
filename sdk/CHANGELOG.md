@@ -6,7 +6,7 @@ Development versions are `0.2.1-dev.N`. `N` starts at 1 and goes up by one with 
 
 Each entry names the kind of each change, as the builder baseline's table does: **additive** (something new; existing callers behave as before), **state shape** (state or snapshots built by an earlier artifact are not interchangeable), **conformance** (an earlier artifact disagrees with the specification or its vectors) or **security**. A change to source that no packed entry exports, such as the reference host behind `@dtp/sdk/preview/host`, needs no bump.
 
-Each development entry records the digest of the source its packed entries are built from, on a line `Packed source: \`<sha256>\``; `node scripts/packed-source-digest.ts` prints it, and [`packed-source.test.ts`](tests/release/packed-source.test.ts) fails when the source no longer matches the current entry. A pull request that changes that source therefore touches this file: it bumps the version and adds an entry, or, when no packed entry behaves differently (a comment, a refactor), it records the new digest in the current entry with a line naming the pull request and saying so. Because the test runs on `main` after every merge, a version-bump pull request reviewed before another packed-entry change merged cannot land with a stale entry unnoticed (#181).
+Each development entry records the digest of what its packed entries are built from, on a line `Packed source: \`<sha256>\``; `node scripts/packed-source-digest.ts` prints it. The digest covers the source files the packed entries reach, and the other inputs that decide how the artifact behaves (#212): the packed `package.json` (all of it except `version`, `devDependencies` and the scripts that cannot run while the artifact is packed or installed: every npm lifecycle script of packing and installing is kept, with the `pre` and `post` hooks of each kept script and every script a kept script names), the bytes of each file a kept script names, the installed version and integrity of each runtime dependency and of every package it needs in the lock file, and the compiler options `tsconfig.build.json` resolves to with the installed compiler's version, and [`packed-source.test.ts`](tests/release/packed-source.test.ts) fails when the source no longer matches the current entry. A pull request that changes any of these inputs therefore touches this file: it bumps the version and adds an entry, or, when no packed entry behaves differently (a comment, a refactor), it records the new digest in the current entry with a line naming the pull request and saying so. Because the test runs on `main` after every merge, a version-bump pull request reviewed before another packed-entry change merged cannot land with a stale entry unnoticed (#181).
 
 ## 0.2.1-dev.1
 
@@ -14,7 +14,9 @@ The first labelled version, set at `3dd0f39` (#167). Its packed entries behave e
 
 An earlier text of this entry put the boundary at `45045a7` and said nothing that landed later changed a packed entry. That was wrong: #159 and #163 merged after #167 was reviewed and before it merged (#181).
 
-Packed source: `f46d0c29f34062bb7fcd6d3dd7474d70bbd5295f5c25d76e560f57bc9c47273a`
+The digest below was recomputed when it began to cover the packed `package.json`, the runtime dependency and the compiler settings as well as the source (#212). Nothing packed changed: the source digest of this version was `f46d0c29f34062bb7fcd6d3dd7474d70bbd5295f5c25d76e560f57bc9c47273a`.
+
+Packed source: `209b84e0045ab4622bf0c34aa918d8ec7ee62594d9725aa4ff5657c6567d2c0d`
 
 ## 0.2.0
 
