@@ -106,7 +106,7 @@ Each item is its own pull request with vectors, labelled `needs-owner`. Sequenci
 1. **JSON** — I-JSON and duplicate names (#91).
 2. **Envelope** — one `Signed<T>` sign and verify, the Core-1 domain list, and envelope vectors (`spec/core-1/vectors/envelope.json`).
 3. **Identity** — the attestation and log rules above (hosts MUST attest, relying parties MUST keep the last log, format 1 withdrawn), with vectors.
-4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles. It also carries the host receipt (`DTP-LOG-HEAD-1`) and the `stale_head` rule (S1, S2 and S20 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), decided October 29, 2026).
+4. **Records and bundles** — `DTP-RECORD-1`, the exchange bundle and its offline verification, settling backdating; vectors for accepted and refused bundles. It also carries the host receipt (`DTP-LOG-HEAD-1`) and the `stale_head` rule (S1, S2 and S20 of the [data-layer security proposal](../../docs/foundation/data-layer-security-proposal.md), decided October 29, 2026). Proposed for the same step, not decided: private profile reader grants, so a reader of a private profile never receives the other readers ([proposal](../../docs/foundation/profile-reader-grants-proposal.md), #110).
 5. **v0.4 on Core-1** — v0.4 hosts admit identities from logs and carry commands and tokens in the Core-1 envelope; the retired formats are removed.
 6. **Extensions and experimental** — move the optional layers out of the stable path and archive the legacy code; one README entry point.
 7. **Independent implementation** of Core-1 in a second language.
