@@ -5,7 +5,7 @@ import type { KeyPair } from '../keys.ts';
 import { canonicalBytes, canonicalize, sha256Hex } from '../canonical.ts';
 import { createIdentity, copyIdentityData, issueResolution, rehomeIdentity, transitionIdentity, verifyResolverEnrollment } from './identity.ts';
 import type { Genesis, IdentityState, Rehome, ResolutionRequest, ResolverEnrollment, Signed, Transition } from './identity.ts';
-import { attestHead, buildIdentityLog, recoverGenesisInstant, refuseRehome, rehomeDigest, verifyIdentityLog } from './identity-log.ts';
+import { attestHead, buildIdentityLog, recoverGenesisInstant, refuseRehome, rehomeDigest, verifyIdentityHistory } from './identity-log.ts';
 import type { IdentityLog, IdentityLogEntry, RehomeRefusal } from './identity-log.ts';
 
 export interface ResolverConfig { id:string; audience:string; key:KeyPair; now:()=>number }
@@ -146,7 +146,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
      *  expected_digest pins the last head anyway. Returning to a former host extends the stored prefix. */
     async adopt(log:IdentityLog,rehome:Signed<Rehome>){
       log=copyIdentityData(log);rehome=copyIdentityData(rehome);
-      const now=config.now(),verified=await verifyIdentityLog(log,{require_attestation:false}),identity=verified.identity_id;
+      const now=config.now(),verified=await verifyIdentityHistory(log),identity=verified.identity_id;
       const next=await rehomeIdentity(verified.state,rehome,now);
       need(next.resolver_id===resolver.id&&next.resolver_key===resolver.key_id&&rehome.body.to.audience===audience,'rehome names another resolver');
       const refused=await rehomeDigest(rehome);
@@ -196,7 +196,7 @@ export function createIdentityRegistry(db:Db,config:ResolverConfig){
      *  that needs no trust in this host. Optional courtesy; the move is valid without it. */
     async transfer(log:IdentityLog){
       log=copyIdentityData(log);
-      const verified=await verifyIdentityLog(log,{require_attestation:false}),identity=verified.identity_id;
+      const verified=await verifyIdentityHistory(log),identity=verified.identity_id;
       return db.transaction(async tx=>{
         const row=await anyRow(tx,identity),held=row.body;
         // The rehome that leaves the binding this host holds, or held until it transferred, wherever it sits in the verified log.
