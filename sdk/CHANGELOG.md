@@ -12,7 +12,9 @@ Each development entry records the digest of what its packed entries are built f
 
 `dtp/product@1` continuity (`checkProductContinuity`, `@dtp/sdk/preview`) compares a kept packaging revision's `base_units_per_pack` by decimal value, not spelling, as `inventory@2` and `flow@1` already match it since #99: a revision that keeps packaging `case-12` version `1` and spells its conversion `"12.000"` where the previous revision spelled `"12"` is now accepted, where an earlier artifact refused it `invalid_product` live and `invalid_snapshot` on import (#202, **conformance**). A changed value (`"12"` to `"12.001"` or `"6"`) is still refused. The `product@1` fixtures gain one continuity accept and one reject; the contract digest is unchanged.
 
-Packed source: `7ca3329b0a1d4d30657c9b2052ec71b7784dabadbedf395c8e0821aff7d2fc38`
+The digest below was recomputed after #213 widened what it covers (#212); this entry's packed change is the same. Under the earlier, source-only digest it was `7ca3329b0a1d4d30657c9b2052ec71b7784dabadbedf395c8e0821aff7d2fc38`.
+
+Packed source: `acb6af2b6415ee460711df4c00cd42fe62d273fc4011391c5fafeb8bd9fb5c4a`
 
 ## 0.2.1-dev.1
 
