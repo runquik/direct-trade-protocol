@@ -1,5 +1,15 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 23: `party@1` states its text, scheme and language rules ([#216](https://github.com/runquik/direct-trade-protocol/issues/216))
+
+`validateParty` enforced four rules that `spec/profiles/party/1.md` did not state, and no fixture pinned them:
+- a text field is non-empty;
+- it has no C0 control character or U+007F anywhere;
+- it has no white space at either edge;
+- `scheme` and `language` follow grammars.
+
+So a validator written from the document admitted bodies the reference refused. The document now states all four, with the white-space set listed code point by code point (the set ECMAScript's `trim` strips, fixed rather than tied to a Unicode version). It also notes that U+0085 is not in that set. The fixtures gain 4 accepts and 10 rejects; the contract digest is unchanged. `tests/interop/party-reader.ts` now checks the text rule and both grammars as written in the document, instead of copying the reference's `trim()` and regular expressions. The reference refuses and admits exactly what it did before, so the SDK version is unchanged. Builders: a host that admitted any of the new reject bodies now disagrees with the fixtures. Waiting on the owner's decision on #216.
+
 ## November 23: a length bound counts code points ([#215](https://github.com/runquik/direct-trade-protocol/issues/215))
 
 SPEC v0.4 §5 never said what a `maxLength` counts. The reference counted UTF-16 code units for profile bodies and in every profile validator, but code points for commands (through its JSON Schema library), so a string with characters outside the Basic Multilingual Plane was bounded twice as tightly in a record body as in a command, and a host using a stock JSON Schema validator admitted bodies the reference refused. §5 now says a bound counts Unicode code points everywhere; `validateShape`, `checkSchema`, the engine's command text checks, all eight profile validators and the interop readers count that way, and `spec/vectors/string-length.json` plus two `party@1` fixtures pin it. It only widens admission. The SDK is `0.2.1-dev.3`. Waiting on the owner's decision on #215.

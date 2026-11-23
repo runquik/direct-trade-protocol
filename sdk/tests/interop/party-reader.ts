@@ -6,7 +6,16 @@ export type Issue = { path: string; message: string };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+// party/1.md "Text, schemes and languages": the white-space set is listed there code point by code point; it is not trim().
+const EDGE_SPACE = new Set([0x20, 0xa0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff]);
+const bounded = (v: unknown, max: number) => {
+  if (typeof v !== 'string') return false;
+  const cps = Array.from(v, c => c.codePointAt(0)!);
+  return cps.length >= 1 && cps.length <= max && cps.every(c => c > 0x1f && c !== 0x7f) && !EDGE_SPACE.has(cps[0]) && !EDGE_SPACE.has(cps[cps.length - 1]);
+};
+// Written from the grammars in the document, not copied from the reference.
+const languageTag = (v: string) => { const [primary, ...rest] = v.split('-'); return /^[a-z]{2,3}$/.test(primary) && rest.every(t => /^[A-Za-z0-9]{2,8}$/.test(t)); };
+const dottedScheme = (v: string) => { const parts = v.split('.'); return /^[a-z]/.test(v) && parts.every(t => /^[a-z0-9]+$/.test(t)); };
 const ROLES = ['customer', 'supplier', 'carrier', 'financer', 'service_provider', 'manufacturer', 'broker', 'other'];
 
 export function readParty(body: unknown): Issue[] {
@@ -18,14 +27,14 @@ export function readParty(body: unknown): Issue[] {
   else b.names.forEach((n: any, i: number) => {
     if (!plain(n) || !keysAre(n, ['name', 'language'])) return bad(`$.names[${i}]`, 'name');
     if (!bounded(n.name, 200)) bad(`$.names[${i}].name`, 'name');
-    if (n.language !== null && !(typeof n.language === 'string' && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(n.language))) bad(`$.names[${i}].language`, 'language');
+    if (n.language !== null && !(typeof n.language === 'string' && languageTag(n.language))) bad(`$.names[${i}].language`, 'language');
   });
   if (!Array.isArray(b.identifiers) || b.identifiers.length > 32) bad('$.identifiers', 'identifiers');
   else {
     const seen = new Set<string>();
     b.identifiers.forEach((id: any, i: number) => {
       if (!plain(id) || !keysAre(id, ['scheme', 'value'])) return bad(`$.identifiers[${i}]`, 'identifier');
-      if (!(typeof id.scheme === 'string' && id.scheme.length <= 64 && /^[a-z][a-z0-9]*(\.[a-z0-9]+)*$/.test(id.scheme))) bad(`$.identifiers[${i}].scheme`, 'scheme');
+      if (!(typeof id.scheme === 'string' && id.scheme.length <= 64 && dottedScheme(id.scheme))) bad(`$.identifiers[${i}].scheme`, 'scheme');
       if (!bounded(id.value, 128)) bad(`$.identifiers[${i}].value`, 'value');
       const k = readerCanonical([id.scheme, id.value]); if (seen.has(k)) bad(`$.identifiers[${i}]`, 'duplicate'); seen.add(k);
       if (id.scheme === 'gs1.gln' && !(typeof id.value === 'string' && id.value.length === 13 && gtinValid(id.value))) bad(`$.identifiers[${i}].value`, 'gln');
