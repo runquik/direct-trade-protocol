@@ -1,3 +1,4 @@
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { sha256HexSync } from '../sha256.ts';
 import { formatDecimal, parseDecimal } from './decimal.ts';
@@ -28,7 +29,7 @@ export type InventoryResult =
   | { ok: false; code: InventoryIssue; message: string; state: InventoryState };
 
 const UNITS = new Set(['lb', 'kg', 'oz', 'ton', 'case', 'pallet', 'unit']);
-const identity = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 200;
+const identity = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && codePoints(value) <= 200;
 // Synchronous and platform-free: this reducer must run inside a storage transaction on any runtime.
 const hash = (value: unknown) => sha256HexSync(canonicalize(value));
 /** Map key for an identity tuple: the digest of its canonical form. The ids are arbitrary text, and a

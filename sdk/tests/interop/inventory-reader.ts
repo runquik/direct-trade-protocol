@@ -4,7 +4,7 @@ import { createHash, createPublicKey, verify } from 'node:crypto';
 
 const SCHEMA = '6c793c7ad4ee80938f1924af9e767121111db6633a0f313faf16b174b2dd501f';
 const UNITS = ['lb', 'kg', 'oz', 'ton', 'case', 'pallet', 'unit'];
-const identifier = (value: unknown) => typeof value === 'string' && value.length >= 1 && value.length <= 200;
+const identifier = (value: unknown) => typeof value === 'string' && value.length >= 1 && [...value].length <= 200;
 export type SignedEvent = { envelope: { version: '0.4'; organization_id: string; resource_id: string; profile_digest: string; body: Record<string, any> }; public_key_der: string; signature: string };
 export type InventoryStream = {
   profile: string; semantics: string; schema_digest: string; schema: unknown;
@@ -35,7 +35,7 @@ function display(value: bigint): string {
   return (value / 1000n).toString() + ((value % 1000n) ? '.' + (value % 1000n).toString().padStart(3, '0').replace(/0+$/, '') : '');
 }
 function matches(schema: any, value: any): boolean {
-  if (schema.type === 'string') return typeof value === 'string' && value.length <= schema.maxLength && (!schema.enum || schema.enum.includes(value));
+  if (schema.type === 'string') return typeof value === 'string' && [...value].length <= schema.maxLength && (!schema.enum || schema.enum.includes(value));
   if (schema.type === 'integer') return Number.isSafeInteger(value) && value >= schema.minimum && value <= schema.maximum;
   if (schema.type === 'object') return value && typeof value === 'object' && !Array.isArray(value) && schema.required.every((k: string) => Object.hasOwn(value, k)) && Object.keys(value).every(k => Object.hasOwn(schema.properties, k) && matches(schema.properties[k], value[k]));
   return false;

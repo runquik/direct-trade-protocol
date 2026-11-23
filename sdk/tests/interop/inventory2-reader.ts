@@ -13,8 +13,8 @@ const WINDOW = 64, STATUSES = ['available', 'quarantine', 'damaged', 'expired', 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const ident = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f"\\]/.test(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+const ident = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f"\\]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
 class Stop extends Error { code: string; constructor(code: string, message: string) { super(message); this.code = code; } }
 const stop = (code: string, message = code): never => { throw new Stop(code, message); };
 const th = (v: unknown): bigint => { if (typeof v !== 'string' || !/^\d{1,18}(\.\d{1,3})?$/.test(v)) stop('invalid', 'decimal'); const [w, f = ''] = (v as string).split('.'); return BigInt(w) * 1000n + BigInt(f.padEnd(3, '0')); };

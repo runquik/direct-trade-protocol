@@ -1,6 +1,7 @@
 /** dtp/product@1: a product as one company defines it. Portable, dependency-free, synchronous, so the same rules
  * run inside a host transaction on any runtime. The reducer of dtp/inventory@2 keys its ledgers by this entity.
  * Profile document and fixtures: spec/profiles/product/1.md, spec/profiles/product/1/. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { parseDecimal } from './decimal.ts';
 
@@ -45,7 +46,7 @@ const LANGUAGE = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
 /** UCUM code syntax only: printable ASCII without space, so `kg`, `[lb_av]`, `{case}` and `mL` pass and nothing is converted. */
 const UCUM = /^[!-~]{1,32}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 /** GS1 check digit: weights 3,1,3,... from the right over the payload digits. GTIN-8, -12, -13 and -14 are accepted. */
 export function isGtin(value: unknown): boolean {

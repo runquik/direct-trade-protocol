@@ -1,6 +1,7 @@
 /** Verb-layer datatypes shared by every verb kind: object references, the act header and protocol object classes.
  * Decisions V3, V5 and V18 of docs/foundation/verb-layer-proposal.md. Portable, dependency-free, synchronous.
  * Document and vectors: spec/profiles/verbs.md, spec/vectors/verb-datatypes.json, spec/profiles/classes.json. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { isInstant } from './order.ts';
 
@@ -40,7 +41,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const CLASS = /^(dtp|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/[a-z][a-z0-9._-]{0,79}$/;
 const MEDIA_TYPE = /^[a-z0-9][a-z0-9!#$&^_.+-]{0,62}\/[a-z0-9][a-z0-9!#$&^_.+-]{0,62}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 
 /** A class name is `<namespace>/<name>`; a protocol class (namespace `dtp`) must be one this version lists. */

@@ -1,6 +1,7 @@
 /** dtp/forecast@1: a projection of demand or supply. It commits nobody to anything: a forecast or a plan is never an
  * order, and this kind exists so that projections have a home other than dtp/order@1. Portable, dependency-free.
  * Profile document and fixtures: spec/profiles/forecast/1.md, spec/profiles/forecast/1/. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { parseDecimal } from './decimal.ts';
 import { isInstant, isLocalDate } from './order.ts';
@@ -31,7 +32,7 @@ export const FORECAST_SCHEMA = {
 } as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, UCUM = /^[!-~]{1,32}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 const uuidOrNull = (v: unknown) => v === null || (typeof v === 'string' && UUID.test(v));
 export function validateForecast(body: unknown): ForecastIssue[] {

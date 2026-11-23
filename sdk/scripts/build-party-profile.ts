@@ -25,10 +25,12 @@ const accept: Case[] = [
   ['a unit of a parent party: a site', change(b => { b.kind = 'unit'; b.parent = PARENT; b.identifiers = []; b.protocol_identity = null; b.locations[0].gln = null; })],
   ['an inactive party with no protocol identity', change(b => { b.status = 'inactive'; b.protocol_identity = null; })],
   ['a country of two upper-case letters that ISO 3166-1 has not assigned: the shape is checked, the code list is not (#94)', change(b => { b.locations[0].address.country = 'ZZ'; })],
+  ['a name of 200 supplementary-plane characters (400 UTF-16 code units): a length bound counts code points (#215)', change(b => { b.names[0].name = '\u{1F600}'.repeat(200); })],
 ];
 const reject: Case[] = [
   ['an unknown kind', change(b => { (b as any).kind = 'company'; })],
   ['no names', change(b => { b.names = []; })],
+  ['a name of 201 supplementary-plane characters: one code point over the 200 bound (#215)', change(b => { b.names[0].name = '\u{1F600}'.repeat(201); })],
   ['a GLN with a wrong check digit', change(b => { b.identifiers[0].value = '0614141000006'; })],
   ['a DUNS that is not nine digits', change(b => { b.identifiers[1].value = '12345678'; })],
   ['a duplicate identifier', change(b => { b.identifiers.push({ scheme: 'duns', value: '123456789' }); })],

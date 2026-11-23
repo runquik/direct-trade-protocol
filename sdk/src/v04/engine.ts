@@ -18,12 +18,13 @@ import { ORDER_PROFILE, checkOrderContinuity, checkOrderGenesis, validateOrder }
 import { FORECAST_PROFILE, checkForecastContinuity, validateForecast } from "../profiles/forecast.ts";
 import { OBJECT_PROFILE, checkObjectContinuity, checkObjectGenesis, checkObjectOwner, validateObject } from "../profiles/object.ts";
 import { FLOW_PROFILE, applyFlowFact, checkFlowOwner, flowUnpublishedPackaging, goodsLedgerKey, moneyLedgerKey, openFlowBook, openGoodsLedger, openMoneyLedger } from "../profiles/flow.ts";
+import { codePoints } from "../profiles/length.ts";
 
 function ids(values: any, min = 1, max = 8): asserts values is string[] {
   demand(Array.isArray(values) && values.length >= min && values.length <= max && new Set(values).size === values.length && values.every(uuid), "invalid", "invalid distinct IDs",400);
 }
 function id(value: unknown) { demand(uuid(value),"invalid","expected UUID",400); }
-function text(value: unknown, max = 120): asserts value is string { demand(typeof value === "string" && value.length > 0 && value.length <= max,"invalid","invalid text",400); }
+function text(value: unknown, max = 120): asserts value is string { demand(typeof value === "string" && value.length > 0 && codePoints(value) <= max,"invalid","invalid text",400); }
 function isDigest(value: unknown): value is string { return typeof value === "string" && /^[0-9a-f]{64}$/.test(value); }
 function future(value: unknown, ctx: Context) { const n = instant(value); demand(n > ctx.now && n <= ctx.now + 366*86400000,"invalid","expiry must be within one year",400); }
 function keyFree(s: State, key: string) {

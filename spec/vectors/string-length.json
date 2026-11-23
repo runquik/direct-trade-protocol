@@ -1,0 +1,174 @@
+{
+  "description": "v0.4 candidate: what a string length bound counts. Each case is a scenario, not signed bytes. A \"command\" case: on a fresh host, a registered person sends the action with the given value in the given field and every other field valid; for record.append, the company has a policy granting that person write and a private structural profile whose schema is the given \"schema\". A host must give the expected outcome: \"accept\" (the command succeeds), or a refusal with the given error code and HTTP status. Each value is described by its count of Unicode code points, UTF-16 code units and UTF-8 bytes; a host that counts code units or bytes instead of code points fails at least one case. The rule is in spec/v0.4/SPEC.md section 5 (String length). The registered profiles pin the same rule in their own fixtures (spec/profiles/party/1/fixtures.json).",
+  "rule": "A dtp.schema/1 string maxLength, a command schema maxLength and every length bound a registered profile states count Unicode code points, as JSON Schema 2020-12 does. A character outside the Basic Multilingual Plane (U+10000 and above) is one code point, written as two UTF-16 code units and four UTF-8 bytes.",
+  "cases": [
+    {
+      "name": "company name of 120 supplementary-plane characters, at the 120 bound",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "length": {
+        "code_points": 120,
+        "utf16_units": 240,
+        "utf8_bytes": 480
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "company name of 121 supplementary-plane characters, one over the bound",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "length": {
+        "code_points": 121,
+        "utf16_units": 242,
+        "utf8_bytes": 484
+      },
+      "expected": {
+        "code": "invalid",
+        "status": 400
+      }
+    },
+    {
+      "name": "company name of 120 two-byte characters, at the bound",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+      "length": {
+        "code_points": 120,
+        "utf16_units": 120,
+        "utf8_bytes": 240
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "company name of 121 two-byte characters, one over the bound",
+      "where": "command",
+      "action": "organization.create",
+      "field": "name",
+      "value": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+      "length": {
+        "code_points": 121,
+        "utf16_units": 121,
+        "utf8_bytes": 242
+      },
+      "expected": {
+        "code": "invalid",
+        "status": 400
+      }
+    },
+    {
+      "name": "record body string of 4 supplementary-plane characters under maxLength 4",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "note"
+        ],
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 4
+          }
+        }
+      },
+      "value": "😀😀😀😀",
+      "length": {
+        "code_points": 4,
+        "utf16_units": 8,
+        "utf8_bytes": 16
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "record body string of 5 supplementary-plane characters under maxLength 4",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "note"
+        ],
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 4
+          }
+        }
+      },
+      "value": "😀😀😀😀😀",
+      "length": {
+        "code_points": 5,
+        "utf16_units": 10,
+        "utf8_bytes": 20
+      },
+      "expected": {
+        "code": "invalid_body",
+        "status": 422
+      }
+    },
+    {
+      "name": "record body string of 2 supplementary-plane and 2 ASCII characters under maxLength 4",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "note"
+        ],
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 4
+          }
+        }
+      },
+      "value": "😀a😀b",
+      "length": {
+        "code_points": 4,
+        "utf16_units": 6,
+        "utf8_bytes": 10
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "record body string of 5 ASCII characters under maxLength 4",
+      "where": "command",
+      "action": "record.append",
+      "field": "body.note",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "note"
+        ],
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 4
+          }
+        }
+      },
+      "value": "abcde",
+      "length": {
+        "code_points": 5,
+        "utf16_units": 5,
+        "utf8_bytes": 5
+      },
+      "expected": {
+        "code": "invalid_body",
+        "status": 422
+      }
+    }
+  ]
+}

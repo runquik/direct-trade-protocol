@@ -3,6 +3,7 @@
  * positions and per-source high-water marks instead of an unbounded observation map. Portable, dependency-free,
  * synchronous: it runs inside a host transaction on any runtime. Profile document and fixtures:
  * spec/profiles/inventory/2.md, spec/profiles/inventory/2/. The v1 reducer (inventory.ts) is unchanged. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { sha256HexSync } from '../sha256.ts';
 import { formatDecimal, parseDecimal } from './decimal.ts';
@@ -48,7 +49,7 @@ export const INVENTORY2_SCHEMA = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const UCUM = /^[!-~]{1,32}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 /** Ids become member names of the ledger, so they must be member-name-safe: no quotation mark, no reverse solidus. */
 const ident = (v: unknown, max: number) => text(v, max) && !/["\\]/.test(v as string);

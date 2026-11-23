@@ -6,7 +6,7 @@ import { classValid, readRefs } from './verb-datatypes-reader.ts';
 export type Issue = { path: string; message: string };
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
 const REASONS = ['scrapped', 'lost', 'consumed', 'ended', 'other'];
 /** The GS1 check digit for any length: from the right-most payload digit, weights 3, 1, 3, ... */
 function gs1(value: string): boolean {

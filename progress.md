@@ -1,5 +1,9 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 23: a length bound counts code points ([#215](https://github.com/runquik/direct-trade-protocol/issues/215))
+
+SPEC v0.4 §5 never said what a `maxLength` counts. The reference counted UTF-16 code units for profile bodies and in every profile validator, but code points for commands (through its JSON Schema library), so a string with characters outside the Basic Multilingual Plane was bounded twice as tightly in a record body as in a command, and a host using a stock JSON Schema validator admitted bodies the reference refused. §5 now says a bound counts Unicode code points everywhere; `validateShape`, `checkSchema`, the engine's command text checks, all eight profile validators and the interop readers count that way, and `spec/vectors/string-length.json` plus two `party@1` fixtures pin it. It only widens admission. The SDK is `0.2.1-dev.3`. Waiting on the owner's decision on #215.
+
 ## November 17: product continuity matches a pack conversion by value ([#202](https://github.com/runquik/direct-trade-protocol/issues/202))
 
 The #99 decision (October 22) matched `base_units_per_pack` by value in `inventory@2` and `flow@1`, but `product@1` continuity still compared it by spelling, so a revision that kept a packaging revision and re-spelled `"12"` as `"12.000"` was refused `invalid_product`, and on import `invalid_snapshot`. `checkProductContinuity` and the interop reader now compare the conversion by value; `name` and `gtin` are still compared exactly. `spec/profiles/product/1.md` rule 2 says so. The fixtures gain a continuity accept for the re-spelling and a reject for `"12"` to `"12.001"`; the contract digest is unchanged. The SDK is `0.2.1-dev.2`. Builders: a host that compares the conversion by spelling now disagrees with the fixtures. Waits for the owner's decision on #202.

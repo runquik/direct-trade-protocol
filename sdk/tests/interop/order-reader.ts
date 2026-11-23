@@ -6,7 +6,7 @@ export type Issue = { path: string; message: string };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
 const uuidOrNull = (v: unknown) => v === null || (typeof v === 'string' && UUID.test(v));
 const decimal = (v: unknown, places: number) => typeof v === 'string' && new RegExp(`^\\d{1,18}(\\.\\d{1,${places}})?$`).test(v);
 export const dateValid = (v: unknown) => { if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v) || v.startsWith('0000')) return false; const d = new Date(v + 'T00:00:00Z'); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v; };

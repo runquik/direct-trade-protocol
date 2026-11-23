@@ -4,6 +4,7 @@
  * an owner on every position, facts that change up to sixteen ledgers of one book atomically, and a digest chain per
  * ledger. Portable, dependency-free, synchronous: it runs inside a host transaction on any runtime.
  * Profile document and fixtures: spec/profiles/flow/1.md, spec/profiles/flow/1/. inventory2.ts is unchanged. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { sha256HexSync } from '../sha256.ts';
 import { formatDecimal, parseDecimal } from './decimal.ts';
@@ -74,7 +75,7 @@ export const FLOW_SCHEMA = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, UCUM = /^[!-~]{1,32}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 const ident = (v: unknown, max: number) => text(v, max) && !/["\\]/.test(v as string);
 const digestOf = (v: unknown) => sha256HexSync(canonicalize(v));

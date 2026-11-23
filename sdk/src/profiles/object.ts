@@ -2,6 +2,7 @@
  * account, a vehicle, a sensor, a position in an org chart). Its genesis is `create` ("entered the ledger"); its
  * revision to retired is `retire`. Nothing is deleted. Portable, dependency-free, synchronous.
  * Profile document and fixtures: spec/profiles/object/1.md, spec/profiles/object/1/. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { OBJECT_REF_SCHEMA, checkRefOwner, isClassName, isProtocolClass, validateRefList } from './act.ts';
 import type { ObjectRef } from './act.ts';
@@ -33,7 +34,7 @@ export const OBJECT_SCHEMA = {
 } as const;
 const SCHEME = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+)*$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 /** GS1 SSCC: eighteen digits with the GS1 check digit (weights 3,1,3,... from the right over the payload). */
 export function isSscc(value: unknown): boolean {

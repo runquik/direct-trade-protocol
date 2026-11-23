@@ -1,5 +1,6 @@
 /** dtp/party@1: a counterparty as one company knows it. Portable, dependency-free, synchronous.
  * Profile document and fixtures: spec/profiles/party/1.md, spec/profiles/party/1/. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { isGtin } from './product.ts';
 
@@ -40,7 +41,7 @@ export const PARTY_SCHEMA = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SCHEME = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+)*$/, LANGUAGE = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/, COUNTRY = /^[A-Z]{2}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 export const isGln = (v: unknown): boolean => typeof v === 'string' && v.length === 13 && isGtin(v);
 export const isDuns = (v: unknown): boolean => typeof v === 'string' && /^[0-9]{9}$/.test(v);

@@ -1,6 +1,7 @@
 /** dtp/order@1: an order as one company records it, a binding commercial commitment by the party that placed it.
  * A forecast or a plan is never an order; those are dtp/forecast@1. Portable, dependency-free, synchronous.
  * Profile document and fixtures: spec/profiles/order/1.md, spec/profiles/order/1/. */
+import { codePoints } from './length.ts';
 import { canonicalize } from '../canonical.ts';
 import { parseDecimal } from './decimal.ts';
 import type { WireUnit } from './inventory2.ts';
@@ -52,7 +53,7 @@ export const ORDER_SCHEMA = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SCHEME = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+)*$/, CURRENCY = /^[A-Z]{3,8}$/, INCOTERM = /^[A-Z]{3}$/, UCUM = /^[!-~]{1,32}$/;
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && codePoints(v) <= max && v.trim() === v && !/[\u0000-\u001f\u007f]/.test(v);
 const exact = (v: Record<string, unknown>, keys: readonly string[]) => Object.keys(v).length === keys.length && keys.every(k => Object.hasOwn(v, k));
 const uuidOrNull = (v: unknown) => v === null || (typeof v === 'string' && UUID.test(v));
 export function isLocalDate(v: unknown): boolean {

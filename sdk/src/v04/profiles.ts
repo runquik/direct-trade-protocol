@@ -1,5 +1,6 @@
 // Bounded declarative contracts. No $ref, regex, network resolution or executable validators.
 import { demand, digest, exact } from "./wire.ts";
+import { codePoints } from "../profiles/length.ts";
 import type { Profile, State } from "./model.ts";
 /** Semantics labels a host runs built-in deterministic rules for; a publisher selects one, never redefines it. */
 export const SEMANTICS = ["structural", "inventory-v1", "invoice-v1", "product-v1", "inventory-v2", "party-v1", "order-v1", "forecast-v1", "object-v1", "flow-v1"] as const;
@@ -13,7 +14,7 @@ export function checkSchema(schema: unknown): void {
     // `nullable: true` lets a field be absent-as-null without a union; it is the dialect's one optional keyword.
     if (s.nullable !== undefined) demand(s.nullable === true && s.type !== "null", "invalid_schema", "nullable must be true on a non-null type", 400);
     if (s.enum !== undefined) {
-      demand(s.type === "string" && Array.isArray(s.enum) && s.enum.length > 0 && s.enum.length <= 64 && new Set(s.enum).size === s.enum.length && s.enum.every((v: any) => typeof v === "string" && v.length <= s.maxLength), "invalid_schema", "invalid bounded enum", 400);
+      demand(s.type === "string" && Array.isArray(s.enum) && s.enum.length > 0 && s.enum.length <= 64 && new Set(s.enum).size === s.enum.length && s.enum.every((v: any) => typeof v === "string" && codePoints(v) <= s.maxLength), "invalid_schema", "invalid bounded enum", 400);
     }
     exact(s, [...keys[s.type], ...(s.enum === undefined ? [] : ["enum"]), ...(s.nullable === undefined ? [] : ["nullable"])]);
     if (s.type === "object") {
@@ -35,7 +36,7 @@ export function validateShape(schema: any, value: any): boolean {
     case "null": return value === null;
     case "boolean": return typeof value === "boolean";
     case "integer": return Number.isSafeInteger(value) && value >= schema.minimum && value <= schema.maximum;
-    case "string": return typeof value === "string" && value.length <= schema.maxLength && (!schema.enum || schema.enum.includes(value));
+    case "string": return typeof value === "string" && codePoints(value) <= schema.maxLength && (!schema.enum || schema.enum.includes(value));
     case "array": return Array.isArray(value) && value.length <= schema.maxItems && value.every(v => validateShape(schema.items, v));
     case "object": return value !== null && typeof value === "object" && !Array.isArray(value) && schema.required.every((k: string) => Object.hasOwn(value, k)) && Object.entries(value).every(([k, v]) => Object.hasOwn(schema.properties, k) && validateShape(schema.properties[k], v));
     default: return false;

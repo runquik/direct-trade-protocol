@@ -16,7 +16,7 @@ const GOODS_OUT = ['~supplier', '~customer', '~adjustment', '~production'], MONE
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, CURRENCY = /^[A-Z]{3,8}$/;
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const text = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+const text = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
 const ident = (v: unknown, max: number) => text(v, max) && !/["\\]/.test(v as string);
 class Stop extends Error { code: string; constructor(code: string, message = code) { super(message); this.code = code; } }
 const stop = (code: string, message = code): never => { throw new Stop(code, message); };

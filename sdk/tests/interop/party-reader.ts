@@ -6,7 +6,7 @@ export type Issue = { path: string; message: string };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const plain = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const keysAre = (v: Record<string, unknown>, keys: string[]) => { const k = Object.keys(v); return k.length === keys.length && keys.every(x => k.includes(x)); };
-const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && v.length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
+const bounded = (v: unknown, max: number) => typeof v === 'string' && v.length >= 1 && [...v].length <= max && v === v.trim() && !/[\x00-\x1f\x7f]/.test(v);
 const ROLES = ['customer', 'supplier', 'carrier', 'financer', 'service_provider', 'manufacturer', 'broker', 'other'];
 
 export function readParty(body: unknown): Issue[] {

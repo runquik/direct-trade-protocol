@@ -229,6 +229,57 @@
         "parent": null,
         "status": "active"
       }
+    },
+    {
+      "why": "a name of 200 supplementary-plane characters (400 UTF-16 code units): a length bound counts code points (#215)",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+            "language": "en"
+          }
+        ],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
     }
   ],
   "reject": [
@@ -288,6 +339,57 @@
       "body": {
         "kind": "organization",
         "names": [],
+        "identifiers": [
+          {
+            "scheme": "gs1.gln",
+            "value": "0614141000005"
+          },
+          {
+            "scheme": "duns",
+            "value": "123456789"
+          },
+          {
+            "scheme": "tax.us.ein",
+            "value": "12-3456789"
+          }
+        ],
+        "protocol_identity": {
+          "organization_id": "77777777-7777-4777-8777-777777777777"
+        },
+        "roles": [
+          "supplier",
+          "carrier"
+        ],
+        "locations": [
+          {
+            "location_id": "hq",
+            "name": "Head office",
+            "address": {
+              "lines": [
+                "1 Harbor Way"
+              ],
+              "locality": "Portland",
+              "region": "OR",
+              "postal_code": "97201",
+              "country": "US"
+            },
+            "gln": "0614141000012"
+          }
+        ],
+        "parent": null,
+        "status": "active"
+      }
+    },
+    {
+      "why": "a name of 201 supplementary-plane characters: one code point over the 200 bound (#215)",
+      "body": {
+        "kind": "organization",
+        "names": [
+          {
+            "name": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+            "language": "en"
+          }
+        ],
         "identifiers": [
           {
             "scheme": "gs1.gln",
