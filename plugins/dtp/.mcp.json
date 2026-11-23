@@ -2,7 +2,7 @@
   "mcpServers": {
     "market": {
       "type": "http",
-      "url": "https://vsuqtdofphppybkhnijg.supabase.co/functions/v1/dtp-mcp",
+      "url": "${user_config.dtp_endpoint}",
       "headers": {
         "Authorization": "Bearer ${user_config.dtp_api_key}"
       },

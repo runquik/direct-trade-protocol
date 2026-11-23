@@ -9,6 +9,14 @@ Buy and sell wholesale goods directly from Claude Code.
 /plugin install dtp@dtp
 ```
 
+## Point it at a server
+
+The plugin ships with no server address. Before it can connect, set the endpoint of the
+DTP marketplace server you want to use (the operator of that server gives you the URL):
+`/plugin` → **dtp** → **Configure** → *DTP server address*, then restart Claude Code.
+Until you do, the default is the placeholder `https://<host>/dtp-mcp` and the plugin
+connects to nothing.
+
 ## Use
 
 | Skill | What it does |

@@ -13,6 +13,13 @@
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "userConfig": {
+    "dtp_endpoint": {
+      "type": "string",
+      "title": "DTP server address",
+      "description": "The full URL of the DTP marketplace MCP endpoint you want to use, from whoever runs that server. The plugin connects to nothing until this is set.",
+      "sensitive": false,
+      "default": "https://<host>/dtp-mcp"
+    },
     "dtp_api_key": {
       "type": "string",
       "title": "DTP API Key",
