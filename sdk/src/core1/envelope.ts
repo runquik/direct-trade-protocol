@@ -10,7 +10,7 @@
 
 import { CanonicalizationError, FloatNotAllowedError, canonicalBytes } from "../canonical.ts";
 import { decodeKeyId, decodeSignature, encodeSignature, keyPairFromSecret, signBytes, verifyBytes } from "../keys.ts";
-import { assertSafeMemberNames } from "../safe-json.ts";
+import { assertSafeMemberNames, parseUntrustedJson, parseUntrustedJsonBytes } from "../safe-json.ts";
 
 export interface Signature { key_id: string; signature: string }
 export interface Signed<T> { body: T; signatures: Signature[] }
@@ -61,6 +61,18 @@ function assertDepth(body: unknown): void {
     if (depth > MAX_DEPTH) refuse(`the body nests deeper than ${MAX_DEPTH} levels`);
     if (value !== null && typeof value === "object") for (const child of Object.values(value)) pending.push([child, depth + 1]);
   }
+}
+
+/**
+ * Core-1 part 1: reads a received Core-1 text (an envelope, a record, an identity or governance log, a bundle) the way
+ * every Core-1 receiver must, before anything is verified. On the raw text, before parsing, it refuses a member name
+ * written with an escape sequence (`unsafe_member_name`), an object that names a member twice (`duplicate_member_name`)
+ * and a number written with a fraction or an exponent (`non_integer_number`, #217), as an UnsafeJsonError with that
+ * code. The integer rule is lexical, so `1.0`, `2.0`, `1.7620001e12` and `1.0000000000000001` are refused whatever value
+ * a parser would give them: whether a text is valid depends on its bytes alone. Bytes must be UTF-8.
+ */
+export function parseCore1Text(text: string | Uint8Array): unknown {
+  return typeof text === "string" ? parseUntrustedJson(text, { integerNumbers: true }) : parseUntrustedJsonBytes(text, { integerNumbers: true });
 }
 
 /** The bytes every signer signs and every verifier checks, for one domain and one body. */

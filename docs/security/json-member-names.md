@@ -8,7 +8,7 @@ The reference implementation is `sdk/src/safe-json.ts`: `parseUntrustedJson`, `p
 
 **Duplicate names.** The same check refuses an object that names a member twice (I-JSON, RFC 7493 §2.3), with `duplicate_member_name`. Parsers keep the first value, the last, or fail; a signature verified over what one side parsed could then mean something else to the next reader. Because names carry no escapes, comparing the raw text of the names is exact. Vectors: the `duplicate_member_name` entries in `spec/vectors/unsafe-json.json`.
 
-**Integer literals (v0.4).** With the `integerNumbers` option, the same pass also refuses a number written with a fraction or an exponent, with `non_integer_number`. The v0.4 host and snapshot import turn it on; see SPEC §2, *Integer literals* ([#97](https://github.com/runquik/direct-trade-protocol/issues/97)). Vectors: `numbers` in `spec/vectors/unsafe-json.json`.
+**Integer literals (v0.4 and Core-1).** With the `integerNumbers` option, the same pass also refuses a number written with a fraction or an exponent, with `non_integer_number`. The v0.4 host and snapshot import turn it on; see SPEC §2, *Integer literals* ([#97](https://github.com/runquik/direct-trade-protocol/issues/97)). A Core-1 receiver applies it to every received text, through `parseCore1Text` in `sdk/src/core1/envelope.ts`; see Core-1 part 1 ([#217](https://github.com/runquik/direct-trade-protocol/issues/217)), whose wire-text vectors are `spec/core-1/vectors/text.json`. Vectors: `numbers` in `spec/vectors/unsafe-json.json`.
 
 ## Why
 

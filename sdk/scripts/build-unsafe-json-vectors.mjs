@@ -38,7 +38,7 @@ const accept=[
   ['a value equal to a member name','{"a":"a","b":"a"}'],
   ['names differing only in case','{"a":1,"A":2}'],
 ];
-// v0.4 numbers (#97): an integer is written as an optional minus sign and digits, nothing else.
+// Integer literals, v0.4 (#97) and Core-1 (#217): an integer is written as an optional minus sign and digits, nothing else.
 const numberReject=[
   ['a zero fraction','{"threshold":1.0}'],
   ['an exponent','{"threshold":1e0}'],
@@ -65,7 +65,7 @@ const out={
   rule:'An object member name must not be written with an escape sequence, and an object must not name the same member twice.',
   reject:reject.map(([why,text,code='unsafe_member_name'])=>({why,text,code})),accept:accept.map(([why,text])=>({why,text})),
   numbers:{
-    description:'v0.4 integer literals (SPEC section 2, #97). A v0.4 receiver MUST refuse every text under "reject" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under "accept". The rule is lexical, so it does not depend on how a parser converts numbers.',
+    description:'Integer literals: v0.4 (SPEC section 2, #97) and Core-1 (spec/core-1/README.md part 1, #217). A v0.4 or Core-1 receiver MUST refuse every text under "reject" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under "accept". The rule is lexical, so it does not depend on how a parser converts numbers.',
     rule:'A number is written as an optional minus sign followed by digits, with no fraction and no exponent.',
     reject:numberReject.map(([why,text])=>({why,text,code:'non_integer_number'})),accept:numberAccept.map(([why,text])=>({why,text}))}};
 const text=JSON.stringify(out,null,2)+'\n';

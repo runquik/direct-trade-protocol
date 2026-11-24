@@ -1,0 +1,59 @@
+{
+  "description": "Received Core-1 wire texts (spec/core-1/README.md, part 1). A Core-1 receiver MUST refuse every text under \"reject\" with the given code on the raw text, BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\": parse it, then verify the envelope under the given domain (and, for a record, as a DTP-RECORD-1 record of the given profile, with the given record digest). Each reject text is an accept text with one integer re-spelled; its signature still verifies after a binary64 parse, so an implementation that checks numbers only after parsing fails these vectors.",
+  "rule": "A number is written as an optional minus sign followed by digits, with no fraction and no exponent.",
+  "accept": [
+    {
+      "why": "a record, as signed: every integer is digits only, and the decimal amount is a string",
+      "text": "{\"body\":{\"issuer\":{\"identity\":\"6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10\",\"head\":{\"sequence\":2,\"digest\":\"a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21\"}},\"organization\":null,\"profile\":\"833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3\",\"sequence\":1,\"supersedes\":null,\"issued_at\":1762000100000,\"payload\":{\"note\":\"café\",\"amount\":\"12.50\"}},\"signatures\":[{\"key_id\":\"ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD\",\"signature\":\"ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ\"}]}",
+      "domain": "DTP-RECORD-1",
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "digest": "997a19e8ace478e4a7db1c5202b88afccbf8f426e7e1e375e959a3f8731fcc10",
+      "signers": [
+        "ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD"
+      ]
+    },
+    {
+      "why": "a person genesis, as signed",
+      "text": "{\"body\":{\"identity_hint\":\"\",\"operational\":{\"keys\":[\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\"],\"threshold\":1},\"created_at\":1760000000000},\"signatures\":[{\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"signature\":\"ed25519:65LFD6Wrh34eik87zR9LoqarBh9R8iei6o5JsP4XhB6XR2ztJdDt9hvZB9pNYKtcQwPavgdrraJ7uZB2R9VPUbAc\"}]}",
+      "domain": "DTP-PERSON-GENESIS-1",
+      "signers": [
+        "ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV"
+      ]
+    }
+  ],
+  "reject": [
+    {
+      "why": "the record sequence written 1.0000000000000001, which binary64 reads as 1 and an exact-decimal reader does not",
+      "text": "{\"body\":{\"issuer\":{\"identity\":\"6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10\",\"head\":{\"sequence\":2,\"digest\":\"a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21\"}},\"organization\":null,\"profile\":\"833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3\",\"sequence\":1.0000000000000001,\"supersedes\":null,\"issued_at\":1762000100000,\"payload\":{\"note\":\"café\",\"amount\":\"12.50\"}},\"signatures\":[{\"key_id\":\"ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD\",\"signature\":\"ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ\"}]}",
+      "domain": "DTP-RECORD-1",
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "code": "non_integer_number"
+    },
+    {
+      "why": "issued_at written with an exponent, 1.7620001e12, which denotes the signed integer exactly",
+      "text": "{\"body\":{\"issuer\":{\"identity\":\"6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10\",\"head\":{\"sequence\":2,\"digest\":\"a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21\"}},\"organization\":null,\"profile\":\"833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3\",\"sequence\":1,\"supersedes\":null,\"issued_at\":1.7620001e12,\"payload\":{\"note\":\"café\",\"amount\":\"12.50\"}},\"signatures\":[{\"key_id\":\"ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD\",\"signature\":\"ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ\"}]}",
+      "domain": "DTP-RECORD-1",
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "code": "non_integer_number"
+    },
+    {
+      "why": "the issuer head sequence written with a zero fraction, 2.0",
+      "text": "{\"body\":{\"issuer\":{\"identity\":\"6a1f0c2e-8d4b-4f3a-9e21-0b7c5d3e2f10\",\"head\":{\"sequence\":2.0,\"digest\":\"a23900ca97a8484b221ce30632a1282c821c3bb173d084b70f89180f0c512b21\"}},\"organization\":null,\"profile\":\"833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3\",\"sequence\":1,\"supersedes\":null,\"issued_at\":1762000100000,\"payload\":{\"note\":\"café\",\"amount\":\"12.50\"}},\"signatures\":[{\"key_id\":\"ed25519:BFkJmL1n9vRn7nGjSE5pMyLumzjVJPfvjmkLDXVMWZrD\",\"signature\":\"ed25519:JZmKSPvc3NaBv3rAYxvfDkXi3ZJGbCJPgioYpzBP9BMC53WdedGpVBu5JExM3DxnQJA4KYdXtKKuq7LoNWeN3SZ\"}]}",
+      "domain": "DTP-RECORD-1",
+      "profile": "833ebfaa4485a95f66f98056d6af5dee4844972f24bd84a1b1e1a3d02a3c51c3",
+      "code": "non_integer_number"
+    },
+    {
+      "why": "a key-set threshold written with a zero fraction, 1.0",
+      "text": "{\"body\":{\"identity_hint\":\"\",\"operational\":{\"keys\":[\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\"],\"threshold\":1.0},\"created_at\":1760000000000},\"signatures\":[{\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"signature\":\"ed25519:65LFD6Wrh34eik87zR9LoqarBh9R8iei6o5JsP4XhB6XR2ztJdDt9hvZB9pNYKtcQwPavgdrraJ7uZB2R9VPUbAc\"}]}",
+      "domain": "DTP-PERSON-GENESIS-1",
+      "code": "non_integer_number"
+    },
+    {
+      "why": "created_at written with a capital exponent and a signed power, 1.76E+12",
+      "text": "{\"body\":{\"identity_hint\":\"\",\"operational\":{\"keys\":[\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\"],\"threshold\":1},\"created_at\":1.76E+12},\"signatures\":[{\"key_id\":\"ed25519:8u8LCMQvMKrFxHbn326Ltcqv72HDPEC5FPMgPC3mXvxV\",\"signature\":\"ed25519:65LFD6Wrh34eik87zR9LoqarBh9R8iei6o5JsP4XhB6XR2ztJdDt9hvZB9pNYKtcQwPavgdrraJ7uZB2R9VPUbAc\"}]}",
+      "domain": "DTP-PERSON-GENESIS-1",
+      "code": "non_integer_number"
+    }
+  ]
+}

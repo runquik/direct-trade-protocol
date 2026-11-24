@@ -154,7 +154,7 @@
     }
   ],
   "numbers": {
-    "description": "v0.4 integer literals (SPEC section 2, #97). A v0.4 receiver MUST refuse every text under \"reject\" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\". The rule is lexical, so it does not depend on how a parser converts numbers.",
+    "description": "Integer literals: v0.4 (SPEC section 2, #97) and Core-1 (spec/core-1/README.md part 1, #217). A v0.4 or Core-1 receiver MUST refuse every text under \"reject\" with the given code BEFORE handing it to a JSON parser, and MUST accept every text under \"accept\". The rule is lexical, so it does not depend on how a parser converts numbers.",
     "rule": "A number is written as an optional minus sign followed by digits, with no fraction and no exponent.",
     "reject": [
       {
