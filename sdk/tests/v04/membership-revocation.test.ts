@@ -1,4 +1,4 @@
-// Conformance: spec/vectors/membership-revocation.json, membership revocation ends policy grants (SPEC.md section 4, #98).
+// Conformance: spec/vectors/membership-revocation.json, membership revocation ends policy grants (SPEC.md section 4, #98), and so does removing a controller (section 3, #225).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -17,7 +17,7 @@ async function host() {
   let state = emptyState();
   const ctx: Context = { audience, storeKey: await generateKeyPair(), pins: {}, now: Date.now() };
   const send = async (input: Command) => { const candidate = structuredClone(state); const result = await execute(candidate, input, ctx); state = candidate; return result; };
-  const sign = (actor: Actor, action: string, org: string | null, payload: any) => signCommand(draftCommand(audience, actor, action, org, payload, ctx.now), [actor.key]);
+  const sign = (actor: Actor, action: string, org: string | null, payload: any, cosigners: Actor[] = []) => signCommand(draftCommand(audience, actor, action, org, payload, ctx.now), [actor.key, ...cosigners.map(a => a.key)]);
   const call = async (actor: Actor, action: string, org: string | null, payload: any) => send(await sign(actor, action, org, payload));
   const person = async () => { const key = await generateKeyPair(); const actor = { key, id: await personId(key.keyId) }; await call(actor, 'person.register', null, { keys: [key.keyId] }); return actor; };
   const owner = await person(), worker = await person();
@@ -38,6 +38,8 @@ async function host() {
   // Each step yields the commands it would submit; "sign" holds them for a later "submit".
   const commands = async (op: string): Promise<Command[]> => {
     if (op === 'revoke') return [await sign(owner, 'membership.revoke', org, { person_id: worker.id })];
+    if (op === 'promote') return [await sign(owner, 'organization.policy', org, { controllers: [owner.id, worker.id], threshold: 1 }, [worker])];
+    if (op === 'remove') return [await sign(owner, 'organization.policy', org, { controllers: [owner.id], threshold: 1 })];
     if (op === 'regrant') { const { action, payload } = policy('policy.update'); revision += 1; return [await sign(owner, action, org, payload)]; }
     if (op === 'read') return [await sign(worker, 'record.get', org, { id: record, profile_digest: profile })];
     if (op === 'write') { const id = crypto.randomUUID(); return [await sign(worker, 'record.append', org, { id, supersedes: record, ...envelope, body: { note: 'rewrite' } })]; }
@@ -71,6 +73,11 @@ test('membership-revocation vectors cover re-admission, re-grant and both orderi
   assert.ok(cases.some(v => v.steps.some((s: any) => s.op === 'regrant') && v.expected === 'accept'));
   assert.ok(cases.some(v => v.expected?.code === 'conflict') && cases.some(v => v.expected?.code === 'invalid'));
   assert.ok(cases.some(v => v.steps.some((s: any) => s.same_instant)));
+  // A removed controller (#225): re-admission without a re-grant, the ended prior membership, the re-grant, and the ordering refusal.
+  const removal = cases.filter(v => v.steps.some((s: any) => s.op === 'remove' || s.what === 'remove'));
+  assert.ok(removal.some(v => v.steps.some((s: any) => s.op === 'reinvite') && v.expected !== 'accept'));
+  assert.ok(removal.some(v => v.steps.some((s: any) => s.op === 'regrant') && v.expected === 'accept'));
+  assert.ok(removal.some(v => v.expected?.code === 'invalid') && removal.some(v => v.expected?.code === 'conflict'));
   assert.equal(new Set(cases.map(v => v.name)).size, cases.length);
 });
 

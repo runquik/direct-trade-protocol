@@ -3,7 +3,7 @@
 import type { BusinessRecord, Command, Context, DataAction, Organization, Policy, Profile, Release, State } from "./model.ts";
 import { nextRecordSeq, takeRecordSeq } from "./model.ts";
 import { demand, digest, exact, instant, organizationId, personId, same, uuid, validKey, validateCommand, verifyCommand, verifyAssessment, signToken, verifyToken } from "./wire.ts";
-import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, management, quorum, steward } from "./permissions.ts";
+import { activeMember, checkPermissions, checkPolicy, controller, dataAllowed, endMembership, management, quorum, revocationOrdered, steward } from "./permissions.ts";
 import { expandKinds, profileContract, validateProfile, validateShape } from "./profiles.ts";
 import { buildSnapshot, validateSnapshot, applySnapshot } from "./snapshot.ts";
 import * as migration from "./migration.ts";
@@ -121,7 +121,9 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
     case "organization.policy": {
       const o=asController();exact(p,["controllers","threshold"]);ids(p.controllers);demand(Number.isInteger(p.threshold)&&p.threshold>0&&p.threshold<=p.controllers.length,"invalid","invalid quorum",400);
       quorum(s,p.controllers.filter((x:string)=>!o.controllers.includes(x)),p.controllers.filter((x:string)=>!o.controllers.includes(x)).length,signed);
-      if(previous){result=previous.result;break;}o.controllers=[...p.controllers];o.threshold=p.threshold;history=true;result={changed:true};break;
+      // Removing a controller revokes them (#225): their grants end as under membership.revoke (#98), and any membership or invitation they hold stops.
+      const removed=o.controllers.filter(x=>!p.controllers.includes(x));if(!previous)for(const x of removed)revocationOrdered(s,o,x,c.issued_at);
+      if(previous){result=previous.result;break;}for(const x of removed)endMembership(o,x);o.controllers=[...p.controllers];o.threshold=p.threshold;history=true;result={changed:true};break;
     }
     case "organizations.list": {
       exact(p,[]);demand(c.actor.kind==="person"&&c.organization_id===null,"invalid","personal operation",400);
@@ -147,8 +149,7 @@ export async function execute(s: State, input: unknown, ctx: Context): Promise<a
       const o=currentOrg();management(s,o,c,"members.manage",ctx);exact(p,["person_id"]);id(p.person_id);demand(!o.controllers.includes(p.person_id),"forbidden","use controller quorum policy");
       if(previous){result=previous.result;break;}
       // Revocation ends the person's grants by ordering: it must not be signed before a policy revision that grants them (#98).
-      demand(!Object.values(s.policies).some(x=>x.organization_id===o.id&&x.grants.some(g=>g.person_id===p.person_id)&&instant(x.history[x.history.length-1].issued_at)>instant(c.issued_at)),"conflict","a policy revision granting this person is newer than this revocation",409);
-      const m=o.members[p.person_id];if(m)m.active=false;for(const i of Object.values(o.invitations))if(i.person_id===p.person_id)i.active=false;
+      revocationOrdered(s,o,p.person_id,c.issued_at);endMembership(o,p.person_id);
       history=true;result={revoked:true};break;
     }
     case "policy.create":

@@ -7,9 +7,24 @@ export function checkPermissions(input: any): string[] {
 export function activeMember(s: State, org: Organization, id: string, now: number): boolean {
   return !!s.persons[id] && (org.controllers.includes(id) || !!(org.members[id]?.active && instant(org.members[id].expires_at) > now));
 }
-// A grant counts only when the policy revision carrying it was signed after the person's latest membership.revoke in this company (#98).
+// A grant counts only when the policy revision carrying it was signed after the person's latest revocation in this company:
+// a membership.revoke of them (#98), or an organization.policy that removed them from the controllers (#225).
 export function revokedAt(org: Organization, id: string): number {
-  let at = -Infinity; for (const c of org.history) if (c.action === "membership.revoke" && c.payload.person_id === id) at = Math.max(at, instant(c.issued_at)); return at;
+  let at = -Infinity, controllers: string[] = [];
+  for (const c of org.history) {
+    if (c.action === "membership.revoke" && c.payload.person_id === id) at = Math.max(at, instant(c.issued_at));
+    if (c.action === "organization.policy" && controllers.includes(id) && !c.payload.controllers.includes(id)) at = Math.max(at, instant(c.issued_at));
+    if (c.action === "organization.create" || c.action === "organization.policy") controllers = c.payload.controllers;
+  }
+  return at;
+}
+// The #98 ordering rule: a revocation of a person is refused while a company policy granting them has a current revision signed after it.
+export function revocationOrdered(s: State, org: Organization, id: string, issuedAt: string) {
+  demand(!Object.values(s.policies).some(x => x.organization_id === org.id && x.grants.some(g => g.person_id === id) && instant(x.history[x.history.length - 1].issued_at) > instant(issuedAt)), "conflict", "a policy revision granting this person is newer than this revocation", 409);
+}
+// Ending a person's place in a company: the membership and every outstanding invitation stop (membership.revoke, and a controller's removal, #225).
+export function endMembership(org: Organization, id: string) {
+  const m = org.members[id]; if (m) m.active = false; for (const i of Object.values(org.invitations)) if (i.person_id === id) i.active = false;
 }
 export function grantCurrent(org: Organization, policy: Policy, id: string): boolean {
   return instant(policy.history[policy.history.length - 1].issued_at) > revokedAt(org, id);

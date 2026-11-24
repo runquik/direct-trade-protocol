@@ -131,6 +131,8 @@ export async function validateSnapshot(s: State, snap: Snapshot) {
     } else if (c.action === "organization.policy") {
       exact(c.payload,["controllers","threshold"]);
       demand(controllers.includes(c.actor.id) && controllers.filter(id => signedBy(id,signed)).length >= threshold && c.payload.controllers.filter((id:string) => !controllers.includes(id)).every((id:string) => signedBy(id,signed)), "invalid_snapshot", "invalid controller transition");
+      // A removed controller's membership and invitations stop, as at the source (#225).
+      for (const id of controllers.filter(id => !c.payload.controllers.includes(id))) { if (members[id]) members[id].active = false; for (const inv of Object.values(invitations)) if (inv.person_id === id) inv.active = false; }
       controllers = c.payload.controllers; threshold = c.payload.threshold;
     } else if (c.action === "membership.invite") {
       exact(c.payload,["invitation_id","person_id","permissions","expires_at"]); const p = c.payload; manage(c,"members.manage");
