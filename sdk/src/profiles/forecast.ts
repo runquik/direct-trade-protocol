@@ -3,7 +3,7 @@
  * Profile document and fixtures: spec/profiles/forecast/1.md, spec/profiles/forecast/1/. */
 import { canonicalize } from '../canonical.ts';
 import { parseDecimal } from './decimal.ts';
-import { isInstant, isLocalDate } from './order.ts';
+import { convertsExactly, isInstant, isLocalDate } from './order.ts';
 import type { WireUnit } from './inventory2.ts';
 
 export const FORECAST_PROFILE = 'dtp.forecast/1';
@@ -54,6 +54,7 @@ export function validateForecast(body: unknown): ForecastIssue[] {
     else if (u.system === 'ucum') { if (!(typeof u.code === 'string' && UCUM.test(u.code)) || u.packaging_id !== null || u.version !== null || u.base_units_per_pack !== null) fail('$.quantity.unit', 'ucum unit carries a code and no packaging'); }
     else if (u.system !== 'packaging' || u.code !== null || !text(u.packaging_id, 80) || !text(u.version, 40)) fail('$.quantity.unit', 'packaging unit needs packaging_id and version');
     else { try { if (parseDecimal(u.base_units_per_pack, 3) <= 0n) fail('$.quantity.unit', 'positive pack conversion required'); } catch { fail('$.quantity.unit', 'three-place pack conversion required'); } }
+    if (!convertsExactly(b.quantity.amount, u)) fail('$.quantity', 'a pack quantity must be a whole number of thousandths of the base unit; nothing is rounded');
   }
   if (b.confidence !== null && !(Number.isSafeInteger(b.confidence) && b.confidence >= 0 && b.confidence <= 100)) fail('$.confidence', '0-100 or null required');
   if (b.scenario !== null && !text(b.scenario, 120)) fail('$.scenario', 'bounded scenario or null required');

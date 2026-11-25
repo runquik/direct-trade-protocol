@@ -10,6 +10,7 @@ checkSchema(contract.schema);
 const clone = <V>(v: V): V => structuredClone(v);
 const PRODUCT = '22222222-2222-4222-8222-222222222222', PARTY = '77777777-7777-4777-8777-777777777777';
 const jar = { system: 'ucum' as const, code: '{jar}', packaging_id: null, version: null, base_units_per_pack: null };
+const bag = { system: 'packaging' as const, code: null, packaging_id: 'bag-2.5', version: '1', base_units_per_pack: '2.5' };
 const base: ForecastBody = {
   subject: { product_id: PRODUCT, description: null }, party_id: PARTY, direction: 'demand', horizon: { start: '2026-10-01', end: '2026-12-31' },
   as_of: '2026-09-23T06:00:00.000Z', method: 'trailing 12-week average, seasonal', quantity: { amount: '14400', unit: jar }, confidence: 60, scenario: 'base', status: 'draft',
@@ -20,6 +21,7 @@ const accept: Case[] = [
   ['a demand forecast for a product and a customer over a quarter, from a stated method, with a confidence and a scenario', base],
   ['a supply forecast with no party, by description, zero quantity, no confidence, no scenario', { subject: { product_id: null, description: 'Glass jars 680 ml' }, party_id: null, direction: 'supply', horizon: { start: '2026-10-01', end: '2026-10-08' }, as_of: '2026-09-23T06:00:00.000Z', method: 'supplier statement', quantity: { amount: '0', unit: jar }, confidence: null, scenario: null, status: 'published' }],
   ['a withdrawn forecast', change(b => { b.status = 'withdrawn'; })],
+  ['a fraction of a pack that converts exactly: 0.002 of a 2.5 pack is 0.005 base units', change(b => { b.quantity = { amount: '0.002', unit: bag }; })],
 ];
 const reject: Case[] = [
   ['a subject with neither product nor description', change(b => { b.subject = { product_id: null, description: null }; })],
@@ -32,6 +34,7 @@ const reject: Case[] = [
   ['an unknown status', change(b => { (b as any).status = 'placed'; })],
   ['a member an order would have: nothing here commits anyone', change(b => { (b as any).buyer = { self: true }; })],
   ['a missing member', (() => { const { method: _, ...rest } = clone(base); return rest; })()],
+  ['a pack quantity that is not a whole number of thousandths of the base unit: 0.001 of a 2.5 pack is 0.0025', change(b => { b.quantity = { amount: '0.001', unit: bag }; })],
 ];
 type Pair = [string, ForecastBody, ForecastBody];
 const continuityAccept: Pair[] = [

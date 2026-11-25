@@ -17,6 +17,14 @@ export function unitIssue(u: unknown): string | null {
   if (u.system !== 'packaging' || u.code !== null || !bounded(u.packaging_id, 80) || !bounded(u.version, 40) || !decimal(u.base_units_per_pack, 3) || Number(u.base_units_per_pack) <= 0) return 'packaging';
   return null;
 }
+// inventory@2: "A pack conversion must yield a whole number of thousandths of the base unit." Count decimal places instead of scaling.
+export function packIsExact(amount: unknown, u: unknown): boolean {
+  if (!plain(u) || u.system !== 'packaging' || !decimal(amount, 3) || !decimal(u.base_units_per_pack, 3)) return true;
+  const digits = (s: string) => s.replace('.', ''), places = (s: string) => (s.split('.')[1] ?? '').length;
+  const product = BigInt(digits(amount as string)) * BigInt(digits(u.base_units_per_pack));
+  const scale = places(amount as string) + places(u.base_units_per_pack);
+  return scale <= 3 || product % 10n ** BigInt(scale - 3) === 0n;
+}
 const TRANSITIONS: Record<string, string[]> = { placed: ['placed', 'acknowledged', 'rejected', 'cancelled'], acknowledged: ['acknowledged', 'partially_fulfilled', 'fulfilled', 'cancelled'], partially_fulfilled: ['partially_fulfilled', 'fulfilled', 'cancelled'], fulfilled: ['closed'], rejected: [], cancelled: [], closed: [] };
 const STATUSES = Object.keys(TRANSITIONS);
 
@@ -56,7 +64,7 @@ export function readOrder(body: unknown): Issue[] {
       if (!plain(p) || !keysAre(p, ['product_id', 'revision', 'description']) || !uuidOrNull(p.product_id) || !uuidOrNull(p.revision) || (p.description !== null && !bounded(p.description, 500))) bad(`${path}.product`, 'product');
       else { if (p.product_id === null && p.description === null) bad(`${path}.product`, 'root or description'); if (p.product_id === null && p.revision !== null) bad(`${path}.product.revision`, 'revision needs root'); }
       if (!plain(l.quantity) || !keysAre(l.quantity, ['amount', 'unit'])) bad(`${path}.quantity`, 'quantity');
-      else { if (!decimal(l.quantity.amount, 3) || Number(l.quantity.amount) <= 0) bad(`${path}.quantity.amount`, 'amount'); if (unitIssue(l.quantity.unit)) bad(`${path}.quantity.unit`, 'unit'); }
+      else { if (!decimal(l.quantity.amount, 3) || Number(l.quantity.amount) <= 0) bad(`${path}.quantity.amount`, 'amount'); if (unitIssue(l.quantity.unit)) bad(`${path}.quantity.unit`, 'unit'); else if (!packIsExact(l.quantity.amount, l.quantity.unit)) bad(`${path}.quantity`, 'pack not whole thousandths'); }
       if (l.price !== null) {
         if (!plain(l.price) || !keysAre(l.price, ['amount', 'currency'])) bad(`${path}.price`, 'price');
         else { if (!decimal(l.price.amount, 6)) bad(`${path}.price.amount`, 'money'); if (l.price.currency !== b.currency) bad(`${path}.price.currency`, 'currency'); }

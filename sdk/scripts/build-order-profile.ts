@@ -11,6 +11,7 @@ const clone = <V>(v: V): V => structuredClone(v);
 const SUPPLIER = '77777777-7777-4777-8777-777777777777', PRODUCT = '22222222-2222-4222-8222-222222222222', REVISION = '99999999-9999-4999-8999-999999999999', CONTRACT = '55555555-5555-4555-8555-555555555555', OLD = '66666666-6666-4666-8666-666666666666';
 const jar = { system: 'ucum' as const, code: '{jar}', packaging_id: null, version: null, base_units_per_pack: null };
 const cases = { system: 'packaging' as const, code: null, packaging_id: 'case-12', version: '1', base_units_per_pack: '12' };
+const bag = { system: 'packaging' as const, code: null, packaging_id: 'bag-2.5', version: '1', base_units_per_pack: '2.5' };
 const line = (line_id: string, extra: Partial<OrderLine> = {}): OrderLine => ({ line_id, product: { product_id: PRODUCT, revision: REVISION, description: null }, quantity: { amount: '10', unit: cases }, price: { amount: '48.500000', currency: 'USD' }, requested: { start: '2026-10-01', end: '2026-10-07' }, links: { contract_id: null }, ...extra });
 const base: OrderBody = {
   buyer: { self: true, party_id: null, revision: null }, seller: { self: false, party_id: SUPPLIER, revision: null },
@@ -26,6 +27,7 @@ const accept: Case[] = [
   ['the minimum: one line by description, no price, no window, no terms', { buyer: { self: true, party_id: null, revision: null }, seller: { self: false, party_id: SUPPLIER, revision: null }, placed_at: '2026-09-23T09:15:00.000Z', currency: 'EUR', external: [], lines: [line('only', { product: { product_id: null, revision: null, description: 'Consulting day' }, quantity: { amount: '1', unit: { system: 'ucum', code: '{day}', packaging_id: null, version: null, base_units_per_pack: null } }, price: null, requested: null })], status: 'placed', terms: { payment_net_days: null, incoterm: null }, replaces: null }],
   ['an order that replaces an earlier one and cites a contract', change(b => { b.replaces = OLD; b.lines[0].links.contract_id = CONTRACT; })],
   ['an acknowledged order, as a later revision would carry it', change(b => { b.status = 'acknowledged'; })],
+  ['a fraction of a pack that converts exactly: 0.002 of a 2.5 pack is 0.005 base units', change(b => { b.lines[0].quantity = { amount: '0.002', unit: bag }; })],
 ];
 const reject: Case[] = [
   ['both parties the company itself', change(b => { b.seller = { self: true, party_id: null, revision: null }; })],
@@ -50,6 +52,7 @@ const reject: Case[] = [
   ['a duplicate external identifier', change(b => { b.external.push({ scheme: 'buyer.po', value: 'PO-4471' }); })],
   ['an extra member', change(b => { (b as any).forecast = true; })],
   ['a missing member', (() => { const { terms: _, ...rest } = clone(base); return rest; })()],
+  ['a pack quantity that is not a whole number of thousandths of the base unit: 0.001 of a 2.5 pack is 0.0025', change(b => { b.lines[0].quantity = { amount: '0.001', unit: bag }; })],
 ];
 type Pair = [string, OrderBody, OrderBody];
 const acknowledged = change(b => { b.status = 'acknowledged'; });

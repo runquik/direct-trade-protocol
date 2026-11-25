@@ -67,6 +67,13 @@ function checkUnit(u: unknown, path: string, fail: (p: string, m: string) => voi
   if (u.system !== 'packaging' || u.code !== null || !text(u.packaging_id, 80) || !text(u.version, 40)) return fail(path, 'packaging unit needs packaging_id and version');
   try { if (parseDecimal(u.base_units_per_pack, 3) <= 0n) fail(path, 'positive pack conversion required'); } catch { fail(path, 'three-place pack conversion required'); }
 }
+/** inventory@2's body-only unit rule, adopted with its unit object (#229): a quantity in a packaging revision converts to a whole
+ *  number of thousandths of the base unit; nothing is rounded. The product-lookup rules are not adopted: bodies carry no referential checks.
+ *  Returns true when the amount or the conversion does not parse, since those are refused on their own. */
+export function convertsExactly(amount: unknown, unit: unknown): boolean {
+  if (!isObject(unit) || unit.system !== 'packaging') return true;
+  try { return (parseDecimal(amount, 3) * parseDecimal(unit.base_units_per_pack, 3)) % 1000n === 0n; } catch { return true; }
+}
 function checkRole(r: unknown, path: string, fail: (p: string, m: string) => void): boolean {
   if (!isObject(r) || !exact(r, ['self', 'party_id', 'revision']) || typeof r.self !== 'boolean' || !uuidOrNull(r.party_id) || !uuidOrNull(r.revision)) { fail(path, 'self flag, party root or null, revision or null required'); return false; }
   if (r.self && (r.party_id !== null || r.revision !== null)) fail(path, 'the company itself has no party record');
@@ -104,7 +111,7 @@ export function validateOrder(body: unknown): OrderIssue[] {
       if (!isObject(p) || !exact(p, ['product_id', 'revision', 'description']) || !uuidOrNull(p.product_id) || !uuidOrNull(p.revision) || (p.description !== null && !text(p.description, 500))) fail(`${path}.product`, 'product root, revision and description, each or null, required');
       else { if (p.product_id === null && p.description === null) fail(`${path}.product`, 'a product root or a description is required'); if (p.product_id === null && p.revision !== null) fail(`${path}.product.revision`, 'a revision needs its product root'); }
       if (!isObject(l.quantity) || !exact(l.quantity, ['amount', 'unit'])) fail(`${path}.quantity`, 'amount and unit required');
-      else { try { if (parseDecimal(l.quantity.amount, 3) <= 0n) fail(`${path}.quantity.amount`, 'positive quantity required'); } catch { fail(`${path}.quantity.amount`, 'three-place decimal required'); } checkUnit(l.quantity.unit, `${path}.quantity.unit`, fail); }
+      else { try { if (parseDecimal(l.quantity.amount, 3) <= 0n) fail(`${path}.quantity.amount`, 'positive quantity required'); } catch { fail(`${path}.quantity.amount`, 'three-place decimal required'); } checkUnit(l.quantity.unit, `${path}.quantity.unit`, fail); if (!convertsExactly(l.quantity.amount, l.quantity.unit)) fail(`${path}.quantity`, 'a pack quantity must be a whole number of thousandths of the base unit; nothing is rounded'); }
       if (l.price !== null) {
         if (!isObject(l.price) || !exact(l.price, ['amount', 'currency'])) fail(`${path}.price`, 'amount and currency required');
         else { try { parseDecimal(l.price.amount, 6); } catch { fail(`${path}.price.amount`, 'six-place decimal required'); } if (l.price.currency !== b.currency) fail(`${path}.price.currency`, 'line currency must be the order currency'); }

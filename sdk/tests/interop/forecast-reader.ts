@@ -1,7 +1,7 @@
 // Deliberately separate implementation of dtp/forecast@1, written from spec/profiles/forecast/1.md and its fixtures.
 // Do not import the SDK validator, decimal helpers or canonicalizer here. Same author: separately coded agreement.
 import { readerCanonical } from './product-reader.ts';
-import { dateValid, instantValid, unitIssue } from './order-reader.ts';
+import { dateValid, instantValid, packIsExact, unitIssue } from './order-reader.ts';
 
 export type Issue = { path: string; message: string };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -24,7 +24,7 @@ export function readForecast(body: unknown): Issue[] {
   if (!instantValid(b.as_of)) bad('$.as_of', 'instant');
   if (!bounded(b.method, 120)) bad('$.method', 'method');
   if (!plain(b.quantity) || !keysAre(b.quantity, ['amount', 'unit'])) bad('$.quantity', 'quantity');
-  else { if (!(typeof b.quantity.amount === 'string' && /^\d{1,18}(\.\d{1,3})?$/.test(b.quantity.amount))) bad('$.quantity.amount', 'amount'); if (unitIssue(b.quantity.unit)) bad('$.quantity.unit', 'unit'); }
+  else { if (!(typeof b.quantity.amount === 'string' && /^\d{1,18}(\.\d{1,3})?$/.test(b.quantity.amount))) bad('$.quantity.amount', 'amount'); if (unitIssue(b.quantity.unit)) bad('$.quantity.unit', 'unit'); else if (!packIsExact(b.quantity.amount, b.quantity.unit)) bad('$.quantity', 'pack not whole thousandths'); }
   if (b.confidence !== null && !(Number.isSafeInteger(b.confidence) && b.confidence >= 0 && b.confidence <= 100)) bad('$.confidence', 'confidence');
   if (b.scenario !== null && !bounded(b.scenario, 120)) bad('$.scenario', 'scenario');
   if (!STATUSES.includes(b.status)) bad('$.status', 'status');

@@ -380,6 +380,89 @@
         },
         "replaces": null
       }
+    },
+    {
+      "why": "a fraction of a pack that converts exactly: 0.002 of a 2.5 pack is 0.005 base units",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "0.002",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "bag-2.5",
+                "version": "1",
+                "base_units_per_pack": "2.5"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
+        "replaces": null
+      }
     }
   ],
   "reject": [
@@ -2154,6 +2237,89 @@
           }
         ],
         "status": "placed",
+        "replaces": null
+      }
+    },
+    {
+      "why": "a pack quantity that is not a whole number of thousandths of the base unit: 0.001 of a 2.5 pack is 0.0025",
+      "body": {
+        "buyer": {
+          "self": true,
+          "party_id": null,
+          "revision": null
+        },
+        "seller": {
+          "self": false,
+          "party_id": "77777777-7777-4777-8777-777777777777",
+          "revision": null
+        },
+        "placed_at": "2026-09-23T09:15:00.000Z",
+        "currency": "USD",
+        "external": [
+          {
+            "scheme": "buyer.po",
+            "value": "PO-4471"
+          }
+        ],
+        "lines": [
+          {
+            "line_id": "1",
+            "product": {
+              "product_id": "22222222-2222-4222-8222-222222222222",
+              "revision": "99999999-9999-4999-8999-999999999999",
+              "description": null
+            },
+            "quantity": {
+              "amount": "0.001",
+              "unit": {
+                "system": "packaging",
+                "code": null,
+                "packaging_id": "bag-2.5",
+                "version": "1",
+                "base_units_per_pack": "2.5"
+              }
+            },
+            "price": {
+              "amount": "48.500000",
+              "currency": "USD"
+            },
+            "requested": {
+              "start": "2026-10-01",
+              "end": "2026-10-07"
+            },
+            "links": {
+              "contract_id": null
+            }
+          },
+          {
+            "line_id": "2",
+            "product": {
+              "product_id": null,
+              "revision": null,
+              "description": "Pallet wrap, 500 mm"
+            },
+            "quantity": {
+              "amount": "3",
+              "unit": {
+                "system": "ucum",
+                "code": "{roll}",
+                "packaging_id": null,
+                "version": null,
+                "base_units_per_pack": null
+              }
+            },
+            "price": null,
+            "requested": null,
+            "links": {
+              "contract_id": null
+            }
+          }
+        ],
+        "status": "placed",
+        "terms": {
+          "payment_net_days": 30,
+          "incoterm": "FOB"
+        },
         "replaces": null
       }
     }

@@ -1,5 +1,9 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 25: an order or forecast quantity in packs converts exactly ([#229](https://github.com/runquik/direct-trade-protocol/issues/229))
+
+Built ahead of the owner's answer (option A, `needs-owner`). `order@1` and `forecast@1` adopt the body-only part of the `inventory@2` unit rule: a quantity in a packaging revision must be a whole number of thousandths of the base unit, so `0.001` of a `2.5` pack is refused `invalid_order` / `invalid_forecast`, as `inventory@2` refuses it. The product-lookup rules (base unit, published packaging) are not adopted, since bodies carry no referential checks; both documents say so. The reference and both interop readers agree; each profile's fixtures gain one accept and one reject, and the contract digests are unchanged. SDK `0.2.1-dev.2`. Builders: refuse such a quantity in both profiles.
+
 ## November 9: a reservation's party must match its claim ([#145](https://github.com/runquik/direct-trade-protocol/issues/145))
 
 The owner chose option 1 on November 4, for `inventory@2` and `flow@1` alike. A `reserve` on an existing `reservation_id` tops up the claim only when it names the same party; any other party, or `null` against a party, is `invalid`. A `release` or `fulfill` must name the claim's party, checked after the claim is found at its position and before the quantity. The reference reducers and both interop readers change the same way. The fixtures' existing release and fulfill operations now name their claim's party, and new cases pin a same-party top-up and each refused mismatch; the contract digests are unchanged. Builders: a host that matched claims by `reservation_id` alone now disagrees with the fixtures. It changed a packed entry after the `0.2.1-dev.1` boundary the November 8 entry names; #182 corrects that boundary (#181).

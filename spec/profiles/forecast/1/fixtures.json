@@ -94,6 +94,36 @@
         "scenario": "base",
         "status": "withdrawn"
       }
+    },
+    {
+      "why": "a fraction of a pack that converts exactly: 0.002 of a 2.5 pack is 0.005 base units",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "0.002",
+          "unit": {
+            "system": "packaging",
+            "code": null,
+            "packaging_id": "bag-2.5",
+            "version": "1",
+            "base_units_per_pack": "2.5"
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
     }
   ],
   "reject": [
@@ -392,6 +422,36 @@
             "packaging_id": null,
             "version": null,
             "base_units_per_pack": null
+          }
+        },
+        "confidence": 60,
+        "scenario": "base",
+        "status": "draft"
+      }
+    },
+    {
+      "why": "a pack quantity that is not a whole number of thousandths of the base unit: 0.001 of a 2.5 pack is 0.0025",
+      "body": {
+        "subject": {
+          "product_id": "22222222-2222-4222-8222-222222222222",
+          "description": null
+        },
+        "party_id": "77777777-7777-4777-8777-777777777777",
+        "direction": "demand",
+        "horizon": {
+          "start": "2026-10-01",
+          "end": "2026-12-31"
+        },
+        "as_of": "2026-09-23T06:00:00.000Z",
+        "method": "trailing 12-week average, seasonal",
+        "quantity": {
+          "amount": "0.001",
+          "unit": {
+            "system": "packaging",
+            "code": null,
+            "packaging_id": "bag-2.5",
+            "version": "1",
+            "base_units_per_pack": "2.5"
           }
         },
         "confidence": 60,

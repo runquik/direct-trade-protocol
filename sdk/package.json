@@ -1,6 +1,6 @@
 {
   "name": "@dtp/sdk",
-  "version": "0.2.1-dev.1",
+  "version": "0.2.1-dev.2",
   "private": true,
   "type": "module",
   "description": "Direct Trade Protocol reference SDK: legacy v0.2/v0.3 and isolated v0.4 interoperability candidate",

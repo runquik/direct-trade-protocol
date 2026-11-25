@@ -13,6 +13,6 @@
     "read": "node read.mjs"
   },
   "dependencies": {
-    "@dtp/sdk": "file:../../sdk/dtp-sdk-0.2.1-dev.1.tgz"
+    "@dtp/sdk": "file:../../sdk/dtp-sdk-0.2.1-dev.2.tgz"
   }
 }
