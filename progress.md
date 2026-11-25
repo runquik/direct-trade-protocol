@@ -1,5 +1,9 @@
 # DTP — save point (reviewed 2026-09-23, night)
 
+## November 25: an order's lines freeze when it leaves `placed` ([#230](https://github.com/runquik/direct-trade-protocol/issues/230))
+
+Built ahead of the owner's answer (option A, `needs-owner`). The revision that takes an `order@1` from `placed` to `acknowledged`, `rejected` or `cancelled` must carry the `placed` head's lines and terms unchanged; only a `placed` to `placed` revision edits them. So an acknowledgment states what was placed, accepted, and a seller's counter-offer is a `placed` revision that is then acknowledged. Rule 3 and the transition table say so; the reference and the interop reader agree; the continuity fixtures gain one accept and three rejects, and the contract digest is unchanged. SDK `0.2.1-dev.3`. Builders: refuse a leaving revision that changes lines or terms.
+
 ## November 25: an order or forecast quantity in packs converts exactly ([#229](https://github.com/runquik/direct-trade-protocol/issues/229))
 
 Built ahead of the owner's answer (option A, `needs-owner`). `order@1` and `forecast@1` adopt the body-only part of the `inventory@2` unit rule: a quantity in a packaging revision must be a whole number of thousandths of the base unit, so `0.001` of a `2.5` pack is refused `invalid_order` / `invalid_forecast`, as `inventory@2` refuses it. The product-lookup rules (base unit, published packaging) are not adopted, since bodies carry no referential checks; both documents say so. The reference and both interop readers agree; each profile's fixtures gain one accept and one reject, and the contract digests are unchanged. SDK `0.2.1-dev.2`. Builders: refuse such a quantity in both profiles.

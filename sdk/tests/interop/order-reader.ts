@@ -90,7 +90,8 @@ export function readOrderContinuity(previous: any, next: any): Issue[] {
   const out: Issue[] = [], same = (a: unknown, b: unknown) => readerCanonical(a) === readerCanonical(b);
   for (const k of ['buyer', 'seller', 'placed_at', 'currency', 'replaces']) if (!same(previous[k], next[k])) out.push({ path: `$.${k}`, message: 'immutable' });
   if (!(TRANSITIONS[previous.status] ?? []).includes(next.status)) out.push({ path: '$.status', message: 'transition' });
-  if (previous.status !== 'placed') {
+  const stillOpen = previous.status === 'placed' && next.status === 'placed';
+  if (!stillOpen) {
     if (!same(previous.lines, next.lines)) out.push({ path: '$.lines', message: 'frozen' });
     if (!same(previous.terms, next.terms)) out.push({ path: '$.terms', message: 'frozen' });
   }

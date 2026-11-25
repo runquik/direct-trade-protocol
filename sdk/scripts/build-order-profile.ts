@@ -56,6 +56,8 @@ const reject: Case[] = [
 ];
 type Pair = [string, OrderBody, OrderBody];
 const acknowledged = change(b => { b.status = 'acknowledged'; });
+const counter = change(b => { b.lines[0].quantity.amount = '4'; b.terms.payment_net_days = 0; });
+const rewritten = (status: OrderBody['status']) => change(b => { b.status = status; }, counter);
 const genesisAccept: [string, OrderBody][] = [['an order is born placed', base]];
 const genesisReject: [string, OrderBody][] = [['an order cannot be born acknowledged', acknowledged], ['nor closed', change(b => { b.status = 'closed'; })]];
 const continuityAccept: Pair[] = [
@@ -71,6 +73,7 @@ const continuityAccept: Pair[] = [
   ['a second partial fulfilment', change(b => { b.status = 'partially_fulfilled'; }), change(b => { b.status = 'partially_fulfilled'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
   ['closed from fulfilled', change(b => { b.status = 'fulfilled'; }), change(b => { b.status = 'closed'; })],
   ['acknowledged, then the seller\'s own identifier added without a change of status', acknowledged, change(b => { b.external.push({ scheme: 'seller.so', value: 'SO-9' }); }, acknowledged)],
+  ['a seller\'s counter-offer: edited while placed, then acknowledged as edited', counter, change(b => { b.status = 'acknowledged'; }, counter)],
 ];
 const continuityReject: Pair[] = [
   ['a changed buyer', base, change(b => { b.buyer = { self: false, party_id: OLD, revision: null }; b.seller = { self: true, party_id: null, revision: null }; })],
@@ -89,6 +92,9 @@ const continuityReject: Pair[] = [
   ['rejected, then an identifier added', change(b => { b.status = 'rejected'; }), change(b => { b.status = 'rejected'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
   ['closed, then republished unchanged', change(b => { b.status = 'closed'; }), change(b => { b.status = 'closed'; })],
   ['fulfilled, then an identifier added: the table lists no fulfilled-to-fulfilled revision', change(b => { b.status = 'fulfilled'; }), change(b => { b.status = 'fulfilled'; b.external.push({ scheme: 'seller.so', value: 'SO-9' }); })],
+  ['acknowledged with lines and terms other than the placed ones: the acknowledging revision carries what was placed', base, rewritten('acknowledged')],
+  ['rejected with lines and terms other than the placed ones', base, rewritten('rejected')],
+  ['cancelled while placed with lines and terms other than the placed ones', base, rewritten('cancelled')],
 ];
 for (const [why, body] of accept) { if (!validateShape(contract.schema, body)) throw new Error(`generator: dialect refuses "${why}"`); const i = validateOrder(body); if (i.length) throw new Error(`generator: refused "${why}": ${i[0].message} at ${i[0].path}`); }
 for (const [why, body] of reject) if (validateOrder(body).length === 0) throw new Error(`generator: accepted "${why}"`);

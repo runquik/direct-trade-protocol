@@ -133,16 +133,17 @@ export function validateOrder(body: unknown): OrderIssue[] {
   return issues;
 }
 /** Genesis: an order is born placed. Revisions: parties, placing time, currency and the replaced order never change;
- *  every revision, one that keeps the status included, is listed in the transition table; once acknowledged, lines and terms are frozen (a change is a new order
+ *  every revision, one that keeps the status included, is listed in the transition table; lines and terms change only from placed to placed, and are frozen from the revision that leaves placed on (a change is a new order
  *  that replaces this one); external identifiers may be added, never removed. Both bodies are assumed valid. */
 export function checkOrderGenesis(body: OrderBody): OrderIssue[] { return body.status === 'placed' ? [] : [{ path: '$.status', message: 'an order is born placed' }]; }
 export function checkOrderContinuity(previous: OrderBody, next: OrderBody): OrderIssue[] {
   const issues: OrderIssue[] = [], same = (a: unknown, b: unknown) => canonicalize(a) === canonicalize(b);
   for (const key of ['buyer', 'seller', 'placed_at', 'currency', 'replaces'] as const) if (!same(previous[key], next[key])) issues.push({ path: `$.${key}`, message: `${key} is immutable` });
   if (!(ORDER_TRANSITIONS[previous.status] ?? []).includes(next.status)) issues.push({ path: '$.status', message: `no transition from ${previous.status} to ${next.status}` });
-  if (previous.status !== 'placed') {
-    if (!same(previous.lines, next.lines)) issues.push({ path: '$.lines', message: 'lines are frozen once acknowledged; a change is a new order that replaces this one' });
-    if (!same(previous.terms, next.terms)) issues.push({ path: '$.terms', message: 'terms are frozen once acknowledged' });
+  // Lines and terms are open only in a placed-to-placed edit; the revision that leaves placed carries them unchanged (#230).
+  if (!(previous.status === 'placed' && next.status === 'placed')) {
+    if (!same(previous.lines, next.lines)) issues.push({ path: '$.lines', message: 'lines are frozen from the revision that leaves placed; a change is a new order that replaces this one' });
+    if (!same(previous.terms, next.terms)) issues.push({ path: '$.terms', message: 'terms are frozen from the revision that leaves placed' });
   }
   const kept = new Set(next.external.map(e => canonicalize([e.scheme, e.value])));
   previous.external.forEach((e, i) => { if (!kept.has(canonicalize([e.scheme, e.value]))) issues.push({ path: `$.external[${i}]`, message: 'an external identifier is never removed' }); });
