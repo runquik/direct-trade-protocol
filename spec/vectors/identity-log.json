@@ -69,6 +69,121 @@
       "label": "resolver-c",
       "key_id": "ed25519:kpW5JHc2fZc2nM52xQydxk6ap9oVdXscb2eC4Pp62KD",
       "secret_key": "ed25519:4AMzjFEayHDkHPBcL9V9Zfxyd4tavYzoSyahb4RcaSQQ2aUUdjiCtHedXqavCPPXHKhnciwfLSrh3x3J4ccJYC7D"
+    },
+    {
+      "label": "bound-0",
+      "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+      "secret_key": "ed25519:paFNKqxyKJnenSizVWaPe5xhDzKd9ccv8evqipcK21c4TL6g27pjeiSMhLhP4KBFX82BaXj3QZYEV1gcmut4zeU"
+    },
+    {
+      "label": "bound-1",
+      "key_id": "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+      "secret_key": "ed25519:3k7583k4QLi78Q24pTtB2yPGNtJSdRsbmwRHoXibjyDj7iwetkhtvN3TNJoJpehe3yJk2ikaja8PVntYYz9fzt6p"
+    },
+    {
+      "label": "bound-2",
+      "key_id": "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+      "secret_key": "ed25519:vkgy6LmbbnDDeG8UHpvdPfhsWFq36SREnSDTVjp3KFjT8b7i5TSSsD2DeBNwBLTCitQ3dVUFA4BUBvJTZxzqRet"
+    },
+    {
+      "label": "bound-3",
+      "key_id": "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+      "secret_key": "ed25519:5VTrpPSGzrkqMsVdzeZrBL6CYkhbhpkRonBLh5axaFj56mJ12tByXGdDsa1EL5zarGt7pZkNFscpxY82Pz9fVbDU"
+    },
+    {
+      "label": "bound-4",
+      "key_id": "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+      "secret_key": "ed25519:4Jyq7mHc1Rxagf5BFHYryTYaftNRPkLNSRJpv3Cinqs5CvQn2VQcs2Fvrp9NBZDWRbYtuZPrR22kisAghuM8xwjs"
+    },
+    {
+      "label": "bound-5",
+      "key_id": "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+      "secret_key": "ed25519:3LJezcvzdU35bgPfGcyf9i3qSaVMKY1Hx2QLp7fWrz7DJ2vE2os23ndmxa4VXMqpfS64khBWLya4bcZMRFhhRww2"
+    },
+    {
+      "label": "bound-6",
+      "key_id": "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+      "secret_key": "ed25519:3bKw8G2kV4RBRWjuwp6K4xQLkzByVxuxR6HyUP4CeAhJBWhFH7XjBPM4iA92tYnYTctowA5tPoFQVNxURDqQj2Nv"
+    },
+    {
+      "label": "bound-7",
+      "key_id": "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+      "secret_key": "ed25519:4gqVBNb7qPVjAr36SVrkhUF6TM2XRPyJWGgKhxzMXtsnGwwpdCV8R81HqtrChmDwR9B5oyE573eZ3uRn118DJVp7"
+    },
+    {
+      "label": "bound-8",
+      "key_id": "ed25519:9kBBXEDCceqAAgxMp1Gm19hjXyYFDN4s1bbbQScQvubH",
+      "secret_key": "ed25519:4gC5XbZunWYAfoMCzuc8uFPevU7otR26bYrAvJpqAsouMLJiHyEsWuFxwyFa1ikap9vgut6fT6BPMoKW71ZabBCf"
+    },
+    {
+      "label": "bound-9",
+      "key_id": "ed25519:5QRP5tor3fou11ARjiFmUSdhZEGqmQACAEyZgGhDjLdB",
+      "secret_key": "ed25519:5Y6GW7nr9jgaQdTMxAhfhna6QQgKogQBHW68mo4md2gYyQnH3LwS7uyQzGpjuqBy2SoQ6UPUi4xGEbjc9t5QNNa9"
+    },
+    {
+      "label": "bound-10",
+      "key_id": "ed25519:8mWF1KJkM1ycMB15oPM1qLxRPf3RgbTFpC1sfHHbZ1nK",
+      "secret_key": "ed25519:2Q1eyRbe95BpzgDKAd3qsFtH6bDKaN5zaZ6xCfnpT2rkDkSQ6qdFpRJSyNRPYGba3KgAfK9qGXGXqYoNZEFcV7zK"
+    },
+    {
+      "label": "bound-11",
+      "key_id": "ed25519:5m6ZwpNUodwkqZfQwszGqhQAMHd7ohLWGSq14fq91fHF",
+      "secret_key": "ed25519:zV1bkMjDYBUDsK5rph2SyQXp3RSjqkCDrVd6LDZVDZ2gs1RiPCdyQTyyu9UpFBwBkxtYbyDJL5Mye89PPVmXT7K"
+    },
+    {
+      "label": "bound-12",
+      "key_id": "ed25519:BtvwXoGvppcVhFYvTbXpsBp5UsEN51mN4zNo9cGnMq9n",
+      "secret_key": "ed25519:2cK9zcVPFHiZ3S7mCiZdTuQDMSv7FSBfVf6g2eJ136S5kKepXK4oqoDLDdLefc6iYpZh32ZdeVTUfrndx4qSQAvY"
+    },
+    {
+      "label": "bound-13",
+      "key_id": "ed25519:J8CjRASqbbabtYCeM1kP33C39MskUQRrGY7jKv6hi8tG",
+      "secret_key": "ed25519:eFJspGEFC85rUAvh7fWbF2ikt6eYYQ8n1PpAakuDVDucp3Ryjg1exdCZe7s3NudDWseWRD94RbZLcQkcXoNkA4g"
+    },
+    {
+      "label": "bound-14",
+      "key_id": "ed25519:Bwb5w5UvfKNZvmVetCdbVszEmM92oxJTyH18QSKNQCPU",
+      "secret_key": "ed25519:2bbKZA4b4KPsWAcL3zW5v8kSeXz28g62DRocUXrit4DM3CVzHnvqyQy5HwQS7MqMjaGUWYfuEQ1dxJZDk6K5VqKQ"
+    },
+    {
+      "label": "bound-15",
+      "key_id": "ed25519:E1q7MBLhp41HmNgFcMyacTDtpacXYYmYqQkS2AHQDiRq",
+      "secret_key": "ed25519:3LK7x3bdwPVUomkovXjD2tGkxnNHWquNzmFWGXi15Lno6DATvc16648FA1bNf4nxQwyyFtkTtDfB7PzZhyTfYmDM"
+    },
+    {
+      "label": "bound-16",
+      "key_id": "ed25519:G765JgFbSP5AV4xtwaTZ27The1boFPC37i1RVaU2g9QB",
+      "secret_key": "ed25519:4jSarnH9iSqdAYfgNQLMXMTFADfeZCP95Rz14HUf7k46ARFYeM6fLveyVta5us8c8DiQWkFbY597NwgtK9d7Uu6X"
+    },
+    {
+      "label": "bound-17",
+      "key_id": "ed25519:FJaUiR2NUgUTGUPmER65KvFYmrTScMTtd8jwoceLLbWs",
+      "secret_key": "ed25519:3SnCLPhWLXEoqDqk8z7Xtqpg2vzFeSNnQSHfiZdxd2hekXaYJiaHZucHBPkZvo32MGQTqCbgv3fe6owSQvynnZx7"
+    },
+    {
+      "label": "bound-18",
+      "key_id": "ed25519:BNUD6UdAHXMNc6SPei9jrWkNJGzeJKoZvutqPPw7zgZS",
+      "secret_key": "ed25519:FLwYysvTmNRta4tYoLBU35NmDhPLHNPMtadQNwKvwppWKwc5LYG7nsga7tUFj3uJJXtkAKvYNQKRKMtSSAuvWdz"
+    },
+    {
+      "label": "bound-19",
+      "key_id": "ed25519:49PqUAWcaxo5mQnjVEE8i8VkRGYAXWjKQSEFrRdZ7i82",
+      "secret_key": "ed25519:4bV5FQtNGg4MVPXQbDnkQVng6zgBbWJqnTMGXnWrV1UzdjXyRuXouJvWNUJeFzpUotYuRhZmkWNYsVWkUbmGTnoC"
+    },
+    {
+      "label": "bound-20",
+      "key_id": "ed25519:6RSshx6pKW5NGhcjoGmT1PqqNgGdrS19GaEgPUPCTH8v",
+      "secret_key": "ed25519:2CEC2pHdzuWNN4ErqDuKZ9j59CqFqEAcmArFtvSVN6DBBDWwjJwN6UD7M2ZwuMqCWhR52c4NC9GHdKmX661i3cD8"
+    },
+    {
+      "label": "bound-21",
+      "key_id": "ed25519:5rTPJXLXGDiuZRdtD6ZrvNJVrKteNhe9daKAzjjGcrAM",
+      "secret_key": "ed25519:2dSX1yWPC9FBgKJ1gVUXcncVdcRwNLsn62EVTDeSDQoH2GDxMfQKqez5ZT8o5jFtJKDMCggriGJfjGopAriVr94M"
+    },
+    {
+      "label": "bound-22",
+      "key_id": "ed25519:J9CvV5hZCYH5vL2nC9PqcznmzA32qApu1UgYeHCqLTed",
+      "secret_key": "ed25519:5y2tjVkXa77T76iQiXuErAjPApcTjbkeHnrscgFWkko5hRZSqA8zLTfRjhfeZirXon4hcZzBL8fZv3325aSV4PBK"
     }
   ],
   "accept": [
@@ -2153,6 +2268,350 @@
           "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
         ],
         "unattested": []
+      }
+    },
+    {
+      "why": "a genesis whose operational key set holds 8 keys, the Core-1 limit (part 4)",
+      "require_attestation": false,
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020101",
+            "operational": {
+              "keys": [
+                "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+                "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+                "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+                "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+                "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+                "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+                "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+                "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:4k6oEFcCK1411HcQteB81VSP6x5gwugctdFJ8FWEfxTxMp2By8P8aW95CKAtDEHwaZtK9APMbEBura9d5EurspSg"
+            },
+            {
+              "key_id": "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+              "signature": "ed25519:3VJK7exydHdSCscPJr8fyLtv4Z6Jvsf2TMp3b8JawqRyDUAUbNFnSZ74qAWpjzrnSaaR5p7NHEjsgmBK1gE2dPZW"
+            },
+            {
+              "key_id": "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+              "signature": "ed25519:27cmkioRtFhK9G49B4akidpYhCXBXxp6MeG8Lye6Vok6oaLTAsRfbQkgZ5j1RXKkYv1vUPVEGQAdx4WjHVArVh71"
+            },
+            {
+              "key_id": "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+              "signature": "ed25519:4Nq6n3ZgV7DwRjDMZGJJFDTu6pBoeRsFBcohdymMvGocdujG2Zs8TBVW3vg339Q6XN9gPqqWEXVXfgqeUXP7L3f6"
+            },
+            {
+              "key_id": "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+              "signature": "ed25519:487isAqRoJ2Bes2Y1qdYen4j3x7g3cMpknv9eKBKYw4YxAnJoH11sTkLHbqp2Bw4dFXHzLGSxJAJ4Mn6SiCP6F2A"
+            },
+            {
+              "key_id": "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+              "signature": "ed25519:2nj6kXzPNhjwJgdrvRdnLVYFU35iBGBPoRcynncquJ63JwaZCmXjvKHyF2FQVcQwSdz2mk7pp2JngM6nHb27NFro"
+            },
+            {
+              "key_id": "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+              "signature": "ed25519:SQ3B26Kr7J9eX1Z8dqxVaLcN9JvvUJuMgYnr1sJetk4avGaZtwqcsVd24tVNTCPyTKRM8nTRNkmNJFPqVSXgEW3"
+            },
+            {
+              "key_id": "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+              "signature": "ed25519:3QqX3Svn3vBz9TuuwD95ttK7CfZyKmaM8hhDMrZ7uKnK5GwcA4j3mSMDoBTWDM9V6ym8LZdY4PLebmN1zCrRA9PZ"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:42dPPTh3HkdJ1t4ebDTHA69DywvuoyQsUU7JUH6v8utDaafgPX63tsjHQSSRZBPDH4tHW1TTH48MigS2CmBDQ3an"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "1bc4242f-b8cc-7c9e-aafa-fa0c5ffde214",
+            "genesis_digest": "1bc4242fb8cc7c9eaafafa0c5ffde214b6db218a8aea8f95782fc4c2ba5e90b9",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:HCtcBGmUq5yBeXUeH1GqLAEEA6tmFeJPxpjT6289owpvtcC3yqer77nEqoEGPUNyHW9LwqdAbC5QzeF2TC7DiUA"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:3ontCKsDgXKbBM2nd6Xbt7zxtWyPVnysXAyiC5x8oUny55yLrUpcZM5b3ZRxy2Xh4Wgv7m2gwtdWLZBobWp9UbNn"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000002000,
+            "transition": null,
+            "rehome": null,
+            "attestation": null
+          }
+        ]
+      },
+      "expect": {
+        "identity_id": "1bc4242f-b8cc-7c9e-aafa-fa0c5ffde214",
+        "genesis_digest": "1bc4242fb8cc7c9eaafafa0c5ffde214b6db218a8aea8f95782fc4c2ba5e90b9",
+        "resolver": {
+          "epoch": 0,
+          "id": "5e5e5e5e-0000-4000-8000-00000000000a",
+          "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+          "audience": "https://resolver.example"
+        },
+        "resolvers": [
+          {
+            "epoch": 0,
+            "id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example"
+          }
+        ],
+        "heads": [
+          {
+            "sequence": 0,
+            "head_digest": "9e3fe6bd2522bbc508b31c5038d86fc6240285474719a6d749e03b37c6c16bee",
+            "effective_at": 1800000002000,
+            "epoch": 0,
+            "attested": false
+          }
+        ],
+        "operational": {
+          "keys": [
+            "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+            "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+            "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+            "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+            "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+            "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+            "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+            "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH"
+          ],
+          "threshold": 1
+        },
+        "recovery": {
+          "keys": [
+            "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+          ],
+          "threshold": 1
+        },
+        "retired_keys": [],
+        "unattested": [
+          0
+        ]
+      }
+    },
+    {
+      "why": "a genesis carrying 24 genuine signatures, the Core-1 limit (part 4): every key of both sets and 22 keys that hold no control",
+      "require_attestation": false,
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020101",
+            "operational": {
+              "keys": [
+                "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:r8cKz5ZfUPRcKm6VdmX98AtLXwpkuSJoZXt4VdmwwHFjKNStNMfrVEnkT8dFZW4mAytGSfA2zQd2wR5mfLQc7uT"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:4xS2EumEy5stmPmxaWBerVfcNwzYu9FRntFh5iLNv6CZDjKq7xA2M1Ra971Rq1Vygv1zwHEnGAZKSD8avsX5qSTX"
+            },
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:2xSudCFdizeB6X2tKMyk74n6i8y5H9vxRgfBGYJp9jTn9vKhX1cHuZS1Y8Vp9ZH5g34fxZuPf4icwWwxzo3RPqvG"
+            },
+            {
+              "key_id": "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+              "signature": "ed25519:3jPCDTXej1ReEoM8uE7LPsxtKZUQDofgQVQvXTvxjAKkDHFAJihuq9fe6UTSzhGvEF5t5YoCZouXQo6p83QHPsYg"
+            },
+            {
+              "key_id": "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+              "signature": "ed25519:3N2qtGxMJxLiXcu7bg9tNtv5xHxWmqggzkr4Vn7UAY8q4LgkzoAkEU1bD8wF9rZyGkvoWJanBVUSVFFa3LuBjN3n"
+            },
+            {
+              "key_id": "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+              "signature": "ed25519:2CsBxxuDUMkznE6CDqYgBzaC8LC5o7NhB1V7TrpNJ8EE1cQ7HDVJ8TXeiBptAzpvDknEgXKidKGhgepnjKsa867A"
+            },
+            {
+              "key_id": "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+              "signature": "ed25519:3si3NWe3qe3kujx9us61YAJHMvmqso5MybE2Gi7ibXKnCTBEeFC1xjdoLUJ47YKWtdVUAoGSPXeQGZJ7JutVpsVo"
+            },
+            {
+              "key_id": "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+              "signature": "ed25519:4xTByi1LD1WXSpwNf1JKDD9Tu5Rm8JSoV3JQzBGW8PV9SNE5US5Q7FERmykyTwcgBBPxHtKtbjhsqJrkGaaGCRab"
+            },
+            {
+              "key_id": "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+              "signature": "ed25519:52UiZYHKqZ3fTL1xvMY3v4Hzz1Pya5ZELtvnLjCftZxmQeYxfRMM1MhUnQ5vhvFZiMCdUUTMrnevxRB8g4rt73fe"
+            },
+            {
+              "key_id": "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+              "signature": "ed25519:4nfWjdfxUmQPaBnL3qEG5Wct1sH3o9EpF1W5McbR7MBZiy6jQMjchVBWGvypgRnuGm67uLeYVHRMotw9iS2o3JPY"
+            },
+            {
+              "key_id": "ed25519:9kBBXEDCceqAAgxMp1Gm19hjXyYFDN4s1bbbQScQvubH",
+              "signature": "ed25519:3BEyixetpjGn5eKv8HGZx2a8ZtaAVsnMhcqScfgeEwrvFgGqQHytfGGPQCzhbrfK2EaK7K5AxZkevinKk43jaYnj"
+            },
+            {
+              "key_id": "ed25519:5QRP5tor3fou11ARjiFmUSdhZEGqmQACAEyZgGhDjLdB",
+              "signature": "ed25519:4d85jCuzuEBdXB3fQibRpTDhBjK4ihc9oqQ4yjZQ5VNesWXQN1qdfSgrJ9UKEurajwgc1qTUu7h6PASyFqcYV9HP"
+            },
+            {
+              "key_id": "ed25519:8mWF1KJkM1ycMB15oPM1qLxRPf3RgbTFpC1sfHHbZ1nK",
+              "signature": "ed25519:4xyRNHJDqGRYSxdwEwHkU1JTK277QTfNKMf2eYB3cL4i2Wi2SA7sKFyCbHqvexo9tfH796b5xt7B1Q5eL3ws3rNs"
+            },
+            {
+              "key_id": "ed25519:5m6ZwpNUodwkqZfQwszGqhQAMHd7ohLWGSq14fq91fHF",
+              "signature": "ed25519:3BFMUno2HPiNFkmuXpAEXQwNf4pREQSz2bbUNLUancjCiXK23aVwsKMeCUcs5ZxpTGvyQMrCARFPhCFp4habAyC7"
+            },
+            {
+              "key_id": "ed25519:BtvwXoGvppcVhFYvTbXpsBp5UsEN51mN4zNo9cGnMq9n",
+              "signature": "ed25519:4kKhNH1Z5kVMNY1qCToGTKKhHYV2qYPuDvZvCm9Anfj9LZpj4XgfLiN5greh1ryQbjK65nnTYnE3hZpLHNTsCUq7"
+            },
+            {
+              "key_id": "ed25519:J8CjRASqbbabtYCeM1kP33C39MskUQRrGY7jKv6hi8tG",
+              "signature": "ed25519:4Vrg7YkEtnrXM3D6nBU6pP49brXS73HTNfXYMKZdZLy5zHdFHuCujKsg2ztebzc1Ywk1rb3AKXv5GFutmGZLPibw"
+            },
+            {
+              "key_id": "ed25519:Bwb5w5UvfKNZvmVetCdbVszEmM92oxJTyH18QSKNQCPU",
+              "signature": "ed25519:3VL1dATc9zGAs1Ues5BiRoHVBnKYWJyuLa5NdriKLCMgsHvuR2dP82dcC4JCS1BoehswUmVE8WYPmqcXSXa4DYTW"
+            },
+            {
+              "key_id": "ed25519:E1q7MBLhp41HmNgFcMyacTDtpacXYYmYqQkS2AHQDiRq",
+              "signature": "ed25519:3G7pfybpWdPG3D7YJEaFsddkgy4Zc6hxySVqWvWdFGZSjRt2CF5cbokSQsCjKVEoTzv33fMBE4LQ9qJozfBkNUcK"
+            },
+            {
+              "key_id": "ed25519:G765JgFbSP5AV4xtwaTZ27The1boFPC37i1RVaU2g9QB",
+              "signature": "ed25519:4ctQjN6GnLATm3PQMc8GjUXAM7yMRS5Ru3Cndfx3bH4PqgMNuKpSZqwbqVBSPFWmvdrWzUfbzaBACdPmauyvquLZ"
+            },
+            {
+              "key_id": "ed25519:FJaUiR2NUgUTGUPmER65KvFYmrTScMTtd8jwoceLLbWs",
+              "signature": "ed25519:2Cq1u97NeYgdGmF9XjWejzsns5o7Hgqmrf1JPwb9YeH9B9GSPvz65hG3SbvrNZsfFZMATyi8g6XRprfg7Jk3dYbL"
+            },
+            {
+              "key_id": "ed25519:BNUD6UdAHXMNc6SPei9jrWkNJGzeJKoZvutqPPw7zgZS",
+              "signature": "ed25519:3UrA6XYkSLX1JSdRZUnJvg9koWe6f1v7aeE1SQDREnS3r7dGpnRRiZ9bqjEt7JKxC4GDyr2T2sGwZ6vxM2phCqBk"
+            },
+            {
+              "key_id": "ed25519:49PqUAWcaxo5mQnjVEE8i8VkRGYAXWjKQSEFrRdZ7i82",
+              "signature": "ed25519:2oyDT9SrpB7BUDMsphpsiY5M2K9uHQx3n2bQqN5rhyWQStvViXSMAQHbezvsNzrAbYNm8yjnD11RLMNDu9Lg8i4q"
+            },
+            {
+              "key_id": "ed25519:6RSshx6pKW5NGhcjoGmT1PqqNgGdrS19GaEgPUPCTH8v",
+              "signature": "ed25519:3gLUntRSd8jJowDV9RWqv3wztfkpwf9rLR7tTtHozdiwgwaoSKK9zvxpwVfXojrx3pmb4tQBr69EizR42qS3nCKd"
+            },
+            {
+              "key_id": "ed25519:5rTPJXLXGDiuZRdtD6ZrvNJVrKteNhe9daKAzjjGcrAM",
+              "signature": "ed25519:5GJ1wRvKT2waADkpEGEnXCmP85Ph84XbE3EwRjzMRqYBqP74XUmspKscnpXnZ4qujjKUacq7mnWFMpNzdvQ2UM6k"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "a0dcf606-27df-35c2-7f7a-3ca402a336f0",
+            "genesis_digest": "a0dcf60627df35c27f7a3ca402a336f009194ac37cc47342c762744e16573921",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:5qCXPBRrjP1HsGveW8cZ5AuFnf9TGE7bVQhscVfxq7AoGU9v17vDRuA9J8zJBmsKCSjsazwh73cUVzoFzgJQySRC"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:2VyhgUDKe6ymsnFHSf4q5KgT5aa6NTt6A35vCCpybenWWJjHq75CEQYXdnEe2xKWvtS1rzzDqpDibeFp4tUh6RdQ"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000002000,
+            "transition": null,
+            "rehome": null,
+            "attestation": null
+          }
+        ]
+      },
+      "expect": {
+        "identity_id": "a0dcf606-27df-35c2-7f7a-3ca402a336f0",
+        "genesis_digest": "a0dcf60627df35c27f7a3ca402a336f009194ac37cc47342c762744e16573921",
+        "resolver": {
+          "epoch": 0,
+          "id": "5e5e5e5e-0000-4000-8000-00000000000a",
+          "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+          "audience": "https://resolver.example"
+        },
+        "resolvers": [
+          {
+            "epoch": 0,
+            "id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "key_id": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example"
+          }
+        ],
+        "heads": [
+          {
+            "sequence": 0,
+            "head_digest": "ba3b4bd4ac3d25244e211cf0ec6fb1c538eeeb14770e1d8ecceeda76211120af",
+            "effective_at": 1800000002000,
+            "epoch": 0,
+            "attested": false
+          }
+        ],
+        "operational": {
+          "keys": [
+            "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ"
+          ],
+          "threshold": 1
+        },
+        "recovery": {
+          "keys": [
+            "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+          ],
+          "threshold": 1
+        },
+        "retired_keys": [],
+        "unattested": [
+          0
+        ]
       }
     }
   ],
@@ -12641,6 +13100,266 @@
                 }
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "why": "a genesis whose operational key set holds 9 keys, one past the Core-1 limit (part 4), every key proving possession",
+      "require_attestation": false,
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020101",
+            "operational": {
+              "keys": [
+                "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+                "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+                "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+                "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+                "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+                "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+                "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+                "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+                "ed25519:9kBBXEDCceqAAgxMp1Gm19hjXyYFDN4s1bbbQScQvubH"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:4Kzbkkt1W66L5FRikTXApUMKJesK4sdmSonf1ChZzd3WVoAFxJKjdQ8D8ibNp43H2EQvE8jCmZi2oiFazJCHh6Qw"
+            },
+            {
+              "key_id": "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+              "signature": "ed25519:5wDXBSBypjWUzcQiDypoK9KGE5peSn4KLBXCfez8scW6oMPXo4P1sRMRRWPN5DUU2AkdhMs8t5TfTPiJyPULcWbr"
+            },
+            {
+              "key_id": "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+              "signature": "ed25519:2pVgrBpoVDPQHWbX6Z6pn3JsohfR4heNi6cY8dL8rzytHX5tRUcV1psGjUhkiVVkUngYnLF4rYZ4tUDibXkF4jQx"
+            },
+            {
+              "key_id": "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+              "signature": "ed25519:5MwtWX7DKUbtf5PwYXT7VPgutEmjHD74GYTKdyom7RMa4JXC2aZg9LBiMf31jyopH5BqCd5EpRA9HkAUMJcK8h1E"
+            },
+            {
+              "key_id": "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+              "signature": "ed25519:HgHZaJGzXNCXBxiZA77NwZwdkDRkTxax5JRyDHfSNHTszb2Sx5CFKGeAPx9q7uAUpThjXrn8mzQHS511fJdqy2B"
+            },
+            {
+              "key_id": "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+              "signature": "ed25519:5sEJfmivAaetxyZbvauz3hv4kzzL2EVtgM7NTxPdzXesKCRF4dGJEaVJSYKHNDtWUTr2kcHAghLDjQqDp6P8cJhr"
+            },
+            {
+              "key_id": "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+              "signature": "ed25519:5YECj8pwcBK4abG241fmN5uvYXSWWjmmuSNLLWtmFHRnTM96mtkHciEAsesQ2eedHS5fqHM1Xx7tALTr7ATqiHXR"
+            },
+            {
+              "key_id": "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+              "signature": "ed25519:4AzeiYe6fAhty63NqgCM17RxSAURNBKV5KzNPMGB9EqeRVwarAst3DBzDBJQEbsnQiVGK8j94FgxWsTXXe1rhb8Z"
+            },
+            {
+              "key_id": "ed25519:9kBBXEDCceqAAgxMp1Gm19hjXyYFDN4s1bbbQScQvubH",
+              "signature": "ed25519:4X8YY2zTqEmCFJb4VEGoiV3mGqxoH1vHkQcs8tCcyR8oJYFVjXWGqqVW1MWjQckjLRSRsLB81uZr28spHXg2Jf1Q"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:3V5zQDgTsNEGZ5nwrvFPCEy1qzssJmaWxKzS7n2QkRZVUwCg9WkR9RGzwgvPiecoF1HzLCGu139YZWfsMVkkUV2F"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "536e0bff-6d9e-73a2-c263-03ab877e5c04",
+            "genesis_digest": "536e0bff6d9e73a2c26303ab877e5c047bb6ae4843b10a681692f70bb007e518",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:5Wk7fnhTbjZAzhHD6eZXNuruoGaKVC6Lz4koJmmJswQ61XfEdtXFHzqdAd9oUVPG7gx7SD1GhzkXG64pyHCYW9eu"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:3csjoJRRuEuUazJgtxQ7kudoX2fVNpD6t9ACHT31Qd3TJVWiwebUXn9VXavhCB7VkXcx35TTLmUZPoWPDfVWh8us"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000002000,
+            "transition": null,
+            "rehome": null,
+            "attestation": null
+          }
+        ]
+      }
+    },
+    {
+      "why": "a genesis carrying 25 genuine signatures, one past the Core-1 limit (part 4)",
+      "require_attestation": false,
+      "log": {
+        "format": "dtp-identity-log-2",
+        "genesis": {
+          "body": {
+            "nonce": "0f0e0d0c-0b0a-4908-8706-050403020101",
+            "operational": {
+              "keys": [
+                "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ"
+              ],
+              "threshold": 1
+            },
+            "recovery": {
+              "keys": [
+                "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW"
+              ],
+              "threshold": 1
+            }
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:r8cKz5ZfUPRcKm6VdmX98AtLXwpkuSJoZXt4VdmwwHFjKNStNMfrVEnkT8dFZW4mAytGSfA2zQd2wR5mfLQc7uT"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:4xS2EumEy5stmPmxaWBerVfcNwzYu9FRntFh5iLNv6CZDjKq7xA2M1Ra971Rq1Vygv1zwHEnGAZKSD8avsX5qSTX"
+            },
+            {
+              "key_id": "ed25519:431GacnzF5YeGDG4cRrvjQjADiKTEzr17cCS9bQf3vmn",
+              "signature": "ed25519:2xSudCFdizeB6X2tKMyk74n6i8y5H9vxRgfBGYJp9jTn9vKhX1cHuZS1Y8Vp9ZH5g34fxZuPf4icwWwxzo3RPqvG"
+            },
+            {
+              "key_id": "ed25519:JB5MAz7LV9SSyAyZvx6Jb2nY9LQnq1Sd7TSNTBGyQfYp",
+              "signature": "ed25519:3jPCDTXej1ReEoM8uE7LPsxtKZUQDofgQVQvXTvxjAKkDHFAJihuq9fe6UTSzhGvEF5t5YoCZouXQo6p83QHPsYg"
+            },
+            {
+              "key_id": "ed25519:GdpDPbASKYcW232KanCNnqJ5Hf1RLrnoejPrbxLA31XS",
+              "signature": "ed25519:3N2qtGxMJxLiXcu7bg9tNtv5xHxWmqggzkr4Vn7UAY8q4LgkzoAkEU1bD8wF9rZyGkvoWJanBVUSVFFa3LuBjN3n"
+            },
+            {
+              "key_id": "ed25519:8aWVR93BENLzcDFDBHXuWgRdwubogJkakuvF64ASHon2",
+              "signature": "ed25519:2CsBxxuDUMkznE6CDqYgBzaC8LC5o7NhB1V7TrpNJ8EE1cQ7HDVJ8TXeiBptAzpvDknEgXKidKGhgepnjKsa867A"
+            },
+            {
+              "key_id": "ed25519:BUJWYsVLJN4g8bPno6SudHSiu31N6CHNytx4kWJokzuK",
+              "signature": "ed25519:3si3NWe3qe3kujx9us61YAJHMvmqso5MybE2Gi7ibXKnCTBEeFC1xjdoLUJ47YKWtdVUAoGSPXeQGZJ7JutVpsVo"
+            },
+            {
+              "key_id": "ed25519:EurF3co1vKD9q6qdzXCgaCGK6jDayAbVf4q7bGsVsFPJ",
+              "signature": "ed25519:4xTByi1LD1WXSpwNf1JKDD9Tu5Rm8JSoV3JQzBGW8PV9SNE5US5Q7FERmykyTwcgBBPxHtKtbjhsqJrkGaaGCRab"
+            },
+            {
+              "key_id": "ed25519:DM44WyfdD1J6r7tWdvzLz4h5HrSSD2KfctHeqknoCt7U",
+              "signature": "ed25519:52UiZYHKqZ3fTL1xvMY3v4Hzz1Pya5ZELtvnLjCftZxmQeYxfRMM1MhUnQ5vhvFZiMCdUUTMrnevxRB8g4rt73fe"
+            },
+            {
+              "key_id": "ed25519:7xUNLkBfYA8qEDZjWvTD3G2SFoad5arQT5xBKJfdBYdH",
+              "signature": "ed25519:4nfWjdfxUmQPaBnL3qEG5Wct1sH3o9EpF1W5McbR7MBZiy6jQMjchVBWGvypgRnuGm67uLeYVHRMotw9iS2o3JPY"
+            },
+            {
+              "key_id": "ed25519:9kBBXEDCceqAAgxMp1Gm19hjXyYFDN4s1bbbQScQvubH",
+              "signature": "ed25519:3BEyixetpjGn5eKv8HGZx2a8ZtaAVsnMhcqScfgeEwrvFgGqQHytfGGPQCzhbrfK2EaK7K5AxZkevinKk43jaYnj"
+            },
+            {
+              "key_id": "ed25519:5QRP5tor3fou11ARjiFmUSdhZEGqmQACAEyZgGhDjLdB",
+              "signature": "ed25519:4d85jCuzuEBdXB3fQibRpTDhBjK4ihc9oqQ4yjZQ5VNesWXQN1qdfSgrJ9UKEurajwgc1qTUu7h6PASyFqcYV9HP"
+            },
+            {
+              "key_id": "ed25519:8mWF1KJkM1ycMB15oPM1qLxRPf3RgbTFpC1sfHHbZ1nK",
+              "signature": "ed25519:4xyRNHJDqGRYSxdwEwHkU1JTK277QTfNKMf2eYB3cL4i2Wi2SA7sKFyCbHqvexo9tfH796b5xt7B1Q5eL3ws3rNs"
+            },
+            {
+              "key_id": "ed25519:5m6ZwpNUodwkqZfQwszGqhQAMHd7ohLWGSq14fq91fHF",
+              "signature": "ed25519:3BFMUno2HPiNFkmuXpAEXQwNf4pREQSz2bbUNLUancjCiXK23aVwsKMeCUcs5ZxpTGvyQMrCARFPhCFp4habAyC7"
+            },
+            {
+              "key_id": "ed25519:BtvwXoGvppcVhFYvTbXpsBp5UsEN51mN4zNo9cGnMq9n",
+              "signature": "ed25519:4kKhNH1Z5kVMNY1qCToGTKKhHYV2qYPuDvZvCm9Anfj9LZpj4XgfLiN5greh1ryQbjK65nnTYnE3hZpLHNTsCUq7"
+            },
+            {
+              "key_id": "ed25519:J8CjRASqbbabtYCeM1kP33C39MskUQRrGY7jKv6hi8tG",
+              "signature": "ed25519:4Vrg7YkEtnrXM3D6nBU6pP49brXS73HTNfXYMKZdZLy5zHdFHuCujKsg2ztebzc1Ywk1rb3AKXv5GFutmGZLPibw"
+            },
+            {
+              "key_id": "ed25519:Bwb5w5UvfKNZvmVetCdbVszEmM92oxJTyH18QSKNQCPU",
+              "signature": "ed25519:3VL1dATc9zGAs1Ues5BiRoHVBnKYWJyuLa5NdriKLCMgsHvuR2dP82dcC4JCS1BoehswUmVE8WYPmqcXSXa4DYTW"
+            },
+            {
+              "key_id": "ed25519:E1q7MBLhp41HmNgFcMyacTDtpacXYYmYqQkS2AHQDiRq",
+              "signature": "ed25519:3G7pfybpWdPG3D7YJEaFsddkgy4Zc6hxySVqWvWdFGZSjRt2CF5cbokSQsCjKVEoTzv33fMBE4LQ9qJozfBkNUcK"
+            },
+            {
+              "key_id": "ed25519:G765JgFbSP5AV4xtwaTZ27The1boFPC37i1RVaU2g9QB",
+              "signature": "ed25519:4ctQjN6GnLATm3PQMc8GjUXAM7yMRS5Ru3Cndfx3bH4PqgMNuKpSZqwbqVBSPFWmvdrWzUfbzaBACdPmauyvquLZ"
+            },
+            {
+              "key_id": "ed25519:FJaUiR2NUgUTGUPmER65KvFYmrTScMTtd8jwoceLLbWs",
+              "signature": "ed25519:2Cq1u97NeYgdGmF9XjWejzsns5o7Hgqmrf1JPwb9YeH9B9GSPvz65hG3SbvrNZsfFZMATyi8g6XRprfg7Jk3dYbL"
+            },
+            {
+              "key_id": "ed25519:BNUD6UdAHXMNc6SPei9jrWkNJGzeJKoZvutqPPw7zgZS",
+              "signature": "ed25519:3UrA6XYkSLX1JSdRZUnJvg9koWe6f1v7aeE1SQDREnS3r7dGpnRRiZ9bqjEt7JKxC4GDyr2T2sGwZ6vxM2phCqBk"
+            },
+            {
+              "key_id": "ed25519:49PqUAWcaxo5mQnjVEE8i8VkRGYAXWjKQSEFrRdZ7i82",
+              "signature": "ed25519:2oyDT9SrpB7BUDMsphpsiY5M2K9uHQx3n2bQqN5rhyWQStvViXSMAQHbezvsNzrAbYNm8yjnD11RLMNDu9Lg8i4q"
+            },
+            {
+              "key_id": "ed25519:6RSshx6pKW5NGhcjoGmT1PqqNgGdrS19GaEgPUPCTH8v",
+              "signature": "ed25519:3gLUntRSd8jJowDV9RWqv3wztfkpwf9rLR7tTtHozdiwgwaoSKK9zvxpwVfXojrx3pmb4tQBr69EizR42qS3nCKd"
+            },
+            {
+              "key_id": "ed25519:5rTPJXLXGDiuZRdtD6ZrvNJVrKteNhe9daKAzjjGcrAM",
+              "signature": "ed25519:5GJ1wRvKT2waADkpEGEnXCmP85Ph84XbE3EwRjzMRqYBqP74XUmspKscnpXnZ4qujjKUacq7mnWFMpNzdvQ2UM6k"
+            },
+            {
+              "key_id": "ed25519:J9CvV5hZCYH5vL2nC9PqcznmzA32qApu1UgYeHCqLTed",
+              "signature": "ed25519:39e7bWpeyUf1CHek8JcAx2etgi7rtwNgJQPVqGvyD7rSvXVEe3FvkVNgGsyCucHPsQB5MHCrDaHYMdqneZLVGZAD"
+            }
+          ]
+        },
+        "enrollment": {
+          "body": {
+            "identity_id": "a0dcf606-27df-35c2-7f7a-3ca402a336f0",
+            "genesis_digest": "a0dcf60627df35c27f7a3ca402a336f009194ac37cc47342c762744e16573921",
+            "resolver_id": "5e5e5e5e-0000-4000-8000-00000000000a",
+            "resolver_key": "ed25519:H4evdAenbYzifa7fmyYyozQUePync6qsguvTA4p9ygbx",
+            "audience": "https://resolver.example",
+            "nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "issued_at": 1800000000000,
+            "expires_at": 1800000300000
+          },
+          "signatures": [
+            {
+              "key_id": "ed25519:CNBHzFJTf39qgceuVjLBDNaGjNHKERLEax3ahc71MYWJ",
+              "signature": "ed25519:5qCXPBRrjP1HsGveW8cZ5AuFnf9TGE7bVQhscVfxq7AoGU9v17vDRuA9J8zJBmsKCSjsazwh73cUVzoFzgJQySRC"
+            },
+            {
+              "key_id": "ed25519:HTco7u8KHFZPRrJALvReCgN2c4hvQ1i5NUYEHb2QaRFW",
+              "signature": "ed25519:2VyhgUDKe6ymsnFHSf4q5KgT5aa6NTt6A35vCCpybenWWJjHq75CEQYXdnEe2xKWvtS1rzzDqpDibeFp4tUh6RdQ"
+            }
+          ]
+        },
+        "entries": [
+          {
+            "effective_at": 1800000002000,
+            "transition": null,
+            "rehome": null,
+            "attestation": null
           }
         ]
       }

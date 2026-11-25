@@ -105,8 +105,8 @@ export async function signRecord(body: RecordBody, secretKeys: string[]): Promis
  * then the body's structure (`invalid_record`), then, when the caller names the profile it expects, the profile
  * digest (`unexpected_profile`). Returns the record, the key ids that signed and the record digest.
  */
-export async function verifyRecord(signed: unknown, expected: { profile?: string } = {}, limits: { maxBytes?: number } = {}): Promise<{ record: RecordBody; signers: Set<string>; digest: string }> {
-  const { body, signers } = await verifyEnvelope(RECORD_DOMAIN, signed, limits);
+export async function verifyRecord(signed: unknown, expected: { profile?: string } = {}): Promise<{ record: RecordBody; signers: Set<string>; digest: string }> {
+  const { body, signers } = await verifyEnvelope(RECORD_DOMAIN, signed);
   const record = parseRecord(body);
   if (expected.profile !== undefined && record.profile !== expected.profile) fail("unexpected_profile", `the record is of profile ${record.profile}, not ${expected.profile}`);
   return { record, signers, digest: await recordDigest(signed as Signed<RecordBody>) };

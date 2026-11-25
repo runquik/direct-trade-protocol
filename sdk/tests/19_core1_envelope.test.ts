@@ -3,11 +3,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CORE1_DOMAINS, EnvelopeError, meetsQuorum, signEnvelope, verifyEnvelope } from "../src/core1/envelope.ts";
+import { CORE1_DOMAINS, EnvelopeError, MAX_SIGNATURES, MAX_SIGNING_INPUT_BYTES, meetsQuorum, signEnvelope, signingInput, verifyEnvelope } from "../src/core1/envelope.ts";
 import { FloatNotAllowedError } from "../src/canonical.ts";
 import { generateKeyPair } from "../src/keys.ts";
 import { UnsafeJsonError, parseUntrustedJson } from "../src/safe-json.ts";
-import { signIdentity } from "../src/foundation/identity.ts";
+import { IDENTITY_BOUNDS, signIdentity } from "../src/foundation/identity.ts";
 
 const vectors = parseUntrustedJson(readFileSync(new URL("../../spec/core-1/vectors/envelope.json", import.meta.url), "utf8")) as {
   accept: { why: string; domain: string; envelope: unknown; signers: string[] }[];
@@ -16,7 +16,7 @@ const vectors = parseUntrustedJson(readFileSync(new URL("../../spec/core-1/vecto
 const keys = JSON.parse(readFileSync(new URL("../../spec/vectors/keys.json", import.meta.url), "utf8"));
 
 test("conformance vectors: every accepted envelope verifies with its signers, every refused one with its code", async () => {
-  assert.ok(vectors.accept.length >= 2 && vectors.reject.length >= 12);
+  assert.ok(vectors.accept.length >= 5 && vectors.reject.length >= 16);
   for (const v of vectors.accept) {
     const { signers } = await verifyEnvelope(v.domain, v.envelope);
     assert.deepEqual([...signers].sort(), [...v.signers].sort(), v.why);
@@ -44,6 +44,24 @@ test("signing is deterministic, refuses what a receiver would refuse, and never 
   await assert.rejects(signEnvelope("DTP-RECORD-1", body, [keys.secret_key, keys.secret_key]), EnvelopeError);
   await assert.rejects(signEnvelope("record", body, [keys.secret_key]), EnvelopeError);
   await assert.rejects(signEnvelope("DTP-RECORD-1", body, []), EnvelopeError);
+});
+
+test("the signer refuses what the verifier refuses: a signing input above 65536 bytes and more than 24 keys (#218)", async () => {
+  const base = signingInput("DTP-RECORD-1", { note: "" }).length;
+  const at = { note: "x".repeat(MAX_SIGNING_INPUT_BYTES - base) }, past = { note: "x".repeat(MAX_SIGNING_INPUT_BYTES - base + 1) };
+  await verifyEnvelope("DTP-RECORD-1", await signEnvelope("DTP-RECORD-1", at, [keys.secret_key]));
+  await assert.rejects(signEnvelope("DTP-RECORD-1", past, [keys.secret_key]), (e: unknown) => e instanceof EnvelopeError && e.code === "invalid_envelope");
+  const pairs = await Promise.all(Array.from({ length: MAX_SIGNATURES + 1 }, () => generateKeyPair()));
+  await verifyEnvelope("DTP-RECORD-1", await signEnvelope("DTP-RECORD-1", { n: 1 }, pairs.slice(0, MAX_SIGNATURES).map(k => k.secretKey)));
+  await assert.rejects(signEnvelope("DTP-RECORD-1", { n: 1 }, pairs.map(k => k.secretKey)), (e: unknown) => e instanceof EnvelopeError && e.code === "invalid_envelope");
+  // The identity signer holds the identity bounds of part 4 the same way.
+  await assert.rejects(signIdentity("DTP-PERSON-GENESIS-1", { n: 1 }, pairs), /1 to 24 keys sign/);
+  await assert.rejects(signIdentity("DTP-PERSON-GENESIS-1", { note: "x".repeat(IDENTITY_BOUNDS.signing_input_bytes) }, [pairs[0]]), /identity payload too large/);
+});
+
+test("the bounds are Core-1's, not the caller's: verifyEnvelope takes no limit options (#218)", () => {
+  assert.equal(verifyEnvelope.length, 2);
+  assert.deepEqual({ ...IDENTITY_BOUNDS }, { signing_input_bytes: 16_384, signatures: 24, keys_per_set: 8, key_id_length: 64, signature_text: 128 });
 });
 
 test("a threshold is several signatures over one input; the quorum is the caller's rule", async () => {

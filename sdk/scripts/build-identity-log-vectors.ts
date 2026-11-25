@@ -91,6 +91,24 @@ for (const [n, at] of [[1, T + 500_000], [2, T + 501_000]] as const) {
 const retiredFork = await buildIdentityLog({ ...retiredParts, entries: (await buildIdentityLog(retiredParts, k['thief-resolver-1'])).entries }, k['thief-resolver-2']);
 
 type Accept = [string, IdentityLog, boolean];
+
+// Core-1 part 4 (#218): the fixed identity bounds, at each bound and one past it. 1 to 8 keys per key set and 1 to 24
+// signatures per identity document. Past a bound the reference signer refuses, so these genesis documents are signed
+// byte by byte, and the logs are assembled without the builder: every signature is genuine, so a verifier that
+// skipped the bound would accept them. The logs at the bound are assembled the same way, which shows the assembly is sound.
+const boundLabels = Array.from({ length: 23 }, (_, i) => `bound-${i}`);
+const bound = await Promise.all(boundLabels.map(fixedKey));
+async function boundLog(operational: KeyPair[], extra: KeyPair[]): Promise<IdentityLog> {
+  const body = { nonce: '0f0e0d0c-0b0a-4908-8706-050403020101', operational: { keys: operational.map(x => x.keyId), threshold: 1 }, recovery: { keys: [rec(0).keyId], threshold: 1 } };
+  const bytes = canonicalBytes({ domain: 'DTP-PERSON-GENESIS-1', body }), signers = [...operational, rec(0), ...extra];
+  const signed: Signed<typeof body> = { body, signatures: await Promise.all(signers.map(async x => ({ key_id: x.keyId, signature: encodeSignature(await signBytes(x.secretKey, bytes)) }))) };
+  const genesis_digest = await sha256Hex(bytes), identity_id = `${genesis_digest.slice(0, 8)}-${genesis_digest.slice(8, 12)}-${genesis_digest.slice(12, 16)}-${genesis_digest.slice(16, 20)}-${genesis_digest.slice(20, 32)}`;
+  const enrollment = await signIdentity('DTP-IDENTITY-ENROLLMENT-1', { identity_id, genesis_digest, resolver_id: resolverId, resolver_key: k.resolver.keyId, audience, nonce: 'e'.repeat(64), issued_at: T, expires_at: T + 300_000 }, [operational[0], rec(0)]);
+  return { format: IDENTITY_LOG_FORMAT, genesis: signed as never, enrollment, entries: [{ effective_at: at0, transition: null, rehome: null, attestation: null }] };
+}
+const eightKeys = await boundLog(bound.slice(0, 8), []), nineKeys = await boundLog(bound.slice(0, 9), []);
+const twentyFour = await boundLog([op(0)], bound.slice(0, 22)), twentyFive = await boundLog([op(0)], bound.slice(0, 23));
+if (twentyFour.genesis.signatures.length !== 24 || twentyFive.genesis.signatures.length !== 25 || nineKeys.genesis.body.operational.keys.length !== 9) throw new Error('generator: a bound case is not at its bound');
 const accept: Accept[] = [
   ['a genesis-only log, attested', genesisOnly, true],
   ['rotation, recovery and a recovery-policy change, every head attested; heads 1 and 3 took effect at the lease barrier, after acceptance', attested, true],
@@ -99,6 +117,8 @@ const accept: Accept[] = [
   ['a move to a second resolver, signed by the recovery quorum alone, then a recovery there; heads before the move are attested by the first resolver, the move and what follows by the second', moved, true],
   ['the same move with no attestations', movedBare, false],
   ['a resolver key rotation: a move to the same resolver id under a new key', sameResolverNewKey, true],
+  ['a genesis whose operational key set holds 8 keys, the Core-1 limit (part 4)', eightKeys, false],
+  ['a genesis carrying 24 genuine signatures, the Core-1 limit (part 4): every key of both sets and 22 keys that hold no control', twentyFour, false],
 ];
 const reject: Accept[] = [
   ['unattested heads where the verifier requires attestation', bare, true],
@@ -149,6 +169,8 @@ const reject: Accept[] = [
   ['the format 1 encoding of a history without moves, every head attested: format 1 is withdrawn (Core-1, part 4), so a verifier refuses it whatever its contents', withdrawn(attested), true],
   ['a format 1 log carrying a move', await damaged(moved, l => { (l as { format: string }).format = WITHDRAWN_IDENTITY_LOG_FORMAT; }), false],
   ['after a move, a rotation signed with keys retired before it', await damaged(movedBare, async l => { l.entries.push({ effective_at: moveAt + 400_000, rehome: null, attestation: null, transition: await signIdentity<Transition>('DTP-IDENTITY-TRANSITION-1', { identity_id: id, expected_digest: (await verifyIdentityLog(clone(movedBare), { require_attestation: false })).head_digest, sequence: 6, kind: 'rotate', operational: { keys: [k.stranger.keyId], threshold: 1 }, recovery: { keys: [rec(1).keyId], threshold: 1 }, issued_at: moveAt + 400_000, expires_at: moveAt + 700_000 }, [op(1), k.stranger]) }); }), false],
+  ['a genesis whose operational key set holds 9 keys, one past the Core-1 limit (part 4), every key proving possession', nineKeys, false],
+  ['a genesis carrying 25 genuine signatures, one past the Core-1 limit (part 4)', twentyFive, false],
 ];
 type Pair = [string, IdentityLog, IdentityLog, ReturnType<typeof precedence>];
 const pairs: Pair[] = [
@@ -277,7 +299,7 @@ const out = {
   description: 'Portable identity log. A verifier MUST accept every log under "accept" under the stated attestation policy and derive exactly the expected values, and MUST refuse every log under "reject", including every log in the withdrawn format 1 ("withdrawn_format"). A relying party holding the pin under "admission" (and, where "pinned" is not null, the log it holds for that pin, which ends at the pinned head, and the rehome refusals under "refusals" that it holds for the identity) MUST reach exactly the expected judgement, and MUST answer each "push" message with exactly the expected acknowledgment under the same convention. A verifier MUST accept every refusal under "refusals.accept", refuse every one under "refusals.reject", and reach the expected comparison under "refusals.contradictions". A wallet holding the log under "signing" MUST sign a person operation over the resolution there exactly when "sign" is true: only over a resolution of its identity whose head_digest is the head of that log. Refusal reasons of the verifier are not normative; admission reasons are. All keys here are published test keys.',
   format: IDENTITY_LOG_FORMAT, withdrawn_format: WITHDRAWN_IDENTITY_LOG_FORMAT, attestation_domain: HEAD_ATTESTATION_DOMAIN, rehome_domain: 'DTP-IDENTITY-REHOME-1', lease_ms: LEASE_MS, clock_margin_ms: CLOCK_MARGIN_MS,
   refusal_domain: REHOME_REFUSAL_DOMAIN, push_format: IDENTITY_LOG_PUSH_FORMAT, push_ack_format: IDENTITY_LOG_PUSH_ACK_FORMAT,
-  keys: labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })),
+  keys: [...labels.map(label => ({ label, key_id: k[label].keyId, secret_key: k[label].secretKey })), ...boundLabels.map((label, i) => ({ label, key_id: bound[i].keyId, secret_key: bound[i].secretKey }))],
   accept: await Promise.all(accept.map(async ([why, log, require_attestation]) => {
     const v = await verifyIdentityLog(clone(log), { require_attestation });
     return { why, require_attestation, log, expect: { identity_id: v.identity_id, genesis_digest: v.genesis_digest, resolver: v.resolver, resolvers: v.resolvers,

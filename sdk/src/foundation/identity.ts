@@ -75,10 +75,13 @@ function array(value: unknown, min: number, max: number): asserts value is unkno
     need(field && 'value' in field && field.enumerable, 'array data fields required');
   }
 }
-function key(key: string) { need(typeof key === 'string' && key.length <= 64, 'invalid key'); decodeKeyId(key); }
+/** Core-1 part 4 (#218): the fixed bounds of an identity document. A verifier has no option to change them, and
+ *  signIdentity refuses what they refuse. */
+export const IDENTITY_BOUNDS = Object.freeze({ signing_input_bytes: 16_384, signatures: 24, keys_per_set: 8, key_id_length: 64, signature_text: 128 });
+function key(key: string) { need(typeof key === 'string' && key.length <= IDENTITY_BOUNDS.key_id_length, 'invalid key'); decodeKeyId(key); }
 function keySet(value: KeySet) {
   object(value, ['keys', 'threshold']);
-  array(value.keys, 1, 8);
+  array(value.keys, 1, IDENTITY_BOUNDS.keys_per_set);
   need(value.keys.every(k => typeof k === 'string'), '1-8 keys required');
   need(Object.keys(value.keys).length === value.keys.length && new Set(value.keys).size === value.keys.length, 'unique dense keys required');
   value.keys.forEach(key); need(Number.isSafeInteger(value.threshold) && value.threshold >= 1 && value.threshold <= value.keys.length, 'invalid quorum');
@@ -86,19 +89,21 @@ function keySet(value: KeySet) {
 function sets(operational: KeySet, recovery: KeySet) { keySet(operational); keySet(recovery); need(!operational.keys.some(k => recovery.keys.includes(k)), 'operational and recovery keys must be separate'); }
 async function verified<T>(signed: Signed<T>, domain: string) {
   object(signed, ['body', 'signatures']);
-  array(signed.signatures, 1, 24);
-  const bytes = canonicalBytes({domain, body:signed.body}); need(bytes.length <= 16_384, 'identity payload too large');
+  array(signed.signatures, 1, IDENTITY_BOUNDS.signatures);
+  const bytes = canonicalBytes({domain, body:signed.body}); need(bytes.length <= IDENTITY_BOUNDS.signing_input_bytes, 'identity payload too large');
   const result = new Set<string>();
   for (const signature of signed.signatures) {
     object(signature, ['key_id', 'signature']); key(signature.key_id);
-    need(typeof signature.signature === 'string' && signature.signature.length <= 128 && !result.has(signature.key_id), 'invalid duplicate signature');
+    need(typeof signature.signature === 'string' && signature.signature.length <= IDENTITY_BOUNDS.signature_text && !result.has(signature.key_id), 'invalid duplicate signature');
     need(await verifyBytes(signature.key_id, bytes, decodeSignature(signature.signature)), 'invalid signature'); result.add(signature.key_id);
   }
   return result;
 }
 function quorum(keys: KeySet, signers: Set<string>) { need(keys.keys.filter(k => signers.has(k)).length >= keys.threshold, 'quorum required'); }
 export async function signIdentity<T>(domain: 'DTP-PERSON-GENESIS-1' | 'DTP-IDENTITY-TRANSITION-1' | 'DTP-IDENTITY-RESOLUTION-1' | 'DTP-IDENTITY-ENROLLMENT-1' | 'DTP-IDENTITY-REHOME-1', body: T, keys: KeyPair[]): Promise<Signed<T>> {
+  need(Array.isArray(keys) && keys.length >= 1 && keys.length <= IDENTITY_BOUNDS.signatures, `1 to ${IDENTITY_BOUNDS.signatures} keys sign`);
   const copied = structuredClone(body), bytes = canonicalBytes({domain, body:copied});
+  need(bytes.length <= IDENTITY_BOUNDS.signing_input_bytes, 'identity payload too large');
   return {body:copied, signatures:await Promise.all(keys.map(async k => ({key_id:k.keyId,signature:encodeSignature(await signBytes(k.secretKey,bytes))})))};
 }
 /** Owner consent to a specific resolver, separate from host-independent genesis. */

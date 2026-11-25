@@ -42,7 +42,15 @@ signing input = canonical({ "domain": <domain>, "body": <body> })
 
 The **domain** names what the body is and its format version, such as `DTP-PERSON-GENESIS-1`. Domains are permanent: a domain never changes meaning, and a new format is a new domain. It is never derived from a software release number. A verifier knows from context which domain to expect and never takes it from the message. Several signatures over the same input express a threshold. A verifier refuses the whole envelope, with one of two codes: `invalid_signature` when a signature is malformed or does not verify, and `invalid_envelope` for anything else, including a body that is not the JSON of part 1 (a number that is not a safe integer, or a lone surrogate in a string), which cannot be canonicalized. This is the foundation layer's form today, close to JWS general serialization and COSE_Sign.
 
-The Core-1 domains are those of parts 4 and 5. A verifier implements only those. Reference: `sdk/src/core1/envelope.ts` (`signEnvelope`, `verifyEnvelope`, `meetsQuorum`, `CORE1_DOMAINS`). Vectors: `spec/core-1/vectors/envelope.json` (regenerate with `node sdk/scripts/build-core1-envelope-vectors.ts`).
+An envelope has three fixed size and count bounds. A verifier applies exactly these and has no option to change them, so whether an envelope is valid depends on its bytes alone (proposed on #218, as #149 fixed the depth bound):
+
+- **The signing input is at most 65,536 bytes**: the canonical `{ domain, body }` in UTF-8.
+- **An envelope carries 1 to 24 signatures.**
+- **A signature text is at most 128 characters**, checked before it is decoded, so a longer one is `invalid_envelope`, not `invalid_signature`.
+
+An envelope that breaks a bound is `invalid_envelope`. A signer refuses to produce one, as it refuses anything else a verifier refuses.
+
+The Core-1 domains are those of parts 4 and 5. A verifier implements only those. Reference: `sdk/src/core1/envelope.ts` (`signEnvelope`, `verifyEnvelope`, `meetsQuorum`, `CORE1_DOMAINS`). Vectors: `spec/core-1/vectors/envelope.json`, including each bound and one past it (regenerate with `node sdk/scripts/build-core1-envelope-vectors.ts`).
 
 ### 4. Identity
 
@@ -50,6 +58,7 @@ One identity scheme for people and one for organisations: the foundation layer's
 
 - **Person.** A genesis (`DTP-PERSON-GENESIS-1`) declares separate operational and recovery key sets, each with a threshold, every key proving possession. Transitions (`DTP-IDENTITY-TRANSITION-1`) rotate operational keys under the operational quorum, recover under the recovery quorum, and change recovery policy under the old recovery quorum; each binds the prior digest and the next sequence. Moving to another host is owner-signed (`DTP-IDENTITY-REHOME-1`). The whole history travels as a **portable identity log** anyone can verify from the genesis forward ([docs/foundation/identity-log.md](../../docs/foundation/identity-log.md)).
 - **Organisation.** A genesis (`DTP-ORGANIZATION-GENESIS-1`) commits to its founder and its initial governance (controllers and threshold); governance changes (`DTP-ORGANIZATION-TRANSITION-1`) are signed by the current controllers, with each added controller's consent (`DTP-ORGANIZATION-CONSENT-1`). The governance history is a log of the same kind.
+- **Bounds.** An identity document (a genesis, transition, rehome, enrollment or resolution) is an envelope of part 3 with tighter fixed bounds: its signing input is at most 16,384 bytes, it carries 1 to 24 signatures, each operational or recovery key set holds 1 to 8 keys with a threshold from 1 to the number of keys, and a key id is at most 64 characters. A log holding a document that breaks one is refused as a whole, the identity log's refusal (proposed on #218). The signer refuses to produce one. `spec/vectors/identity-log.json` pins the key-set and signature-count bounds, at each bound and one past it.
 - **Fewer options.** A host MUST attest every head it serves (`DTP-IDENTITY-LOG-HEAD-1`). A relying party MUST keep the last log it admitted for an identity and compare a newer one against it; that is how a fork is detected. One log format (`dtp-identity-log-2`); format 1 is withdrawn before release.
 
 An identity is not a verified legal person. It is self-certifying control over keys.

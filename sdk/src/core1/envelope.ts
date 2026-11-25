@@ -49,6 +49,12 @@ const exactly = (value: Record<string, unknown>, members: string[], what: string
 
 /** Core-1 part 1: a signed body nests at most this many levels. The body itself is level 0; each array or object adds one. */
 export const MAX_DEPTH = 48;
+/** Core-1 part 3: the signing input, canonical({ domain, body }) in UTF-8, is at most this many bytes. Fixed, not an option (#218). */
+export const MAX_SIGNING_INPUT_BYTES = 65_536;
+/** Core-1 part 3: an envelope carries 1 to this many signatures. Fixed, not an option (#218). */
+export const MAX_SIGNATURES = 24;
+/** Core-1 part 3: a signature text is at most this many characters, checked before it is decoded (#218). */
+export const MAX_SIGNATURE_TEXT = 128;
 
 /**
  * Refuses a body that nests deeper than MAX_DEPTH, without recursion, so the answer depends on the value alone and never
@@ -82,15 +88,17 @@ export function signingInput(domain: string, body: unknown): Uint8Array {
 }
 
 /**
- * Signs `body` under `domain` with each secret key, in order. Refuses a body a receiver would refuse (a member
- * name that needs an escape, a number that is not a safe integer), so nothing unverifiable is ever produced.
+ * Signs `body` under `domain` with each secret key, in order. Refuses whatever a receiver would refuse (a member
+ * name that needs an escape, a number that is not a safe integer, a depth above MAX_DEPTH, a signing input above
+ * MAX_SIGNING_INPUT_BYTES, more than MAX_SIGNATURES keys), so nothing unverifiable is ever produced.
  */
 export async function signEnvelope<T>(domain: string, body: T, secretKeys: string[]): Promise<Signed<T>> {
-  if (!Array.isArray(secretKeys) || secretKeys.length === 0) refuse("at least one key signs");
+  if (!Array.isArray(secretKeys) || secretKeys.length === 0 || secretKeys.length > MAX_SIGNATURES) refuse(`1 to ${MAX_SIGNATURES} keys sign`);
   assertDepth(body);
   const copied = structuredClone(body);
   assertSafeMemberNames(copied);
   const bytes = signingInput(domain, copied);
+  if (bytes.length > MAX_SIGNING_INPUT_BYTES) refuse(`the signing input exceeds ${MAX_SIGNING_INPUT_BYTES} bytes`);
   const signatures: Signature[] = [];
   for (const secret of secretKeys) {
     const pair = await keyPairFromSecret(secret);
@@ -103,29 +111,32 @@ export async function signEnvelope<T>(domain: string, body: T, secretKeys: strin
 /**
  * Verifies an envelope under the domain the caller expects. Returns the key ids that signed. Refuses the whole
  * envelope, rather than ignoring a part, if it has any other member, if a signature entry has any other member, if a
- * key signs twice, if any signature fails strict Ed25519 verification, if the signing input exceeds `maxBytes`, if the
- * body nests deeper than MAX_DEPTH levels (checked first, before canonicalization), or if the body is not I-JSON (a number that is not a safe integer, or a lone surrogate in a string). Every refusal is an
+ * key signs twice, if any signature fails strict Ed25519 verification, if it carries no signature or more than
+ * MAX_SIGNATURES, if a signature text is longer than MAX_SIGNATURE_TEXT, if the signing input exceeds
+ * MAX_SIGNING_INPUT_BYTES, if the body nests deeper than MAX_DEPTH levels (checked first, before canonicalization), or
+ * if the body is not I-JSON (a number that is not a safe integer, or a lone surrogate in a string). The bounds are
+ * Core-1's, not the caller's (#218): whether an envelope is valid depends on its bytes alone. Every refusal is an
  * EnvelopeError: a body that cannot be canonicalized is `invalid_envelope`, never a canonicalization error.
  */
-export async function verifyEnvelope<T = unknown>(domain: string, signed: unknown, { maxBytes = 65_536, maxSignatures = 24 } = {}): Promise<{ body: T; signers: Set<string> }> {
+export async function verifyEnvelope<T = unknown>(domain: string, signed: unknown): Promise<{ body: T; signers: Set<string> }> {
   if (!isObject(signed)) refuse("an envelope is an object");
   const envelope = signed as Record<string, unknown>;
   exactly(envelope, ["body", "signatures"], "an envelope");
   const list = envelope.signatures;
-  if (!Array.isArray(list) || list.length === 0 || list.length > maxSignatures) refuse(`an envelope carries 1 to ${maxSignatures} signatures`);
+  if (!Array.isArray(list) || list.length === 0 || list.length > MAX_SIGNATURES) refuse(`an envelope carries 1 to ${MAX_SIGNATURES} signatures`);
   assertDepth(envelope.body);
   let bytes: Uint8Array;
   try { bytes = signingInput(domain, envelope.body); } catch (error) {
     if (error instanceof FloatNotAllowedError || error instanceof CanonicalizationError) refuse(`the body is not I-JSON: ${error.message}`);
     throw error;
   }
-  if (bytes.length > maxBytes) refuse(`the signing input exceeds ${maxBytes} bytes`);
+  if (bytes.length > MAX_SIGNING_INPUT_BYTES) refuse(`the signing input exceeds ${MAX_SIGNING_INPUT_BYTES} bytes`);
   const signers = new Set<string>();
   for (const entry of list as unknown[]) {
     if (!isObject(entry)) refuse("a signature entry is an object");
     const s = entry as Record<string, unknown>;
     exactly(s, ["key_id", "signature"], "a signature entry");
-    if (typeof s.key_id !== "string" || typeof s.signature !== "string" || s.signature.length > 128) refuse("a signature entry holds a key id and a signature");
+    if (typeof s.key_id !== "string" || typeof s.signature !== "string" || s.signature.length > MAX_SIGNATURE_TEXT) refuse("a signature entry holds a key id and a signature");
     const keyId = s.key_id as string;
     try { decodeKeyId(keyId); } catch { refuse(`not a key id: ${keyId}`); }
     if (signers.has(keyId)) refuse(`${keyId} signs twice`);
